@@ -1,0 +1,32 @@
+---
+# Default variables for the IBM Spectrum Scale (GPFS) Graphical User Interface (GUI) role -
+# either edit this file or define your own variables to override the defaults
+
+## Specify the URL of the (existing) Spectrum Scale ZIMon YUM repository
+## (copy the contents of /usr/lpp/mmfs/.../zimon_rpms/rhel7 to build your repository)
+scale_install_zimon_repository_url: http://infraserv/zimon_rpms/
+
+## Note that if this is a URL then a new repository definition will be created.
+## If this variable is set to 'existing' then it is assumed that a repository
+## definition already exists and thus will *not* be created.
+
+## Specify the Spectrum Scale architecture that you want to install on your nodes
+scale_architecture: "{{ ansible_architecture }}"
+
+## List of RPMs to install on GUI collector nodes
+scale_collector_rpms:
+  - gpfs.gss.pmcollector-{{ scale_rpmversion }}.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}
+
+## List of RPMs to install on all nodes
+scale_sensors_rpms:
+  - gpfs.gss.pmsensors-{{ scale_rpmversion }}.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}
+
+## Node's default GUI collector role -
+## you'll likely want to define per-node roles in your inventory
+scale_zimon_collector: false
+
+## To Enabled output from Ansible task in stdout and stderr for some tasks.
+## Run the playbook with -vv
+
+## Compute RPM version from Spectrum Scale version
+scale_rpmversion: "{{ scale_version | regex_replace('^([0-9.]+)\\.([0-9])$', '\\1-\\2') }}"

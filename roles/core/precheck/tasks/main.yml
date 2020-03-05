@@ -1,0 +1,5 @@
+---
+# Precheck IBM Spectrum Scale (GPFS)
+
+- import_tasks: prepare.yml
+  tags: prepare

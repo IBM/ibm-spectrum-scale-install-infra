@@ -1,0 +1,3 @@
+{% for host in groups['scale_nodeclass_' + current_nodeclass] | sort %}
+{{ hostvars[host].scale_daemon_nodename }}
+{% endfor %}

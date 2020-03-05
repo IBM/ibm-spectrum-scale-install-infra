@@ -1,0 +1,128 @@
+---
+# Configure GUI service and performance collection
+
+# Make default variables available in hostvars
+- name: cluster | Set default zimon collector role
+  set_fact:
+    scale_zimon_collector: "{{ scale_zimon_collector }}"
+  when: hostvars[inventory_hostname].scale_zimon_collector is undefined
+
+- name: cluster | Set default zimon collector role if GUI node is defined
+  set_fact:
+    scale_zimon_collector: "{{ scale_cluster_gui }}"
+  when: (scale_cluster_gui is defined and scale_cluster_gui | bool)
+
+#
+# Inspect inventory
+#
+- name: configure | Find zimon collector nodes
+  add_host:
+    name: "{{ item }}"
+    groups: scale_zimon_collectors
+  when:
+     - hostvars[item].scale_zimon_collector is defined
+     - (hostvars[item].scale_zimon_collector | bool) or (hostvars[item].scale_cluster_gui is defined and hostvars[item].scale_cluster_gui | bool)
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+- name: cluster | check if zimon is enabled
+  set_fact:
+    scale_cluster_zimon: true
+  when:
+     - (hostvars[item].scale_cluster_gui is defined and
+       (true in ansible_play_hosts | map('extract', hostvars, 'scale_cluster_gui') | map('bool') | list)) or
+       (hostvars[item].scale_zimon_collector is defined and
+       (true in ansible_play_hosts | map('extract', hostvars, 'scale_zimon_collector') | map('bool') | list))
+  with_items: "{{ ansible_play_hosts }}"
+  run_once: true
+  delegate_facts: true
+
+- block:
+    #
+    # Configure performance collection
+    #
+    - name: configure | Check if initialize performance collection is already configured.
+      shell: "/usr/lpp/mmfs/bin/mmperfmon config show | grep colCandidates"
+      register: scale_zimon_conf_pmcollector_check
+      failed_when: false
+      changed_when: false
+
+    - name: configure | Check if initialize performance collection is already configured - Output stdout
+      debug:
+        msg: "{{ scale_zimon_conf_pmcollector_check.stdout }}"
+        verbosity: 2
+
+    - name: configure | Check if initialize performance collection is already configured - Output stderr
+      debug:
+        msg: "{{ scale_zimon_conf_pmcollector_check.stderr }}"
+        verbosity: 2
+
+    #TODO: added a check for output, but are having problems using the ( collector_nodes | join(',') ) to use when adding nodes.
+    - name: configure | Initialize performance collection
+      vars:
+        collector_nodes: "{{ groups['scale_zimon_collectors'] | list }}"
+      command: /usr/lpp/mmfs/bin/mmperfmon config generate --collectors {{ collector_nodes | join(',') }}
+      register: scale_zimon_conf_pmcollector
+      when:
+        - " 'mmperfmon: There is no performance monitoring configuration data.' in scale_zimon_conf_pmcollector_check.stderr"
+    #- " ( collector_nodes | join(',') ) not in scale_zimon_conf_pmcollector_check.stdout"
+
+    - name: configure | update performace collection for new node
+      vars:
+        collector_nodes_new: "{{ groups['scale_zimon_collectors'] | list }}"
+      command: /usr/lpp/mmfs/bin/mmperfmon config update --collectors "{{ collector_nodes_new | join(',') }}"
+      register: scale_zimon_update_pmcollector
+      when:
+        - " 'colCandidates =' in scale_zimon_conf_pmcollector_check.stdout"
+
+  when: scale_cluster_zimon | bool
+  run_once: true
+
+#
+# PM sensors - all host will now have Performance Monitoring installed and configured.
+#
+- name: configure | Check before enable nodes for performance collection #TODO: Only checks first node for perfmon.
+  vars:
+    sensor_nodes: "{{ ansible_play_hosts | list }}"
+  shell: "/usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterNode |grep {{ sensor_nodes | first }} | cut -d ':' -f 14"
+  register: scale_zimon_conf_perfmon_check
+  run_once: true
+  failed_when: false
+  changed_when: false
+
+- name: configure | Check before enable nodes for performance collection - Output stdout
+  run_once: true
+  debug:
+    msg: "{{ scale_zimon_conf_perfmon_check.stdout }}"
+    verbosity: 2
+
+- name: configure | Enable nodes for performance collection #TODO discuss: should it be dependent on scale_zimon_collector?
+  vars:
+    sensor_nodes: "{{ ansible_play_hosts | list }}"
+  command: /usr/lpp/mmfs/bin/mmchnode --perfmon -N {{ sensor_nodes | join(',') }}
+  register: scale_zimon_conf_enable_node_perfmon
+  run_once: true
+  ignore_errors: yes
+  failed_when: "scale_zimon_conf_enable_node_perfmon.rc != 0 and 'Propagating the cluster configuration data to all affected nodes.' not in scale_zimon_conf_enable_node_perfmon.stdout"
+  when:
+    - scale_cluster_zimon | bool
+    - " 'perfmon' not in scale_zimon_conf_perfmon_check.stdout"
+
+#
+# Start and enable PMCollector and PM Sensors.
+#
+
+- name: configure | Start and enable collector service
+  systemd:
+    name: pmcollector
+    state: started
+    enabled: true
+  when: scale_zimon_collector | bool
+
+- name: configure | Start and enable sensors service
+  systemd:
+    name: pmsensors
+    state: started
+    enabled: true
+  when: scale_zimon_collector | bool
+  #TODO check: don't know what to check if the init is already run

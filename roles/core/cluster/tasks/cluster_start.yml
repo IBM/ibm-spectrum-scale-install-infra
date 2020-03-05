@@ -1,0 +1,40 @@
+---
+# Start daemons and finalize node roles
+
+#
+# Start daemon on new nodes (candidates)
+#
+- name: cluster | Start daemons
+  command: /usr/lpp/mmfs/bin/mmstartup -N localhost
+  #when: 'scale_cluster_candidates' in group_names  ## only start new nodes
+  when: not scale_daemon_running  ## start all nodes
+  notify: wait-daemon-active
+
+- meta: flush_handlers
+
+#
+# Change node roles of existing cluster members
+#
+- block:  ## when: groups['scale_cluster_members'] is defined
+    - name: cluster | Prepare existing cluster ChangeFile
+      template:
+        src: ChangeFile.j2
+        dest: /var/tmp/ChangeFile
+      register: scale_storage_changefile
+
+    - block:  ## when: scale_storage_changefile is changed
+        - name: cluster | Accept server license for quorum nodes
+          vars:
+            quorum_nodes: "{{ groups['scale_cluster_quorum_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
+          command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N {{ quorum_nodes | join(',') }}
+
+        - name: cluster | Change roles of existing nodes
+          command: /usr/lpp/mmfs/bin/mmchnode -S /var/tmp/ChangeFile
+          notify: accept-licenses
+
+      when: scale_storage_changefile is changed
+  when: groups['scale_cluster_members'] is defined
+  run_once: true
+  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+
+- meta: flush_handlers

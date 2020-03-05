@@ -1,0 +1,21 @@
+---
+# Variables for the IBM Spectrum Scale (GPFS) role -
+# these variables are *not* meant to be overridden
+
+
+## Minimum Spectrum Scale version that this role was tested with
+scale_minversion: 4.1.1
+
+## Compute RPM version from Spectrum Scale version
+scale_rpmversion: "{{ scale_version | regex_replace('^([0-9.]+)\\.([0-9])$', '\\1-\\2') }}"
+
+## Supported package managers
+scale_pkg_mgr:
+  - yum
+  - dnf
+
+## Remember if RPMs were updated or not
+scale_install_updated: false
+
+## Remember if config params were changed or not
+scale_config_changed: false
