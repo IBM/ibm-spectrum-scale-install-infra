@@ -1,0 +1,52 @@
+---
+#
+# Configure E-mail notifications in Spectrum Scale GUI
+#
+
+- name: EMAIL | Check if e-mail notifications is allready enabled
+  command: /usr/lpp/mmfs/gui/cli/lsemailserver
+  register: scale_gui_conf_email_notifications_check
+  run_once: true
+  failed_when: false
+  changed_when: false
+
+- name: EMAIL | Check if e-mail notifications is allready enabled - Output
+  run_once: true
+  debug:
+    msg: "{{ scale_gui_conf_email_notifications_check.stdout }}"
+    verbosity: 2
+
+- name: EMAIL | Configure E-Mail notifications
+  command: /usr/lpp/mmfs/gui/cli/mkemailserver "{{ scale_gui_email.name }}" --address "{{ scale_gui_email.ipaddress }}" --port "{{ scale_gui_email.ipport }}" --reply "{{ scale_gui_email.replay_email_address }}" --contact "{{ scale_gui_email.contact_name }}" --subject "{{ scale_gui_email.subject }}"  --login "{{ scale_gui_email.sender_login_id }}" --password "{{ scale_gui_email.password }}" --header "{{ scale_gui_email.headertext | default() }}" --footer "{{ scale_gui_email.footertext | default() }}"
+  register: scale_gui_conf_email_notifications
+  run_once: true
+  failed_when: " 'EFSSG1000I' not in scale_gui_conf_email_notifications.stdout"
+  ignore_errors: yes
+  when:
+    - " 'EFSSG0100I' in scale_gui_conf_email_notifications_check.stdout or scale_gui_email.name not in scale_gui_conf_email_notifications_check.stdout"
+
+#
+# Configure E-mail recipients in Spectrum Scale GUI
+#
+- name: EMAIL | Recipients - Check if E-mail recipients is allready created
+  shell: /usr/lpp/mmfs/gui/cli/lsemailuser -Y | grep -v HEADER | cut -d ':' -f 7
+  register: scale_gui_conf_email_recipient_check
+  run_once: true
+  failed_when: false
+  changed_when: false
+
+- name: EMAIL | Recipients - Check if e-mail recipients is allready created - Output
+  run_once: true
+  debug:
+    msg: "{{ scale_gui_conf_email_recipient_check.stdout }}"
+    verbosity: 2
+
+- name: EMAIL | Recipients - Add E-mail recipients
+  command: /usr/lpp/mmfs/gui/cli/mkemailuser "{{ scale_gui_email_recipients.name }}" --address "{{ scale_gui_email_recipients.address }}" --components "{{ scale_gui_email_recipients.components_security_level }}" --reports "{{ scale_gui_email_recipients.reports }}" "{{ scale_gui_email_recipients.quotaNotification }}" --quotathreshold "{{ scale_gui_email_recipients.quotathreshold }}"
+  register: scale_gui_conf_email_recipient
+  run_once: true
+  failed_when: " 'EFSSG1000I' not in scale_gui_conf_email_recipient.stdout"
+  ignore_errors: yes
+  when:
+    - scale_gui_email_recipients.name is defined
+    - "  ( scale_gui_email_recipients.name ) not in scale_gui_conf_email_recipient_check.stdout"

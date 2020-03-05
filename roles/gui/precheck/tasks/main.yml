@@ -1,0 +1,4 @@
+---
+# Install and configure IBM Spectrum Scale (GPFS) Graphical User Interface (GUI)
+- import_tasks: inventory_check.yml
+  tags: always

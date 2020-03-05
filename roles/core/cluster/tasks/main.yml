@@ -1,0 +1,17 @@
+---
+# Configure IBM Spectrum Scale (GPFS)
+
+- import_tasks: cluster.yml
+  tags: cluster
+
+- import_tasks: config.yml
+  tags: config
+
+- import_tasks: cluster_start.yml
+  tags: cluster
+
+- import_tasks: storage.yml
+  tags: storage
+
+- import_tasks: finalize.yml
+  tags: always

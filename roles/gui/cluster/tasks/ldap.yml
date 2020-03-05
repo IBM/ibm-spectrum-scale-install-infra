@@ -1,0 +1,154 @@
+---
+#
+# Install and configure LDAP User authenticate for Spectrum Scale GUI
+#
+
+- name: LDAP | Check if GUI is allready ldap integrated.
+  shell: /usr/lpp/mmfs/gui/cli/lsldap -filter
+  register: scale_gui_conf_lsldap
+  run_once: true
+  failed_when: false
+  changed_when: false
+
+- name: LDAP | Check if GUI is allready ldap integrated - Output
+  run_once: true
+  debug:
+    msg: "{{ scale_gui_conf_lsldap.stdout.split('\n') }}"
+    verbosity: 2
+
+- name: LDAP | Integrate GUI with LDAP
+  shell: |
+    /usr/lpp/mmfs/gui/cli/mkldap "{{ scale_gui_ldap.name }}" --host "{{ scale_gui_ldap.host }}" --bindDn "{{ scale_gui_ldap.bindDn }}" --bindPassword "{{ scale_gui_ldap.bindPassword }}" --baseDn "{{ scale_gui_ldap.baseDn }}" --port "{{ scale_gui_ldap.port | default(389) }}" --type "{{ scale_gui_ldap.type | default('Microsoft Active Directory') }}"
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  ignore_errors: yes
+  no_log: false
+  when:
+    - scale_gui_ldap_secure.keystore is not defined
+    - " 'EFSSG0100I' in scale_gui_conf_lsldap.stdout "
+
+- name: LDAP | Secure LDAP Integrate GUI #TODO Not tested
+  shell: |
+    /usr/lpp/mmfs/gui/cli/mkldap "{{ scale_gui_ldap.name }}" --host "{{ scale_gui_ldap.host }}" --bindDn "{{ scale_gui.ldap.bindDn }}" --bindPassword "{{ scale_gui.ldap.bindPassword }}" --baseDn "{{ scale_gui_ldap.baseDn }}" --port "{{ scale_gui_ldap.secureport | default(636) }}" --type "{{ scale_gui_ldap.type | default(Microsoft Active Directory) }}" --keystore "{{ scale_gui_ldap.securekeystore }}"
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  ignore_errors: yes
+  #no_log: true
+  when:
+    - scale_gui_ldap_secure.keystore is defined
+    - " 'EFSSG0100I' in scale_gui_conf_lsldap.stdout "
+
+#
+# Configure LDAP Groups to security roles for Spectrum Scale GUI
+#
+- name: LDAP | Check if GUI have created user groups and roles for LDAP
+  shell: /usr/lpp/mmfs/gui/cli/lsusergrp -Y | grep -v HEADER |cut -d ':' -f 7
+  register: scale_gui_conf_lsusergrp
+  failed_when: false
+  changed_when: false
+  run_once: true
+
+
+- name: LDAP | Check if GUI have created user groups and roles for LDAP - output
+  run_once: true
+  debug:
+    msg: "{{ scale_gui_conf_lsusergrp.stdout.split('\n') }}"
+    verbosity: 2
+
+- name: LDAP | Map roles to LDAP groups - Role administrator
+  command: '/usr/lpp/mmfs/gui/cli/mkusergrp "{{ scale_gui_groups.administrator }}" --role admin'
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  register: scale_gui_ldap_role_mapping_administrator
+  failed_when: " 'EFSSG1000I' not in scale_gui_ldap_role_mapping_administrator.stdout"
+  ignore_errors: yes
+  when:
+    - scale_gui_groups.administrator is defined
+    - " scale_gui_groups.administrator not in scale_gui_conf_lsusergrp.stdout"
+
+- name: LDAP | Map roles to LDAP groups - Role UserAdmin
+  command: '/usr/lpp/mmfs/gui/cli/mkusergrp "{{ scale_gui_groups.useradmin }}" --role useradmin'
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  register: scale_gui_ldap_role_mapping_useradmin
+  failed_when: " 'EFSSG1000I' not in scale_gui_ldap_role_mapping_useradmin.stdout"
+  ignore_errors: yes
+  when:
+    - scale_gui_groups.useradmin is defined
+    - " scale_gui_groups.useradmin not in scale_gui_conf_lsusergrp.stdout"
+
+- name: LDAP | Map roles to LDAP groups - Role Securityadmin
+  command: '/usr/lpp/mmfs/gui/cli/mkusergrp "{{ scale_gui_groups.securityadmin }}" --role securityadmin'
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  register: scale_gui_ldap_role_mapping_securityadmin
+  failed_when: " 'EFSSG1000I' not in scale_gui_ldap_role_mapping_securityadmin.stdout"
+  ignore_errors: yes
+  when:
+    - scale_gui_groups.securityadmin is defined
+    - " scale_gui_groups.securityadmin not in scale_gui_conf_lsusergrp.stdout"
+
+- name: ldap | Map roles to LDAP groups - Role Storageadmin
+  command: '/usr/lpp/mmfs/gui/cli/mkusergrp "{{ scale_gui_groups.storageadmin }}" --role storageadmin'
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  register: scale_gui_ldap_role_mapping_storageadmin
+  failed_when: " 'EFSSG1000I' not in scale_gui_ldap_role_mapping_storageadmin.stdout"
+  ignore_errors: yes
+  when:
+    - scale_gui_groups.storageadmin is defined
+    - " scale_gui_groups.storageadmin not in scale_gui_conf_lsusergrp.stdout"
+
+- name: LDAP | Map roles to LDAP groups - Role SnapAdmin
+  command: '/usr/lpp/mmfs/gui/cli/mkusergrp "{{ scale_gui_groups.snapadmin }}" --role snapadmin'
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  register: scale_gui_ldap_role_mapping_snapadmin
+  failed_when: " 'EFSSG1000I' not in scale_gui_ldap_role_mapping_snapadmin.stdout"
+  ignore_errors: yes
+  when:
+    - scale_gui_groups.snapadmin is defined
+    - " scale_gui_groups.snapadmin not in scale_gui_conf_lsusergrp.stdout"
+
+- name: LDAP | Map roles to LDAP groups - Role Data Access
+  command: '/usr/lpp/mmfs/gui/cli/mkusergrp "{{ scale_gui_groups.data_access }}" --role dataaccess'
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  register: scale_gui_ldap_role_mapping_data_access
+  failed_when: " 'EFSSG1000I' not in scale_gui_ldap_role_mapping_data_access.stdout"
+  ignore_errors: yes
+  when:
+    - scale_gui_groups.data_access is defined
+    - " scale_gui_groups.data_access not in scale_gui_conf_lsusergrp.stdout"
+
+- name: LDAP | Map roles to LDAP groups - Role Monitor
+  command: '/usr/lpp/mmfs/gui/cli/mkusergrp "{{ scale_gui_groups.monitor }}" --role monitor'
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  register: scale_gui_ldap_role_mapping_monitor
+  failed_when: " 'EFSSG1000I' not in scale_gui_ldap_role_mapping_monitor.stdout"
+  ignore_errors: yes
+  when:
+    - scale_gui_groups.monitor is defined
+    - " scale_gui_groups.monitor not in scale_gui_conf_lsusergrp.stdout"
+
+- name: LDAP | Map roles to LDAP groups - Role ProtocolAdmin
+  command: '/usr/lpp/mmfs/gui/cli/mkusergrp "{{ scale_gui_groups.protocoladmin }}" --role ProtocolAdmin'
+  environment:
+    JAVA_HOME: /usr/lpp/mmfs/java/jre
+  run_once: true
+  register: scale_gui_ldap_role_mapping_protocoladmin
+  failed_when: " 'EFSSG1000I' not in scale_gui_ldap_role_mapping_protocoladmin.stdout"
+  ignore_errors: yes
+  when:
+    - scale_gui_groups.protocoladmin is defined
+    - " scale_gui_groups.protocoladmin not in scale_gui_conf_lsusergrp.stdout"

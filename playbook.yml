@@ -1,0 +1,17 @@
+---
+- hosts: cluster01
+  vars:
+    - scale_version: 5.0.4.0
+    - scale_install_localpkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
+  roles:
+     - core/precheck
+     - core/node
+     - core/cluster
+     - gui/precheck
+     - gui/node
+     - gui/cluster
+     - gui/postcheck
+     - zimon/precheck
+     - zimon/node
+     - zimon/cluster
+     - zimon/postcheck

@@ -1,0 +1,54 @@
+---
+# Default variables for the IBM Spectrum Scale (GPFS) cluster role -
+# either edit this file or define your own variables to override the defaults
+
+
+## Specify the Spectrum Scale version that you want to install on your nodes
+#scale_version: 4.1.1.0
+
+
+## Specify the URL of the (existing) Spectrum Scale YUM repository
+## (copy the contents of /usr/lpp/mmfs/.../gpfs_rpms to build your repository)
+#scale_install_repository_url: http://infraserv/gpfs_rpms/
+## Note that if this is a URL then a new repository definition will be created.
+## If this variable is set to 'existing' then it is assumed that a repository
+## definition already exists and thus will *not* be created.
+
+## Specify the path to Spectrum Scale installation package on the remote system
+## (accessible on Ansible managed node)
+#scale_install_remotepkg_path: /path/to/Spectrum_Scale_Standard-{{ scale_version }}-{{ ansible_architecture }}-Linux-install
+
+## Specify the path to Spectrum Scale installation package on the local system
+## (accessible on Ansible control machine) - it will be copied to your nodes
+#scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-{{ scale_version }}-{{ ansible_architecture }}-Linux-install
+
+## Default cluster name
+scale_cluster_clustername: gpfs1.local
+
+## Node's default quorum role -
+## you'll likely want to define per-node roles in your inventory
+##
+## If you don't specify any quorum nodes then the first seven hosts in your
+## inventory will automatically be assigned the quorum role, even if this
+## variable is 'false'
+scale_cluster_quorum: false
+
+## Node's default manager role -
+## you'll likely want to define per-node roles in your inventory
+scale_cluster_manager: false
+
+
+## Default filesystem parameters -
+## can be overridden for each filesystem individually
+scale_storage_filesystem_defaults:
+  blockSize: 1M
+  defaultMetadataReplicas: 1
+  defaultDataReplicas: 1
+  numNodes: 32
+  automaticMountOption: false
+  ## defaultMountPoint will be this prefix, followed by the filesystem name
+  defaultMountPoint_prefix: /mnt/
+  ## Overwrite existing NSDs - if set to 'true' then disks will *not* be checked
+  ## for an existing NSD header (dangerous!)
+  overwriteNSDs: false
+# defaults file for node

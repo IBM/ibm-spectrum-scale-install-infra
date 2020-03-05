@@ -1,0 +1,43 @@
+---
+#
+# Inspect inventory
+#
+- name: SNMP | Find collector nodes
+  add_host:
+    name: "{{ item }}"
+    groups: scale_gui_collectors
+  when: hostvars[item].scale_cluster_gui | bool
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+#
+# Configure SNMP notifications in Spectrum Scale GUI
+#
+
+- name: SNMP | Check if SNMP notifications is allready enabled
+  command: /usr/lpp/mmfs/gui/cli/lssnmpserver
+  vars:
+    collector_nodes: "{{ groups['scale_gui_collectors'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
+  register: scale_gui_conf_snmp_notifications_check
+  run_once: true
+  failed_when: false
+  changed_when: false
+
+- name: SNMP | Check if SNMP notifications is allready enabled - Output
+  vars:
+    collector_nodes: "{{ groups['scale_gui_collectors'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
+  run_once: true
+  debug:
+    msg: "{{ scale_gui_conf_snmp_notifications_check.stdout.split('\n') }}"
+    verbosity: 2
+
+- name: SNMP | Configure SNMP notifications
+  vars:
+    collector_nodes: "{{ groups['scale_gui_collectors'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
+  command: /usr/lpp/mmfs/gui/cli/mksnmpserver SNMP_1 --ip "{{ scale_gui_snmp_server.ip_adress }}" --port "{{ scale_gui_snmp_server.ip_port }}" --community "{{ scale_gui_snmp_server.community }}"
+  register: scale_gui_conf_snmp_notifications
+  run_once: true
+  failed_when: " 'EFSSG1000I' not in scale_gui_conf_snmp_notifications.stdout"
+  ignore_errors: yes
+  when:
+    - " 'EFSSG0100I' in scale_gui_conf_snmp_notifications_check.stdout"

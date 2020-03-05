@@ -1,0 +1,51 @@
+---
+# Configure IBM Spectrum Scale (GPFS) Graphical User Interface (GUI)
+
+- import_tasks: configure.yml
+  when:
+    - scale_cluster_gui | bool
+  tags: configure
+
+- import_tasks: chpasswdpolicy.yml
+  when:
+    - scale_cluster_gui | bool
+    - scale_gui_password_policy_change | bool
+  tags: chpasswdpolicy
+
+- import_tasks: users.yml
+  when:
+    - scale_cluster_gui | bool
+    - scale_gui_admin_user is defined
+    - scale_gui_admin_hc_vault_user is not defined
+  tags: users
+
+- import_tasks: ldap.yml
+  when:
+    - scale_cluster_gui | bool
+    - scale_gui_ldap_integration | bool
+  tags: ldap
+
+- import_tasks: email.yml
+  when:
+    - scale_cluster_gui | bool
+    - scale_gui_email_notification | bool
+  tags: email
+
+- import_tasks: snmp.yml
+  when:
+    - scale_cluster_gui | bool
+    - scale_gui_snmp_notification | bool
+  tags: snmp
+
+- import_tasks: hasi_vault_user.yml
+  when:
+    - scale_cluster_gui | bool
+    - scale_gui_admin_hc_vault_user is defined
+    - scale_gui_admin_user is not defined
+  tags: hasivaultuser
+
+- import_tasks: hasi_vault_certificate.yml
+  when:
+    - scale_cluster_gui | bool
+    - scale_gui_cert_hc_vault | bool
+  tags: hasivaultcertificate

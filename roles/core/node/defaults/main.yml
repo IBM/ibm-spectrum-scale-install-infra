@@ -1,0 +1,74 @@
+---
+# Default variables for the IBM Spectrum Scale (GPFS) role -
+# either edit this file or define your own variables to override the defaults
+
+
+## Specify the Spectrum Scale version that you want to install on your nodes
+#scale_version: 4.1.1.0
+
+
+## Specify the URL of the (existing) Spectrum Scale YUM repository
+## (copy the contents of /usr/lpp/mmfs/.../gpfs_rpms to build your repository)
+#scale_install_repository_url: http://infraserv/gpfs_rpms/
+## Note that if this is a URL then a new repository definition will be created.
+## If this variable is set to 'existing' then it is assumed that a repository
+## definition already exists and thus will *not* be created.
+
+## Specify the path to Spectrum Scale installation package on the remote system
+## (accessible on Ansible managed node)
+#scale_install_remotepkg_path: /path/to/Spectrum_Scale_Standard-{{ scale_version }}-{{ ansible_architecture }}-Linux-install
+
+## Specify the path to Spectrum Scale installation package on the local system
+## (accessible on Ansible control machine) - it will be copied to your nodes
+#scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-{{ scale_version }}-{{ ansible_architecture }}-Linux-install
+
+
+## Specify the Spectrum Scale architecture that you want to install on your nodes
+scale_architecture: "{{ ansible_architecture }}"
+
+## Temporary directory to copy installation package to
+## (local package installation method)
+scale_install_localpkg_tmpdir_path: /tmp
+
+## List of GPFS RPMs to install
+scale_install_gpfs_rpms:
+  - gpfs.base
+  - gpfs.docs
+  - gpfs.msg.en_US
+  - gpfs.compression
+  # Appropriate gpfs.gskit version will be installed automatically
+
+## List of GPFS RPMs to install (prior to version 5.0.2.0)
+scale_install_add_rpms_pre502:
+  - gpfs.ext
+
+## List of GPFS RPMs to install for building Linux kernel extension from source
+scale_install_gplsrc_rpms:
+  - gpfs.gpl
+
+
+## Define this variable to install Linux kernel extension from pre-built RPM
+## (instead of building it from source)
+#scale_install_gplbin_rpm: gpfs.gplbin-{{ ansible_kernel }}-{{ scale_rpmversion }}
+
+## Note that required RPM can be built with `mmbuildgpl --build-package`
+
+## Specify the URL of the (existing) YUM repository from which to install
+## pre-built Linux kernel extension RPM
+#scale_install_gplbin_repository_url: http://infraserv/gplbin_rpms/
+
+## List of RPMs to install when installing Linux kernel extension
+## from pre-built RPM
+scale_install_gplbin_prereqs:
+  - glibc-devel
+
+## List of RPMs to install when building Linux kernel extension from source
+scale_build_gplsrc_prereqs:
+  - gcc-c++
+  - kernel-devel
+  - make
+
+## List of RPMs to install specific to rhel8 when building Linux kernel extension from source
+scale_build_gplsrc_el8_prereqs:
+  - elfutils
+  - elfutils-devel
