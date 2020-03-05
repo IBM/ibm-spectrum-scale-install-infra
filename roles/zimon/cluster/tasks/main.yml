@@ -1,0 +1,5 @@
+---
+# Configure IBM Spectrum Scale (GPFS) zimon
+
+- import_tasks: configure.yml
+  tags: configure

@@ -1,0 +1,8 @@
+---
+# Install and configure IBM Spectrum Scale (GPFS)
+
+- import_tasks: install.yml
+  tags: install
+
+- import_tasks: build.yml
+  tags: build

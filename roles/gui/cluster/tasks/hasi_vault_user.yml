@@ -1,0 +1,29 @@
+---
+#
+# Integrate of HasiCorp - Vault.
+#
+# Create local GUI admin user and get and write password to Vault
+#
+- name: hasi_vault_user | Hasicorp Vault - Local admin users - Check if local admin user is allready created
+  shell: /usr/lpp/mmfs/gui/cli/lsuser -Y | grep -v HEADER | cut -d ':' -f 7
+  register: scale_gui_vault_admin_check
+  run_once: true
+  failed_when: false
+  changed_when: false
+
+- name: hasi_vault_user | Hasicorp Vault - Local admin users - Check if local admin user is allready created - output
+  run_once: true
+  debug:
+    msg: "{{ scale_gui_vault_admin_check.stdout.split('\n') }}"
+    verbosity: 2
+
+## Computed.Name is used to determine the provisioned environment
+-
+- name: hasi_vault_user | Hasicorp Vault - Create local admin user and write password to Vault
+  shell: |
+    vault kv put secret/private/{{ computed.name | default(AdminGUI) }}/gui gui_admin_pwd=$(vault write -field='value' gen/password length=12 symbols=0)
+    /usr/lpp/mmfs/gui/cli/mkuser "{{ scale_gui_admin_hc_vault_user }}" -g "{{ scale_gui_admin_hc_vault_role }}" -p $(vault kv get -field='gui_admin_pwd' secret/private/{{ computed.name | default(AdminGUI) }}/gui)
+  run_once: True
+  ignore_errors: yes
+  when:
+    - " ( scale_gui_admin_hc_vault_user ) not in scale_gui_vault_admin_check.stdout"

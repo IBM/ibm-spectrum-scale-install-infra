@@ -1,0 +1,187 @@
+---
+# Remote package installation method
+
+- name: install | Stat remote installation package
+  stat:
+    path: "{{ scale_install_remotepkg_path }}"
+  register: scale_install_remotepkg
+
+- name: install | Check remote installation package
+  assert:
+    that: scale_install_remotepkg.stat.exists
+    msg: >-
+      Please set the variable 'scale_install_remotepkg_path' to point to the
+      remote installation package (accessible on Ansible managed node)!
+
+#
+# Optionally, verify package checksum
+#
+- name: install | Stat checksum file
+  stat:
+    path: "{{ scale_install_remotepkg_path }}.md5"
+  register: scale_install_md5_file
+
+- block:  ## when: scale_install_md5_file.stat.exists
+    - name: install | Read checksum from file
+      slurp:
+        src: "{{ scale_install_remotepkg_path }}.md5"
+      register: scale_install_md5_sum
+
+    - name: install | Compare checksums
+      vars:
+        md5sum: "{{ scale_install_md5_sum.content | b64decode }}"
+      assert:
+        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.md5
+        msg: >-
+          Checksums don't match. Please check integritiy of your remote
+          installation package!
+  when: scale_install_md5_file.stat.exists
+
+#
+# Extract installation package
+#
+- name: install | Stat extracted packages
+  stat:
+    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Make installation package executable
+  file:
+    path: "{{ scale_install_remotepkg_path }}"
+    mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+- name: install | Extract installation package
+  command: "{{ scale_install_remotepkg_path + ' --silent' }}"
+  args:
+    creates: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+
+- name: install | Stat extracted packages
+  stat:
+    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs_rpmdir.stat.exists
+      - scale_install_gpfs_rpmdir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      remote installation package!
+
+#
+# Find GPFS BASE
+#
+- name: install | Find GPFS BASE (gpfs.base) RPM
+  find:
+    paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
+    patterns: gpfs.base-*.{{ scale_architecture }}.rpm
+  register: scale_install_gpfs_base
+
+- name: install | Check valid GPFS BASE (gpfs.base) RPM
+  assert:
+    that: scale_install_gpfs_base.matched > 0
+    msg: >-
+      No GPFS BASE (gpfs.base) RPM found:
+      /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.base-*.{{ scale_architecture }}.rpm
+
+#
+# Find GPFS gpfs.docs
+#
+- name: install | Find GPFS docs (gpfs.docs) RPM
+  find:
+    paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
+    patterns: gpfs.docs-*.noarch.rpm
+  register: scale_install_gpfs_doc
+
+- name: install | Check valid GPFS docs (gpfs.docs) RPM
+  assert:
+    that: scale_install_gpfs_doc.matched > 0
+    msg: >-
+      No GPFS docs (gpfs.docs) RPM found:
+      /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.docs-*.noarch.rpm
+
+#
+# Find GPFS gpfs.msg.en_US
+#
+- name: install | Find gpfs.msg.en_US (gpfs.msg.en_US) RPM
+  find:
+    paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
+    patterns: gpfs.msg.en_US-*.noarch.rpm
+  register: scale_install_gpfs_msg
+
+- name: install | Check valid GPFS (gpfs.msg.en_US) RPM
+  assert:
+    that: scale_install_gpfs_msg.matched > 0
+    msg: >-
+      No GPFS BASE (gpfs.base) RPM found:
+      /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.msg.en_US-*.noarch.rpm
+
+#
+# Find GPFS gpfs.compression
+#
+- name: install | Find GPFS Compression (gpfs.compression) RPM
+  find:
+    paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
+    patterns: gpfs.compression-*.{{ scale_architecture }}.rpm
+  register: scale_install_gpfs_compression
+
+- name: install | Check valid GPFS Compression(gpfs.compression) RPM
+  assert:
+    that: scale_install_gpfs_compression.matched > 0
+    msg: >-
+      No GPFS Compression (gpfs.compression) RPM found:
+      /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.compression-*.{{ scale_architecture }}.rpm
+
+
+#
+# Find GSKit
+#
+- name: install | Find Global Security Kit (GSKit) RPM
+  find:
+    paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
+    patterns: gpfs.gskit-*.{{ scale_architecture }}.rpm
+  register: scale_install_gpfs_gskit
+
+- name: install | Check valid Global Security Kit (GSKit) RPM
+  assert:
+    that: scale_install_gpfs_gskit.matched > 0
+    msg: >-
+      No Global Security Kit (GSKit) RPM found:
+      /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.gskit-*.{{ scale_architecture }}.rpm
+
+#
+# Add GPFS RPMs
+#
+- name: install | Add GPFS RPMs to list
+  vars:
+    current_rpm: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/{{ item }}.rpm
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  with_items:
+    - "{{ scale_install_gpfs_base.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+    - "{{ scale_install_gpfs_doc.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+    - "{{ scale_install_gpfs_msg.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+    - "{{ scale_install_gpfs_gskit.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+    - "{{ scale_install_gpfs_compression.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+
+- name: install | Add GPFS RPMs to list (prior to version 5.0.2.0)
+  vars:
+    current_rpm: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/{{ item }}.rpm
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  with_items:
+    - "{{ scale_install_add_rpms_pre502 }}"
+  when: scale_version is version_compare('5.0.2', '<=')
+
+#
+# Add GPFS RPMs for building GPL module from source
+#
+- name: install | Add GPFS RPMs for building GPL module from source to list
+  vars:
+    current_rpm: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/{{ item }}.rpm
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  when: scale_install_gplbin_rpm is undefined
+  with_items: "{{ scale_install_gplsrc_rpms }}"

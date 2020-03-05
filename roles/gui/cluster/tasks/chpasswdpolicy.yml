@@ -1,0 +1,10 @@
+---
+#
+# Change Default GUI User Password Policy
+# Password Policy shown here only effects internal GUI users only
+
+- name: chpasswdpolicy | Change default password Policy
+  shell: /usr/lpp/mmfs/gui/cli/chpasswordpolicy  --minLength "{{ scale_gui_password_policy_minLength | default(6) }}" --maxAge "{{ scale_gui_password_policy_maxAge | default(90) }}" --minAge "{{ scale_gui_password_policy_minAge | default(0) }}" --remember "{{ scale_gui_password_policy_remember | default(3) }}" --minUpperChars "{{ scale_gui_password_policy_minUpperChars | default(0) }}" --minLowerChars "{{ scale_gui_password_policy_minLowerChars | default(0) }}" --minSpecialChars "{{ scale_gui_password_policy_minSpecialChars | default(0) }}" --minDigits "{{ scale_gui_password_policy_minDigits | default(0) }}" --maxRepeat "{{ scale_gui_password_policy_maxRepeat | default(0) }}" --minDiff "{{ scale_gui_password_policy_minDiff | default(1) }}" "{{ scale_gui_password_policy_rejectOrAllowUserName | default('--rejectUserName') }}"
+  register: scale_gui_conf_password_policy
+  failed_when: " 'EFSSG1000I' not in scale_gui_conf_password_policy.stdout"
+  run_once: true

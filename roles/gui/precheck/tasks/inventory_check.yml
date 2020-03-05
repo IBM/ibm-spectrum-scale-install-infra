@@ -1,0 +1,70 @@
+---
+
+- name: configure | check gui node
+  add_host:
+    name: "{{ hostvars[item]['ansible_fqdn'] }}"
+    groups: scale_gui_nodes
+  when:
+     - hostvars[item].scale_cluster_gui is defined
+     - (hostvars[item].scale_cluster_gui is defined and hostvars[item].scale_cluster_gui | bool)
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+- name: cluster | check if gui is enabled
+  set_fact:
+    scale_cluster_gui_node: true
+  when:
+     - (hostvars[item].scale_cluster_gui is defined and
+       (true in ansible_play_hosts | map('extract', hostvars, 'scale_cluster_gui') | map('bool') | list))
+  with_items: "{{ ansible_play_hosts }}"
+  run_once: true
+  delegate_facts: true
+
+- name: config | Find existing gui nodes
+  shell: set -o pipefail && mmlsnodeclass GUI_MGMT_SERVERS -Y |grep -v HEADER | cut -d ':' -f 10
+  register: scale_config_existing_guinode
+  changed_when: false
+  failed_when: false
+  run_once: true
+
+- debug:
+      msg: "{{ scale_config_existing_guinode.cmd }}"
+  run_once: true
+
+- block:
+   - name: precheck | initialize existing gui nodes
+     set_fact:
+       inventory_gui_nodes: "{{ groups['scale_gui_nodes'] | list }}"
+       existing_gui_nodes: "{{ scale_config_existing_guinode.stdout.split(',') }}"
+     when:
+       - scale_config_existing_guinode.stdout_lines | length > 0
+
+   - name: precheck | initialize existing gui and inventory gui nodes
+     set_fact:
+       gui_merged: "{{ (inventory_gui_nodes + existing_gui_nodes) | unique }}"
+     when:
+       - (inventory_gui_nodes is defined and inventory_gui_nodes | length > 0)
+       - (existing_gui_nodes is defined and existing_gui_nodes | length >0)
+
+   - name: precheck | Check number of gui nodes in inventory if existing gui node found
+     assert:
+      that:
+        - "{{ gui_merged | length <= 3 }}"
+      msg: >-
+        The maximum number of GUI servers is 3. There is an existing gui node found in this cluster.
+        Please keep maximum 3 gui node as true in the inventory.
+     when:
+       - gui_merged is defined and gui_merged | length > 0
+
+  when: (scale_config_existing_guinode.stdout_lines | length > 0) and
+        (scale_cluster_gui_node is defined and scale_cluster_gui_node | bool)
+  run_once: true
+
+- block:
+  - name: precheck | Check number of gui nodes in inventory
+    assert:
+     that:
+     - "{{ groups['scale_gui_nodes'] | length <= 3 }}"
+     fail_msg: "The maximum number of GUI servers is 3. Please keep maximum 3 gui node as true in the inventory."
+    when: ( scale_cluster_gui_node is defined and scale_cluster_gui_node | bool )
+  run_once: true

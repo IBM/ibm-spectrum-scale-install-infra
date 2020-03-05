@@ -1,0 +1,4 @@
+{% for host in ansible_play_hosts | sort %}
+{{ hostvars[host].scale_daemon_nodename }} --{% if hostvars[host].scale_cluster_quorum | bool %}quorum{% else %}nonquorum{% endif %} --{% if hostvars[host].scale_cluster_manager | bool %}manager{% else %}client{% endif %}
+
+{% endfor %}

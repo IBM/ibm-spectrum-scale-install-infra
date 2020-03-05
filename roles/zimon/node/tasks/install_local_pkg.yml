@@ -1,0 +1,162 @@
+---
+# Local package installation method
+
+- block:  ## run_once: true
+    - name: install | Stat local installation package
+      stat:
+        path: "{{ scale_install_localpkg_path }}"
+      register: scale_install_localpkg
+
+    - name: install | Check local installation package
+      assert:
+        that: scale_install_localpkg.stat.exists
+        msg: >-
+          Please set the variable 'scale_install_localpkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+#
+# Optionally, verify package checksum
+#
+    - name: install | Stat checksum file
+      stat:
+        path: "{{ scale_install_localpkg_path }}.md5"
+      register: scale_install_md5_file
+
+    - block:  ## when: scale_install_md5_file.stat.exists
+        - name: install | Read checksum from file
+          set_fact:
+            scale_install_md5_sum: "{{ lookup('file', scale_install_localpkg_path + '.md5') }}"
+
+        - name: install | Compare checksums
+          assert:
+            that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.md5
+            msg: >-
+              Checksums don't match. Please check integritiy of your local
+              installation package!
+      when: scale_install_md5_file.stat.exists
+  run_once: true
+  delegate_to: localhost
+
+#
+# Copy installation package
+#
+- name: install | Stat extracted packages
+  stat:
+    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+  register: scale_install_gpfs_rpmdir
+
+- block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
+    - name: install | Stat temporary directory
+      stat:
+        path: "{{ scale_install_localpkg_tmpdir_path }}"
+      register: scale_install_localpkg_tmpdir
+
+    - name: install | Check temporary directory
+      assert:
+        that:
+          - scale_install_localpkg_tmpdir.stat.exists
+          - scale_install_localpkg_tmpdir.stat.isdir
+        msg: >-
+          Please set the variable 'scale_install_localpkg_tmpdir_path' to point
+          to a temporary directory on the remote system!
+    - name: install | Copy installation package to node
+      copy:
+        src: "{{ scale_install_localpkg_path }}"
+        dest: "{{ scale_install_localpkg_tmpdir_path }}"
+        mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+#
+# Extract installation package
+#
+- name: install | Extract installation package
+  vars:
+    localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+  command: "{{ localpkg + ' --silent' }}"
+  args:
+    creates: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+
+- name: install | Stat extracted packages
+  stat:
+    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs_rpmdir.stat.exists
+      - scale_install_gpfs_rpmdir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      local installation package!
+#
+# Delete installation package
+#
+- name: install | Delete installation package from node
+  file:
+    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+    state: absent
+
+
+- name: install | zimon path
+  set_fact:
+    zimon_url: 'zimon_rpms/rhel7/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+
+- name: install | zimon path
+  set_fact:
+    zimon_url: 'zimon_rpms/rhel8/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+
+#
+# Find Zimon collector
+#
+- block:  ## when: host is defined as a gui node
+    #
+    # Find GPFS gpfs.collector
+    #
+    - name: install | Find gpfs.collector (gpfs.collector) RPM
+      find:
+        paths: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}
+        patterns: gpfs.gss.pmcollector-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+      register: scale_install_gpfs_collector
+
+    - name: install | Check valid GPFS (gpfs.collector) RPM
+      assert:
+        that: scale_install_gpfs_collector.matched > 0
+        msg: >-
+          No GPFS collector (gpfs.gss.collector) RPM found:
+          /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}gpfs.gss.pmcollector-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+
+    - name: install | Add GPFS zimon collector RPMs to list
+      vars:
+        current_rpm: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}{{ item }}.rpm
+      set_fact:
+        scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+      with_items:
+        - "{{ scale_install_gpfs_collector.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+
+  when: (scale_zimon_collector | bool) or (scale_cluster_gui | bool) 
+
+#
+# Find GPFS gpfs.gss.pmsensors
+#
+- name: install | Find gpfs.gss.pmsensors (gpfs.gss.pmsensors) RPM
+  find:
+    paths: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}
+    patterns: gpfs.gss.pmsensors-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+  register: scale_install_gpfs_pmsensors
+
+- name: install | Check valid GPFS (gpfs.gss.pmsensors) RPM
+  assert:
+    that: scale_install_gpfs_pmsensors.matched > 0
+    msg: >-
+      No GPFS pmsensors (gpfs.gss.pmsensors) RPM found:
+      /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}gpfs.gss.pmsensors-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+
+- name: install | Add GPFS zimon sensors RPMs to list
+  vars:
+    current_rpm: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}{{ item }}.rpm
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  with_items:
+    - "{{ scale_install_gpfs_pmsensors.files.0.path | basename | regex_replace('\\.rpm$', '') }}"

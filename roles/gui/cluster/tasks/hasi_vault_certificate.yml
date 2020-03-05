@@ -1,0 +1,61 @@
+---
+#
+# Generation and Import of GUI Certificate from Hasicorp Vault. You need to have Vault configured
+#
+# Inspect existing cluster and inventory
+#
+- name: hasi_vault_certificate  | Find existing cluster
+  shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterSummary | cut -d ':' -f 7
+  register: scale_gui_scale_clustername
+  run_once: True
+  changed_when: false
+  failed_when: false
+
+- name: hasi_vault_certificate | Verify if GUI have allready imported GUI certficate
+  shell: /usr/lpp/mmfs/gui/cli/lshttpskeystore -c {{ scale_gui_scale_cluster_clustername.stdout }}
+  register: scale_gui_certificate_lshttpskeystore_verify
+  run_once: True
+  changed_when: false
+  ignore_errors: yes
+
+- name: hasi_vault_certificate | Verify if GUI have allready imported GUI certficate - output
+  run_once: True
+  debug:
+    msg: "{{ scale_gui_certificate_lshttpskeystore_verify.stdout }}"
+    verbosity: 2
+
+# GUI needs to be initialized.
+- block:
+    - name: hasi_vault_certificate | Cleanup existing GUI key's
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /etc/ssl/certs/scale_gui.p12
+        - /opt/ibm/wlp/usr/servers/gpfsgui/resources/security/scale_gui.jks
+      run_once: True
+      ignore_errors: yes
+
+    - name: hasi_vault_certificate | Request Vault TLS certificate for GUI
+      shell: |
+        vault write pki/issue/pki common_name=$(hostname -f) ttl=80h format=pem -format=json > /tmp/certs.json
+        jq -r '.data.certificate' /tmp/certs.json > /etc/ssl/certs/guicert.crt
+        jq -r '.data.private_key' /tmp/certs.json > /etc/ssl/certs/guikey.key
+        export PKCS_PWD=$(vault write -field='value' gen/password length=12 symbols=0)
+        vault kv put secret/private/{{ computed.name }}/tls tls_pkcs_pwd=$PKCS_PWD
+      run_once: True
+      ignore_errors: yes
+
+    - name: hasi_vault_certificate | Update TLS Certificate in GUI Keystors
+      shell: |
+        export PKCS_PWD=$(vault kv get -field='tls_pkcs_pwd' secret/private/{{ computed.name }}/tls)
+        openssl pkcs12 -export -in /etc/ssl/certs/guicert.crt -inkey /etc/ssl/certs/guikey.key -out /etc/ssl/certs/scale_gui.p12 -password pass:$PKCS_PWD
+        /usr/lpp/mmfs/java/jre/bin/keytool -importkeystore -srckeystore /etc/ssl/certs/scale_gui.p12 -destkeystore /opt/ibm/wlp/usr/servers/gpfsgui/resources/security/scale_gui.jks -srcstoretype pkcs12 -deststorepass $PKCS_PWD -srcstorepass $PKCS_PWD -noprompt
+        export ENCODED_SCALE_PWD=$(/opt/ibm/wlp/bin/securityUtility encode $PKCS_PWD)
+        /usr/lpp/mmfs/gui/cli/sethttpskeystore /opt/ibm/wlp/usr/servers/gpfsgui/resources/security/scale_gui.jks --password $ENCODED_SCALE_PWD -c {{ scale_gui_scale_clustername.stdout }}
+      environment:
+        JAVA_HOME: /usr/lpp/mmfs/java/jre
+      run_once: True
+      ignore_errors: yes
+  when:
+    - " 'defaultKeyStore' not in scale_gui_certificate_lshttpskeystore_verify.stdout"
