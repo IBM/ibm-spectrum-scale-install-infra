@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  role_name: gui_precheck
+  author: IBM Corporation
+  description: Role for installing and configuring IBM Spectrum Scale (GPFS) Graphical User Interface (GUI)
+  company: IBM
+  license: Apache-2.0
+  min_ansible_version: 2.8
+
+  platforms:
+    - name: EL
+      versions:
+        - 7
+        - 8
+
+  galaxy_tags:
+    - ibm
+    - spectrum
+    - scale
+    - gpfs
+    - graphical
+    - interface
+    - gui
+
+dependencies:
+  - core/common

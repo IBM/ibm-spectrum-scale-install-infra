@@ -1,0 +1,132 @@
+---
+## Node's default GUI collector role -
+## you'll likely want to define per-node roles in your inventory
+scale_cluster_gui: false
+
+## To Enabled output from Ansible task in stdout and stderr for some tasks.
+## Run the playbook with -vv
+
+# Hide the Callhome not enabled
+scale_gui_hide_tip_callhome: false
+
+## Compute RPM version from Spectrum Scale version
+scale_rpmversion: "{{ scale_version | regex_replace('^([0-9.]+)\\.([0-9])$', '\\1-\\2') }}"
+
+
+##------------------------------GUI_USERS--------------------------------
+
+## Default Spectrum Scale GUI Admin.
+## you'll likely want to define per-node roles in your inventory
+## For Secure environment, Store you password in Ansible Vault or Hasicorp Vault.
+
+#scale_gui_admin_user: "admin"
+#scale_gui_admin_password:
+#scale_gui_admin_role: "SecurityAdmin,SystemAdmin"
+
+## Ekstra Spectrum Scale GUI user. example: Monitor or RestAPI.
+#scale_gui_user_username: 'SEC'
+#scale_gui_user_role: 'SystemAdmin'
+#scale_gui_user_password: 'Storage@Scale1'  #password policy
+
+## HasiCorp - Create local Admin user with password from vault
+#scale_gui_admin_hc_vault_user: "admin"
+#scale_gui_admin_hc_vault_role: "SecurityAdmin,SystemAdmin"
+
+
+##------------------------------GUI_Password_Policy--------------------------------
+
+
+## Change Default GUI User Password Policy
+## Change what you need in your inventory files and rest wil use default
+
+scale_gui_password_policy_change: false
+#scale_gui_password_policy:
+#  minLength: '6' ## Minimum password length
+#  maxAge: '90'   ## Maximum password age
+#  minAge: '0'    ## Minimum password age
+#  remember: '3'  ## Remember old passwords
+#  minUpperChars: '0'   ## Minimum upper case characters
+#  minLowerChars: '0'   ## Minimum lower case characters
+#  minSpecialChars: '0' ## Minimum special case characters
+#  minDigits: '0'   ## Minimum digits
+#  maxRepeat: '0'   ## Maximum number of repeat characters
+#  minDiff: '1'     ## Minimum different characters with respect to old password
+#  rejectOrAllowUserName: '--rejectUserName'  ## either  '--rejectUserName' or '--allowUserName'
+
+
+##-------------------------ldap_integration-------------------------------------
+
+
+## Enable Active Directory Integration og GUI
+scale_gui_ldap_integration: false
+
+## Active Directory information for Managing GUI users in an external AD or LDAP server
+## you'll likely want to define in your inventory
+#scale_gui_ldap:
+  #name: 'myad'
+  #host: 'myad.mydomain.local'
+  #bindDn: 'CN=servicebind,CN=Users,DC=mydomain,DC=local'
+  #bindPassword: 'password'
+  #baseDn: 'CN=Users,DC=mydomain,DC=local'
+  #port: '389' #Default 389
+  #type: 'ad' #Default Microsoft Active Directory
+  #securekeystore: /tmp/ad.jks #Local on GUI Node
+  #secureport: '636' #Default 636
+
+## Default Mapping of Active Directory Groups to Security Groups:
+## You'll likely want to define in your host inventory
+#scale_gui_groups:
+#  administrator: 'scale-admin'
+#  securityadmin: 'scale-administrator'
+#  storageadmin: 'scale-storage-administrator'
+#  snapadmin: 'scale-snapshot-administrator'
+#  data_access: 'scale-data-access'
+#  monitor: 'scale-monitor'
+#  protocoladmin: 'scale-protocoladmin'
+#  useradmin: 'scale-useradmin'
+
+##-----------------------------E-Mail-notification---------------------------------
+
+## Enable E-mail notifications in Spectrum Scale GUI
+scale_gui_email_notification: false
+
+## Parameters for configure E-Mail notification
+#scale_gui_email:
+#  name: 'SMTP_1' #Mandatory
+#  ipaddress: 'emailserverhost'  ## Mandatory
+#  ipport: '25'            ## Mandatory
+#  replay_email_address: "scale-server-test@acme.com" ## Mandatory
+#  contact_name: 'scale-contact-person'  ## Mandatory
+#  subject: "&cluster&message"   ## Variables:  &message &messageId &severity &dateAndTime &cluster&component
+#  sender_login_id:
+#  password:
+#  headertext:
+#  footertext:
+
+
+## Parameters for configure E-Mail recipients
+#scale_gui_email_recipients:
+#  name: 'acme_email_recipient_name'
+#  address: 'email_recipient_address@acme.com'
+#  components_security_level: 'SCALEMGMT=WARNING,CESNETWORK=WARNING'
+#  reports: 'DISK,GPFS,AUTH'
+#  quotaNotification: '--quotaNotification'
+#  quotathreshold: '70.0'
+
+
+##----------------------------SNMP Notification----------------------------------
+
+## Enable SNMP notifications in Spectrum Scale GUI
+scale_gui_snmp_notification: false
+
+## Parameters for configure SNMP notification
+#scale_gui_snmp_server:
+#  ip_adress: '10.33.3.13'
+#  ip_port: '162'
+#  community: 'Public'
+
+##------------------HasiCorp - https Certificate import---------------------------
+
+## Generate https Certificate from HasiCorp Vault and import it to Scale GUI.
+## The Scale host need to be included in HC Vault and the Ansible playbook need to have the computed.name variables, normaly the playbook is then run from Terraform.
+scale_gui_cert_hc_vault: false

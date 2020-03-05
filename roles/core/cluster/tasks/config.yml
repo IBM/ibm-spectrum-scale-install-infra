@@ -1,0 +1,94 @@
+---
+# Define nodeclasses and configuration parameters
+
+#
+# Inspect existing nodeclasses, config params and inventory
+#
+- name: config | Group hosts by defined nodeclasses
+  group_by:
+    key: scale_nodeclass_{{ item }}
+  when: scale_nodeclass is defined
+  with_items: "{{ scale_nodeclass }}"
+
+- name: config | Initialize undefined variables
+  set_fact:
+    scale_config: []
+  when: scale_config is undefined
+
+- block:  ## run_once: true
+    - name: config | Find existing nodeclasses
+      shell: /usr/lpp/mmfs/bin/mmlsnodeclass --user -Y | grep -v HEADER | cut -d ':' -f 7
+      register: scale_config_existing_nodeclasses
+      changed_when: false
+      failed_when: false
+
+    - name: config | Find existing configuration parameters
+      shell: /usr/lpp/mmfs/bin/mmlsconfig -Y | grep -v HEADER
+      register: scale_config_existing_params
+      changed_when: false
+      failed_when: false
+
+    - name: config | Find defined nodeclasses
+      set_fact:
+        scale_config_nodeclasses: "{{ scale_config_nodeclasses | default([]) + [ item ] }}"
+      with_items: "{{ groups | select('match', '^scale_nodeclass_.*') | list }}"
+
+    - name: config | Prepare NodeClass files
+      vars:
+        current_nodeclass: "{{ item | regex_replace('^scale_nodeclass_', '') }}"
+      template:
+        src: NodeClass.j2
+        dest: /var/tmp/NodeClass.{{ current_nodeclass }}
+      register: scale_config_nodeclassfile
+      with_items: "{{ scale_config_nodeclasses | default([]) }}"
+
+#
+# Create new nodeclasses
+#
+    - name: config | Create new nodeclasses
+      vars:
+        current_nodeclass: "{{ item.item | regex_replace('^scale_nodeclass_', '') }}"
+      command: /usr/lpp/mmfs/bin/mmcrnodeclass {{ current_nodeclass }} -N /var/tmp/NodeClass.{{ current_nodeclass }}
+      when:
+        - not current_nodeclass in scale_config_existing_nodeclasses.stdout_lines
+        - item is changed
+        - item.size > 1
+      with_items: "{{ scale_config_nodeclassfile.results }}"
+
+#
+# Replace existing nodeclasses
+#
+    - name: config | Replace existing nodeclasses
+      vars:
+        current_nodeclass: "{{ item.item | regex_replace('^scale_nodeclass_', '') }}"
+      command: /usr/lpp/mmfs/bin/mmchnodeclass {{ current_nodeclass }} replace -N /var/tmp/NodeClass.{{ current_nodeclass }}
+      when:
+        - current_nodeclass in scale_config_existing_nodeclasses.stdout_lines
+        - item is changed
+        - item.size > 1
+      with_items: "{{ scale_config_nodeclassfile.results }}"
+
+#
+# Apply config params
+#
+    - name: config | Apply defined configuration parameters
+      vars:
+        current_key: "{{ item.1.keys() | list | first }}"
+        current_value: "{{ item.1[current_key] | string | regex_replace('True', 'yes') | regex_replace('False', 'no') }}"
+        current_nodeclass: "{{ item.0.nodeclass }}"
+      command: /usr/lpp/mmfs/bin/mmchconfig {{ current_key }}={{ current_value }} -N {{ current_nodeclass }}
+      register: scale_config_changed_params
+      when:
+        not scale_config_existing_params.stdout | lower is
+          search(':' + current_key | lower + ':' + current_value | lower + ':(.+,)?' + current_nodeclass | lower | regex_replace('all', '') + '(,.+)?:')
+      with_subelements:
+        - "{{ ansible_play_hosts | map('extract', hostvars, 'scale_config') | sum(start=[]) | unique }}"
+        - params
+
+    - name: config | Check if configuration parameters were changed
+      set_fact:
+        scale_config_changed: true
+      when:
+        - true in scale_config_changed_params.results | map(attribute='changed') | list
+        - true in ansible_play_hosts | map('extract', hostvars, 'scale_daemon_running') | list
+  run_once: true

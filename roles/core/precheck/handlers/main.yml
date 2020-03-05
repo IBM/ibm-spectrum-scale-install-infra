@@ -1,0 +1,33 @@
+---
+# Handlers for the IBM Spectrum Scale (GPFS) role
+
+- name: reload-sshd
+  service:
+    name: sshd
+    state: reloaded
+
+- name: reboot-manual
+  fail:
+    msg: >-
+      A server reboot is required!
+  listen: reboot
+  when: not scale_reboot_automatic
+
+- name: reboot-automatic
+  shell: sleep 2 && shutdown -r now "Ansible reboot"
+  listen: reboot
+  notify: wait-for-server
+  when: scale_reboot_automatic
+  async: 1
+  poll: 0
+  ignore_errors: true
+
+- name: wait-for-server
+  wait_for:
+    host: "{{ ansible_default_ipv4.address }}"
+    port: 22
+    state: started
+    delay: 45
+    timeout: 300
+  delegate_to: localhost
+# handlers file for precheck

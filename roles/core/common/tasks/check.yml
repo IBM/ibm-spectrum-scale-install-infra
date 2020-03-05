@@ -1,0 +1,33 @@
+---
+# Sanity check of configuration variables
+
+- name: check | Check Spectrum Scale version
+  assert:
+    that:
+      - scale_version is defined
+      - scale_version is version_compare(scale_minversion, '>=')
+    msg: >-
+      Please set the variable 'scale_version' to the correct version
+      (minimum: {{ scale_minversion }})!
+
+- name: check | Check package manager
+  assert:
+    that: ansible_pkg_mgr in scale_pkg_mgr
+    msg: >-
+      This system uses an unsupported package manager ({{ ansible_pkg_mgr }})!
+
+- name: check | Count daemon processes
+  command: pgrep mmfsd
+  register: scale_daemon_procs
+  changed_when: false
+  failed_when: false
+
+- name: check | Check if daemon is running
+  set_fact:
+    scale_daemon_running: "{{ true if scale_daemon_procs.rc == 0 else false }}"
+
+# Make default variables available in hostvars
+- name: check | Set default daemon nodename
+  set_fact:
+    scale_daemon_nodename: "{{ scale_daemon_nodename }}"
+  when: hostvars[inventory_hostname].scale_daemon_nodename is undefined

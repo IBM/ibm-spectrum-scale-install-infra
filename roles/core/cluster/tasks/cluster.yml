@@ -1,0 +1,119 @@
+---
+# Create cluster with nodes
+
+# Make default variables available in hostvars
+- name: cluster | Set default quorum role
+  set_fact:
+    scale_cluster_quorum: "{{ scale_cluster_quorum }}"
+  when: hostvars[inventory_hostname].scale_cluster_quorum is undefined
+
+- name: cluster | Set default manager role
+  set_fact:
+    scale_cluster_manager: "{{ scale_cluster_manager }}"
+  when: hostvars[inventory_hostname].scale_cluster_manager is undefined
+
+# Cleanup groups from previous play
+- meta: refresh_inventory
+
+#
+# Inspect existing cluster and inventory
+#
+- name: cluster | Find existing cluster
+  shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterSummary | cut -d ':' -f 8
+  register: scale_cluster_clusterId
+  changed_when: false
+  failed_when: false
+
+- name: cluster | Find existing cluster members
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_members
+  when:
+    - hostvars[item].scale_cluster_clusterId.stdout
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+- name: cluster | Find new cluster candidates
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_candidates
+  when:
+    - not hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId.stderr
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+#
+# Assign default quorum nodes
+#
+- name: cluster | Assign default quorum nodes
+  set_fact:
+    scale_cluster_quorum: true
+  when: true not in ansible_play_hosts | map('extract', hostvars, 'scale_cluster_quorum') | map('bool') | list
+  with_sequence: start=1 end={{ [ ansible_play_hosts | length, 7 ] | min }}
+  run_once: true
+  delegate_to: "{{ ansible_play_hosts[item | int - 1] }}"
+  delegate_facts: true
+
+- name: cluster | Find quorum nodes
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_quorum_nodes
+  when: hostvars[item].scale_cluster_quorum | bool
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+#
+# Create new cluster
+#
+- block:  ## when: groups['scale_cluster_members'] is undefined
+    - name: cluster | Prepare new cluster NodeFile
+      template:
+        src: NewNodeFile.j2
+        dest: /var/tmp/NodeFile
+
+    - name: cluster | Create new cluster
+      command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }}
+      notify: accept-licenses
+
+    - name: cluster | Cleanup new cluster NodeFile
+      file:
+        path: /var/tmp/NodeFile
+        state: absent
+
+    - name: cluster | Prepare new cluster ChangeFile for next run
+      template:
+        src: ChangeFile.j2
+        dest: /var/tmp/ChangeFile
+  when:
+    - groups['scale_cluster_candidates'] is defined
+    - groups['scale_cluster_members'] is undefined
+  run_once: true
+  delegate_to: "{{ groups['scale_cluster_candidates'].0 }}"
+
+#
+# Add nodes to existing cluster
+#
+- block:  ## when: groups['scale_cluster_members'] is defined
+    - name: cluster | Prepare existing cluster NodeFile
+      template:
+        src: AddNodeFile.j2
+        dest: /var/tmp/NodeFile
+
+    - name: cluster | Add new nodes to cluster
+      command: /usr/lpp/mmfs/bin/mmaddnode -N /var/tmp/NodeFile
+      notify: accept-licenses
+
+    - name: cluster | Cleanup existing cluster NodeFile
+      file:
+        path: /var/tmp/NodeFile
+        state: absent
+  when:
+    - groups['scale_cluster_candidates'] is defined
+    - groups['scale_cluster_members'] is defined
+  run_once: true
+  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+
+- meta: flush_handlers
+
+# Node roles will be finalized after daemons are started...

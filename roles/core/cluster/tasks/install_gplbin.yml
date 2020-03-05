@@ -1,0 +1,32 @@
+---
+# Install Linux kernel extension from pre-built RPM
+
+#
+# Configure YUM repository
+#
+- name: install | Configure GPL module YUM repository
+  yum_repository:
+    name: spectrum-scale-gplbin
+    description: IBM Spectrum Scale (GPFS) GPL module
+    baseurl: "{{ scale_install_gplbin_repository_url }}"
+    gpgcheck: false
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum'
+    - scale_install_gplbin_repository_url is defined
+
+#
+# Add kernel extension prereqs
+#
+- name: install | Add dependencies for pre-built GPL module to list
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
+  with_items: "{{ scale_install_gplbin_prereqs }}"
+
+#
+# Add kernel extension RPM
+#
+- name: install | Add GPL module RPM to list
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ scale_install_gplbin_rpm ] }}"

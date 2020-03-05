@@ -1,0 +1,4 @@
+# hosts:
+[cluster01]
+host-vm1 scale_cluster_quorum=true   scale_cluster_manager=true scale_cluster_gui=false
+host-vm3 scale_cluster_quorum=true   scale_cluster_manager=true scale_cluster_gui=false
