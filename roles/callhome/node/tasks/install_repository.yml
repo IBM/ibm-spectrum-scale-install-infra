@@ -1,0 +1,27 @@
+---
+# YUM repository installation method
+
+#
+# Configure YUM repository
+#
+- name: install | Configure Callhome YUM repository
+  yum_repository:
+    name: spectrum-scale-callhome
+    description: IBM Spectrum Scale (ZIMon)
+    baseurl: "{{ scale_install_callhome_repository_url }}"
+    gpgcheck: false
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_callhome_repository_url != 'existing'
+
+#
+# Add GUI RPMs
+#
+- name: install | Add GPFS callhome RPMs to list
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
+  with_items:
+    - "{{ scale_callhome_rpms }}"
+
