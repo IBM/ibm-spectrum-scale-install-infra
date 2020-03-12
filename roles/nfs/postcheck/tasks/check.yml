@@ -1,0 +1,13 @@
+---
+- name: Check if NFS is running
+  shell:
+   cmd: mmces service list|grep "NFS"
+  register: nfs_status
+  when: ansible_fqdn in nfs_nodes_list
+
+- name: Check if NFS is running
+  assert:
+   that:
+   - nfs_status.rc == 0
+   fail_msg: "NFS is not active on {{ ansible_hostname }}"
+  when: ansible_fqdn in nfs_nodes_list

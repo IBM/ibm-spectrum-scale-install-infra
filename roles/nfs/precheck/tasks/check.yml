@@ -1,0 +1,81 @@
+---
+- name: Initialize
+  set_fact:
+   nfs_nodes_list: []
+
+- name: Check if nfs is enabled
+  assert:
+   that:
+   - protocols.nfs|bool
+   fail_msg: "NFS is not enabled"
+  run_once: true
+
+- name: Collect all nfs nodes
+  set_fact:
+   nfs_nodes_list: "{{ nfs_nodes_list + [hostvars[item]['fqdn']] }}"
+  when: hostvars[item]['is_protocol_node']|bool and hostvars[item]['is_nfs']|bool
+  with_items:
+   - "{{ groups['all'] }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Check if atleast one nfs node is configured
+  assert:
+   that:
+   - nfs_nodes_list|length > 0
+   fail_msg: "No nfs nodes configured"
+  run_once: true
+
+- name: Collect status of native nfs
+  shell:
+   cmd: systemctl|grep "nfs-client"
+  register: nfs_status
+  when: ansible_fqdn in nfs_nodes_list
+  ignore_errors: true
+
+- name: Check if native nfs is running
+  assert:
+   that:
+   - nfs_status.rc > 0
+   fail_msg: "Service nfs found running on {{ ansible_hostname }}. Which conflicts with the installation of NFS.
+SUGGESTTED ACTION- Run commands to stop (systemctl stop nfs) and disable (systemctl disable nfs) this service on node {{ ansible_hostname }}"
+  when: ansible_fqdn in protocol_nodes_list
+  any_errors_fatal: true
+
+- name: Collect status of service nfs-kernel-server
+  shell:
+   cmd: systemctl|grep "nfs-kernel-server"
+  register: nfs_status
+  when: ansible_fqdn in nfs_nodes_list
+  ignore_errors: true
+
+- name: Check if native nfs-kernel-server is running
+  assert:
+   that:
+   - nfs_status.rc > 0
+   fail_msg: "Service nfs-kernel-server found running on {{ ansible_hostname }}. Which conflicts with the installation of NFS.
+SUGGESTTED ACTION Run commands to stop (systemctl stop nfs-kernel-server) and disable (systemctl disable nfs-kernel-server)
+this service on node {{ ansible_hostname }}"
+  when: ansible_fqdn in nfs_nodes_list
+  any_errors_fatal: true
+
+- name: Collect status of service knfs-server
+  shell:
+   cmd: systemctl|grep "knfs-server"
+  register: nfs_status
+  when: ansible_fqdn in nfs_nodes_list
+  ignore_errors: true
+
+- name: Check if native knfs-server is running
+  assert:
+   that:
+   - nfs_status.rc > 0
+   fail_msg: "Service knfs-kernel-server found running on {{ ansible_hostname }}. Which conflicts with the installation of NFS.
+SUGGESTTED ACTION Run commands to stop (systemctl stop knfs-server) and disable (systemctl disable knfs-server)
+this service on node {{ ansible_hostname }}"
+  when: ansible_fqdn in nfs_nodes_list
+  any_errors_fatal: true
+
+
+
+

@@ -1,0 +1,55 @@
+---
+- name: Collect status of ces shared root
+  shell:
+   cmd: mmlsconfig | grep 'cesSharedRoot'
+  register: ces_status
+
+- name: Configuring cesSharedRoot
+  shell:
+   cmd: mmchconfig cesSharedRoot= "{{ protocols.mountpoint }}"
+  when: ces_status.rc > 0
+
+- name: Setting server licenses on protocol nodes
+  shell:
+   cmd: mmchlicense server --accept -N {{ item }}
+  with_items:
+  - "{{ protocol_nodes_list }}"
+  run_once: true
+
+- name: Enabling CES
+  shell:
+   cmd: mmchnode -N {{ item }} --ces-enable
+  with_items:
+  - "{{ protocol_nodes_list }}"
+  when: ces_status.rc > 0
+  run_once: true
+
+- name: Collect status of ces nodes
+  shell:
+   cmd: mmces node list|grep {{ item }}
+  register: ces_enable_status
+  with_items:
+  - "{{ protocol_nodes_list }}"
+  run_once: true
+
+- name: Check CES enabled on all nodes
+  assert:
+   that:
+   -  item.rc == 0
+   fail_msg: "CES is not enabled on {{ ansible_hostname }} protocol node"
+  with_items:
+  - "{{ ces_enable_status.results }}"
+  run_once: true
+
+- name: Assign export ips as pool
+  shell:
+   cmd: mmces address add --ces-ip {{ item }}
+  when: ansible_fqdn in protocol_nodes_list
+  with_items:
+  - "{{ protocols.export_ip_pool }}"
+
+- name: Rebalance CES IPs
+  shell:
+   cmd: mmces address move --rebalance
+  when: ansible_fqdn in protocol_nodes_list
+  run_once: true

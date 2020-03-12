@@ -1,0 +1,5 @@
+---
+- name: Enable nfs on protocol nodes
+  shell:
+   cmd: mmces service enable NFS
+  when: ansible_fqdn in nfs_nodes_list
