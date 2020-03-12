@@ -1,18 +1,16 @@
-{% for host in ansible_play_hosts if hostvars[host].scale_storage is defined %}
-{% for fs in hostvars[host].scale_storage if fs.filesystem == current_fs %}
-{% for disk in fs.disks if disk.device is defined and disk.nsd | default('nsd_' + hostvars[host].scale_daemon_nodename + '_' + disk.device | basename) in current_nsds -%}
+{% for fs in scale_storage if fs.filesystem == current_fs %}
+{% for disk in fs.disks if disk.device is defined and disk.nsd | default('nsd_' + disk.servers | replace("-", "_") | replace(".", "_") | replace(",", "_") + '_' + disk.device | basename) in current_nsds -%}
 
-{% set default_nsd = 'nsd_' + hostvars[host].scale_daemon_nodename + '_' + disk.device | basename %}
+{% set default_nsd = 'nsd_' + disk.servers | replace("-", "_") | replace(".", "_") + '_' + disk.device | basename %}
 {% set default_usage = 'dataAndMetadata' if disk.pool | default('system') == 'system' else 'dataOnly' -%}
 
 %nsd:
   device={{ disk.device }}
   nsd={{ disk.nsd | default(default_nsd) }}
-  servers={{ disk.servers | default(hostvars[host].scale_daemon_nodename) }}
+  servers={{ disk.servers }}
   usage={{ disk.usage | default(default_usage) }}
   failureGroup={{ disk.failureGroup | default(-1) }}
   pool={{ disk.pool | default('system') }}
 
-{% endfor %}
 {% endfor %}
 {% endfor %}

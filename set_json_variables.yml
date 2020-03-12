@@ -1,0 +1,22 @@
+---
+#- name: Create the required groups
+- hosts: localhost
+  connection: local
+
+  tasks:
+  - name: Read all intermediate output from Resource Details
+    include_vars:
+     dir: vars
+     extensions:
+     - json
+
+  - name: Pass all inputs related to creating Spectrum Scale cluster to all nodes
+    add_host:
+     name: "{{ item.fqdn }}"
+     groups: scale_node
+     #var_scale_version: "{{ scale_version }}"
+     scale_storage: "{{ scale_storage }}"
+     scale_cluster_quorum: "{{ item.is_quorum_node  }}"
+     scale_cluster_manager: "{{ item.is_manager_node }}"
+    loop: "{{ node_details }}"
+
