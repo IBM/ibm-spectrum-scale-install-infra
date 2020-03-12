@@ -1,0 +1,54 @@
+---
+
+# YUM repository installation method
+
+
+
+#
+
+# Configure YUM repository
+
+#
+
+- name: install | Configure nfs YUM repository
+
+  yum_repository:
+
+    name: spectrum-scale-nfs
+
+    description: IBM Spectrum Scale (nfs)
+
+    baseurl: "{{ scale_install_nfs_repository_url }}"
+
+    gpgcheck: false
+
+    state: present
+
+  notify: yum-clean-metadata
+
+  when:
+
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+
+    - scale_install_nfs_repository_url != 'existing'
+
+
+
+#
+
+# Add GUI RPMs
+
+#
+
+- name: install | Add GPFS sensors RPMs to list
+
+  set_fact:
+
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
+
+  with_items:
+
+    - "{{ scale_nfs_rpms }}"
+
+
+      #when: scale_zimon_collector | bool

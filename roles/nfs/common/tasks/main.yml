@@ -1,0 +1,4 @@
+---
+# tasks file for commo
+- import_tasks: check.yml
+- import_tasks: configure.yml
