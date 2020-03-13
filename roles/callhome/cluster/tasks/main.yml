@@ -1,0 +1,3 @@
+---
+# tasks file for cluster
+- import_tasks: configure.yml
