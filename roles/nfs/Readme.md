@@ -56,15 +56,15 @@ Implementation
 - `Node`
   - Installation via local package: rpms are on local machine
     - File name: install_local_pkg.yml
-    - Path: /root/ibm-spectrum-scale-install-infra/roles/nfs/node/tasks
+    - Path: /ibm-spectrum-scale-install-infra/roles/nfs/node/tasks
     - This playbook checks whether the package exists, checks for valid checksum, extracts all the rpms and creates a list ‘scale_install_all_rpms’ that contains all the rpms and dependencies required to install nfs.
   - Installation via remote package: rpms are on remote machine
     - File name: install_remote_pkg.yml
-    - Path: /root/ibm-spectrum-scale-install-infra/roles/nfs/node/tasks
+    - Path: /ibm-spectrum-scale-install-infra/roles/nfs/node/tasks
     - This playbook checks whether the package exists, checks for valid checksum, extracts all the rpms and creates a list ‘scale_install_all_rpms’ that contains all the rpms and dependencies required to install nfs.
   - Installation via repository: rpms are in yum repo
     - File name: install_repository.yml
-    - Path: /root/ibm-spectrum-scale-install-infra/roles/nfs/node/tasks
+    - Path: /ibm-spectrum-scale-install-infra/roles/nfs/node/tasks
     - This playbook configures the yum repo using the URL mentioned in variable scale_install_nfs_repository_url and creates a list ‘scale_install_all_rpms’ that contains all the rpms and dependencies required to install nfs.
   - The installation method is selected in the playbook ‘install.yml’ . Installation method depends on the variables defined.
     - If  ‘scale_install_callhome_repository_url’ is defined, then the installation method is repository.
