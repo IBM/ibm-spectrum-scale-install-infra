@@ -19,6 +19,7 @@ Prerequisite
   - gpfs.nfs-ganesha*
   - gpfs.nfs-ganesha-utils*
   - gpfs.nfs-ganesha-gpfs*
+- This role automatically installs the above packages.
   
 Design
 ---------------------------
