@@ -9,7 +9,6 @@
    os_list: []
    arch_list: []
    export_ip: []
-   #gpfs_version: "0.0.0"
   run_once: true
 
 - name: Collect all protocol nodes

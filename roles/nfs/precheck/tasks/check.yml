@@ -75,7 +75,3 @@ SUGGESTTED ACTION Run commands to stop (systemctl stop knfs-server) and disable 
 this service on node {{ ansible_hostname }}"
   when: ansible_fqdn in nfs_nodes_list
   any_errors_fatal: true
-
-
-
-

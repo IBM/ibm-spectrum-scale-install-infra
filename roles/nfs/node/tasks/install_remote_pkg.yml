@@ -13,9 +13,8 @@
       Please set the variable 'scale_install_remotepkg_path' to point to the
       remote installation package (accessible on Ansible managed node)!
 
-#
 # Optionally, verify package checksum
-#
+
 - name: install | Stat checksum file
   stat:
     path: "{{ scale_install_remotepkg_path }}.md5"
@@ -37,9 +36,8 @@
           installation package!
   when: scale_install_md5_file.stat.exists
 
-#
 # Extract installation package
-#
+
 - name: install | Stat extracted packages
   stat:
     path: "{{ nfs_extracted_path }}"
@@ -82,7 +80,6 @@
 
 # Find nfs rpms
 
-#
 - block:  ## when: host is defined as a protocol node
 
   - name: install | Find gpfs.nfs-ganesha (gpfs.nfs-ganesha) RPM

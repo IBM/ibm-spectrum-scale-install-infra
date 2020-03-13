@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  role_name: core_cluster
+  role_name: ces_common
   author: IBM Corporation
   description: Highly-customizable Ansible role for installing and configuring IBM Spectrum Scale (GPFS)
   company: IBM
@@ -20,4 +20,4 @@ galaxy_info:
     - gpfs
 
 dependencies: []
- #- common
+ 

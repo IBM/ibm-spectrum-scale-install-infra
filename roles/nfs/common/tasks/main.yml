@@ -1,4 +1,4 @@
 ---
-# tasks file for commo
+# tasks file for common
 - import_tasks: check.yml
 - import_tasks: configure.yml

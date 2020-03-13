@@ -1,9 +1,3 @@
 ---
-
-# Install IBM Spectrum Scale (GPFS) Graphical User Interface (GUI)
-
-
-
 - import_tasks: install.yml
-
   tags: install
