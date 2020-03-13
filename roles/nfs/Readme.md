@@ -15,34 +15,41 @@ Prerequisite
 - Native nfs service should be stopped, before usinf this role.
 - nfs-kernel-server service should be stopped.
 - knfs-server service should be stopped
-- The rpms required for callhome installation are as follows:
-  - gpfs.nfs-ganesha*.rpm
-  - gpfs.nfs-ganesha-utils*.rpm
-  - gpfs.nfs-ganesha-gpfs*.rpm
+- The packages required for nfs installation are as follows:
+  - gpfs.nfs-ganesha*
+  - gpfs.nfs-ganesha-utils*
+  - gpfs.nfs-ganesha-gpfs*
   
 Design
 ---------------------------
 - Directory Structure:
   - Path: /ibm-spectrum-scale-install-infra/roles/nfs
-  - Inside the nfs role, there are four more roles to enable microservice architecture:
-    - `Precheck`: This role checks that all the prerequisites are satisfied before installing the nfs rpms. It checks the following things:
+  - Inside the nfs role, there are five more roles to enable microservice architecture:
+    - `common`: This role enables and configures CES on all the protocol nodes.This role also performs various prechecks required before enabling CES such as:
+      - Check if atleast one protocol node is present
+      - Check if OS on all the protocol nodes is unique
+      - Check if all protocol nodes have same architecture
+      - Check if cesSharedRoot filesystem defined
+      - Check if mount point defined for cesSharedRoot file system
+      - Check if ces export ips are defined
+    - `precheck`: This role checks that all the prerequisites are satisfied before installing the nfs rpms. It checks the following things:
       - Whether nfs protocol is enabled or not.
       - Whether atleast one nfs node is specified or not.
       - Whether the following services are running on the nodes:
         - nfs
         - nfs-kernel-server
         - knfs-server
-    - `Node`: This role installs the rpms required for nfs protocol functionality. There are 3 methods to install nfs rpms:  
+    - `node`: This role installs the rpms required for nfs protocol functionality. There are 3 methods to install nfs rpms:  
       - via local package, requires  scale_install_localpkg_path variable to be set in main playbook.
       - via remote package, requires scale_install_remotepkg_path variable to be set in main playbook.
       - via yum repository, requires scale_install_callhome_repository_url variable to be set in main playbook.
-    - `Cluster`: This role enables the nfs protocol.
-    - `Postcheck`: This role checks if nfs service is running or not.
+    - `cluster`: This role enables the nfs protocol.
+    - `postcheck`: This role checks if nfs service is running or not.
 
 Implementation
 -------------------------
 - `Precheck`
-  - This role creates a list of nfs nodes and checks if atleast one node is set as nfs nodes.
+  - This role creates a list of nfs nodes and checks if atleast one node is set as nfs node.
   - It checks if all the above defined commands are stopped before running this role. If a service is found running, the execution of this role fails.
   
 - `Node`
