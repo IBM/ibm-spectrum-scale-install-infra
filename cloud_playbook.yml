@@ -1,0 +1,14 @@
+---
+- import_playbook: "set_json_variables.yml"
+
+- hosts: scale_node
+  vars:
+    - scale_version: 5.0.5.0
+    - scale_install_localpkg_path: /root/Spectrum_Scale_Advanced-5.0.5.0-x86_64-Linux-install
+  roles:
+     - core/precheck
+     - core/node
+     - core/cluster
+     - callhome/precheck
+     - callhome/node
+     - callhome/cluster
