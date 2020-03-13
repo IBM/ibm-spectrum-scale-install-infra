@@ -48,8 +48,8 @@
        },
        {
         "device": "/dev/sdf",
-        "nsd": "nsd4",
-        "servers": "hogfly-vm1,host-vm2",
+        "nsd": "nsd2",
+        "servers": "host-vm1,host-vm2",
         "usage": dataAndMetadata,
         "pool": system
        }
