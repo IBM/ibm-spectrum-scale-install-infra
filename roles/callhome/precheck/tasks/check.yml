@@ -64,6 +64,3 @@
   - debug:
      msg: "Callhome precheck OK"
     when: ansible_hostname  == callhome_params.callhome_server
-    #- debug:
-    # msg: "{{ inventory_hostname }}"
-     #run_once: true

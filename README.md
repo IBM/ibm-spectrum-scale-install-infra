@@ -29,7 +29,7 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [x] Install gcc-c++, kernel-devel, make
 - [x] Install elfutils,elfutils-devel (RHEL8 specific)
 
-#### Core GPFS Cluster build supported features
+#### Core GPFS Cluster supported features
 - [x] Install Core GPFS packages on Linux nodes
 - [x] Install IBM Spectrum Scale license packages on Linux nodes
 - [x] Compile or install pre-compiled Linux kernel extension (mmbuildgpl)
@@ -46,7 +46,7 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [x] Extend NSDs and file system
 - [x] Add disks to existing file systems
 
-#### GPFS GUI Cluster build supported features
+#### GPFS GUI Cluster supported features
 - [x] Install GPFS GUI packages on GUI designated nodes
 - [x] maximum 3 GUI nodes to be configured
 - [x] Install performance monitoring sensor packages on all Linux nodes
@@ -54,7 +54,7 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
 
-#### GPFS Callhome Cluster build supported features
+#### GPFS Callhome Cluster supported features
 - [x] Install GPFS callhome packages on all cluster nodes
 - [x] Configure callhome
 

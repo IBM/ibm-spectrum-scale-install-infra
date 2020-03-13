@@ -9,8 +9,8 @@ Role Definition
  
 Prerequisite
 ----------------------------
-- Red Hat Enterprise Linux 7.x, Red Hat Enterprise Linux 8.x, Ubuntu 16.04 LTS, Ubuntu 18.04 LTS, SLES 12, and SLES 15 nodes are supported.
-- Intel x86_64, PowerPC® LE/BE and IBM Z® are supported.
+- Red Hat Enterprise Linux 7.x, Red Hat Enterprise Linux 8.x nodes are supported.
+- Intel x86_64, Power LE/BE are supported.
 - GPFS CCR (Clustered Configuration Repository) must be enabled.
 - The call home node must be able to access the following IP addresses and ports. In the configurations with a proxy, these IP addresses and ports should be accessible over the proxy connection.
   - Host name: esupport.ibm.com
@@ -19,9 +19,6 @@ Prerequisite
 - The parameters required to configure callhome are as follows:
   - Customer information such as customer_name, customer_email, customer_id, customer_country.
   - If proxy is enabled, the proxy information such as proxy_ip, proxy_port, proxy_user, proxy_password.
-- The rpms required for callhome installation are as follows:
-  - gpfs.java-5.0.4-x.x86_64.rpm
-  - gpfs.callhome-ecc-client-5.0.4-x.noarch.rpm
   
 Design
 ---------------------------
