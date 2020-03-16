@@ -6,7 +6,7 @@
 #
 - name: install | Find GPFS License (gpfs.license) RPM
   find:
-    paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
+    paths: "{{ gpfs_path_url }}"
     patterns: gpfs.license.*.{{ scale_architecture }}.rpm
   register: scale_install_gpfs_license
 
@@ -15,7 +15,7 @@
     that: scale_install_gpfs_license.matched > 0
     msg: >-
       No GPFS License (gpfs.license) RPM found:
-      /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.license.*.{{ scale_architecture }}.rpm
+      "{{ gpfs_path_url }}/gpfs.license.*.{{ scale_architecture }}.rpm"
 
 - name: install | Check valid only one GPFS License (gpfs.license) RPM
   assert:
@@ -24,7 +24,7 @@
       - scale_install_gpfs_license.matched == 1
     msg: >-
       More than one GPFS License (gpfs.license) RPM found:
-      /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.license.*.{{ scale_architecture }}.rpm
+      "{{ gpfs_path_url }}/gpfs.license.*.{{ scale_architecture }}.rpm"
 
 - name: install | Find GPFS License rpm
   vars:
@@ -37,7 +37,7 @@
 #
 - name: install | Find GPFS Advance (gpfs.adv) RPM
   find:
-    paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
+    paths: "{{ gpfs_path_url }}"
     patterns: gpfs.adv-*.{{ scale_architecture }}.rpm
   register: scale_install_gpfs_adv
   when: '"gpfs.license.std" not in scale_gpfs_license_rpm'
@@ -48,7 +48,7 @@
 #
 - name: install | Find GPFS crypto (gpfs.crypto) RPM
   find:
-    paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
+    paths: "{{ gpfs_path_url }}"
     patterns: gpfs.crypto-*.{{ scale_architecture }}.rpm
   register: scale_install_gpfs_crypto
   when: '"gpfs.license.std" not in scale_gpfs_license_rpm'
@@ -59,7 +59,7 @@
 #
 - name: install | Add GPFS License RPMs to list
   vars:
-    current_rpm: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/{{ item }}.rpm
+    current_rpm: "{{ gpfs_path_url }}/{{ item }}.rpm"
   set_fact:
     scale_install_license_rpms: "{{ scale_install_license_rpms + [ current_rpm ] }}"
   with_items:
@@ -71,7 +71,7 @@
 - name: install | Add GPFS Dependent License RPMs to list
   vars:
     license_rpm: "{{ scale_install_gpfs_license.files.0.path | basename }}"
-    current_rpm: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/{{ item }}.rpm
+    current_rpm: "{{ gpfs_path_url }}/{{ item }}.rpm"
   set_fact:
     scale_install_license_rpms: "{{ scale_install_license_rpms + [ current_rpm ] }}"
   with_items:

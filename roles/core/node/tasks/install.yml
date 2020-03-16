@@ -26,6 +26,15 @@
         - scale_install_remotepkg_path is undefined
         - scale_install_localpkg_path is defined
 
+    - name: install | Check for directory package installation method
+      set_fact:
+        scale_installmethod: dir_pkg
+      when:
+        - scale_install_repository_url is undefined
+        - scale_install_remotepkg_path is undefined
+        - scale_install_localpkg_path is undefined
+        - scale_install_directory_pkg_path is defined
+
     - name: install | Check installation method
       assert:
         that: scale_installmethod is defined
@@ -38,6 +47,11 @@
 #
 # Run chosen installation method to get list of RPMs
 #
+- name: install | gpfs base path
+  set_fact:
+    gpfs_path_url: '/usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms'
+  when: scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
+
 - name: install | Initialize list of RPMs
   set_fact:
     scale_install_all_rpms: []
@@ -52,7 +66,7 @@
   when: scale_install_gplbin_rpm is defined
 
 - include_tasks: install_license_pkg.yml
-  when: scale_install_remotepkg_path is defined or scale_install_localpkg_path is defined
+  when: scale_install_remotepkg_path is defined or scale_install_localpkg_path is defined or scale_install_directory_pkg_path is defined
 
 - include_tasks: install_license_repository.yml
   when: scale_install_repository_url is defined
