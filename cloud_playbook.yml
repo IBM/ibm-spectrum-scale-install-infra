@@ -9,6 +9,11 @@
      - core/precheck
      - core/node
      - core/cluster
-     - callhome/precheck
-     - callhome/node
-     - callhome/cluster
+     - gui/precheck
+     - gui/node
+     - gui/cluster
+     - gui/postcheck
+     - zimon/precheck
+     - zimon/node
+     - zimon/cluster
+     - zimon/postcheck
