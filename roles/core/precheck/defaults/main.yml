@@ -47,7 +47,7 @@ scale_prepare_disable_selinux: false
 ## Whether or not to disable Linux firewalld - if you need to keep firewalld
 ## active then change this variable to 'false' and apply your custom firewall
 ## rules prior to running this role (e.g. as pre_tasks)
-scale_prepare_disable_firewall: true
+scale_prepare_disable_firewall: false
 
 
 ## Temporary directory to copy installation package to
