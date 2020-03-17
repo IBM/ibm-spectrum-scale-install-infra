@@ -2,12 +2,12 @@
 # Dir package installation method
 
 - block:  ## run_once: true
-    - name: install | Stat local installation package
+    - name: install | Stat directory installation package
       stat:
         path: "{{ scale_install_directory_pkg_path }}"
       register: scale_install_dirpkg
 
-    - name: install | Check local installation package
+    - name: install | Check directory installation package
       assert:
         that: scale_install_dirpkg.stat.exists
         msg: >-

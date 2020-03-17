@@ -49,7 +49,7 @@
 #
 - name: install | gpfs base path
   set_fact:
-    gpfs_path_url: '/usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms'
+    gpfs_path_url: '{{ gpfs_extracted_path }}/gpfs_rpms'
   when: scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
 
 - name: install | Initialize list of RPMs
