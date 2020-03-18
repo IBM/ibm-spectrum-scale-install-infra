@@ -16,9 +16,17 @@
   run_once: true
   delegate_to: localhost
 
+
+- name: install| Creates default directory
+  file:
+    path: "{{ gpfs_extracted_path }}"
+    state: directory
+    mode: a+x
+    recurse: yes
+
 - name: install | Stat extracted packages
   stat:
-    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_directory_pkg_path | basename }}"
+    path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
   register: scale_install_gpfs_rpmdir
 
 #
@@ -26,30 +34,30 @@
 #
 
 - block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
-    - name: install | Stat temporary directory
+    - name: install | Stat default directory
       stat:
-        path: "{{ scale_install_localpkg_tmpdir_path }}"
+        path: "{{ gpfs_extracted_path }}"
       register: scale_install_localpkg_tmpdir
 
-    - name: install | Check temporary directory
+    - name: install | Check default directory
       assert:
         that:
           - scale_install_localpkg_tmpdir.stat.exists
           - scale_install_localpkg_tmpdir.stat.isdir
         msg: >-
-          Please set the variable 'scale_install_localpkg_tmpdir_path' to point
-          to a temporary directory on the remote system!
+          Please set the variable 'gpfs_extracted_path' to point
+          to a default directory on the remote system!
 
     - name: install | Copy installation package to node
       copy:
         src: "{{ scale_install_directory_pkg_path }}"
-        dest: "{{ scale_install_localpkg_tmpdir_path }}"
+        dest: "{{ gpfs_extracted_path }}"
         mode: a+x
   when: not scale_install_gpfs_rpmdir.stat.exists
 
 - name: install | Set installation package path
   set_fact:
-    dir_path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_directory_pkg_path | basename }}"
+    dir_path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
 
 - name: install | gpfs base path
   set_fact:
@@ -114,11 +122,12 @@
   register: scale_install_gpfs_compression
 
 - name: install | Check valid GPFS Compression(gpfs.compression) RPM
-  assert:
-    that: scale_install_gpfs_compression.matched > 0
+  debug:
+    #that: scale_install_gpfs_compression.matched > 0
     msg: >-
       No GPFS Compression (gpfs.compression) RPM found:
       {{ dir_path }}/gpfs.compression-*.{{ scale_architecture }}.rpm
+  when: scale_install_gpfs_compression.matched <= 1
 
 #
 # Find GSKit
@@ -149,7 +158,14 @@
     - "{{ scale_install_gpfs_doc.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
     - "{{ scale_install_gpfs_msg.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
     - "{{ scale_install_gpfs_gskit.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
-    - "{{ scale_install_gpfs_compression.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+
+- name: install | Add GPFS compression RPMs to list
+  vars:
+    current_rpm: "{{ dir_path }}/{{ item }}.rpm"
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  with_items: "{{ scale_install_gpfs_compression.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+  when: scale_install_gpfs_compression.matched == 1
 
 - name: install | Add GPFS RPMs to list (prior to version 5.0.2.0)
   vars:
