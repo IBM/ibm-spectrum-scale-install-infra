@@ -127,7 +127,7 @@
     msg: >-
       No GPFS Compression (gpfs.compression) RPM found:
       {{ dir_path }}/gpfs.compression-*.{{ scale_architecture }}.rpm
-  when: scale_install_gpfs_compression.matched <= 1
+  when: scale_install_gpfs_compression.matched < 1
 
 #
 # Find GSKit
