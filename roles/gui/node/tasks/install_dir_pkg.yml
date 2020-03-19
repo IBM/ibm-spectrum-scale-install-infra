@@ -69,38 +69,38 @@
     - name: install | Find GPFS GUI (gpfs.gui) RPM
       find:
         paths: "{{ gpfs_path_url }}"
-        patterns: gpfs.gui-*.noarch.rpm
+        patterns: gpfs.gui*
       register: scale_install_gpfs_gui
 
     - name: install | Check valid GPFS GUI (gpfs.gui) RPM
       assert:
         that: scale_install_gpfs_gui.matched > 0
         msg: >-
-          No GPFS GUI (gpfs.gui) RPM found:
-          "{{ gpfs_path_url }}/gpfs_rpms/gpfs.gui-*.noarch.rpm"
+          No GPFS GUI (gpfs.gui) package found:
+          "{{ gpfs_path_url }}/gpfs_rpms/gpfs.gui*"
     #
     # Find GPFS gpfs.java
     #
     - name: install | Find GPFS java (gpfs.java) RPM
       find:
         paths: "{{ gpfs_path_url }}"
-        patterns: gpfs.java-*.{{ scale_architecture }}.rpm
+        patterns: gpfs.java*{{ scale_architecture }}*
       register: scale_install_gpfs_java
 
     - name: install | Check valid GPFS java (gpfs.java) RPM
       assert:
         that: scale_install_gpfs_java.matched > 0
         msg: >-
-          No GPFS java (gpfs.java) RPM found:
-          "{{ gpfs_path_url }}/gpfs.java-*.{{ scale_architecture }}.rpm"
+          No GPFS java (gpfs.java) package found:
+          "{{ gpfs_path_url }}/gpfs.java*{{ scale_architecture }}*"
 
     - name: install | Add GPFS GUI RPMs to list
       vars:
-        current_rpm: "{{ gpfs_path_url }}/{{ item }}.rpm"
+        current_rpm: "{{ gpfs_path_url }}/{{ item }}"
       set_fact:
         scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
       with_items:
-        - "{{ scale_install_gpfs_gui.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
-        - "{{ scale_install_gpfs_java.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+        - "{{ scale_install_gpfs_gui.files.0.path | basename }}"
+        - "{{ scale_install_gpfs_java.files.0.path | basename }}"
 
   when: scale_cluster_gui | bool

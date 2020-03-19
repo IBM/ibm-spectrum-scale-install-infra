@@ -7,15 +7,15 @@
 - name: install | Find GPFS License (gpfs.license) RPM
   find:
     paths: "{{ gpfs_path_url }}"
-    patterns: gpfs.license.*.{{ scale_architecture }}.rpm
+    patterns: gpfs.license*{{ scale_architecture }}*
   register: scale_install_gpfs_license
 
 - name: install | Check valid GPFS License (gpfs.license) RPM
   assert:
     that: scale_install_gpfs_license.matched > 0
     msg: >-
-      No GPFS License (gpfs.license) RPM found:
-      "{{ gpfs_path_url }}/gpfs.license.*.{{ scale_architecture }}.rpm"
+      No GPFS License (gpfs.license) package found:
+      "{{ gpfs_path_url }}/gpfs.license*{{ scale_architecture }}*"
 
 - name: install | Check valid only one GPFS License (gpfs.license) RPM
   assert:
@@ -23,8 +23,8 @@
       - scale_install_gpfs_license.matched > 0
       - scale_install_gpfs_license.matched == 1
     msg: >-
-      More than one GPFS License (gpfs.license) RPM found:
-      "{{ gpfs_path_url }}/gpfs.license.*.{{ scale_architecture }}.rpm"
+      More than one GPFS License (gpfs.license) package found:
+      "{{ gpfs_path_url }}/gpfs.license*{{ scale_architecture }}*"
 
 - name: install | Find GPFS License rpm
   vars:
@@ -38,7 +38,7 @@
 - name: install | Find GPFS Advance (gpfs.adv) RPM
   find:
     paths: "{{ gpfs_path_url }}"
-    patterns: gpfs.adv-*.{{ scale_architecture }}.rpm
+    patterns: gpfs.adv*{{ scale_architecture }}*
   register: scale_install_gpfs_adv
   when: '"gpfs.license.std" not in scale_gpfs_license_rpm'
 
@@ -49,7 +49,7 @@
 - name: install | Find GPFS crypto (gpfs.crypto) RPM
   find:
     paths: "{{ gpfs_path_url }}"
-    patterns: gpfs.crypto-*.{{ scale_architecture }}.rpm
+    patterns: gpfs.crypto*{{ scale_architecture }}*
   register: scale_install_gpfs_crypto
   when: '"gpfs.license.std" not in scale_gpfs_license_rpm'
 
@@ -59,11 +59,11 @@
 #
 - name: install | Add GPFS License RPMs to list
   vars:
-    current_rpm: "{{ gpfs_path_url }}/{{ item }}.rpm"
+    current_rpm: "{{ gpfs_path_url }}/{{ item }}"
   set_fact:
     scale_install_license_rpms: "{{ scale_install_license_rpms + [ current_rpm ] }}"
   with_items:
-    - "{{ scale_install_gpfs_license.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+    - "{{ scale_install_gpfs_license.files.0.path | basename }}"
 
 #
 # Add GPFS RPMs
@@ -71,10 +71,10 @@
 - name: install | Add GPFS Dependent License RPMs to list
   vars:
     license_rpm: "{{ scale_install_gpfs_license.files.0.path | basename }}"
-    current_rpm: "{{ gpfs_path_url }}/{{ item }}.rpm"
+    current_rpm: "{{ gpfs_path_url }}/{{ item }}"
   set_fact:
     scale_install_license_rpms: "{{ scale_install_license_rpms + [ current_rpm ] }}"
   with_items:
-    - "{{ scale_install_gpfs_adv.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
-    - "{{ scale_install_gpfs_crypto.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+    - "{{ scale_install_gpfs_adv.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_crypto.files.0.path | basename }}"
   when: '"gpfs.license.std" not in scale_gpfs_license_rpm'
