@@ -1,4 +1,6 @@
 ---
 # tasks file for common
 - import_tasks: check.yml
+  when: protocols is defined and protocols.nfs|bool
 - import_tasks: configure.yml
+  when: protocols is defined and protocols.nfs|bool

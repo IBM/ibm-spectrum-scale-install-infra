@@ -1,3 +1,4 @@
 ---
 # tasks file for cluster
 - import_tasks: configure.yml 
+  when: protocols is defined and protocols.nfs|bool
