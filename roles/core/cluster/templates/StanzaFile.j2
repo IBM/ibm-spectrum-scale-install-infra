@@ -1,7 +1,7 @@
 {% for fs in scale_storage if fs.filesystem == current_fs %}
-{% for disk in fs.disks if disk.device is defined and disk.nsd | default('nsd_' + disk.servers | replace("-", "_") | replace(".", "_") | replace(",", "_") + '_' + disk.device | basename) in current_nsds -%}
+{% for disk in fs.disks if disk.device is defined and disk.nsd | default('nsd_' + disk.servers.split(',')[0] | replace("-", "_") | replace(".", "_") | replace(",", "_") + '_' + disk.device | basename) in current_nsds -%}
 
-{% set default_nsd = 'nsd_' + disk.servers | replace("-", "_") | replace(".", "_") + '_' + disk.device | basename %}
+{% set default_nsd = 'nsd_' + disk.servers.split(',')[0] | replace("-", "_") | replace(".", "_") + '_' + disk.device | basename %}
 {% set default_usage = 'dataAndMetadata' if disk.pool | default('system') == 'system' else 'dataOnly' -%}
 
 %nsd:
