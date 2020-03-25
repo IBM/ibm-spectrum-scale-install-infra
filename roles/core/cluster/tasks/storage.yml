@@ -164,15 +164,6 @@
       with_items: "{{ scale_storage_stanzafile_new.results }}"
 
 #
-# Cleanup
-#
-    - name: storage | Cleanup new NSD StanzaFile(s)
-      file:
-        path: /var/tmp/StanzaFile.new.{{ item }}
-        state: absent
-      with_items: "{{ scale_storage_fsdefs }}"
-
-#
 # Change existing NSDs
 #
     - name: storage | Prepare existing NSD StanzaFile(s)
@@ -224,19 +215,6 @@
       with_items: "{{ scale_storage_stanzafile_existing.results }}"
 
     - meta: flush_handlers
-
-#
-# Cleanup
-#
-    - name: storage | Cleanup temp existing NSD StanzaFile(s)
-      file:
-        path: /var/tmp/StanzaFile.{{ item.item }}.nsd
-        state: absent
-      when:
-        - item.item in scale_storage_existing_fs.stdout_lines
-        - item is changed
-        - item.size > 1
-      with_items: "{{ scale_storage_stanzafile_existing.results }}"
 
 #
 # Change existing disks

@@ -132,11 +132,6 @@
     - debug:
          msg: "{{ mmcrcluster_results.cmd }}"
      
-    - name: cluster | Cleanup new cluster NodeFile
-      file:
-        path: /var/tmp/NodeFile
-        state: absent
-
     - name: cluster | Prepare new cluster ChangeFile for next run
       template:
         src: ChangeFile.j2
@@ -160,10 +155,6 @@
       command: /usr/lpp/mmfs/bin/mmaddnode -N /var/tmp/NodeFile
       notify: accept-licenses
 
-    - name: cluster | Cleanup existing cluster NodeFile
-      file:
-        path: /var/tmp/NodeFile
-        state: absent
   when:
     - groups['scale_cluster_candidates'] is defined
     - groups['scale_cluster_members'] is defined
