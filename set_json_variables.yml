@@ -6,17 +6,26 @@
   tasks:
   - name: Read all intermediate output from Resource Details
     include_vars:
-     dir: vars
-     extensions:
-     - json
+       file: vars/scale_clusterdefinition.json
+    register: scale_json
+
+  - name: Check valid json file
+    assert:
+      that: scale_json.failed == false
+      msg: >-
+        scale_clusterdefinition.json is not present in the
+        vars directory. Make sure that this file is present
+        in the vars directory along with all required
+        Ansible scale inventory.
 
   - name: Pass all inputs related to creating Spectrum Scale cluster to all nodes
     add_host:
      name: "{{ item.fqdn }}"
      groups: scale_node
-     #var_scale_version: "{{ scale_version }}"
-     scale_storage: "{{ scale_storage }}"
-     scale_cluster_quorum: "{{ item.is_quorum_node  }}"
-     scale_cluster_manager: "{{ item.is_manager_node }}"
+     scale_storage: "{{ scale_storage | default(omit) }}"
+     scale_cluster_quorum: "{{ item.is_quorum_node | default(false) }}"
+     scale_cluster_manager: "{{ item.is_manager_node | default(false) }}"
+     scale_cluster_gui: "{{ item.is_gui_server | default(false) }}"
+     scale_zimon_collector: "{{ item.is_collector_node | default(false) }}"
     loop: "{{ node_details }}"
 
