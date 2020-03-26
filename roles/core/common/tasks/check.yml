@@ -27,7 +27,7 @@
             scale_package: "{{ scale_install_remotepkg_path | basename }}"
           when: scale_install_remotepkg_path is defined
 
-        - name: commin | Find available scale version
+        - name: common | Find available scale version
           shell: "echo {{ scale_package }} | cut -d '-' -f 2"
           args:
            warn: false
