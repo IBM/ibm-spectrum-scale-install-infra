@@ -30,3 +30,7 @@ scale_gui_hide_tip_callhome: false
 
 ## Compute RPM version from Spectrum Scale version
 scale_rpmversion: "{{ scale_version | regex_replace('^([0-9.]+)\\.([0-9])$', '\\1-\\2') }}"
+
+## Specify package extraction path
+extracted_default_path: "/usr/lpp/mmfs"
+gpfs_extracted_path: "{{ extracted_default_path }}/{{ scale_version }}"

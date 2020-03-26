@@ -29,17 +29,17 @@ scale_reboot_automatic: false
 
 
 ## Whether or not to exchange SSH keys between nodes
-scale_prepare_exchange_keys: true
+scale_prepare_exchange_keys: false
 
 ## Path to public SSH key - will be generated (if it does not exist) and
 ## exchanged between nodes
 scale_prepare_pubkey_path: /root/.ssh/id_rsa.pub
 
 ## Whether or not enable SSH root login and pubkey authentication
-scale_prepare_enable_ssh_login: true
+scale_prepare_enable_ssh_login: false
 
 ## Whether or not to disable SSH hostkey checking
-scale_prepare_disable_ssh_hostkeycheck: true
+scale_prepare_disable_ssh_hostkeycheck: false
 
 ## Whether or not to disable SELinux
 scale_prepare_disable_selinux: false
@@ -47,7 +47,7 @@ scale_prepare_disable_selinux: false
 ## Whether or not to disable Linux firewalld - if you need to keep firewalld
 ## active then change this variable to 'false' and apply your custom firewall
 ## rules prior to running this role (e.g. as pre_tasks)
-scale_prepare_disable_firewall: true
+scale_prepare_disable_firewall: false
 
 
 ## Temporary directory to copy installation package to

@@ -16,7 +16,7 @@
   failed_when: false
 
 - name: update | Find available version
-  shell: rpm -qp /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.base-*.{{ scale_architecture }}.rpm --qf '%{VERSION}-%{RELEASE}\n'
+  shell: rpm -qp "{{ gpfs_path_url }}/gpfs.base-*.{{ scale_architecture }}.rpm" --qf '%{VERSION}-%{RELEASE}\n'
   args:
     warn: false
   register: scale_repo_gpfsversion

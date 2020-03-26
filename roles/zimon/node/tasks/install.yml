@@ -11,6 +11,9 @@
         scale_installmethod: repository
       when:
         - scale_install_zimon_repository_url is defined
+        - scale_install_localpkg_path is undefined
+        - scale_install_remotepkg_path is undefined
+        - scale_install_directory_pkg_path is undefined
 
     - name: install | Check for localpkg installation method
       set_fact:
@@ -18,7 +21,17 @@
       when:
         - scale_install_repository_url is undefined
         - scale_install_remotepkg_path is undefined
+        - scale_install_directory_pkg_path is undefined
         - scale_install_localpkg_path is defined
+
+    - name: install | Check for directory package installation method
+      set_fact:
+        scale_installmethod: dir_pkg
+      when:
+        - scale_install_repository_url is undefined
+        - scale_install_remotepkg_path is undefined
+        - scale_install_localpkg_path is undefined
+        - scale_install_directory_pkg_path is defined
 
     - name: install | Check installation method
       assert:

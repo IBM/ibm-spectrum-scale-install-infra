@@ -1,0 +1,40 @@
+{
+  "node_details": [
+    {
+      "fqdn" : host-vm1,
+      "ip_address" : 192.168.100.101,
+      "is_nsd_server": True,
+      "is_quorum_node" : True,
+      "is_manager_node" : True,
+      "is_gui_server" : False,
+    },
+    {
+      "fqdn" : host-vm2,
+      "ip_address" : 192.168.100.102,
+      "is_nsd_server": True,
+      "is_quorum_node" : True,
+      "is_manager_node" : True,
+      "is_gui_server" : False,
+    },
+  ],
+  "scale_storage":[
+    {
+      "filesystem": "fs1",
+      "blockSize": 4M,
+      "defaultDataReplicas": 1,
+      "defaultMountPoint": "/mnt/fs1",
+      "disks": [
+       {
+        "device": "/dev/sdd",
+        "nsd": "nsd1",
+        "servers": "host-vm1"
+       },
+       {
+        "device": "/dev/sdf",
+        "nsd": "nsd2",
+        "servers": "host-vm1,host-vm2"
+       }
+      ]
+    }
+  ]   
+}
