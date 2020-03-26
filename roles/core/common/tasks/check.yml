@@ -1,6 +1,48 @@
 ---
 # Sanity check of configuration variables
 
+- block:
+    - block:
+        - name: common | Find available scale version
+          shell: rpm -qp "{{ scale_install_directory_pkg_path }}/gpfs.base-*.{{ scale_architecture }}.rpm"
+                 --qf '%{VERSION}.%{RELEASE}\n' | cut -d '.' -f -4
+          args:
+             warn: false
+          register: scale_gpfsversion
+          changed_when: false
+
+        - name: check | Set scale version
+          set_fact:
+            scale_version: "{{ scale_gpfsversion.stdout }}"
+      when: scale_install_directory_pkg_path is defined
+
+    - block:
+        - name: check | Set package installation method
+          set_fact:
+            scale_package: "{{ scale_install_localpkg_path | basename }}"
+          when: scale_install_localpkg_path is defined
+
+        - name: check | Set package installation method
+          set_fact:
+            scale_package: "{{ scale_install_remotepkg_path | basename }}"
+          when: scale_install_remotepkg_path is defined
+
+        - name: commin | Find available scale version
+          shell: "echo {{ scale_package }} | cut -d '-' -f 2"
+          args:
+           warn: false
+          register: scale_se_gpfsversion
+          changed_when: false
+
+        - name: check | Set default scale version
+          set_fact:
+            scale_version: "{{ scale_se_gpfsversion.stdout }}"
+
+      when: scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
+  when: scale_version is undefined
+  run_once: true
+  delegate_to: localhost
+
 - name: check | Check Spectrum Scale version
   assert:
     that:
