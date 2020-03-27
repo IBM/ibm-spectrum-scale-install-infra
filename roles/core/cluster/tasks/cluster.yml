@@ -13,7 +13,7 @@
   when: hostvars[inventory_hostname].scale_cluster_manager is undefined
 
 # Cleanup groups from previous play
-- meta: refresh_inventory
+#- meta: refresh_inventory
 
 #
 # Inspect existing cluster and inventory

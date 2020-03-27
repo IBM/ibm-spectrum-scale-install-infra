@@ -30,6 +30,10 @@ scale_architecture: "{{ ansible_architecture }}"
 ## (local package installation method)
 scale_install_localpkg_tmpdir_path: /tmp
 
+## Specify package extraction path
+extracted_default_path: "/usr/lpp/mmfs"
+gpfs_extracted_path: "{{ extracted_default_path }}/{{ scale_version }}"
+
 ## List of GPFS RPMs to install
 scale_install_gpfs_rpms:
   - gpfs.base
