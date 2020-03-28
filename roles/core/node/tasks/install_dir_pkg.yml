@@ -33,27 +33,12 @@
 # Copy installation directory package
 #
 
-- block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
-    - name: install | Stat default directory
-      stat:
-        path: "{{ gpfs_extracted_path }}"
-      register: scale_install_localpkg_tmpdir
-
-    - name: install | Check default directory
-      assert:
-        that:
-          - scale_install_localpkg_tmpdir.stat.exists
-          - scale_install_localpkg_tmpdir.stat.isdir
-        msg: >-
-          Please set the variable 'gpfs_extracted_path' to point
-          to a default directory on the remote system!
-
+- block:
     - name: install | Copy installation package to node
       copy:
         src: "{{ scale_install_directory_pkg_path }}"
         dest: "{{ gpfs_extracted_path }}"
         mode: a+x
-  when: not scale_install_gpfs_rpmdir.stat.exists
 
 - name: install | Set installation package path
   set_fact:
