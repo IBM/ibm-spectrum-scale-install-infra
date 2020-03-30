@@ -54,7 +54,6 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
 
-=======
 #### GPFS Callhome Cluster supported features
 - [x] Install GPFS callhome packages on all cluster nodes
 - [x] Configure callhome
