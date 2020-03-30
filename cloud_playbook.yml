@@ -5,7 +5,7 @@
 
 - hosts: scale_node
   vars:
-    - scale_install_directory_pkg_path: /root/scale_rpms
+    - scale_install_directory_pkg_path: /opt/IBM/gpfs_cloud_rpms
   roles:
      - core/precheck
      - core/node
