@@ -1,0 +1,4 @@
+---
+# defaults file for cluster
+scale_install_localpkg_tmpdir_path: /tmp
+directory: /usr/lpp/mmfs/bin/
