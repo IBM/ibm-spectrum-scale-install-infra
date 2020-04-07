@@ -3,6 +3,19 @@
 
 - block:
     - block:
+        - name: check | Stat GPFS base package
+          find:
+            paths: "{{ scale_install_directory_pkg_path }}"
+            patterns: gpfs.base*{{ scale_architecture }}*
+          register: stat_result
+
+        - name: check | If GPFS base package is exists or not
+          assert:
+            that: stat_result.matched > 0
+            msg: >-
+              Unable to determine GPFS version. Ensure the GPFS packages are
+              available in a relative path to the specified directory.
+
         - name: common | Find available scale version
           shell: rpm -qp "{{ scale_install_directory_pkg_path }}/gpfs.base-*.{{ scale_architecture }}.rpm"
                  --qf '%{VERSION}.%{RELEASE}\n' | cut -d '.' -f -4
