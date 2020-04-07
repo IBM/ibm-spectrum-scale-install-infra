@@ -1,0 +1,102 @@
+---
+# Dir package installation method
+
+- block:  ## run_once: true
+    - name: install | Stat directory installation package
+      stat:
+        path: "{{ scale_install_directory_pkg_path }}"
+      register: scale_install_dirpkg
+
+    - name: install | Check directory installation package
+      assert:
+        that: scale_install_dirpkg.stat.exists
+        msg: >-
+          Please set the variable 'scale_install_directory_pkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+  run_once: true
+  delegate_to: localhost
+
+- name: install| Creates default directory
+  file:
+    path: "{{ gpfs_extracted_path }}"
+    state: directory
+    mode: a+x
+    recurse: yes
+ 
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+  register: scale_install_gpfs_rpmdir
+
+#
+# Copy installation directory package to default
+#
+- block:
+    - name: install | Copy installation package to node
+      copy:
+        src: "{{ scale_install_directory_pkg_path }}"
+        dest: "{{ gpfs_extracted_path }}"
+        mode: a+x
+
+- name: install | Extract installation package
+  set_fact:
+    dir_path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+
+- name: install | gpfs base path
+  set_fact:
+    gpfs_path_url: "{{ dir_path }}"
+  when: scale_install_directory_pkg_path is defined
+
+#
+# Find Zimon collector
+#
+- block:  ## when: host is defined as a gui node
+    #
+    # Find GPFS gpfs.collector
+    #
+    - name: install | Find gpfs.collector (gpfs.collector) RPM
+      find:
+        paths: "{{ gpfs_path_url }}"
+        patterns: gpfs.gss.pmcollector*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}*
+      register: scale_install_gpfs_collector
+
+    - name: install | Check valid GPFS (gpfs.collector) RPM
+      assert:
+        that: scale_install_gpfs_collector.matched > 0
+        msg: >-
+          No GPFS collector (gpfs.gss.collector) package found:
+          "{{ gpfs_path_url }}/gpfs.gss.pmcollector*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}*"
+
+    - name: install | Add GPFS zimon collector RPMs to list
+      vars:
+        current_rpm: "{{ gpfs_path_url }}/{{ item }}"
+      set_fact:
+        scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+      with_items:
+        - "{{ scale_install_gpfs_collector.files.0.path | basename }}"
+
+  when: (scale_zimon_collector | bool) or (scale_cluster_gui | bool)
+
+#
+# Find GPFS gpfs.gss.pmsensors
+#
+- name: install | Find gpfs.gss.pmsensors (gpfs.gss.pmsensors) RPM
+  find:
+    paths: "{{ gpfs_path_url }}"
+    patterns: gpfs.gss.pmsensors*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}*
+  register: scale_install_gpfs_pmsensors
+
+- name: install | Check valid GPFS (gpfs.gss.pmsensors) RPM
+  assert:
+    that: scale_install_gpfs_pmsensors.matched > 0
+    msg: >-
+      No GPFS pmsensors (gpfs.gss.pmsensors) package found:
+      "{{ gpfs_path_url }}/gpfs.gss.pmsensors*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}*"
+
+- name: install | Add GPFS zimon sensors RPMs to list
+  vars:
+    current_rpm: "{{ gpfs_path_url }}/{{ item }}"
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  with_items:
+    - "{{ scale_install_gpfs_pmsensors.files.0.path | basename }}"

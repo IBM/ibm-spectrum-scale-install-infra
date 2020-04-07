@@ -46,7 +46,7 @@
 - name: storage | Find defined NSDs
   set_fact:
     scale_storage_nsddefs:
-      "{{ scale_storage_nsddefs | default([]) + [ item.1.nsd | regex_replace('-','_') | default('nsd_' + scale_daemon_nodename + '_' + item.1.device | basename) ] }}"
+      "{{ scale_storage_nsddefs | default([]) + [ item.1.nsd | default('nsd_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) + '_' + item.1.device | basename) ] }}"
     scale_storage_nsdservers:
       "{{ scale_storage_nsdservers | default([]) + [ item.1.servers | default(scale_daemon_nodename) ] }}"
   when:

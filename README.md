@@ -29,7 +29,7 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [x] Install gcc-c++, kernel-devel, make
 - [x] Install elfutils,elfutils-devel (RHEL8 specific)
 
-#### Core GPFS Cluster build supported features
+#### Core GPFS Cluster supported features
 - [x] Install Core GPFS packages on Linux nodes
 - [x] Install IBM Spectrum Scale license packages on Linux nodes
 - [x] Compile or install pre-compiled Linux kernel extension (mmbuildgpl)
@@ -46,13 +46,14 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [x] Extend NSDs and file system
 - [x] Add disks to existing file systems
 
-#### GPFS GUI Cluster build supported features
+#### GPFS GUI Cluster supported features
 - [x] Install GPFS GUI packages on GUI designated nodes
 - [x] maximum 3 GUI nodes to be configured
 - [x] Install performance monitoring sensor packages on all Linux nodes
 - [x] Install performance monitoring packages on all GUI designated nodes
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
+
 
 IBM Spectrum Scale supported versions
 -------------------------------------
@@ -137,10 +138,10 @@ Installation instructions
       Defining node roles such as `scale_cluster_quorum` and `scale_cluster_manager` is optional. If you do not specify any quorum nodes then the first seven hosts in your inventory are automatically be assigned the quorum role.
 
       ---
- 2. To create NSDs, file systems and node class in the cluster you'll need to provide additional information. It is  recommended to use the `host_vars` inventory file as follows:
+ 2. To create NSDs, file systems and node class in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
 
       ```
-      # host_vars/scale01:
+      # group_vars/all:
       ---
       scale_storage:
         - filesystem: gpfs01
@@ -164,54 +165,24 @@ Installation instructions
               usage: dataOnly
               pool: data
       ```
-      ```
-      # host_vars/scale02:
-      ---
-      scale_storage:
-        - filesystem: gpfs01
-          disks:
-            - device: /dev/sdb
-              nsd: nsd_3
-              servers: scale02
-              failureGroup: 20
-              usage: metadataOnly
-              pool: system
-            - device: /dev/sdc
-              nsd: nsd_4
-              servers: scale02
-              failureGroup: 20
-              usage: dataOnly
-              pool: data
-      ```
 
       Refer to `man mmchfs` and `man mmchnsd` man pages for a description of these storage parameters.
 
-      The `filesystem` parameter is mandatory, and the `device` parameter is mandatory for each of the file system's `disks`. All other file system and disk parameters are optional. Hence, a minimal file system configuration would look like this:
+      The `filesystem` parameter is mandatory, `servers`, and the `device` parameter is mandatory for each of the file system's `disks`. All other file system and disk parameters are optional. Hence, a minimal file system configuration would look like this:
 
       ```
-      # host_vars/scale01:
+      # group_vars/all:
       ---
       scale_storage:
         - filesystem: gpfs01
           disks:
             - device: /dev/sdb
+              servers: scale01
             - device: /dev/sdc
-      ```
-      ```
-      # host_vars/scale02:
-      ---
-      scale_storage:
-        - filesystem: gpfs01
-          disks:
-            - device: /dev/sdb
-            - device: /dev/sdc
+              servers: scale01,scale02
       ```
 
-      Note that filesystem parameters can be defined as variables for *any* host in the play &mdash; the host for which you define the filesystem parameters is irrelevant. For 
-      disk parameters the host is only relevant if you omit the `servers` variable. When omitting the `servers` variable then the host for which you define the disk is 
-      automatically considered the (only) NSD server for that particular disk.
-
-      > **Important**: `scale_storage` *must* be defined for individual host(s) using `host_vars` inventory files. Do *not* define disk parameters using `group_vars` inventory 
+      > **Important**: `scale_storage` *must* be define using `group_vars` inventory files. Do *not* define disk parameters using `host_vars` inventory 
       files or inline `vars:` in your playbook. Doing so would apply them to all hosts in the group/play, thus defining the same disk multiple times...
 
       Furthermore, Spectrum Scale node classes can be defined on a per-node basis by defining the `scale_nodeclass` variable:
@@ -272,19 +243,24 @@ Installation instructions
   ---
   **NOTE:**
   
-  Defining the variable `scale_version` is mandatory. Furthermore, you'll need to configure an installation method
+  Defining the variable `scale_version` is optional for `scale_install_localpkg_path` and `scale_install_directory_pkg_path` installation methods. It is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
   by defining *one* of the following variables:
 
    - `scale_install_repository_url` (eg: http://infraserv/gpfs_rpms/)
    - `scale_install_remotepkg_path` (accessible on Ansible managed node)
    - `scale_install_localpkg_path` (accessible on Ansible control machine)
+   - `scale_install_directory_pkg_path` (eg: /opt/IBM/spectrum_scale_packages)
   
   The following installation methods are available:
   
-   - Install from (existing) YUM repository(`scale_install_repository_url`)
-   - Install from remote installation package (`scale_install_remotepkg_path`)
-   - Install from local installation package (`scale_install_localpkg_path`)
-   
+   - Installation from (existing) YUM repository(`scale_install_repository_url`)
+   - Installation from remote installation package (`scale_install_remotepkg_path`)
+   - Installation from local installation package (`scale_install_localpkg_path`)
+   - Installation from single directory package path (`scale_install_directory_pkg_path`)
+
+ 
+  > **Important**: If you are using the single directory installation method(`scale_install_directory_pkg_path`), you need to keep all required GPFS RPMs
+  in a single user-provided directory.
   ---
 
 - #### Run the playbook to install and configure the GPFS cluster

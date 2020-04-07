@@ -1,0 +1,186 @@
+---
+# directory package installation method
+
+- block:  ## run_once: true
+    - name: install | Stat directory installation package
+      stat:
+        path: "{{ scale_install_directory_pkg_path }}"
+      register: scale_install_dirpkg
+
+    - name: install | Check directory installation package
+      assert:
+        that: scale_install_dirpkg.stat.exists
+        msg: >-
+          Please set the variable 'scale_install_directory_pkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+  run_once: true
+  delegate_to: localhost
+
+
+- name: install| Creates default directory
+  file:
+    path: "{{ gpfs_extracted_path }}"
+    state: directory
+    mode: a+x
+    recurse: yes
+
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+  register: scale_install_gpfs_rpmdir
+
+#
+# Copy installation directory package
+#
+
+- block:
+    - name: install | Copy installation package to node
+      copy:
+        src: "{{ scale_install_directory_pkg_path }}"
+        dest: "{{ gpfs_extracted_path }}"
+        mode: a+x
+
+- name: install | Set installation package path
+  set_fact:
+    dir_path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+
+- name: install | gpfs base path
+  set_fact:
+    gpfs_path_url: "{{ dir_path }}"
+  when: scale_install_directory_pkg_path is defined
+
+#
+# Find GPFS BASE
+#
+- name: install | Find GPFS BASE (gpfs.base) RPM
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.base*{{ scale_architecture }}*
+  register: scale_install_gpfs_base
+
+- name: install | Check valid GPFS BASE (gpfs.base) RPM
+  assert:
+    that: scale_install_gpfs_base.matched > 0
+    msg: >-
+      No GPFS BASE (gpfs.base) package found:
+      {{ dir_path }}/gpfs.base*{{ scale_architecture }}*
+
+#
+# Find GPFS gpfs.docs
+#
+- name: install | Find GPFS docs (gpfs.docs) RPM
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.docs*
+  register: scale_install_gpfs_doc
+
+- name: install | Check valid GPFS docs (gpfs.docs) RPM
+  assert:
+    that: scale_install_gpfs_doc.matched > 0
+    msg: >-
+      No GPFS docs (gpfs.docs) package found:
+      {{ dir_path }}/gpfs.docs*
+
+#
+# Find GPFS gpfs.msg.en_US
+#
+- name: install | Find gpfs.msg.en_US (gpfs.msg.en_US) RPM
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.msg.en*
+  register: scale_install_gpfs_msg
+
+- name: install | Check valid GPFS (gpfs.msg.en_US) RPM
+  assert:
+    that: scale_install_gpfs_msg.matched > 0
+    msg: >-
+      No GPFS BASE (gpfs.base) package found:
+      {{ dir_path }}/gpfs.msg.en*
+
+#
+# Find GPFS gpfs.compression
+#
+- name: install | Find GPFS Compression (gpfs.compression) RPM
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.compression*{{ scale_architecture }}*
+  register: scale_install_gpfs_compression
+
+- name: install | Check valid GPFS Compression(gpfs.compression) RPM
+  debug:
+    msg: >-
+      No GPFS Compression (gpfs.compression) package found:
+      {{ dir_path }}/gpfs.compression*{{ scale_architecture }}*
+  when: scale_install_gpfs_compression.matched < 1
+
+#
+# Find GSKit
+#
+- name: install | Find Global Security Kit (GSKit) RPM
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.gskit*{{ scale_architecture }}*
+  register: scale_install_gpfs_gskit
+
+- name: install | Check valid Global Security Kit (GSKit) RPM
+  assert:
+    that: scale_install_gpfs_gskit.matched > 0
+    msg: >-
+      No Global Security Kit (GSKit) package found:
+      {{ dir_path }}/gpfs.gskit*{{ scale_architecture }}*
+
+#
+# Add GPFS Packages
+#
+- name: install | Add GPFS RPMs to list
+  vars:
+    current_rpm: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  with_items:
+    - "{{ scale_install_gpfs_base.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_doc.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_msg.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_gskit.files.0.path | basename }}"
+
+- name: install | Add GPFS compression RPMs to list
+  vars:
+    current_rpm: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  with_items: "{{ scale_install_gpfs_compression.files.0.path | basename }}"
+  when: scale_install_gpfs_compression.matched == 1
+
+- name: install | Add GPFS RPMs to list (prior to version 5.0.2.0)
+  vars:
+    current_rpm: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  with_items:
+    - "{{ scale_install_add_rpms_pre502 }}"
+  when: scale_version is version_compare('5.0.2', '<=')
+
+#
+# Add GPFS Packages for building GPL module from source
+#
+
+- name: install | Find GPFS gpl (gpfs.gpl) RPM
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.gpl*
+  register: scale_install_gpfs_gpl
+
+- name: install | Check valid GPFS GPL (gpfs.gpl) RPM
+  assert:
+    that: scale_install_gpfs_gpl.matched > 0
+    msg: >-
+      No GPFS GPL (gpfs.gpl) package found:
+      {{ dir_path }}/gpfs.gpl*
+
+- name: install | Add GPFS RPMs for building GPL module from source to list
+  vars:
+    current_rpm: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+  when: scale_install_gplbin_rpm is undefined
+  with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"
