@@ -68,8 +68,9 @@ scale_install_gplbin_prereqs:
 
 ## List of RPMs to install when building Linux kernel extension from source
 scale_build_gplsrc_prereqs:
+  - kernel-devel-{{ ansible_kernel }}
+  - kernel-headers-{{ ansible_kernel }}
   - gcc-c++
-  - kernel-devel
   - make
 
 ## List of RPMs to install specific to rhel8 when building Linux kernel extension from source
