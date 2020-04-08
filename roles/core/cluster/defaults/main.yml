@@ -52,3 +52,13 @@ scale_storage_filesystem_defaults:
   ## for an existing NSD header (dangerous!)
   overwriteNSDs: false
 # defaults file for node
+
+# Specifies a predefined profile of attributes to be applied.
+# System-defined profiles are located in /usr/lpp/mmfs/profiles/. 
+# The following system-defined profile names are accepted: 
+# gpfsprotocoldefaults and gpfsprotocolrandomio
+# eg: If you want to apply gpfsprotocoldefaults then specify scale_cluster_profile_name: gpfsprotocoldefaults
+scale_cluster_profile_name: None
+
+# System-defined profiles are located in /usr/lpp/mmfs/profiles/
+scale_cluster_profile_dir_path: /usr/lpp/mmfs/profiles/
