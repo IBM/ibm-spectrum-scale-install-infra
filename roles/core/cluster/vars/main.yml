@@ -13,6 +13,8 @@ scale_rpmversion: "{{ scale_version | regex_replace('^([0-9.]+)\\.([0-9])$', '\\
 scale_pkg_mgr:
   - yum
   - dnf
+  - apt
+  - zypper
 
 ## Remember if RPMs were updated or not
 scale_install_updated: false

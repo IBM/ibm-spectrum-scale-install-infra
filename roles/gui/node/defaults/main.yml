@@ -3,7 +3,7 @@
 # either edit this file or define your own variables to override the defaults
 
 ## Specify the URL of the (existing) Spectrum Scale GUI YUM repository
-## (copy the contents of /usr/lpp/mmfs/.../gpfs_rpms/ to build your repository)
+## (copy the contents of /usr/lpp/mmfs/.../gpfs_packages/ to build your repository)
 scale_install_gui_repository_url: http://infraserv/gui_rpms/
 
 ## Note that if this is a URL then a new repository definition will be created.
@@ -14,7 +14,7 @@ scale_install_gui_repository_url: http://infraserv/gui_rpms/
 scale_architecture: "{{ ansible_architecture }}"
 
 ## List of RPMs to install on GUI nodes
-scale_gui_rpms:
+scale_gui_packages:
   - gpfs.gui-{{ scale_rpmversion }}.noarch
   - gpfs.java-{{ scale_rpmversion }}.{{ scale_architecture }}
 

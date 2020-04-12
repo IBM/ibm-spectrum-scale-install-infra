@@ -41,10 +41,10 @@
 #
 - name: install | Stat extracted packages
   stat:
-    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
-  register: scale_install_gpfs_rpmdir
+    path: "{{ gpfs_path_url }}"
+  register: scale_install_gpfs_packagedir
 
-- block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
+- block:  ## when: not scale_install_gpfs_packagedir.stat.exists
     - name: install | Stat temporary directory
       stat:
         path: "{{ scale_install_localpkg_tmpdir_path }}"
@@ -63,7 +63,7 @@
         src: "{{ scale_install_localpkg_path }}"
         dest: "{{ scale_install_localpkg_tmpdir_path }}"
         mode: a+x
-  when: not scale_install_gpfs_rpmdir.stat.exists
+  when: not scale_install_gpfs_packagedir.stat.exists
 
 #
 # Extract installation package
@@ -73,18 +73,18 @@
     localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
   command: "{{ localpkg + ' --silent' }}"
   args:
-    creates: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+    creates: "{{ gpfs_path_url }}"
 
 - name: install | Stat extracted packages
   stat:
-    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
-  register: scale_install_gpfs_rpmdir
+    path: "{{ gpfs_path_url }}"
+  register: scale_install_gpfs_packagedir
 
 - name: install | Check extracted packages
   assert:
     that:
-      - scale_install_gpfs_rpmdir.stat.exists
-      - scale_install_gpfs_rpmdir.stat.isdir
+      - scale_install_gpfs_packagedir.stat.exists
+      - scale_install_gpfs_packagedir.stat.isdir
     msg: >-
       The variable 'scale_version' doesn't seem to match the contents of the
       local installation package!
@@ -100,41 +100,41 @@
 # Find GPFS GUI
 #
 - block:  ## when: host is defined as a gui node
-    - name: install | Find GPFS GUI (gpfs.gui) RPM
+    - name: install | Find GPFS GUI (gpfs.gui) packages
       find:
-        paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
-        patterns: gpfs.gui-*.noarch.rpm
+        paths: "{{ gpfs_path_url }}"
+        patterns: gpfs.gui*
       register: scale_install_gpfs_gui
 
-    - name: install | Check valid GPFS GUI (gpfs.gui) RPM
+    - name: install | Check valid GPFS GUI (gpfs.gui) packages
       assert:
         that: scale_install_gpfs_gui.matched > 0
         msg: >-
-          No GPFS GUI (gpfs.gui) RPM found:
-          /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.gui-*.noarch.rpm
+          No GPFS GUI (gpfs.gui) packages found:
+          "{{ gpfs_path_url }}/gpfs.gui*"
     #
     # Find GPFS gpfs.java
     #
-    - name: install | Find GPFS java (gpfs.java) RPM
+    - name: install | Find GPFS java (gpfs.java) packages
       find:
-        paths: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/
-        patterns: gpfs.java-*.{{ scale_architecture }}.rpm
+        paths: "{{ gpfs_path_url }}"
+        patterns: gpfs.java*{{ scale_architecture }}*
       register: scale_install_gpfs_java
 
-    - name: install | Check valid GPFS java (gpfs.java) RPM
+    - name: install | Check valid GPFS java (gpfs.java) package
       assert:
         that: scale_install_gpfs_java.matched > 0
         msg: >-
-          No GPFS java (gpfs.java) RPM found:
-          /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.java-*.{{ scale_architecture }}.rpm
+          No GPFS java (gpfs.java) package found:
+          "{{ gpfs_path_url }}/gpfs.java*{{ scale_architecture }}*"
 
-    - name: install | Add GPFS GUI RPMs to list
+    - name: install | Add GPFS GUI packages to list
       vars:
-        current_rpm: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/{{ item }}.rpm
+        current_package: "{{ gpfs_path_url }}/{{ item }}"
       set_fact:
-        scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+        scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
       with_items:
-        - "{{ scale_install_gpfs_gui.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
-        - "{{ scale_install_gpfs_java.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+        - "{{ scale_install_gpfs_java.files.0.path | basename }}"
+        - "{{ scale_install_gpfs_gui.files.0.path | basename }}"
 
   when: scale_cluster_gui | bool

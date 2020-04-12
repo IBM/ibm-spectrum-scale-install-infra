@@ -16,18 +16,39 @@
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
     - scale_install_zimon_repository_url != 'existing'
 
-#
-# Add GUI RPMs
-#
-- name: install | Add GPFS sensors RPMs to list
-  set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
-  with_items:
-    - "{{ scale_zimon_sensors_rpms }}"
+- name: install | Configure ZIMon repository
+  apt_repository:
+    name: spectrum-scale-zimon
+    description: IBM Spectrum Scale (ZIMon)
+    baseurl: "{{ scale_install_zimon_repository_url }}"
+    gpgcheck: false
+    state: present
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_zimon_repository_url != 'existing'
 
-- name: install | Add GPFS collector RPMs to list
+- name: install | Configure ZIMon repository
+  zypper_repository:
+    name: spectrum-scale-zimon
+    description: IBM Spectrum Scale (ZIMon)
+    baseurl: "{{ scale_install_zimon_repository_url }}"
+    gpgcheck: false
+    state: present
+  when:
+    - ansible_pkg_mgr == 'zypper'
+
+#
+# Add GUI packages
+#
+- name: install | Add GPFS sensors packages to list
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
-    - "{{ scale_zimon_collector_rpms }}"
+    - "{{ scale_zimon_sensors_packages }}"
+
+- name: install | Add GPFS collector packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_zimon_collector_packages }}"
   when: (scale_zimon_collector | bool) or (scale_cluster_gui | bool)

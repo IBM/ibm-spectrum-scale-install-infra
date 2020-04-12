@@ -13,9 +13,26 @@ scale_rpmversion: "{{ scale_version | regex_replace('^([0-9.]+)\\.([0-9])$', '\\
 scale_pkg_mgr:
   - yum
   - dnf
+  - apt
+  - zypper
 
 ## Remember if RPMs were updated or not
 scale_install_updated: false
 
 ## Remember if config params were changed or not
 scale_config_changed: false
+
+## Supported scale os distrubution
+scale_ubuntu_distribution:
+  - Ubuntu
+  - Debian
+
+## Supported scale os distrubution
+scale_rhel_distribution:
+  - RedHat
+  - CentOS
+
+## Supported scale os distrubution
+scale_sles_distribution:
+  - SLES
+  - Suse

@@ -67,7 +67,7 @@
         - " 'mmperfmon: There is no performance monitoring configuration data.' in scale_zimon_conf_pmcollector_check.stderr"
     #- " ( collector_nodes | join(',') ) not in scale_zimon_conf_pmcollector_check.stdout"
 
-    - name: configure | update performance collection for new node
+    - name: configure | update performace collection for new node
       vars:
         collector_nodes_new: "{{ groups['scale_zimon_collectors'] | list }}"
       command: /usr/lpp/mmfs/bin/mmperfmon config update --collectors "{{ collector_nodes_new | join(',') }}"

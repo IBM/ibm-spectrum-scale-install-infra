@@ -22,11 +22,11 @@
     state: directory
     mode: a+x
     recurse: yes
- 
+
 - name: install | Stat extracted packages
   stat:
     path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
-  register: scale_install_gpfs_rpmdir
+  register: scale_install_gpfs_packagedir
 
 #
 # Copy installation directory package to default
@@ -54,24 +54,24 @@
     #
     # Find GPFS gpfs.collector
     #
-    - name: install | Find gpfs.collector (gpfs.collector) RPM
+    - name: install | Find gpfs.collector (gpfs.collector) package
       find:
         paths: "{{ gpfs_path_url }}"
         patterns: gpfs.gss.pmcollector*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}*
       register: scale_install_gpfs_collector
 
-    - name: install | Check valid GPFS (gpfs.collector) RPM
+    - name: install | Check valid GPFS (gpfs.collector) package
       assert:
         that: scale_install_gpfs_collector.matched > 0
         msg: >-
           No GPFS collector (gpfs.gss.collector) package found:
           "{{ gpfs_path_url }}/gpfs.gss.pmcollector*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}*"
 
-    - name: install | Add GPFS zimon collector RPMs to list
+    - name: install | Add GPFS zimon collector packages to list
       vars:
-        current_rpm: "{{ gpfs_path_url }}/{{ item }}"
+        current_package: "{{ gpfs_path_url }}/{{ item }}"
       set_fact:
-        scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+        scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
       with_items:
         - "{{ scale_install_gpfs_collector.files.0.path | basename }}"
 
@@ -80,23 +80,23 @@
 #
 # Find GPFS gpfs.gss.pmsensors
 #
-- name: install | Find gpfs.gss.pmsensors (gpfs.gss.pmsensors) RPM
+- name: install | Find gpfs.gss.pmsensors (gpfs.gss.pmsensors) package
   find:
     paths: "{{ gpfs_path_url }}"
     patterns: gpfs.gss.pmsensors*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}*
   register: scale_install_gpfs_pmsensors
 
-- name: install | Check valid GPFS (gpfs.gss.pmsensors) RPM
+- name: install | Check valid GPFS (gpfs.gss.pmsensors) package
   assert:
     that: scale_install_gpfs_pmsensors.matched > 0
     msg: >-
       No GPFS pmsensors (gpfs.gss.pmsensors) package found:
       "{{ gpfs_path_url }}/gpfs.gss.pmsensors*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}*"
 
-- name: install | Add GPFS zimon sensors RPMs to list
+- name: install | Add GPFS zimon sensors packages to list
   vars:
-    current_rpm: "{{ gpfs_path_url }}/{{ item }}"
+    current_package: "{{ gpfs_path_url }}/{{ item }}"
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
   with_items:
     - "{{ scale_install_gpfs_pmsensors.files.0.path | basename }}"

@@ -15,29 +15,55 @@
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
     - scale_install_repository_url != 'existing'
+#
+# Configure apt repository
+#
+- name: install | Configure GPFS repository
+  apt_repository:
+    name: spectrum-scale-gpfs
+    description: IBM Spectrum Scale (GPFS)
+    baseurl: "{{ scale_install_repository_url }}"
+    gpgcheck: false
+    state: present
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+#
+# Configure zypper repository
+#
+- name: install | Configure GPFS repository
+  zypper_repository:
+    name: spectrum-scale-gpfs
+    description: IBM Spectrum Scale (GPFS)
+    baseurl: "{{ scale_install_repository_url }}"
+    gpgcheck: false
+    state: present
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url != 'existing'
 
 #
-# Add GPFS RPMs
+# Add GPFS packages
 #
-- name: install | Add GPFS RPMs to list
+- name: install | Add GPFS packages to list
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
-    - "{{ scale_install_gpfs_rpms }}"
+    - "{{ scale_install_gpfs_packages }}"
     - gpfs.gskit
 
-- name: install | Add GPFS RPMs to list (prior to version 5.0.2.0)
+- name: install | Add GPFS packages to list (prior to version 5.0.2.0)
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
-    - "{{ scale_install_add_rpms_pre502 }}"
+    - "{{ scale_install_add_packages_pre502 }}"
   when: scale_version is version_compare('5.0.2', '<=')
 
 #
-# Add GPFS RPMs for building GPL module from source
+# Add GPFS packages for building GPL module from source
 #
-- name: install | Add GPFS RPMs for building GPL module from source to list
+- name: install | Add GPFS packages for building GPL module from source to list
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
-  when: scale_install_gplbin_rpm is undefined
-  with_items: "{{ scale_install_gplsrc_rpms }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  when: scale_install_gplbin_package is undefined
+  with_items: "{{ scale_install_gplsrc_packages }}"

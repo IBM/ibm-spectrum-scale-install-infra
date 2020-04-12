@@ -16,13 +16,35 @@
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
     - scale_install_gui_repository_url != 'existing'
 
+- name: install | Configure GUI repository
+  apt_repository:
+    name: spectrum-scale-gui
+    description: IBM Spectrum Scale (GUI)
+    baseurl: "{{ scale_install_gui_repository_url }}"
+    gpgcheck: false
+    state: present
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_gui_repository_url != 'existing'
+
+- name: install | Configure GUI repository
+  zypper_repository:
+    name: spectrum-scale-gui
+    description: IBM Spectrum Scale (GUI)
+    baseurl: "{{ scale_install_gui_repository_url }}"
+    gpgcheck: false
+    state: present
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_gui_repository_url != 'existing'
+
 #
 # Add GUI RPMs
 #
 
 - name: install | Add GUI RPMs to list
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
-    - "{{ scale_gui_rpms }}"
+    - "{{ scale_gui_packages }}"
   when: scale_cluster_gui | bool

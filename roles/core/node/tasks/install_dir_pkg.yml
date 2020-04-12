@@ -27,7 +27,7 @@
 - name: install | Stat extracted packages
   stat:
     path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
-  register: scale_install_gpfs_rpmdir
+  register: scale_install_gpfs_packagedir
 
 #
 # Copy installation directory package
@@ -52,13 +52,13 @@
 #
 # Find GPFS BASE
 #
-- name: install | Find GPFS BASE (gpfs.base) RPM
+- name: install | Find GPFS BASE (gpfs.base) package
   find:
     paths: "{{ dir_path }}"
     patterns: gpfs.base*{{ scale_architecture }}*
   register: scale_install_gpfs_base
 
-- name: install | Check valid GPFS BASE (gpfs.base) RPM
+- name: install | Check valid GPFS BASE (gpfs.base) package
   assert:
     that: scale_install_gpfs_base.matched > 0
     msg: >-
@@ -68,13 +68,13 @@
 #
 # Find GPFS gpfs.docs
 #
-- name: install | Find GPFS docs (gpfs.docs) RPM
+- name: install | Find GPFS docs (gpfs.docs) package
   find:
     paths: "{{ dir_path }}"
     patterns: gpfs.docs*
   register: scale_install_gpfs_doc
 
-- name: install | Check valid GPFS docs (gpfs.docs) RPM
+- name: install | Check valid GPFS docs (gpfs.docs) package
   assert:
     that: scale_install_gpfs_doc.matched > 0
     msg: >-
@@ -84,13 +84,13 @@
 #
 # Find GPFS gpfs.msg.en_US
 #
-- name: install | Find gpfs.msg.en_US (gpfs.msg.en_US) RPM
+- name: install | Find gpfs.msg.en_US (gpfs.msg.en_US) package
   find:
     paths: "{{ dir_path }}"
     patterns: gpfs.msg.en*
   register: scale_install_gpfs_msg
 
-- name: install | Check valid GPFS (gpfs.msg.en_US) RPM
+- name: install | Check valid GPFS (gpfs.msg.en_US) package
   assert:
     that: scale_install_gpfs_msg.matched > 0
     msg: >-
@@ -100,13 +100,13 @@
 #
 # Find GPFS gpfs.compression
 #
-- name: install | Find GPFS Compression (gpfs.compression) RPM
+- name: install | Find GPFS Compression (gpfs.compression) package
   find:
     paths: "{{ dir_path }}"
     patterns: gpfs.compression*{{ scale_architecture }}*
   register: scale_install_gpfs_compression
 
-- name: install | Check valid GPFS Compression(gpfs.compression) RPM
+- name: install | Check valid GPFS Compression(gpfs.compression) package
   debug:
     msg: >-
       No GPFS Compression (gpfs.compression) package found:
@@ -116,13 +116,13 @@
 #
 # Find GSKit
 #
-- name: install | Find Global Security Kit (GSKit) RPM
+- name: install | Find Global Security Kit (GSKit) package
   find:
     paths: "{{ dir_path }}"
     patterns: gpfs.gskit*{{ scale_architecture }}*
   register: scale_install_gpfs_gskit
 
-- name: install | Check valid Global Security Kit (GSKit) RPM
+- name: install | Check valid Global Security Kit (GSKit) package
   assert:
     that: scale_install_gpfs_gskit.matched > 0
     msg: >-
@@ -132,55 +132,55 @@
 #
 # Add GPFS Packages
 #
-- name: install | Add GPFS RPMs to list
+- name: install | Add GPFS packages to list
   vars:
-    current_rpm: "{{ dir_path }}/{{ item }}"
+    current_package: "{{ dir_path }}/{{ item }}"
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
   with_items:
     - "{{ scale_install_gpfs_base.files.0.path | basename }}"
     - "{{ scale_install_gpfs_doc.files.0.path | basename }}"
     - "{{ scale_install_gpfs_msg.files.0.path | basename }}"
     - "{{ scale_install_gpfs_gskit.files.0.path | basename }}"
 
-- name: install | Add GPFS compression RPMs to list
+- name: install | Add GPFS compression packages to list
   vars:
-    current_rpm: "{{ dir_path }}/{{ item }}"
+    current_package: "{{ dir_path }}/{{ item }}"
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
   with_items: "{{ scale_install_gpfs_compression.files.0.path | basename }}"
   when: scale_install_gpfs_compression.matched == 1
 
-- name: install | Add GPFS RPMs to list (prior to version 5.0.2.0)
+- name: install | Add GPFS packages to list (prior to version 5.0.2.0)
   vars:
-    current_rpm: "{{ dir_path }}/{{ item }}"
+    current_package: "{{ dir_path }}/{{ item }}"
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
   with_items:
-    - "{{ scale_install_add_rpms_pre502 }}"
+    - "{{ scale_install_add_packages_pre502 }}"
   when: scale_version is version_compare('5.0.2', '<=')
 
 #
 # Add GPFS Packages for building GPL module from source
 #
 
-- name: install | Find GPFS gpl (gpfs.gpl) RPM
+- name: install | Find GPFS gpl (gpfs.gpl) package
   find:
     paths: "{{ dir_path }}"
     patterns: gpfs.gpl*
   register: scale_install_gpfs_gpl
 
-- name: install | Check valid GPFS GPL (gpfs.gpl) RPM
+- name: install | Check valid GPFS GPL (gpfs.gpl) package
   assert:
     that: scale_install_gpfs_gpl.matched > 0
     msg: >-
       No GPFS GPL (gpfs.gpl) package found:
       {{ dir_path }}/gpfs.gpl*
 
-- name: install | Add GPFS RPMs for building GPL module from source to list
+- name: install | Add GPFS packages for building GPL module from source to list
   vars:
-    current_rpm: "{{ dir_path }}/{{ item }}"
+    current_package: "{{ dir_path }}/{{ item }}"
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
-  when: scale_install_gplbin_rpm is undefined
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  when: scale_install_gplbin_package is undefined
   with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"

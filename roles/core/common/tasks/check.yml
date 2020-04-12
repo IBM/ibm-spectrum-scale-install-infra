@@ -86,3 +86,14 @@
   set_fact:
     scale_daemon_nodename: "{{ scale_daemon_nodename }}"
   when: hostvars[inventory_hostname].scale_daemon_nodename is undefined
+
+- block:
+    - name: check | Get architecture
+      command: dpkg --print-architecture
+      register: ubuntu_arch
+      changed_when: false
+
+    - name: check | Set scale_architecture
+      set_fact:
+        scale_architecture: "{{ ubuntu_arch.stdout }}"
+  when: ansible_distribution in scale_ubuntu_distribution

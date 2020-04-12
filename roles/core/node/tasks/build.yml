@@ -17,6 +17,18 @@
         state: present
       when: ansible_pkg_mgr == 'dnf'
 
+    - name: build | Install prereqs for building GPL module from source
+      apt:
+        name: "{{ scale_build_gplsrc_prereqs_deb }}"
+        state: present
+      when: ansible_pkg_mgr == 'apt'
+
+    - name: build | Install prereqs for building GPL module from source
+      zypper:
+        name: "{{ scale_build_gplsrc_prereqs_zypp }}"
+        state: present
+      when: ansible_pkg_mgr == 'zypper'
+
     - block:  ## when: rhel8 node
         - name: build | Install prereqs for building GPL from source
           dnf:
@@ -32,7 +44,14 @@
         scale_build_distribution: REDHAT_AS_LINUX
       when:
         ansible_distribution == 'CentOS' or
-        ansible_distribution == 'RedHat'
+        ansible_distribution == 'RedHat' or
+        ansible_distribution in scale_sles_distribution
+
+    - name: build | Identify OS distribution
+      set_fact:
+        scale_build_distribution: UBUNTU_AS_LINUX
+      when:
+        - ansible_distribution in scale_ubuntu_distribution
 
     #- name: build | Identify Suse distribution
     #  set_fact:
