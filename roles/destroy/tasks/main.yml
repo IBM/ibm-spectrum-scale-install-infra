@@ -1,0 +1,7 @@
+---
+# destroy role for  IBM Spectrum Scale (GPFS)
+
+- import_tasks: removecompute.yml
+  tags: always
+- import_tasks: removeserver.yml
+  tags: always

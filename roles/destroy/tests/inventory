@@ -1,0 +1,5 @@
+# hosts:
+[cluster01]
+scale-52 scale_cluster_quorum=true scale_cluster_manager=true is_nsd_server=false state=present
+scale-51 scale_cluster_quorum=true scale_cluster_manager=true is_nsd_server=yes state=absent
+scale-53 scale_cluster_quorum=true scale_cluster_manager=true is_nsd_server=false state=present
