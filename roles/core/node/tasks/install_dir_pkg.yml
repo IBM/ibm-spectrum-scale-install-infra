@@ -184,20 +184,3 @@
     scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
   when: scale_install_gplbin_rpm is undefined
   with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"
-
-#
-# Find ibm_cloud_workflows
-#
-- name: install | Find workflows package
-  find:
-    paths: "{{ dir_path }}"
-    patterns: ibm_cloud_workflows*
-  register: scale_install_cloud_workflows
-
-- name: install | Add workflows package from source to list
-  vars:
-    current_rpm: "{{ dir_path }}/{{ item }}"
-  set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
-  with_items: "{{ scale_install_cloud_workflows.files.0.path | basename }}"
-  when: scale_install_cloud_workflows.matched == 1
