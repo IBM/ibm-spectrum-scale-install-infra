@@ -62,3 +62,9 @@ scale_cluster_profile_name: None
 
 # System-defined profiles are located in /usr/lpp/mmfs/profiles/
 scale_cluster_profile_dir_path: /usr/lpp/mmfs/profiles/
+
+gpfs_cluster_system_profile:
+   - gpfsprotocoldefaults
+   - gpfsprotocolrandomio
+
+scale_cluster_profile_system_path: /var/mmfs/etc/

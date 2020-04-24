@@ -63,6 +63,17 @@
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
+- name: check | Find GPFS user profile
+  find:
+    paths: "{{ scale_cluster_profile_dir_path }}"
+    patterns: "{{ scale_cluster_profile_name }}.profile"
+  register: stat_user_profile_result
+  run_once: true
+  delegate_to: localhost
+  when:
+    - scale_cluster_profile_name is defined and scale_cluster_profile_name != None
+    - scale_cluster_profile_name not in gpfs_cluster_system_profile
+
 #
 # Create new cluster
 #
@@ -78,6 +89,30 @@
         patterns: "{{ scale_cluster_profile_name }}.profile"
       register: stat_profile_result
 
+    - block:
+        - name: check | cluster profile name validation
+          assert:
+            that:
+              - scale_cluster_profile_name is not match("gpfs.*")
+            msg: >-
+              A user-defined profile must not begin with the string 'gpfs'
+
+        - name: check | cluster profile format validation
+          assert:
+            that:
+              - stat_user_profile_result.matched == 1
+            msg: >-
+              A user-defined profile must have the .profile suffix
+
+        - name: cluster | Copy user defined profile
+          copy:
+            src: "{{ stat_user_profile_result.files.0.path | basename }}"
+            dest: "{{ scale_cluster_profile_system_path }}"
+            mode: a+x
+      when:
+        - scale_cluster_profile_name is defined and scale_cluster_profile_name != None
+        - scale_cluster_profile_name not in gpfs_cluster_system_profile
+
     - name: install | Initialize gpfs profile
       set_fact:
          profile_type: ""
@@ -86,7 +121,7 @@
       set_fact:
          profile_type: "--profile {{ scale_cluster_profile_name }}"
       when: 
-        - stat_profile_result.matched == 1
+        - (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
         - scale_cluster_profile_name is defined and scale_cluster_profile_name != None
 
     - name: cluster | Create new cluster
