@@ -71,7 +71,7 @@
   run_once: true
   delegate_to: localhost
   when:
-    - scale_cluster_profile_name is defined and scale_cluster_profile_name != None
+    - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
     - scale_cluster_profile_name not in gpfs_cluster_system_profile
 
 #
