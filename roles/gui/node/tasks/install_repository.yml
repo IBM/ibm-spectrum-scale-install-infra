@@ -8,35 +8,37 @@
   yum_repository:
     name: spectrum-scale-gui
     description: IBM Spectrum Scale (GUI)
-    baseurl: "{{ scale_install_gui_repository_url }}"
+    baseurl: "{{ scale_install_repository_url }}"
     gpgcheck: false
     state: present
   notify: yum-clean-metadata
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-    - scale_install_gui_repository_url != 'existing'
+    - scale_install_repository_url != 'existing'
 
-- name: install | Configure GUI repository
+- name: install | Configure gui APT repository
   apt_repository:
-    name: spectrum-scale-gui
-    description: IBM Spectrum Scale (GUI)
-    baseurl: "{{ scale_install_gui_repository_url }}"
-    gpgcheck: false
+    filename: spectrum-scale-gui-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }} ./"
+    validate_certs: no
     state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (GUI debs)
+    mode: 0777
   when:
     - ansible_pkg_mgr == 'apt'
-    - scale_install_gui_repository_url != 'existing'
+    - scale_install_repository_url != 'existing'
 
 - name: install | Configure GUI repository
   zypper_repository:
     name: spectrum-scale-gui
     description: IBM Spectrum Scale (GUI)
-    baseurl: "{{ scale_install_gui_repository_url }}"
+    baseurl: "{{ scale_install_repository_url }}"
     gpgcheck: false
     state: present
   when:
     - ansible_pkg_mgr == 'zypper'
-    - scale_install_gui_repository_url != 'existing'
+    - scale_install_repository_url != 'existing'
 
 #
 # Add GUI RPMs

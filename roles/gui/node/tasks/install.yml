@@ -10,7 +10,7 @@
       set_fact:
         scale_installmethod: repository
       when:
-        - scale_install_gui_repository_url is defined
+        - scale_install_repository_url is defined
 
     - name: install | Check for localpkg installation method
       set_fact:
@@ -71,7 +71,7 @@
   package:
     name: "{{ scale_install_all_packages }}"
     state: present
-  when: ansible_pkg_mgr != 'apt' or ansible_pkg_mgr != 'zypper'
+  when: ansible_pkg_mgr != 'apt' or ansible_pkg_mgr != 'zypper' or scale_install_repository_url is defined
 
 - block:
     - name: install | Install GPFS GUI packages
@@ -80,8 +80,7 @@
         state: present
       with_items:
         - "{{ scale_install_all_packages }}"
-
-  when: ansible_pkg_mgr == 'apt'
+  when: ansible_pkg_mgr == 'apt' and scale_install_repository_url is not defined
 
 - block:
     - name: install | Install GPFS GUI packages

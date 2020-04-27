@@ -18,13 +18,15 @@
 #
 # Configure apt repository
 #
-- name: install | Configure GPFS repository
+- name: install | Configure core APT repository
   apt_repository:
-    name: spectrum-scale-gpfs
-    description: IBM Spectrum Scale (GPFS)
-    baseurl: "{{ scale_install_repository_url }}"
-    gpgcheck: false
+    filename: spectrum-scale-core-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}gpfs_debs/ ./"
+    validate_certs: no
     state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (core debs)
+    mode: 0777
   when:
     - ansible_pkg_mgr == 'apt'
     - scale_install_repository_url != 'existing'

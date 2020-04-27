@@ -168,7 +168,19 @@
             scale_install_updated: true
           when:
             - (scale_install_debpackageresult.changed)
-      when: ansible_pkg_mgr == 'apt'
+      when: ansible_pkg_mgr == 'apt' and scale_install_repository_url is not defined
+
+    - block:
+        - name: install | Install GPFS Core packages
+          package:
+           name: "{{ scale_install_all_packages }}"
+           state: present
+
+        - name: install | Install GPFS Core packages
+          package:
+           name: "{{ scale_install_license_packages }}"
+           state: present
+      when: ansible_pkg_mgr == 'apt' and scale_install_repository_url is defined
 
     - block:
         - name: install | dependencies pacage

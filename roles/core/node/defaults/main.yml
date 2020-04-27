@@ -38,7 +38,7 @@ gpfs_extracted_path: "{{ extracted_default_path }}/{{ scale_version }}"
 scale_install_gpfs_packages:
   - gpfs.base
   - gpfs.docs
-  - gpfs.msg.en_US
+  - gpfs.msg.en*
   - gpfs.compression
   # Appropriate gpfs.gskit version will be installed automatically
 

@@ -21,6 +21,7 @@
     warn: false
   register: scale_repo_gpfsversion
   changed_when: false
+  when: scale_install_repository_url is undefined
 
 - name: update | Check if node needs to be updated
   set_fact:
