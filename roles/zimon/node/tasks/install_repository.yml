@@ -19,7 +19,7 @@
 - name: install | Configure zimon APT repository
   apt_repository:
     filename: spectrum-scale-zimon-debs
-    repo: "deb [trusted=yes] {{ scale_install_zimon_repository_url }}/ubuntu/ubuntu16/ ./"
+    repo: "deb [trusted=yes] {{ scale_install_zimon_repository_url }}zimon_debs/ubuntu/ubuntu16/ ./"
     validate_certs: no
     state: present
     update_cache: yes
@@ -34,7 +34,7 @@
 - name: install | Configure zimon APT repository
   apt_repository:
     filename: spectrum-scale-zimon-debs
-    repo: "deb [trusted=yes] {{ scale_install_zimon_repository_url }}/ubuntu/ubuntu18/ ./"
+    repo: "deb [trusted=yes] {{ scale_install_zimon_repository_url }}zimon_debs/ubuntu/ubuntu18/ ./"
     validate_certs: no
     state: present
     update_cache: yes

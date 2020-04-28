@@ -19,7 +19,7 @@
 - name: install | Configure gui APT repository
   apt_repository:
     filename: spectrum-scale-gui-debs
-    repo: "deb [trusted=yes] {{ scale_install_repository_url }} ./"
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}/gpfs_debs/ ./"
     validate_certs: no
     state: present
     update_cache: yes

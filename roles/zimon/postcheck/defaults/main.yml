@@ -2,10 +2,6 @@
 # Default variables for the IBM Spectrum Scale (GPFS) Graphical User Interface (GUI) role -
 # either edit this file or define your own variables to override the defaults
 
-## Specify the URL of the (existing) Spectrum Scale ZIMon YUM repository
-## (copy the contents of /usr/lpp/mmfs/.../zimon_rpms/rhel7 to build your repository)
-scale_install_zimon_repository_url: http://infraserv/zimon_rpms/
-
 ## Note that if this is a URL then a new repository definition will be created.
 ## If this variable is set to 'existing' then it is assumed that a repository
 ## definition already exists and thus will *not* be created.
