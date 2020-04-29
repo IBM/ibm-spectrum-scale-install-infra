@@ -47,26 +47,9 @@
 #
 # Run chosen installation method to get list of packages
 #
-- name: install | gpfs base path
-  set_fact:
-    gpfs_path_url: '{{ gpfs_extracted_path }}/gpfs_rpms'
-  when:
-    - scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
-    - ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
-
-- name: install | gpfs base path
-  set_fact:
-    gpfs_path_url: "{{ gpfs_extracted_path }}/gpfs_debs"
-  when:
-    - scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
-    - ansible_distribution in scale_ubuntu_distribution
-
 - name: install | Initialize list of packages
   set_fact:
     scale_install_all_packages: []
-
-- name: install | Initialize license list of packages
-  set_fact:
     scale_install_license_packages: []
 
 - include_tasks: install_{{ scale_installmethod }}.yml
@@ -94,112 +77,11 @@
 #
 # Install or update packages
 #
-- block:  ## when: not scale_daemon_running
-    - block:
-        - name: install | List installed GPFS packages
-          yum:
-            list: gpfs.base
-            disablerepo: spectrum-scale-gpfs
-          register: scale_install_packagelist
-          when: ansible_pkg_mgr == 'yum'
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
 
-        - name: install | Install GPFS packages
-          yum:
-            name: "{{ scale_install_all_packages }}"
-            state: present
-          register: scale_install_packageresult
-          when: ansible_pkg_mgr == 'yum'
+- import_tasks: yum/install.yml
+  when: ansible_distribution in scale_rhel_distribution
 
-        - name: install | Install GPFS License packages
-          yum:
-            name: "{{ scale_install_license_packages }}"
-            state: present
-          register: scale_install_license_packageresult
-          when: ansible_pkg_mgr == 'yum'
-
-        - name: install | List installed GPFS packages
-          dnf:
-            list: gpfs.base
-            disablerepo: spectrum-scale-gpfs
-          register: scale_install_dnfpackagelist
-          when: ansible_pkg_mgr == 'dnf'
-
-        - name: install | Install GPFS packages
-          dnf:
-            name: "{{ scale_install_all_packages }}"
-            state: present
-          register: scale_install_dnfpackageresult
-          when: ansible_pkg_mgr == 'dnf'
-
-        - name: install | Install GPFS License packages
-          dnf:
-            name: "{{ scale_install_license_packages }}"
-            state: present
-          register: scale_install_license_dnfpackageresult
-          when: ansible_pkg_mgr == 'dnf'
-
-        - name: install | Check if GPFS packages were updated
-          set_fact:
-            scale_install_updated: true
-          when:
-            - ("'installed' in scale_install_packagelist.results | map(attribute='yumstate') | list") or
-              ("'installed' in scale_install_dnfpackagelist.results | map(attribute='yumstate' | list")
-            - (scale_install_packageresult.changed) or (scale_install_dnfpackageresult.changed)
-      when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-
-    - block:
-        - name: install | Install GPFS packages
-          apt:
-            deb: "{{ item }}"
-            state: present
-          register: scale_install_debpackageresult
-          with_items:
-            - "{{ scale_install_all_packages }}"
-
-        - name: install | Install GPFS License packages
-          apt:
-            deb: "{{ item }}"
-            state: present
-          with_items:
-            - "{{ scale_install_license_packages }}"
-      
-        - name: install | Check if GPFS packages were updated
-          set_fact:
-            scale_install_updated: true
-          when:
-            - (scale_install_debpackageresult.changed)
-      when: ansible_pkg_mgr == 'apt' and scale_install_repository_url is not defined
-
-    - block:
-        - name: install | Install GPFS Core packages
-          package:
-           name: "{{ scale_install_all_packages }}"
-           state: present
-
-        - name: install | Install GPFS Core packages
-          package:
-           name: "{{ scale_install_license_packages }}"
-           state: present
-      when: ansible_pkg_mgr == 'apt' and scale_install_repository_url is defined
-
-    - block:
-        - name: install | dependencies pacage
-          zypper:
-            name: binutils
-            state: present
-
-        - name: install | Install GPFS packages
-          zypper:
-            name: "{{ scale_install_all_packages }}"
-            state: present
-            disable_gpg_check: yes
-          register: scale_install_zypppackageresult
-
-        - name: install | Check if GPFS packages were updated
-          set_fact:
-            scale_install_updated: true
-          when:
-            - (scale_install_zypppackageresult.changed)
-      when: ansible_pkg_mgr == 'zypper'
-        #- (scale_install_license_packageresult.changed) or (scale_install_license_dnfpackageresult.changed)
-  when: not scale_daemon_running
+- import_tasks: zypper/install.yml
+  when: ansible_distribution in scale_sles_distribution

@@ -41,20 +41,6 @@
 #
 # Run chosen installation method to get list of packages
 #
-- name: install | gpfs base path
-  set_fact:
-    gpfs_path_url: '{{ gpfs_extracted_path }}/gpfs_rpms'
-  when:
-    - scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
-    - ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
-
-- name: install | gpfs base path
-  set_fact:
-    gpfs_path_url: "{{ gpfs_extracted_path }}/gpfs_debs"
-  when:
-    - scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
-    - ansible_distribution in scale_ubuntu_distribution
-
 - name: install | Initialize list of packages
   set_fact:
     scale_install_all_packages: []
@@ -66,32 +52,11 @@
 #
 # Install or update packages
 #
-- name: install | Install GPFS GUI packages
-  package:
-    name: "{{ scale_install_all_packages }}"
-    state: present
-  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
 
-- block:
-    - name: install | Install GPFS GUI packages
-      package:
-        name: "{{ scale_install_all_packages }}"
-        state: present
-      when: scale_install_repository_url is defined
+- import_tasks: yum/install.yml
+  when: ansible_distribution in scale_rhel_distribution
 
-    - name: install | Install GPFS GUI packages
-      apt:
-        deb: "{{ item }}"
-        state: present
-      with_items:
-        - "{{ scale_install_all_packages }}"
-      when: scale_install_repository_url is not defined
-  when: ansible_pkg_mgr == 'apt'
-
-- block:
-    - name: install | Install GPFS GUI packages
-      zypper:
-          name: "{{ scale_install_all_packages }}"
-          state: present
-          disable_gpg_check: yes
-  when: ansible_pkg_mgr == 'zypper'
+- import_tasks: zypper/install.yml
+  when: ansible_distribution in scale_sles_distribution

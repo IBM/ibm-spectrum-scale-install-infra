@@ -56,25 +56,11 @@
 #
 # Install or update RPMs
 #
-- name: install | Install GPFS Zimon packages
-  package:
-    name: "{{ scale_install_all_packages }}"
-    state: present
-  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or scale_install_zimon_repository_url is defined
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
 
-- block:
-    - name: install | Install GPFS zimon packages
-      apt:
-        deb: "{{ item }}"
-        state: present
-      with_items:
-        - "{{ scale_install_all_packages }}"
-  when: ansible_pkg_mgr == 'apt' and scale_install_zimon_repository_url is not defined
+- import_tasks: yum/install.yml
+  when: ansible_distribution in scale_rhel_distribution
 
-- block:
-    - name: install | Install GPFS zimon packages
-      zypper:
-          name: "{{ scale_install_all_packages }}"
-          state: present
-          disable_gpg_check: yes
-  when: ansible_pkg_mgr == 'zypper'
+- import_tasks: zypper/install.yml
+  when: ansible_distribution in scale_sles_distribution

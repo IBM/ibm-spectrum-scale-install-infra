@@ -1,0 +1,14 @@
+---
+- name: install | Install GPFS Zimon packages
+  package:
+    name: "{{ scale_install_all_packages }}"
+    state: present
+  when: scale_install_zimon_repository_url is defined
+
+- block:
+    - name: install | Install GPFS zimon packages
+      zypper:
+          name: "{{ scale_install_all_packages }}"
+          state: present
+          disable_gpg_check: yes
+  when: scale_install_zimon_repository_url is not defined
