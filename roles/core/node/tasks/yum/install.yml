@@ -55,5 +55,3 @@
             - ("'installed' in scale_install_packagelist.results | map(attribute='yumstate') | list") or
               ("'installed' in scale_install_dnfpackagelist.results | map(attribute='yumstate' | list")
             - (scale_install_packageresult.changed) or (scale_install_dnfpackageresult.changed)
-      when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-  when: not scale_daemon_running

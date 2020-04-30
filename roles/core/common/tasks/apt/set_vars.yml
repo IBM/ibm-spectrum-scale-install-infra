@@ -1,14 +1,14 @@
 ---
-- name: check | Get architecture
+- name: set | Find apt architecture
   command: dpkg --print-architecture
   register: ubuntu_arch
   changed_when: false
 
-- name: check | Set scale_architecture
+- name: set | Set scale_architecture
   set_fact:
     scale_architecture: "{{ ubuntu_arch.stdout }}"
 
-- name: set | apt gpfs base path
+- name: set | Set apt gpfs base path
   set_fact:
     gpfs_path_url: "{{ gpfs_extracted_path }}/gpfs_debs"
   when:

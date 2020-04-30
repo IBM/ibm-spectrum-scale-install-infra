@@ -37,4 +37,3 @@
            name: "{{ scale_install_license_packages }}"
            state: present
       when: scale_install_repository_url is defined
-  when: not scale_daemon_running

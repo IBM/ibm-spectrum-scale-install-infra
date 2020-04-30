@@ -21,4 +21,3 @@
             scale_install_updated: true
           when:
             - (scale_install_zypppackageresult.changed)
-  when: not scale_daemon_running

@@ -77,11 +77,13 @@
 #
 # Install or update packages
 #
-- import_tasks: apt/install.yml
-  when: ansible_distribution in scale_ubuntu_distribution
+- block:
+    - import_tasks: apt/install.yml
+      when: ansible_distribution in scale_ubuntu_distribution
 
-- import_tasks: yum/install.yml
-  when: ansible_distribution in scale_rhel_distribution
+    - import_tasks: yum/install.yml
+      when: ansible_distribution in scale_rhel_distribution
 
-- import_tasks: zypper/install.yml
-  when: ansible_distribution in scale_sles_distribution
+    - import_tasks: zypper/install.yml
+      when: ansible_distribution in scale_sles_distribution
+  when: not scale_daemon_running
