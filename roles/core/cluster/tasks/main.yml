@@ -17,8 +17,5 @@
   tags: always
 
 # cluster node remover playbook
-- import_tasks: removecompute.yml
-  tags: always
-
-- import_tasks: removeserver.yml
+- import_tasks: removenode.yml
   tags: always
