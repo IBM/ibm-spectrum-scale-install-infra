@@ -17,7 +17,3 @@ galaxy_info:
     - spectrum
     - scale
     - gpfs
-
-dependencies:
- - common
- - custom_module
