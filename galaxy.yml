@@ -1,0 +1,22 @@
+namespace: ibm_spectrum_scale
+name: install_infra
+version: v0.0.0
+readme: README.md
+license_file: LICENSE
+authors: 
+- rajan-mis
+- whowutwut
+
+description: Spectrum Scale Installation and Configuration
+
+repository: https://github.com/IBM/ibm-spectrum-scale-install-infra
+issues: https://github.com/IBM/ibm-spectrum-scale-install-infra/issues
+
+
+tags: 
+- spectrum
+- gpfs
+- scale
+- spectrum scale
+
+

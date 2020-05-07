@@ -99,13 +99,8 @@ import logging
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 from ansible.module_utils.basic import AnsibleModule
 
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_ss_utils import runCmd, parse_aggregate_cmd_output, RC_SUCCESS, get_logger
 
-#TODO: FIX THIS. If the modules and utils are located in a non standard
-#      path, the PYTHONPATH will need to be exported in the .bashrc 
-
-
-from ansible.module_utils.ibm_ss_utils import runCmd, parse_aggregate_cmd_output, RC_SUCCESS, get_logger
-#from ansible.module_utils.ibm_ss_utils import runCmd, parse_aggregate_cmd_output, RC_SUCCESS
 ###############################################################################
 ##                                                                           ##
 ##                           Helper Functions                                ##

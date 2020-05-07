@@ -118,10 +118,7 @@ import json
 import sys
 from ansible.module_utils.basic import AnsibleModule
 
-#TODO: FIX THIS. If the modules and utils are located in a non standard
-#      path, the PYTHONPATH will need to be exported in the .bashrc
-from ansible.module_utils.ibm_ss_utils import runCmd, parse_simple_cmd_output, RC_SUCCESS
-
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_ss_utils import runCmd, parse_simple_cmd_output, RC_SUCCESS
 
 MMLSFS_DATATYPE="filesystems"
 MMLSFS_KEY="deviceName"
