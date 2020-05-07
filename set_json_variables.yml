@@ -27,6 +27,7 @@
      scale_cluster_manager: "{{ item.is_manager_node | default(false) }}"
      scale_cluster_gui: "{{ item.is_gui_server | default(false) }}"
      scale_zimon_collector: "{{ item.is_collector_node | default(false) }}"
+     state: "{{ item.state | default('present') }}"
      ansible_ssh_private_key_file: "{{ item.ansible_ssh_private_key_file | default(omit) }}"
      scale_cluster_clustername: "{{ scale_cluster.scale_cluster_name | default('gpfs1.local') }}"
     loop: "{{ node_details }}"
