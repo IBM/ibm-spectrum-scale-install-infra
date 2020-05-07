@@ -19,5 +19,4 @@ galaxy_info:
     - gpfs
 
 dependencies:
- - common
  - custom_module
