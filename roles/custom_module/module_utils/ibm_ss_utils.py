@@ -1,14 +1,10 @@
 #!/usr/bin/python
 
-# Licensed Materials - Property of IBM
-#
-# (C) COPYRIGHT International Business Machines Corp 1994, 2018.
-# All Rights Reserved
-#
-# US Government Users Restricted Rights - Use, duplication or
-# disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
-
 # author: IBM Corporation
+# description: Highly-customizable Ansible role module
+# for installing and configuring IBM Spectrum Scale (GPFS)
+# company: IBM
+# license: Apache-2.0
 
 import os
 import sys

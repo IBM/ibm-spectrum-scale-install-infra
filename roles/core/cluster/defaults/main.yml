@@ -22,6 +22,9 @@
 ## (accessible on Ansible control machine) - it will be copied to your nodes
 #scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-{{ scale_version }}-{{ ansible_architecture }}-Linux-install
 
+## Spectrum Scale daemon nodename (defaults to node's hostname)
+scale_daemon_nodename: "{{ ansible_hostname }}"
+
 ## Default cluster name
 scale_cluster_clustername: gpfs1.local
 
