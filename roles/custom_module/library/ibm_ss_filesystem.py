@@ -1,14 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Licensed Materials - Property of IBM
-#
-# (C) COPYRIGHT International Business Machines Corp 1994, 2018.
-# All Rights Reserved
-#
-# US Government Users Restricted Rights - Use, duplication or
-# disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
 # author: IBM Corporation
+# description: Highly-customizable Ansible module
+# for installing and configuring IBM Spectrum Scale (GPFS)
+# company: IBM
+# license: Apache-2.0
 
 ANSIBLE_METADATA = {
                        'status': ['preview'],
