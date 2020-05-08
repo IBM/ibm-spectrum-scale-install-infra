@@ -21,4 +21,4 @@
 
 # cluster node remover playbook
 - import_tasks: removenode.yml
-  tags: always
+  tags: removenode
