@@ -34,7 +34,7 @@
   
 - block:
     #
-    # Find GPFS adv packgae
+    # Find GPFS adv package
     #
     - name: install | Find GPFS Advance (gpfs.adv) RPM
       find:
@@ -43,7 +43,7 @@
       register: scale_install_gpfs_adv
 
     #
-    # Find GPFS crypto packgae
+    # Find GPFS crypto package
     #
     - name: install | Find GPFS crypto (gpfs.crypto) RPM
       find:
