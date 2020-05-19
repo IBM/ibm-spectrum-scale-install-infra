@@ -32,26 +32,28 @@
   set_fact:
     scale_gpfs_license_rpm: "{{ gpfs_license_rpm }}"
   
-#
-# Find GPFS adv packgae
-#
-- name: install | Find GPFS Advance (gpfs.adv) RPM
-  find:
-    paths: "{{ gpfs_path_url }}"
-    patterns: gpfs.adv*{{ scale_architecture }}*
-  register: scale_install_gpfs_adv
-  when: '"gpfs.license.std" not in scale_gpfs_license_rpm'
+- block:
+    #
+    # Find GPFS adv packgae
+    #
+    - name: install | Find GPFS Advance (gpfs.adv) RPM
+      find:
+        paths: "{{ gpfs_path_url }}"
+        patterns: gpfs.adv*{{ scale_architecture }}*
+      register: scale_install_gpfs_adv
 
+    #
+    # Find GPFS crypto packgae
+    #
+    - name: install | Find GPFS crypto (gpfs.crypto) RPM
+      find:
+        paths: "{{ gpfs_path_url }}"
+        patterns: gpfs.crypto*{{ scale_architecture }}*
+      register: scale_install_gpfs_crypto
 
-#
-# Find GPFS crypto packgae
-#
-- name: install | Find GPFS crypto (gpfs.crypto) RPM
-  find:
-    paths: "{{ gpfs_path_url }}"
-    patterns: gpfs.crypto*{{ scale_architecture }}*
-  register: scale_install_gpfs_crypto
-  when: '"gpfs.license.std" not in scale_gpfs_license_rpm'
+  when:
+    - '"gpfs.license.std" not in scale_gpfs_license_rpm'
+    - '"gpfs.license.da" not in scale_gpfs_license_rpm'
 
 
 #
@@ -77,4 +79,6 @@
   with_items:
     - "{{ scale_install_gpfs_adv.files.0.path | basename }}"
     - "{{ scale_install_gpfs_crypto.files.0.path | basename }}"
-  when: '"gpfs.license.std" not in scale_gpfs_license_rpm'
+  when:
+    - '"gpfs.license.std" not in scale_gpfs_license_rpm'
+    - '"gpfs.license.da" not in scale_gpfs_license_rpm'
