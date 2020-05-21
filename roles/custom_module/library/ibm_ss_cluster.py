@@ -103,19 +103,17 @@ from ansible.module_utils.ibm_ss_utils import runCmd, parse_aggregate_cmd_output
 MMLSCLUSTER_SUMMARY_FIELDS=['clusterSummary','cnfsSummary', 'cesSummary']
 
 
-def get_cluster_info():
+def get_cluster_info(module):
     msg = result_json = ""
-    stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmlscluster","-Y"], sh=False)
-
+    rc, stdout, stderr = module.run_command(["/usr/lpp/mmfs/bin/mmlscluster","-Y"])
     if rc == RC_SUCCESS:
-        result_dict = parse_aggregate_cmd_output(stdout, 
-                                                 MMLSCLUSTER_SUMMARY_FIELDS)
-        result_json = json.dumps(result_dict)
+        result_json = json.dumps(parse_aggregate_cmd_output(stdout, 
+                                                 MMLSCLUSTER_SUMMARY_FIELDS))
         msg = "mmlscluster successfully executed"
     else:
         msg = stderr
 
-    return rc, msg, result_json
+    return rc, msg, result_json, stdout, stderr
 
 
 def create_cluster(name, stanza_path):
@@ -185,7 +183,7 @@ def main():
     state_changed = False
     if module.params['op'] and "get" in module.params['op']:
         # Retrieve the IBM Spectrum Scale cluster information
-        rc, msg, result_json = get_cluster_info()
+        rc, msg, result_json, stdout, stderr = get_cluster_info(module)
     elif module.params['state']:
         if "present" in module.params['state']:
             # Create a new IBM Spectrum Scale cluster
@@ -201,7 +199,7 @@ def main():
             state_changed = True
 
     # Module is done. Return back the result
-    module.exit_json(changed=state_changed, msg=msg, rc=rc, result=result_json)
+    module.exit_json(changed=state_changed, msg=msg, rc=rc, result=result_json, stderr=stderr, stdout=stdout)
 
 
 if __name__ == '__main__':
