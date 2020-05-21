@@ -1,14 +1,48 @@
 ---
-# Start daemons and finalize node roles
+- name: Initialize
+  set_fact:
+   scale_daemon_node_list: []
 
+- name: Initialize deligate node
+  set_fact:
+   deligate_node: "{{ groups['scale_cluster_candidates'].0 }}"
+  when:    
+    - groups['scale_cluster_candidates'] is defined
+
+- name: Collect all daemon nodes
+  set_fact:
+   scale_daemon_node_list: "{{ scale_daemon_node_list + [hostvars[item].scale_daemon_nodename] }}"
+  when:
+    - hostvars[item].scale_daemon_nodename is defined
+    - not hostvars[item].scale_daemon_running
+  with_items:
+   - "{{ ansible_play_hosts }}"
+  delegate_to: localhost
+  run_once: true
+
+# Start daemons and finalize node roles
 #
 # Start daemon on new nodes (candidates)
 #
-- name: cluster | Start daemons
-  command: /usr/lpp/mmfs/bin/mmstartup -N localhost
-  #when: 'scale_cluster_candidates' in group_names  ## only start new nodes
-  when: not scale_daemon_running  ## start all nodes
-  notify: wait-daemon-active
+- debug:
+    msg: "{{ scale_daemon_node_list | join(',') }}"
+
+
+- name: install | Set deligate node for add node
+  set_fact:
+      deligate_node: "{{ groups['scale_cluster_members'].0 }}"
+  when: 
+    - groups['scale_cluster_members'] is defined
+
+- block:
+    - name: cluster | Start daemons
+      command: /usr/lpp/mmfs/bin/mmstartup -N "{{ scale_daemon_node_list | join(',') }}"
+      when: scale_daemon_node_list |length > 0
+      notify: wait-daemon-active
+  when:
+    - deligate_node is defined
+  run_once: true
+  delegate_to: "{{ deligate_node }}"
 
 - meta: flush_handlers
 

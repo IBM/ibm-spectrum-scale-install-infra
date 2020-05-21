@@ -19,3 +19,6 @@ scale_install_updated: false
 
 ## Remember if config params were changed or not
 scale_config_changed: false
+
+scale_state:
+  - active
