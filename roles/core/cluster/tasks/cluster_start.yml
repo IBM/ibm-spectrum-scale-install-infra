@@ -24,9 +24,6 @@
 #
 # Start daemon on new nodes (candidates)
 #
-- debug:
-    msg: "{{ scale_daemon_node_list | join(',') }}"
-
 
 - name: install | Set deligate node for add node
   set_fact:
