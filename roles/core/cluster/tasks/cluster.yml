@@ -121,7 +121,7 @@
       set_fact:
          profile_type: "--profile {{ scale_cluster_profile_name }}"
       when: 
-        - (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
+        #- (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
         - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
 
     - name: cluster | Create new cluster
