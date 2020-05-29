@@ -106,7 +106,7 @@
 
         - name: cluster | Copy user defined profile
           copy:
-            src: "{{ stat_user_profile_result.files.0.path | basename }}"
+            src: "{{ stat_user_profile_result.files.0.path }}"
             dest: "{{ scale_cluster_profile_system_path }}"
             mode: a+x
       when: 
@@ -120,9 +120,9 @@
     - name: install | Set gpfs profile if it is defined
       set_fact:
          profile_type: "--profile {{ scale_cluster_profile_name }}"
-      when: 
-        #- (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
-        - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
+      when:
+        - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None' 
+        - (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
 
     - name: cluster | Create new cluster
       command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }}
