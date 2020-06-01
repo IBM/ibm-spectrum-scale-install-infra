@@ -116,65 +116,25 @@ results:
 
 import json
 import sys
+import traceback
 from ansible.module_utils.basic import AnsibleModule
 
-#TODO: FIX THIS. If the modules and utils are located in a non standard
-#      path, the PYTHONPATH will need to be exported in the .bashrc
-from ansible.module_utils.ibm_ss_utils import runCmd, parse_simple_cmd_output, RC_SUCCESS
+try: 
+    from ansible.module_utils.ibm_ss_utils import RC_SUCCESS
+except:
+    from ibm_ss_utils import RC_SUCCESS
 
-
-MMLSFS_DATATYPE="filesystems"
-MMLSFS_KEY="deviceName"
-MMLSFS_PROPERTY_NAME="properties"
-
-def get_filesystem_info():
-    msg = result_json = ""
-    stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmlsfs","all","-Y"], sh=False)
-
-    if rc == RC_SUCCESS:
-        result_dict = parse_simple_cmd_output(
-                                               stdout, 
-                                               MMLSFS_KEY, 
-                                               MMLSFS_PROPERTY_NAME,
-                                               MMLSFS_DATATYPE
-                                             )
-        result_json = json.dumps(result_dict)
-        msg = "The command \"mmlsfs\" executed successfully"
-    else:
-        msg = stderr
-
-    return rc, msg, result_json
-
-
-def create_filesystem(name, stanza_path):
-    # TODO: Make This idempotent
-    stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmcrfs",
-                                 name,
-                                 "-F", stanza_path,
-                                 "-B", block_size,
-                                 "-m", default_metadata_replicas,
-                                 "-r", default_data_replicas,
-                                 "-n", num_nodes,
-                                 "-A", automatic_mount_option,
-                                 "-T", default_mount_point],
-                                sh=False)
-
-    if rc == RC_SUCCESS:
-        msg = stdout
-    else:
-        msg = stderr
-
-    return rc, msg
-
-
-def delete_filesystem(name):
-    # TODO: Implement
-    rc = RC_SUCCESS
-    msg = ""
-    return rc, msg
+try:
+    from ansible.module_utils.ibm_ss_filesystem_utils import SpectrumScaleFS
+except:
+    from ibm_ss_filesystem_utils import SpectrumScaleFS
 
 
 def main():
+    logger.debug("---------------------------------------")
+    logger.debug("Function Entry: ibm_ss_filesystem.main()")
+    logger.debug("---------------------------------------")
+
     # Setup the module argument specifications
     scale_arg_spec = dict(
                            op     = dict(
@@ -250,27 +210,63 @@ def main():
     msg = result_json = ""
     state_changed = False
     if module.params['op'] and "get" in module.params['op']:
-        # Retrieve the IBM Spectrum Scae filesystem information
-        rc, msg, result_json = get_filesystem_info()
+        # Retrieve the IBM Spectrum Scale filesystem information
+        try:
+            result_dict = {}
+            filesystem_list = []
+
+            filesystems = SpectrumScaleFS.get_filesystems()
+            for fs in filesystems:
+                filesystem_info = {}
+                filesystem_info["deviceName"] = fs.get_device_name()
+                filesystem_info["properties"] = fs.get_properties_list()
+                filesystem_list.append(filesystem_info)
+            
+            result_dict["filesystems"] = filesystem_list
+            result_json = json.dumps(result_dict)            
+
+            msg = "Successfully retrieved filesystem information"
+        except Exception as e:
+            st = traceback.format_exc()
+            e_msg = ("Exception: {0}  StackTrace: {1}".format(str(e), st))
+            module.fail_json(msg=e_msg)
     elif module.params['state']:
         if "present" in module.params['state']:
             # Create a new IBM Spectrum Scale cluster
-            rc, msg = create_filesystem(
-                                         module.params['stanza'],
-                                         module.params['name'],
-                                         module.params["block_size"], 
-                                         module.params["num_nodes"], 
-                                         module.params["default_metadata_replicas"], 
-                                         module.params["default_data_replicas"], 
-                                         module.params["automatic_mount_option"], 
-                                         module.params["default_mount_point"] 
-                                       )
+            try:
+                rc, result_json = SpectrumScaleFS.create_filesystem(
+                                             module.params['stanza'],
+                                             module.params['name'],
+                                             module.params["block_size"], 
+                                             module.params["num_nodes"], 
+                                             module.params["default_metadata_replicas"], 
+                                             module.params["default_data_replicas"], 
+                                             module.params["automatic_mount_option"], 
+                                             module.params["default_mount_point"] 
+                                           )
+                msg = "Successfully created filesystem"
+            except Exception as e:
+                st = traceback.format_exc()
+                e_msg = ("Exception: {0}  StackTrace: {1}".format(str(e), st))
+                module.fail_json(msg=e_msg)
         else:
             # Delete the existing IBM Spectrum Scale cluster
-            rc, msg = delete_filesystem(module.params['name'])
+            try:
+                rc, result_json = SpectrumScaleFS.delete_filesystem(
+                                             module.params['name']
+                                          )
+                msg = "Successfully deleted filesystem"
+            except Exception as e:
+                st = traceback.format_exc()
+                e_msg = ("Exception: {0}  StackTrace: {1}".format(str(e), st))
+                module.fail_json(msg=e_msg)
 
         if rc == RC_SUCCESS:
             state_changed = True
+
+    logger.debug("---------------------------------------")
+    logger.debug("Function Exit: ibm_ss_filesystem.main()")
+    logger.debug("---------------------------------------")
 
     # Module is done. Return back the result
     module.exit_json(changed=state_changed, msg=msg, rc=rc, result=result_json)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # author: IBM Corporation
-# description: Highly-customizable Ansible module 
+# description: Highly-customizable Ansible module
 # for installing and configuring IBM Spectrum Scale (GPFS)
 # company: IBM
 # license: Apache-2.0
@@ -59,13 +59,13 @@ EXAMPLES = '''
   ibm_ss_cluster:
     state: present
     stanza: "/tmp/stanza"
-    name: "host-01"
+    name: "gpfs.ibm.com"
 
 # Delete an existing IBM Spectrum Scale Cluster
 - name: Delete an IBM Spectrum Scale Cluster
   ibm_ss_cluster:
     state: absent
-    name: "host-01"
+    name: "gpfs.ibm.com"
 '''
 
 RETURN = '''
@@ -93,54 +93,25 @@ results:
 import os
 import json
 import sys
+import traceback
 from ansible.module_utils.basic import AnsibleModule
 
-#TODO: FIX THIS. If the modules and utils are located in a non standard
-#      path, the PYTHONPATH will need to be exported in the .bashrc 
-#from ansible.module_utils.ibm_ss_utils import runCmd, parse_aggregate_cmd_output, RC_SUCCESS
-from ansible.module_utils.ibm_ss_utils import runCmd, parse_aggregate_cmd_output, RC_SUCCESS
+try: 
+    from ansible.module_utils.ibm_ss_utils import RC_SUCCESS
+except:
+    from ibm_ss_utils import RC_SUCCESS
 
-MMLSCLUSTER_SUMMARY_FIELDS=['clusterSummary','cnfsSummary', 'cesSummary']
-
-
-def get_cluster_info():
-    msg = result_json = ""
-    stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmlscluster","-Y"], sh=False)
-
-    if rc == RC_SUCCESS:
-        result_dict = parse_aggregate_cmd_output(stdout, 
-                                                 MMLSCLUSTER_SUMMARY_FIELDS)
-        result_json = json.dumps(result_dict)
-        msg = "mmlscluster successfully executed"
-    else:
-        msg = stderr
-
-    return rc, msg, result_json
-
-
-def create_cluster(name, stanza_path):
-    # TODO: Make This idempotent
-    stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmcrcluster",
-                                 "-N", stanza_path,
-                                 "-C", name],
-                                sh=False)
-
-    if rc == RC_SUCCESS:
-        msg = stdout
-    else:
-        msg = stderr
-
-    return rc, msg
-
-
-def delete_cluster(name):
-    # TODO: Implement
-    rc = RC_SUCCESS
-    msg = ""
-    return rc, msg
+try: 
+    from ansible.module_utils.ibm_ss_cluster_utils import SpectrumScaleCluster
+except:
+    from ibm_ss_cluster_utils import SpectrumScaleCluster
 
 
 def main():
+    logger.debug("------------------------------------")
+    logger.debug("Function Entry: ibm_ss_cluster.main()")
+    logger.debug("------------------------------------")
+
     # Setup the module argument specifications
     scale_arg_spec = dict(
                            op     = dict(
@@ -185,20 +156,50 @@ def main():
     state_changed = False
     if module.params['op'] and "get" in module.params['op']:
         # Retrieve the IBM Spectrum Scale cluster information
-        rc, msg, result_json = get_cluster_info()
+        try:
+            scale_cluster = SpectrumScaleCluster()
+            result_json = scale_cluster.to_json()
+            msg = "Retrieve Cluster information successfully executed"
+        except Exception as e:
+            st = traceback.format_exc()
+            e_msg = ("Exception: {0}  StackTrace: {1}".format(str(e), st))
+            module.fail_json(msg=e_msg)
     elif module.params['state']:
         if "present" in module.params['state']:
             # Create a new IBM Spectrum Scale cluster
-            rc, msg = create_cluster(
-                                       module.params['name'],
-                                       module.params['stanza']
-                                    )
+            try:
+                cmd_rc, stdout = SpectrumScaleCluster.create_cluster(
+                                                          module.params['name'],
+                                                          module.params['stanza']
+                                                    )
+                rc = cmd_rc
+                msg = "Create Cluster successfully executed"
+                result_json = stdout
+            except Exception as e:
+                st = traceback.format_exc()
+                e_msg = ("Exception: {0}  StackTrace: {1}".format(str(e), st))
+                module.fail_json(msg=e_msg)
         else:
             # Delete the existing IBM Spectrum Scale cluster
-            rc, msg = delete_cluster(module.params['name'])
+            try:
+                cmd_rc, stdout = SpectrumScaleCluster.delete_cluster(
+                                                           module.params['name']
+                                                       )
+                rc = cmd_rc
+                msg = "Delete Cluster successfully executed"
+                result_json = stdout
+            except Exception as e:
+                st = traceback.format_exc()
+                e_msg = ("Exception: {0}  StackTrace: {1}".format(str(e), st))
+                module.fail_json(msg=e_msg)
+
 
         if rc == RC_SUCCESS:
             state_changed = True
+
+    logger.debug("------------------------------------")
+    logger.debug("Function Exit: ibm_ss_cluster.main()")
+    logger.debug("------------------------------------")
 
     # Module is done. Return back the result
     module.exit_json(changed=state_changed, msg=msg, rc=rc, result=result_json)
