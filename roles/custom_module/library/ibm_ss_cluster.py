@@ -59,13 +59,13 @@ EXAMPLES = '''
   ibm_ss_cluster:
     state: present
     stanza: "/tmp/stanza"
-    name: "gpfs.ibm.com"
+    name: "gpfs.domain.com"
 
 # Delete an existing IBM Spectrum Scale Cluster
 - name: Delete an IBM Spectrum Scale Cluster
   ibm_ss_cluster:
     state: absent
-    name: "gpfs.ibm.com"
+    name: "gpfs.domain.com"
 '''
 
 RETURN = '''

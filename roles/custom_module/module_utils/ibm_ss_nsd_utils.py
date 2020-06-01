@@ -105,7 +105,7 @@ class SpectrumScaleNSD:
         stdout = stderr = ""
         rc = -1
 
-        # mmchnsd "nsd1:sharkworm-vm3.tuc.stglabs.ibm.com"
+        # mmchnsd "nsd1:host-1"
         server_access_list = ','.join(map(str, nsd_attached_to_nodes))
         server_access_list = nsd_to_delete+":"+server_access_list
 
