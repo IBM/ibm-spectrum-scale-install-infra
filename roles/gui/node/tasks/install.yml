@@ -54,6 +54,13 @@
 
 - meta: flush_handlers
 
+- block:  ## when: rhel8 node
+    - name: build | Install prereqs for GUI from source
+      dnf:
+        name: "{{ scale_gui_el8_prereqs }}"
+        state: present
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+
 #
 # Install or update RPMs
 #
