@@ -6,7 +6,7 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 ## [Features](id:features)
 
 
-#### Infrastructure support
+#### Infrastructure  support
 - [x] Pre-built infrastructure (using a static inventory file)
 - [ ] Dynamic inventory file
 
