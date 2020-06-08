@@ -10,7 +10,7 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [x] Pre-built infrastructure (using a static inventory file)
 - [ ] Dynamic inventory file
 
-#### OS support
+#### OS  support
 - [x] Support for RHEL 7 on x86_64, PPC64 and PPC64LE
 - [x] Support for RHEL 8 on x86_64 and PPC64LE
 
