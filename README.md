@@ -54,6 +54,7 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
 
+
 #### GPFS Callhome Cluster supported features
 - [x] Install GPFS callhome packages on all cluster nodes
 - [x] Configure callhome
@@ -268,8 +269,8 @@ Installation instructions
   ```   
   ---
   **NOTE:**
- 
-  Defining the variable `scale_version` is optional for `scale_install_localpkg_path` and `scale_install_directory_pkg_path` installation methods. It is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method 
+  
+  Defining the variable `scale_version` is optional for `scale_install_localpkg_path` and `scale_install_directory_pkg_path` installation methods. It is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
   by defining *one* of the following variables:
 
    - `scale_install_repository_url` (eg: http://infraserv/gpfs_rpms/)
@@ -279,14 +280,14 @@ Installation instructions
  
   The following installation methods are available:
   
-   - Install from (existing) YUM repository(`scale_install_repository_url`)
-   - Install from remote installation package (`scale_install_remotepkg_path`)
-   - Install from local installation package (`scale_install_localpkg_path`)
+   - Installation from (existing) YUM repository(`scale_install_repository_url`)
+   - Installation from remote installation package (`scale_install_remotepkg_path`)
+   - Installation from local installation package (`scale_install_localpkg_path`)
    - Installation from single directory package path (`scale_install_directory_pkg_path`)
 
-  
+ 
   > **Important**: If you are using the single directory installation method(`scale_install_directory_pkg_path`), you need to keep all required GPFS RPMs
-  in a single user-provided directory. 
+  in a single user-provided directory.
   ---
 
 - #### Run the playbook to install and configure the GPFS cluster
