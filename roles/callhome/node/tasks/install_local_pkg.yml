@@ -41,7 +41,7 @@
 #
 - name: install | Stat extracted packages
   stat:
-    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+    path: "{{ callhome_extracted_path }}"
   register: scale_install_gpfs_rpmdir
 
 - block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
@@ -73,11 +73,11 @@
     localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
   command: "{{ localpkg + ' --silent' }}"
   args:
-    creates: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+    creates: "{{ callhome_extracted_path }}"
 
 - name: install | Stat extracted packages
   stat:
-    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+    path: "{{ callhome_extracted_path }}"
   register: scale_install_gpfs_rpmdir
 
 - name: install | Check extracted packages
@@ -96,69 +96,54 @@
     path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
     state: absent
 
-
-- name: install | zimon path
+- name: install | callhome path
   set_fact:
-    zimon_url: 'zimon_rpms/rhel7/'
-  when:
-    - ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
-    - ansible_distribution_major_version == '7'
+   callhome_url: 'gpfs_rpms/'
 
-- name: install | zimon path
-  set_fact:
-    zimon_url: 'zimon_rpms/rhel8/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+- block:
+  - name: install | Find gpfs.java (gpfs.java) RPM
+    find:
+     paths: "{{ callhome_extracted_path }}"
+     patterns: gpfs.java-*.rpm
+     # use_regex: yes
+    register: scale_install_gpfs_java
 
-#
-# Find Zimon collector
-#
-- block:  ## when: host is defined as a gui node
-    #
-    # Find GPFS gpfs.collector
-    #
-    - name: install | Find gpfs.collector (gpfs.collector) RPM
-      find:
-        paths: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}
-        patterns: gpfs.gss.pmcollector-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
-      register: scale_install_gpfs_collector
+  - debug:
+          msg: "java rpms for java {{ scale_install_gpfs_java }}"
 
-    - name: install | Check valid GPFS (gpfs.collector) RPM
-      assert:
-        that: scale_install_gpfs_collector.matched > 0
-        msg: >-
-          No GPFS collector (gpfs.gss.collector) RPM found:
-          /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}gpfs.gss.pmcollector-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+  - name: install | Check valid GPFS (gpfs.java) RPM
+    assert:
+     that: scale_install_gpfs_java.matched > 0
+     msg: "No GPFS java (gpfs.java) RPM found: {{ callhome_extracted_path }}gpfs.java*.rpm"
 
-    - name: install | Add GPFS zimon collector RPMs to list
-      vars:
-        current_rpm: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}{{ item }}.rpm
-      set_fact:
-        scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
-      with_items:
-        - "{{ scale_install_gpfs_collector.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+  - name: install | Add GPFS java RPM to list
+    vars:
+     current_rpm: "{{ callhome_extracted_path }}/{{ item }}.rpm"
+    set_fact:
+     scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+    with_items:
+    - "{{ scale_install_gpfs_java.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
 
-  when: (scale_zimon_collector | bool) or (scale_cluster_gui | bool) 
+- block:
+  - name: install | Find gpfs.callhome (gpfs.callhome) RPM
+    find:
+     paths: "{{ callhome_extracted_path }}"
+     patterns: gpfs.callhome-ecc-client*.rpm
+     # use_regex: yes
+    register: scale_install_gpfs_callhome
+  - debug:
+          msg: "{{ scale_install_gpfs_callhome }}"
 
-#
-# Find GPFS gpfs.gss.pmsensors
-#
-- name: install | Find gpfs.gss.pmsensors (gpfs.gss.pmsensors) RPM
-  find:
-    paths: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}
-    patterns: gpfs.gss.pmsensors-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
-  register: scale_install_gpfs_pmsensors
 
-- name: install | Check valid GPFS (gpfs.gss.pmsensors) RPM
-  assert:
-    that: scale_install_gpfs_pmsensors.matched > 0
-    msg: >-
-      No GPFS pmsensors (gpfs.gss.pmsensors) RPM found:
-      /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}gpfs.gss.pmsensors-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+  - name: install | Check valid GPFS (gpfs.callhome) RPM
+    assert:
+     that: scale_install_gpfs_callhome.matched > 0
+     msg: "No GPFS callhome (gpfs.callhome) RPM found: {{ callhome_extracted_path }}gpfs.callhome-ecc-client-{{ scale_version }}*.rpm"
 
-- name: install | Add GPFS zimon sensors RPMs to list
-  vars:
-    current_rpm: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}{{ item }}.rpm
-  set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
-  with_items:
-    - "{{ scale_install_gpfs_pmsensors.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+  - name: install | Add GPFS callhome RPM to list
+    vars:
+     current_rpm: "{{ callhome_extracted_path }}/{{ item }}.rpm"
+    set_fact:
+     scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+    with_items:
+    - "{{ scale_install_gpfs_callhome.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
