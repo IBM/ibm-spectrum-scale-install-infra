@@ -55,6 +55,10 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [ ] Configure HA federated mode collectors
 
 
+#### GPFS Callhome Cluster supported features
+- [x] Install GPFS callhome packages on all cluster nodes
+- [x] Configure callhome
+
 IBM Spectrum Scale supported versions
 -------------------------------------
 
@@ -219,6 +223,25 @@ Installation instructions
 
       Note that configuration parameters can be defined as variables for *any* host in the play &mdash; the host for which you define the configuration parameters is irrelevant.
 
+ 3. To install callhome and configure callhome in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
+      ```
+      # group_vars/all.yml:
+      ---
+      callhome_params:
+       is_enabled: true
+       customer_name: abc
+       customer_email: abc@abc.com
+       customer_id: 12345
+       customer_country: IN
+       proxy_ip:
+       proxy_port:
+       proxy_user:
+       proxy_password:
+       proxy_location:
+       callhome_server: host-vm1
+       callhome_group1: [host-vm1,host-vm2,host-vm3,host-vm4]
+       callhome_schedule: [daily,weekly]
+      ```
 - #### Modify playbook.yml
 
   The basic playbook.yml looks as follows:
@@ -239,6 +262,10 @@ Installation instructions
       - zimon/precheck
       - zimon/node
       - zimon/cluster
+      - callhome/precheck
+      - callhome/node
+      - callhome/cluster
+      - callhome/postcheck
   ```   
   ---
   **NOTE:**
@@ -250,7 +277,7 @@ Installation instructions
    - `scale_install_remotepkg_path` (accessible on Ansible managed node)
    - `scale_install_localpkg_path` (accessible on Ansible control machine)
    - `scale_install_directory_pkg_path` (eg: /opt/IBM/spectrum_scale_packages)
-  
+
   The following installation methods are available:
   
    - Installation from (existing) YUM repository(`scale_install_repository_url`)
@@ -334,6 +361,7 @@ If you are assembling your own IBM Spectrum Scale playbook, these roles are avai
 
 - [core gpfs](./roles/core)
 - [gpfs gui](./roles/gui)
+- [gpfs callhome](./roles/callhome)
 
 Cluster Membership
 ------------------
