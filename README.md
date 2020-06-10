@@ -277,7 +277,7 @@ Installation instructions
    - `scale_install_remotepkg_path` (accessible on Ansible managed node)
    - `scale_install_localpkg_path` (accessible on Ansible control machine)
    - `scale_install_directory_pkg_path` (eg: /opt/IBM/spectrum_scale_packages)
- 
+
   The following installation methods are available:
   
    - Installation from (existing) YUM repository(`scale_install_repository_url`)
