@@ -59,13 +59,13 @@ EXAMPLES = '''
   ibm_ss_node:
     state: present
     nodefile: "/tmp/nodefile"
-    name: "node1.gpfs.ibm.com"
+    name: "node1.domain.com"
 
 # Delete an existing IBM Spectrum Node from the Cluster
 - name: Delete an IBM Spectrum Scale Node from Cluster
   ibm_ss_node:
     state: absent
-    name: "node1.gpfs.ibm.com"
+    name: "node1.domain.com"
 '''
 
 RETURN = '''
