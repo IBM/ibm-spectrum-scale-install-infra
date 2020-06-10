@@ -38,6 +38,9 @@ class SpectrumScaleException(Exception):
         self._stdout  = stdout
         self._stderr  = stderr
 
+    def get_message(self):
+        return self._expmsg
+
     def __str__(self):
         error_str = ("{0}. "
                      "Command: \"{1}\". "
@@ -66,22 +69,27 @@ class SpectrumScaleLogger:
             logger = logging.getLogger()
             logger.setLevel(logging.DEBUG)
 
-            log_file_handler = logging.FileHandler('/var/adm/ras/ibm_ss.log')
+            log_file_handler = logging.FileHandler('/var/log/ibm_specscale_ansible.log')
             log_file_handler.setLevel(logging.DEBUG)
-
-            console_handler = logging.StreamHandler()
-            console_handler.setLevel(logging.ERROR)
-
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            log_file_handler.setFormatter(formatter)
-            console_handler.setFormatter(formatter)
-
+            log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            log_file_handler.setFormatter(log_formatter)
             logger.addHandler(log_file_handler)
-            logger.addHandler(console_handler)
+
+            # TODO: Enable once the "Shared Connection eror is rectified"
+            # console_handler = logging.StreamHandler()
+            # console_handler.setLevel(logging.INFO)
+            # console_formatter = logging.Formatter('[%(levelname)s] %(message)s')
+            # console_handler.setFormatter(console_formatter)
+            # logger.addHandler(console_handler)
 
             SpectrumScaleLogger.logger = logger
 
         return SpectrumScaleLogger.logger
+
+    @staticmethod
+    def shutdown():
+        if SpectrumScaleLogger.logger:
+            logging.shutdown()
 
 
 ######################################
@@ -110,7 +118,7 @@ def _stop_process(proc, logger, log_cmd, timeout):
         print(str(e))
 
 
-def runCmd(cmd, timeout=180, sh=False, env=None, retry=0):
+def runCmd(cmd, timeout=300, sh=False, env=None, retry=0):
     """
     Execute an external command, read the output and return it.
     @param cmd (str|list of str): command to be executed
@@ -178,6 +186,7 @@ def runCmd(cmd, timeout=180, sh=False, env=None, retry=0):
         logger.warning("runCmd: %s Timeout:%d ret:%s", cmd, timeout, ret)
     else:
         logger.debug("runCmd: %s :(%d) ret:%s \n%s \n%s", cmd, timeout, ret, serr, sout)
+
     return (sout, serr, ret)
 
 

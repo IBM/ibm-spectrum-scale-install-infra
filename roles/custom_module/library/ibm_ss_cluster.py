@@ -59,13 +59,13 @@ EXAMPLES = '''
   ibm_ss_cluster:
     state: present
     stanza: "/tmp/stanza"
-    name: "gpfs.domain.com"
+    name: "gpfs.ibm.com"
 
 # Delete an existing IBM Spectrum Scale Cluster
 - name: Delete an IBM Spectrum Scale Cluster
   ibm_ss_cluster:
     state: absent
-    name: "gpfs.domain.com"
+    name: "gpfs.ibm.com"
 '''
 
 RETURN = '''
@@ -97,9 +97,9 @@ import traceback
 from ansible.module_utils.basic import AnsibleModule
 
 try: 
-    from ansible.module_utils.ibm_ss_utils import RC_SUCCESS
+    from ansible.module_utils.ibm_ss_utils import RC_SUCCESS, SpectrumScaleLogger
 except:
-    from ibm_ss_utils import RC_SUCCESS
+    from ibm_ss_utils import RC_SUCCESS, SpectrumScaleLogger
 
 try: 
     from ansible.module_utils.ibm_ss_cluster_utils import SpectrumScaleCluster
@@ -108,6 +108,8 @@ except:
 
 
 def main():
+    logger = SpectrumScaleLogger.get_logger()
+
     logger.debug("------------------------------------")
     logger.debug("Function Entry: ibm_ss_cluster.main()")
     logger.debug("------------------------------------")
@@ -158,7 +160,9 @@ def main():
         # Retrieve the IBM Spectrum Scale cluster information
         try:
             scale_cluster = SpectrumScaleCluster()
-            result_json = scale_cluster.to_json()
+            cluster_info_dict = {}
+            cluster_info_dict["cluster_info"] = scale_cluster.get_cluster_dict()
+            result_json = json.dumps(cluster_info_dict)
             msg = "Retrieve Cluster information successfully executed"
         except Exception as e:
             st = traceback.format_exc()
@@ -200,6 +204,8 @@ def main():
     logger.debug("------------------------------------")
     logger.debug("Function Exit: ibm_ss_cluster.main()")
     logger.debug("------------------------------------")
+
+    SpectrumScaleLogger.shutdown()
 
     # Module is done. Return back the result
     module.exit_json(changed=state_changed, msg=msg, rc=rc, result=result_json)

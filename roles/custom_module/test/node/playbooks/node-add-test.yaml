@@ -1,0 +1,26 @@
+- name: Test Spectrum Scale Node Module
+  hosts: controller
+  gather_facts: no
+  tasks: 
+  - name: Add Node(s)
+    ibm_ss_node:
+      state: "present"
+      name: "node1.domain.com"
+      nodefile: "../common/stanza-add-node"
+      license: "client"
+    register: remove_out
+
+  - name: Display Remove Task Output
+    debug:
+      msg: "{{ remove_out.msg }}"
+
+  - name: Query Node(s) added
+    ibm_ss_node:
+      op: "get"
+      name: "node1.domain.com"
+    register: list_out
+
+  - name: Display List Task Output
+    debug:
+      msg: "{{ list_out }}"
+

@@ -1,0 +1,24 @@
+- name: Test Spectrum Scale Node Module
+  hosts: controller
+  gather_facts: no
+  tasks: 
+  - name: Remove a single node from the cluster
+    ibm_ss_node:
+      state: "absent"
+      name: "node1.domain.com"
+    register: node_remove_result
+
+  - name: Display remove node result
+    debug:
+      msg: "{{ node_remove_result.msg }}"
+
+  - name: Attempt to remove a quorum node to ensure it is not removed
+    ibm_ss_node:
+      state: "absent"
+      name: "node2.domain.com"
+    register: node_remove_fail_result
+    ignore_errors: True
+
+  - name: Display remove node failure result
+    debug:
+      msg: "{{ node_remove_fail_result.msg }}"

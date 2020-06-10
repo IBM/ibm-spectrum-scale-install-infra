@@ -120,9 +120,9 @@ import traceback
 from ansible.module_utils.basic import AnsibleModule
 
 try: 
-    from ansible.module_utils.ibm_ss_utils import RC_SUCCESS
+    from ansible.module_utils.ibm_ss_utils import RC_SUCCESS, SpectrumScaleLogger
 except:
-    from ibm_ss_utils import RC_SUCCESS
+    from ibm_ss_utils import RC_SUCCESS, SpectrumScaleLogger
 
 try:
     from ansible.module_utils.ibm_ss_filesystem_utils import SpectrumScaleFS
@@ -131,6 +131,8 @@ except:
 
 
 def main():
+    logger = SpectrumScaleLogger.get_logger()
+
     logger.debug("---------------------------------------")
     logger.debug("Function Entry: ibm_ss_filesystem.main()")
     logger.debug("---------------------------------------")
@@ -267,6 +269,8 @@ def main():
     logger.debug("---------------------------------------")
     logger.debug("Function Exit: ibm_ss_filesystem.main()")
     logger.debug("---------------------------------------")
+
+    logger = SpectrumScaleLogger.shutdown()
 
     # Module is done. Return back the result
     module.exit_json(changed=state_changed, msg=msg, rc=rc, result=result_json)

@@ -1,0 +1,34 @@
+- name: Test Spectrum Scale Cluster Module
+  hosts: controller
+  gather_facts: no
+  tasks: 
+  - name: Query cluster information
+    ibm_ss_cluster:
+      op: 'get'
+    register: cluster_info_out
+    run_once: true
+
+  - name: Display cluster information
+    debug:
+      msg: "{{ cluster_info_out }}"
+
+  - name: Display cluster name
+    debug:
+      msg: "{{ (cluster_info_out.result | from_json).cluster_info.clusterSummary.clusterName }}"
+
+  - name: Display all node name(s) - admin node name
+    debug:
+      msg: "{{ (cluster_info_out.result | from_json).cluster_info.clusterNode | map(attribute='adminNodeName') | list }}"
+
+  # Example of using json_query
+  - name: Display all node name(s) - daemon node name
+    debug:
+      var: item
+    loop: "{{ (cluster_info_out.result | from_json).cluster_info | json_query('clusterNode[*].daemonNodeName') }}"
+
+  - name: Display all quorum nodes
+    debug:
+      var: item
+    loop: "{{ (cluster_info_out.result | from_json).cluster_info | json_query(node_designation_query) }}"
+    vars:
+      node_designation_query: "clusterNode[?contains(designation, 'quorum')].adminNodeName"

@@ -9,10 +9,8 @@
 import os
 import sys
 import json
-#from ansible.module_utils.ibm_ss_utils import runCmd, parse_unique_records, \
-from ibm_ss_utils import runCmd, parse_unique_records, \
-                                              GPFS_CMD_PATH, RC_SUCCESS, \
-                                              SpectrumScaleException
+from ibm_ss_utils import runCmd, parse_unique_records, GPFS_CMD_PATH, \
+                         RC_SUCCESS, SpectrumScaleException
 
 class SpectrumScaleDisk:
     disk = {}

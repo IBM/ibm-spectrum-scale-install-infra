@@ -8,11 +8,8 @@
 
 import os
 import json
-#from ansible.module_utils.ibm_ss_utils import runCmd, \
-from ibm_ss_utils import runCmd, \
-                                              parse_simple_cmd_output, \
-                                              GPFS_CMD_PATH, RC_SUCCESS, \
-                                              SpectrumScaleException
+from ibm_ss_utils import runCmd, parse_simple_cmd_output, GPFS_CMD_PATH, \
+                         RC_SUCCESS, SpectrumScaleException
 
 class SpectrumScaleFS:
 

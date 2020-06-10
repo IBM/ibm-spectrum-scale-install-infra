@@ -8,11 +8,8 @@
 
 import os
 import json
-#from ansible.module_utils.ibm_ss_utils import runCmd, \
-from ibm_ss_utils import runCmd, \
-                                              parse_unique_records, \
-                                              GPFS_CMD_PATH, RC_SUCCESS, \
-                                              SpectrumScaleException
+from ibm_ss_utils import runCmd, parse_unique_records, GPFS_CMD_PATH, \
+                         RC_SUCCESS, SpectrumScaleException
 
 class SpectrumScaleNSD:
     nsd = {}
@@ -105,7 +102,7 @@ class SpectrumScaleNSD:
         stdout = stderr = ""
         rc = -1
 
-        # mmchnsd "nsd1:host-1"
+        # mmchnsd "nsd1:node1.domain.com"
         server_access_list = ','.join(map(str, nsd_attached_to_nodes))
         server_access_list = nsd_to_delete+":"+server_access_list
 

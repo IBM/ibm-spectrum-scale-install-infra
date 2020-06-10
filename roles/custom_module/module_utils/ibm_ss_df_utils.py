@@ -8,12 +8,9 @@
 
 import os
 import json
-#from ansible.module_utils.ibm_ss_utils import runCmd, \
-from ibm_ss_utils import runCmd, \
-                                              parse_aggregate_cmd_output, \
-                                              parse_unique_records, \
-                                              GPFS_CMD_PATH, RC_SUCCESS, \
-                                              SpectrumScaleException
+from ibm_ss_utils import runCmd, parse_aggregate_cmd_output, \
+                         parse_unique_records, GPFS_CMD_PATH, \
+                         RC_SUCCESS, SpectrumScaleException
 
 class SpectrumScaleDf:
     nsd_df = {}
