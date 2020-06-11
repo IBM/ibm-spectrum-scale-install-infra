@@ -34,5 +34,8 @@
      scale_cluster_clustername: "{{ scale_cluster.scale_cluster_name | default('gpfs1.local') }}"
      scale_cluster_profile_name: "{{ scale_cluster.scale_cluster_profile_name | default(omit) }}"
      scale_cluster_profile_dir_path: "{{ scale_cluster.scale_cluster_profile_dir_path | default(omit) }}"
+     scale_service_gui_start: "{{ scale_cluster.scale_service_gui_start | default(true) }}"
     loop: "{{ node_details }}"
+  tags:
+  - scale_inventory
 
