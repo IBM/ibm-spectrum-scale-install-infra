@@ -130,3 +130,5 @@ scale_gui_snmp_notification: false
 ## Generate https Certificate from HasiCorp Vault and import it to Scale GUI.
 ## The Scale host need to be included in HC Vault and the Ansible playbook need to have the computed.name variables, normaly the playbook is then run from Terraform.
 scale_gui_cert_hc_vault: false
+
+scale_service_gui_start: true
