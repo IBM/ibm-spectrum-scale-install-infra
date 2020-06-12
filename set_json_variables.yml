@@ -35,6 +35,7 @@
      scale_cluster_profile_name: "{{ scale_cluster.scale_cluster_profile_name | default(omit) }}"
      scale_cluster_profile_dir_path: "{{ scale_cluster.scale_cluster_profile_dir_path | default(omit) }}"
      scale_service_gui_start: "{{ scale_cluster.scale_service_gui_start | default(true) }}"
+     scale_sync_replication_config: "{{ scale_cluster.scale_sync_replication_config | default(false) }}"
     loop: "{{ node_details }}"
   tags:
   - scale_inventory

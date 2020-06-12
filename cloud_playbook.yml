@@ -18,3 +18,26 @@
      - zimon/node
      - zimon/cluster
      - zimon/postcheck
+
+  # Below task specific to cloud deployment.
+  tasks:
+    - block:
+       - name: accept client lisence for compute descriptor node
+         command: mmchnode --client -N "computedescnodegrp"
+
+       - name: set filesystem
+         set_fact:
+           fs_name: "{{ scale_storage.0.filesystem }}"
+         when:
+          - scale_storage is defined
+
+       - name: create empty file on descriptor node
+         command: mmdsh -N "computedescnodegrp" touch /var/mmfs/etc/ignoreAnyMount.{{ fs_name }}
+
+       - name: unmount filesystem on descriptor node
+         command: mmumount {{ fs_name }} -N "computedescnodegrp"
+      run_once: true
+      when:
+        - scale_sync_replication_config | bool
+  tags:
+   - cloud_config 
