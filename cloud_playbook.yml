@@ -39,5 +39,3 @@
       run_once: true
       when:
         - scale_sync_replication_config | bool
-  tags:
-   - cloud_config 
