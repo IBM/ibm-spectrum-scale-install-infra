@@ -9,12 +9,14 @@
       yum:
         name: "{{ scale_build_gplsrc_prereqs }}"
         state: present
+        disable_excludes: all
       when: ansible_pkg_mgr == 'yum'
 
     - name: build | Install prereqs for building GPL module from source
       dnf:
         name: "{{ scale_build_gplsrc_prereqs }}"
         state: present
+        disable_excludes: all
       when: ansible_pkg_mgr == 'dnf'
 
     - block:  ## when: rhel8 node
