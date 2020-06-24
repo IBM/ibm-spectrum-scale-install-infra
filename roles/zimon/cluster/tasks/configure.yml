@@ -100,6 +100,8 @@
   vars:
     sensor_nodes: "{{ ansible_play_hosts | list }}"
   command: /usr/lpp/mmfs/bin/mmchnode --perfmon -N {{ sensor_nodes | join(',') }}
+  async: 45
+  poll: 5
   register: scale_zimon_conf_enable_node_perfmon
   run_once: true
   ignore_errors: yes
