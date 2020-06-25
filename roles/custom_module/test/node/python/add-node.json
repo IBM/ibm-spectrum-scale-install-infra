@@ -1,0 +1,8 @@
+{
+    "ANSIBLE_MODULE_ARGS": {
+        "state": "present",
+        "name": "node1.domain.com,node2.domain.com",
+        "nodefile": "../common/stanza-add-node",
+        "license": "client"
+    }
+}
