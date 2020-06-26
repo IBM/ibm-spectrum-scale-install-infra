@@ -269,8 +269,7 @@ Installation instructions
   ---
   **NOTE:**
   
-  Defining the variable `scale_version` is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
-  by defining *one* of the following variables:
+  Defining the variable `scale_version` is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method by defining *one* of the following variables:
 
    - `scale_install_repository_url` (eg: http://infraserv/gpfs_rpms/)
    - `scale_install_remotepkg_path` (accessible on Ansible managed node)
