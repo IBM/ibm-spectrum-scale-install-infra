@@ -250,7 +250,6 @@ Installation instructions
   ---
   - hosts: cluster01
     vars:
-      - scale_version: 5.0.4.0
       - scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
     roles:
       - core/precheck
@@ -270,7 +269,7 @@ Installation instructions
   ---
   **NOTE:**
   
-  Defining the variable `scale_version` is optional for `scale_install_localpkg_path` and `scale_install_directory_pkg_path` installation methods. It is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
+  Defining the variable `scale_version` is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
   by defining *one* of the following variables:
 
    - `scale_install_repository_url` (eg: http://infraserv/gpfs_rpms/)
