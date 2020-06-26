@@ -67,11 +67,11 @@ Currently, the following IBM Spectrum Scale versions are supported: 5.0.4.0, 5.0
 Prerequisites
 -------------
 
-- #### Install Ansible on any node (controller node)
+- #### Install Ansible 2.7 or later version on any node (controller node)
     ```
     $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    $ python get-pip.py --user
-    $ pip install --user ansible
+    $ python get-pip.py
+    $ pip install ansible
     ```
 
     For detailed installation procedure, refer to [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
