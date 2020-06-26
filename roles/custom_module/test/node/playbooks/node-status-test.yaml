@@ -1,0 +1,23 @@
+- name: Test Spectrum Scale Node Module
+  hosts: controller
+  gather_facts: no
+  tasks: 
+  - name: Query all node status in the cluster
+    ibm_ss_node:
+      op: "status"
+    register: nodes_status_info
+
+  - name: Display all node statuses in the cluster
+    debug:
+      msg: "{{ nodes_status_info }}"
+
+  - name: Query a single node status in the cluster
+    ibm_ss_node:
+      op: "status"
+      name: "node1.domain.com"
+    register: node_status_1_info
+
+  - name: Display a singles node status information
+    debug:
+      msg: "{{ node_status_1_info }}"
+

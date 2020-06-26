@@ -1,11 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
-# author: IBM Corporation
-# description: Highly-customizable Ansible role module
-# for installing and configuring IBM Spectrum Scale (GPFS)
-# company: IBM
-# license: Apache-2.0
+#
+# Copyright 2020 IBM Corporation
+# and other contributors as indicated by the @author tags.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 
 ANSIBLE_METADATA = {
                        'status': ['preview'],
@@ -18,7 +28,7 @@ DOCUMENTATION = '''
 ---
 module: ibm_ss_node
 short_description: IBM Spectrum Scale Node Management
-version_added: "0.0"
+version_added: "0.1"
 
 description:
     - This module can be used to add, remove or retrieve information 
@@ -59,13 +69,13 @@ EXAMPLES = '''
   ibm_ss_node:
     state: present
     nodefile: "/tmp/nodefile"
-    name: "host-01"
+    name: "node1.domain.com"
 
 # Delete an existing IBM Spectrum Node from the Cluster
 - name: Delete an IBM Spectrum Scale Node from Cluster
   ibm_ss_node:
     state: absent
-    name: "host-01"
+    name: "node1.domain.com"
 '''
 
 RETURN = '''
@@ -96,159 +106,56 @@ import sys
 import json
 import time
 import logging
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
+import traceback
 from ansible.module_utils.basic import AnsibleModule
 
+try:
+    from ansible.module_utils.ibm_ss_utils import runCmd, RC_SUCCESS, \
+                                                  parse_aggregate_cmd_output, \
+                                                  SpectrumScaleLogger, \
+                                                  SpectrumScaleException
+except:
+    from ibm_ss_utils import runCmd, RC_SUCCESS, parse_aggregate_cmd_output, \
+                             SpectrumScaleLogger, SpectrumScaleException
 
-#TODO: FIX THIS. If the modules and utils are located in a non standard
-#      path, the PYTHONPATH will need to be exported in the .bashrc 
+try:
+    from ansible.module_utils.ibm_ss_disk_utils import SpectrumScaleDisk
+except:
+    from ibm_ss_disk_utils import SpectrumScaleDisk
 
+try:
+    from ansible.module_utils.ibm_ss_df_utils import SpectrumScaleDf
+except:
+    from ibm_ss_df_utils import SpectrumScaleDf
 
-from ansible.module_utils.ibm_ss_utils import runCmd, parse_aggregate_cmd_output, RC_SUCCESS, get_logger
-#from ansible.module_utils.ibm_ss_utils import runCmd, parse_aggregate_cmd_output, RC_SUCCESS
+try:
+    from ansible.module_utils.ibm_ss_nsd_utils import SpectrumScaleNSD
+except:
+    from ibm_ss_nsd_utils import SpectrumScaleNSD
+
+try:
+    from ansible.module_utils.ibm_ss_filesystem_utils import SpectrumScaleFS
+except:
+    from ibm_ss_filesystem_utils import SpectrumScaleFS
+
+try:
+    from ansible.module_utils.ibm_ss_cluster_utils import SpectrumScaleCluster, \
+                                                          SpectrumScaleNode
+except:
+    from ibm_ss_cluster_utils import SpectrumScaleCluster, SpectrumScaleNode
+
+try:
+    from ansible.module_utils.ibm_ss_zimon_utils import get_zimon_collectors
+except:
+    from ibm_ss_zimon_utils import get_zimon_collectors
+
 ###############################################################################
 ##                                                                           ##
 ##                           Helper Functions                                ##
 ##                                                                           ##
 ###############################################################################
 
-#
-# This function retrieves the Role for each node in the Spectrum Scale Cluster
-#
-# Returns:
-#     role_details = {
-#                       "Daemon Name", "IP", "Admin Name": "Role"
-#                    }
-#     Where Role is "ces", quorum", "gateway" etc
-#
-def get_gpfs_node_roles():
-    logger.debug("Function Entry: get_gpfs_node_roles(). ")
-
-    try:
-        stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmlscluster", "-Y"])
-    except Exception as exp_msg:
-        logger.error("While obtaining nodes vs. role map. Execution halted!\n"
-                     "Message: %s", exp_msg)
-        exit(1)
-
-    if rc:
-        logger.error("Operation (mmlscluster -Y) failed.")
-        logger.error("stdout: %s\nstderr: %s", stdout, stderr)
-        exit(1)
-    else:
-        output = stdout.splitlines()
-
-        daemon_node_token = output[1].split(':').index('daemonNodeName')
-        ipaddress_token   = output[1].split(':').index('ipAddress')
-        admin_node_token  = output[1].split(':').index('adminNodeName')
-        designation_token = output[1].split(':').index('designation')
-        other_role_token  = output[1].split(':').index('otherNodeRoles')
-        alias_role_token  = output[1].split(':').index('otherNodeRolesAlias')
-
-        role_details, final_value = {}, ''
-        for cmd_line in output:
-            if re.match(r"mmlscluster:clusterNode:\d+", cmd_line):
-                daemon_value = cmd_line.split(':')[daemon_node_token]
-                ip_value = cmd_line.split(':')[ipaddress_token]
-                admin_value = cmd_line.split(':')[admin_node_token]
-                other_role_value = cmd_line.split(':')[other_role_token]
-                alias_role_value = cmd_line.split(':')[alias_role_token]
-                designation_value = cmd_line.split(':')[designation_token]
-
-                key = '{},{},{}'.format(daemon_value, ip_value, admin_value)
-
-                if not designation_value and not alias_role_value and not \
-                        other_role_value:
-                    final_value = ''
-                elif designation_value and not alias_role_value and not \
-                        other_role_value:
-                    final_value = designation_value
-                elif not designation_value and alias_role_value and not \
-                        other_role_value:
-                    final_value = alias_role_value
-                elif not designation_value and not alias_role_value and \
-                        other_role_value:
-                    final_value = other_role_value
-                elif designation_value and alias_role_value and not \
-                        other_role_value:
-                    final_value = '{},{}'.format(designation_value,
-                                                 alias_role_value)
-                elif not designation_value and alias_role_value and \
-                        other_role_value:
-                    final_value = '{},{}'.format(alias_role_value,
-                                                 other_role_value)
-                elif designation_value and not alias_role_value and \
-                        other_role_value:
-                    final_value = '{},{}'.format(designation_value,
-                                                 other_role_value)
-                elif designation_value and alias_role_value and \
-                        other_role_value:
-                    final_value = '{},{},{}'.format(designation_value,
-                                                    alias_role_value,
-                                                    other_role_value)
-
-                role_details[key] = final_value
-
-    logger.debug("Function Exit: get_gpfs_node_roles(). Return Params: "
-                 "role_details={0}".format(role_details))
-
-    return role_details
-
-
-def gpfs_del_nsd(all_node_disks):
-    """
-        This function performs "mmdelnsd".
-        Args:
-            all_node_disks (list): List of disks corresponding to an instance.
-    """
-    disk_name = ";".join(all_node_disks)
-    logger.info("** disk_name = {0}".format(disk_name))
-    try:
-        stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmdelnsd", disk_name])
-    except Exception as exp_msg:
-        logger.error("While deleting NSD. "
-                     "Execution halted!\nMessage: %s", exp_msg)
-        exit(1)
-
-    if rc:
-        logger.error("Operation (mmdelnsd %s) failed.", disk_name)
-        logger.error("stdout: %s\nstderr: %s", stdout, stderr)
-        exit(1)
-    else:
-        logger.info("Operation (mmdelnsd %s) completed successfully.",
-                    disk_name)
-
-
-def gpfs_del_disk(instance, fs_name, disk_names):
-    """
-        This function performs "mmdeldisk".
-        Args:
-            instance (str): instance for which disk needs to be deleted.
-            fs_name (str): Filesystem name associated with the disks.
-            disk_names (list): Disk name to be deleted.
-                              Ex: ['gpfs1nsd', 'gpfs2nsd', 'gpfs3nsd']
-    """
-    disk_name = ";".join(disk_names)
-    try:
-        stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmdeldisk", fs_name,
-                                    disk_name, '-N', instance])
-    except Exception as exp_msg:
-        logger.error("While deleting disk. "
-                     "Execution halted!\nMessage: %s", exp_msg)
-        exit(1)
-
-    if rc:
-        logger.error("Operation (mmdeldisk %s %s -N %s) failed.", fs_name,
-                     disk_name, instance)
-        logger.error("stdout: %s\nstderr: %s", stdout, stderr)
-        exit(1)
-        # TODO: This is most obvious situation, we need to enhance message
-    else:
-        logger.info("Operation (mmdeldisk %s %s -N %s) completed "
-                    "successfully.", fs_name, disk_name, instance)
-
-
-def get_all_disks_of_node(instance, region):
+def get_all_nsds_of_node(logger, instance):
     """
         This function performs "mmlsnsd -X -Y".
         Args:
@@ -258,141 +165,23 @@ def get_all_disks_of_node(instance, region):
            all_disk_names (list): Disk names in list format.
                                   Ex: [nsd_1a_1_0, nsd_1c_1_0, nsd_1c_d_1]
     """
-    try:
-        stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmlsnsd", '-X', '-Y'])
-    except Exception as exp_msg:
-        logger.error("While obtaining disk to filesystem details. "
-                     "Execution halted!\nMessage: %s", exp_msg)
-        exit(1)
+    logger.debug("Function Entry: get_all_nsds_of_node. "
+                 "Args: instance={0}".format(instance))
+    nsd_list = []
+    nsd_list = SpectrumScaleNSD.get_all_nsd_info()
 
-    if "No disks were found" in stderr:
-        return []
+    all_nsd_names = []
+    for nsd in nsd_list:
+        if nsd.get_remarks() == 'server node' and instance in nsd.get_server_list():
+            all_nsd_names.append(nsd.get_name())
 
-    output = stdout.splitlines()
+    logger.debug("Function Exit: get_all_nsds_of_node(). "
+                 "Return Params: all_nsd_names={0} ".format(all_nsd_names))
 
-    disk_token = output[0].split(':').index('diskName')
-    server_token = output[0].split(':').index('serverList')
-    remark = output[0].split(':').index('remarks')
-    all_disk_names = []
-    for cmd_line in output:
-        if re.match(r"mmlsnsd:nsd:\d+", cmd_line):
-            disk_host = cmd_line.split(':')[server_token]
-            if cmd_line.split(':')[remark] == 'server node' and disk_host == instance:
-                all_disk_names.append(cmd_line.split(':')[disk_token])
-
-    return all_disk_names
+    return all_nsd_names
 
 
-def get_zimon_collectors():
-    """
-        This function returns zimon collector node ip's.
-    """
-    try:
-        stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmperfmon", "config",
-                                     "show"])
-    except Exception as exp_msg:
-        logger.error("While obtaining zimon configuration details. "
-                     "Execution halted!\nMessage: %s", exp_msg)
-        exit(1)
-
-    if rc:
-        if "There is no performance monitoring configuration data" in stderr:
-            return []
-        logger.error("Operation (mmperfmon config show) failed.")
-        logger.error("stdout: %s\nstderr: %s", stdout, stderr)
-        exit(1)
-    else:
-        logger.info("Operation (mmperfmon config show) completed "
-                    "successfully.")
-        output = stdout.splitlines()
-        col_regex = re.compile(r'colCandidates\s=\s(?P<collectors>.*)')
-        for cmd_line in output:
-            if col_regex.match(cmd_line):
-                collectors = col_regex.match(cmd_line).group('collectors')
-
-        collectors = collectors.replace("\"", '').replace(" ", '')
-        collectors = collectors.split(',')
-        logger.info("Identified collectors: %s ", collectors)
-
-    return collectors
-
-
-def get_allfsnames():
-    """
-        This function executes mmlsfs and returns all filesystem names in
-        list form.
-        Returns:
-            fs_names (list): All filesystem names in the cluster.
-                Ex: fs_names = ['gpfs0', 'gpfs1']
-    """
-    output = []
-    try:
-        stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmlsfs", "all", "-Y"])
-    except Exception as exp_msg:
-        logger.error("While obtaining list of filesystems. Execution halted!\n"
-                     "Message: %s", exp_msg)
-
-    fs_names = []
-    if rc:
-        if 'mmlsfs: No file systems were found.' in stdout or \
-                'mmlsfs: No file systems were found.' in stderr:
-            logger.debug("No filesystems were found in the cluster.")
-            return list(fs_names)
-
-        logger.error("Operation (mmlsfs all -Y) failed:")
-        logger.error("stdout: %s\nstderr: %s", stdout, stderr)
-        exit(1)
-
-    output = stdout.splitlines()
-    device_index = output[0].split(':').index('deviceName')
-    for cmd_line in output[1:]:
-        device_name = cmd_line.split(':')[device_index]
-        fs_names.append(device_name)
-    fs_names = set(fs_names)
-
-    return list(fs_names)
-
-
-def get_all_fs_to_disk_map(fs_list):
-    """
-        This function performs "mmlsdisk <fs> -L -Y".
-        Args:
-            fs_list (list): List of all filesystems in the cluster.
-        Returns:
-            fs_disk_map (dict): Dict of fs names vs. disk names.
-                Ex: {'fs1': ['gpfs1nsd', 'gpfs2nsd'],
-                     'fs2': ['gpfs3nsd', 'gpfs4nsd']}
-    """
-    fs_disk_map = {}
-    for each_fs in fs_list:
-        print(each_fs)
-        disk_name = []
-        try:
-            stdout, stderr, rc = runCmd(['/usr/lpp/mmfs/bin/mmlsdisk', each_fs,
-                                        '-L', '-Y'])
-        except Exception as exp_msg:
-            logger.error("While obtaining filesystem to disk map. "
-                         "Execution halted! Message: %s",
-                         exp_msg)
-
-            exit(1)
-
-        if rc:
-            logger.error("Operation (mmlsdisk %s -L -Y) failed.", each_fs)
-            logger.error("stdout: %s\nstderr: %s", stdout, stderr)
-            exit(1)
-        else:
-            output = stdout.splitlines()
-            disk_token = output[0].split(':').index('nsdName')
-            for cmd_line in output:
-                if re.match(r"mmlsdisk::\d+", cmd_line):
-                    disk_name.append(cmd_line.split(':')[disk_token])
-                    fs_disk_map[each_fs] = disk_name
-
-    return fs_disk_map
-
-
-def gpfs_df_disk(fs_name):
+def gpfs_df_disk(logger, fs_name):
     """
         This function performs "mmdf" to obtain disk capacities.
         Args:
@@ -409,155 +198,60 @@ def gpfs_df_disk(fs_name):
                                                        'percent': 95}
                                       }
     """
-    try:
-        # TODO
-        # The original code executed the command "/usr/lpp/mmfs/bin/mmdf <fs_name> -d -Y"
-        # but this did not work if there were multiple Pools with a separate System Pool.
-        # Therefore the "-d" flag has been removed. Check to see why the "-d" flag was 
-        # was used in the first place
-        stdout, stderr, rc = runCmd(['/usr/lpp/mmfs/bin/mmdf', fs_name,
-                                    '-Y'])
-    except Exception as exp_msg:
-        logger.error("While obtaining filesystem capacity. Execution halted!\n"
-                     "Code:, Message: ")
-        exit(1)
+    logger.debug("Function Entry: gpfs_df_disk(). "
+                 "Args: fs_name={0}".format(fs_name))
 
-    if rc:
-        logger.error("Operation (mmdf %s -d -Y) failed.", fs_name)
-        logger.error("stdout: %s\nstderr: %s", stdout, stderr)
-        exit(1)
-    else:
-        output = stdout.splitlines()
-        disk_token = output[0].split(':').index('nsdName')
-        percent_token = output[0].split(':').index('freeBlocksPct')
-        free_token = output[0].split(':').index('freeBlocks')
-        size_token = output[0].split(':').index('diskSize')
-        disk_size_map = {}
-        for cmd_line in output:
-            if re.match(r"mmdf:nsd:\d+", cmd_line):
-                total = cmd_line.split(':')[size_token]
-                free = cmd_line.split(':')[free_token]
-                used = int(total) - int(free)
-                disk = cmd_line.split(':')[disk_token]
-                disk_size_map[disk] = \
-                    {'free_size': int(free), 'used_size': used,
-                     'percent': cmd_line.split(':')[percent_token]}
+    nsd_df_list = SpectrumScaleDf.get_df_info(fs_name)
+    disk_size_map = {}
+    for nsd_df in nsd_df_list:
+        total = nsd_df.get_disk_size()
+        free  = nsd_df.get_free_blocks()
+        used  = total - free
+        free_block_pct = nsd_df.get_free_blocks_pct()
+        disk  = nsd_df.get_nsd_name()
+        disk_size_map[disk] = {
+                                  'free_size': free, 
+                                  'used_size': used,
+                                  'percent': free_block_pct
+                              }
+
+    logger.debug("Function Exit: gpfs_df_disk(). "
+                 "Return Params: disk_size_map={0} ".format(disk_size_map))
 
     return disk_size_map
 
 
-def gpfs_remove_nodes(existing_instances, skip=False):
-    """
-        This function performs "mmshutdown" and "mmdelnode".
-        Args:
-            exist_instances (list): List of instances to remove from cluster.
-    """
-    if not skip:
-        try:
-            # TODO: Should we first unmount to ensure proper shutdown?
-            #stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmumount", "-a", 
-            #                             "-N", existing_instances])
+def get_node_nsd_info(logger):
+    logger.debug("Function Entry: get_node_nsd_info().")
 
-            stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmshutdown", "-N",
-                                         existing_instances])
-
-        except Exception as exp_msg:
-            logger.error("While shutting down gpfs. Execution halted!\n"
-                         "Code:, Message: ")
-            exit(1)
-
-        if rc:
-            logger.error("Operation (mmshutdown -N %s) failed.",
-                         existing_instances)
-            logger.error("stdout: %s\nstderr: %s", stdout, stderr)
-            exit(1)
-        else:
-            logger.info("Operation (mmshutdown -N %s) completed successfully.",
-                        existing_instances)
-
-    try:
-        stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmdelnode", "-N",
-                                    existing_instances])
-
-    except Exception as exp_msg:
-        logger.error("While deleting node(s) from gpfs cluster. "
-                     "Execution halted!\nCode:, Message:")
-        exit(1)
-
-    if rc:
-        logger.error("Operation (mmdelnode -N %s) failed.", existing_instances)
-        logger.error("stdout: %s\nstderr: %s", stdout, stderr)
-        exit(1)
-    else:
-        logger.info("Operation (mmdelnode -N %s) completed successfully.",
-                    existing_instances)
-
-
-def get_node_nsd_info():
-
-    try:
-        stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmlsnsd", '-X', '-Y'])
-    except Exception as exp_msg:
-        logger.error("While obtaining disk to filesystem details. "
-                     "Execution halted!\nMessage: %s", exp_msg)
-        exit(1)
-
-    output = stdout.splitlines()
-
-    if "No disks were found" in stderr:
-        return {}, {} 
-
-    nsd_token_idx     = output[0].split(':').index('diskName')
-    server_token_idx  = output[0].split(':').index('serverList')
-    remarks_token_idx = output[0].split(':').index('remarks')
+    nsd_list = SpectrumScaleNSD.get_all_nsd_info()
 
     node_nsd_map = {}
     nsd_node_map = {}
 
-    for line in output:
-        if re.match(r"mmlsnsd:nsd:\d+", line):
-            nsd_name    = line.split(':')[nsd_token_idx]
-            host_name   = line.split(':')[server_token_idx]
-            host_status = line.split(':')[remarks_token_idx]
+    for nsd in nsd_list:
+        if  nsd.get_remarks() == 'server node':
+            # Populate the node_nsd_map data structure
+            nsd_list = []
+            for node_name in nsd.get_server_list():
+                if node_name in node_nsd_map.keys():
+                    nsd_list = node_nsd_map[node_name]
+                nsd_list.append(nsd.get_name())
+                node_nsd_map[node_name] = nsd_list
+            
+            # Populate the nsd_node_map data structure
+            host_list = []
+            if nsd.get_name() in nsd_node_map.keys():
+                host_list = nsd_node_map[nsd.get_name()]
+            for server in nsd.get_server_list():
+                host_list.append(server)
+            nsd_node_map[nsd.get_name()] = host_list 
 
-            if  host_status == 'server node':
-                # Populate the node_nsd_map data structure
-                nsd_list = []
-                if host_name in node_nsd_map.keys():
-                    nsd_list = node_nsd_map[host_name]
-                nsd_list.append(nsd_name)
-                node_nsd_map[host_name] = nsd_list
-                
-                # Populate the nsd_node_map data structure
-                host_list = []
-                if nsd_name in nsd_node_map.keys():
-                    host_list = nsd_node_map[nsd_name]
-                host_list.append(host_name)
-                nsd_node_map[nsd_name] = host_list 
+    logger.debug("Function Exit: get_node_nsd_info(). "
+                 "Return Params: node_nsd_map={0} "
+                 "nsd_node_map={1}".format(node_nsd_map, nsd_node_map))
 
     return node_nsd_map, nsd_node_map
-
-
-###############################################################################
-##                                                                           ##
-##               Functions to add a node to the cluster                      ##
-##                                                                           ##
-###############################################################################
-
-def add_node(name, stanza_path):
-    # TODO: Make This idempotent
-    stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmaddnode",
-                                 "-N", nodefile_path,
-                                 "--accept"],
-                                sh=False)
-
-    if rc == RC_SUCCESS:
-        msg = stdout
-    else:
-        msg = stderr
-
-    return rc, msg
-
 
 
 ###############################################################################
@@ -566,19 +260,155 @@ def add_node(name, stanza_path):
 ##                                                                           ##
 ###############################################################################
 
-def remove_multi_attach_nsd(nodes_to_be_deleted):
+#
+# Retrieve the mapping of Filesystems to NSDs
+#
+# Returns:
+#     fs_to_nsd_map (dict): Dict of fs names and SpectrumScaleDisk objects
+#
+def get_filesystem_to_nsd_mapping(logger):
+    logger.debug("Function Entry: get_filesystem_to_nsd_mapping().")
+
+    fs_to_nsd_map = {}
+
+    # Retrieve all filesystems on this cluster
+    fs_instance_list = SpectrumScaleFS.get_filesystems()
+
+    # For each filesystem, determine the Filesystem to NSD mapping
+    for fs in fs_instance_list:
+
+        # Get all NSDs for this Filesystem
+        nsds_for_fs = SpectrumScaleDisk.get_all_disk_info(fs.get_device_name())
+
+        for nsd in nsds_for_fs:
+            nsd_list = []
+
+            # If an entry already exists for the File system, then
+            # simply add the new NSD to the list
+            if fs.get_device_name() in fs_to_nsd_map.keys():
+                nsd_list = fs_to_nsd_map[fs.get_device_name()]
+
+            nsd_list.append(nsd)
+            fs_to_nsd_map[fs.get_device_name()] = nsd_list
+
+    logger.debug("Function Exit: get_filesystem_to_nsd_mapping(). "
+                 "Return Params: fs_to_nsd_map={0} ".format(fs_to_nsd_map))
+
+    return fs_to_nsd_map
+
+
+def check_cluster_health(logger):
+    logger.debug("Function Entry: check_cluster_health(). ")
+
+    unhealthy_nodes = []
+    all_nodes_state = SpectrumScaleNode.get_state()
+   
+    for node_name, state in all_nodes_state.iteritems():
+        if ("down" in state or
+            "arbitrating" in state or
+            "unknown" in state):
+            unhealthy_nodes.append(node_name)
+
+    if unhealthy_nodes:
+        unhealthy_nodes_str = ' '.join(map(str, unhealthy_nodes))
+        error_msg = ("The following node(s) \"{0}\" is(are) currently not up. "
+                     "Ensure all nodes in the cluster are fully operational "
+                     "before retrying the operation.".format(unhealthy_nodes_str))
+        logger.error(error_msg)
+        raise SpectrumScaleException(error_msg, "", [], -1, "", "")
+
+    logger.debug("Function Exit: check_cluster_health(). ")
+
+
+def check_nodes_exist(logger, nodes_to_be_deleted):
+    logger.debug("Function Entry: check_nodes_exist(). "
+                 "Args: nodes_to_be_deleted={0}".format(nodes_to_be_deleted))
+
+    logger.info("Checking if node(s) marked for removal exist in the cluster")
+    filtered_nodes_to_be_deleted = []
+    existing_node_list = SpectrumScaleCluster().get_nodes()
+    for node_to_del in nodes_to_be_deleted:
+        for existing_node in existing_node_list:
+            if (node_to_del in existing_node.get_daemon_node_name() or
+                node_to_del in existing_node.get_admin_node_name()  or
+                node_to_del in existing_node.get_ip_address()):
+                filtered_nodes_to_be_deleted.append(existing_node)
+
+    logger.debug("Function Exit: check_nodes_exist(). "
+                 "Return Params: filtered_nodes_to_be_deleted="
+                 "{0} ".format(filtered_nodes_to_be_deleted))
+
+    return filtered_nodes_to_be_deleted
+        
+
+def check_roles_before_delete(logger, existing_node_list_to_del):
+    logger.debug("Function Entry: check_roles_before_delete(). "
+                 "Args: existing_node_list_to_del="
+                 "{0}".format(existing_node_list_to_del))
+
+    logger.info("Checking the designations for all nodes marked for removal")
+
+    for node_to_del in existing_node_list_to_del:
+        # Do not delete nodes that are designated as "quorum", "manager",
+        # "gateway", "ces", "TCT", "SNMP"
+        if (node_to_del.is_quorum_node()  or
+            node_to_del.is_manager_node() or
+            node_to_del.is_gateway_node() or
+            node_to_del.is_ces_node()     or
+            node_to_del.is_tct_node()     or
+            node_to_del.is_snmp_node()):
+            exp_msg = ("Cannot remove node {0} since it is designated "
+                       "as either a quorum, gateway, CES, TCT or SNMP "
+                       "node. Re-run the current command without "
+                       "{1}".format(node_to_del.get_admin_node_name(),
+                                    node_to_del.get_admin_node_name()))
+            logger.error(exp_msg)
+            raise SpectrumScaleException(exp_msg, "", [], -1, "", "")
+
+    # TODO: Should we also check the Zimon Collector Nodes
+    # zimon_col_nodes = get_zimon_collectors()
+
+    logger.debug("Function Exit: check_roles_before_delete().")
+
+
+def check_disk_health(logger, fs_nsd_map):
+    logger.debug("Function Entry: check_disk_health(). "
+                 "Args fs_nsd_map={0}".format(fs_nsd_map))
+
+    unhealthy_disks = []
+    for fs_name, disk_list in fs_nsd_map.iteritems():
+        for disk in disk_list:
+            if "down" in disk.get_availability():
+                unhealthy_disks.append(disk.get_nsd_name())
+
+    if unhealthy_disks:
+        unhealthy_disks_str = ' '.join(map(str, unhealthy_disks))
+        error_msg = ("The following disks \"{0}\" are currently not healthy. "
+                     "Ensure all disks in the cluster are healthy before "
+                     "retrying the operation.".format(unhealthy_disks_str))
+        logger.error(error_msg)
+        raise SpectrumScaleException(error_msg, "", [], -1, "", "")
+
+    logger.debug("Function Exit: check_disk_health(). ")
+
+
+def remove_multi_attach_nsd(logger, nodes_to_be_deleted):
     logger.debug("Function Entry: remove_multi_attach_nsd(). "
                  "Args nodes_to_be_deleted={0}".format(nodes_to_be_deleted))
 
+    logger.info("Checking node(s) for multi-node attached NSD(s)")
+
     # Iterate through each server to be deleted 
+    node_map, nsd_map = get_node_nsd_info(logger)
     for node_to_delete in nodes_to_be_deleted:
         logger.debug("Processing all NSDs on node={0} for "
-                     "removal".format(node_to_delete))
-        node_map, nsd_map = get_node_nsd_info()
+                     "removal".format(node_to_delete.get_admin_node_name()))
+        #node_map, nsd_map = get_node_nsd_info(logger)
 
         # Check if the node to be deleted has access to any NSDs
-        if node_to_delete in node_map.keys():
-            nsds_to_delete_list = node_map[node_to_delete]
+        #if node_to_delete in node_map.keys():
+        if node_to_delete.get_admin_node_name() in node_map.keys():
+            nsds_to_delete_list = node_map[node_to_delete.get_admin_node_name()]
 
             # For each Node, check all the NSDS it has access to. If the 
             # Node has access to an NSD that can also be accessed from other
@@ -587,46 +417,22 @@ def remove_multi_attach_nsd(nodes_to_be_deleted):
             for nsd_to_delete in nsds_to_delete_list: 
                 # Clone list to avoid modifying original content
                 nsd_attached_to_nodes = (nsd_map[nsd_to_delete])[:]
-                nsd_attached_to_nodes.remove(node_to_delete)
+                nsd_attached_to_nodes.remove(node_to_delete.get_admin_node_name())
                 if len(nsd_attached_to_nodes) >= 1:
                     # This node has access to an NSD, that can also be 
                     # accessed by other NSD servers. Therefore modify the 
                     # server access list
-                    #
-                    # mmchnsd "nsd1:host-nsd-01"
-                    server_access_list = ','.join(map(str, nsd_attached_to_nodes))
-                    server_access_list = nsd_to_delete+":"+server_access_list
-
-                    try:
-                        stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmchnsd", 
-                                                     server_access_list], 
-                                                    sh=False)
-                    except Exception as exp_msg:
-                        logger.error("Exception encountered during execution "
-                                     "of modifying NSD server access list "
-                                     "for NSD={0} on Node={1}. Exception "
-                                     "Message={2)".format(nsd_to_delete,
-                                                          node_to_delete,
-                                                          exp_msg))
-                        exit(1)
-
-                    if rc != RC_SUCCESS:
-                        logger.error("Failed to modify NSD server access list "
-                                     "for NSD={0} on Node={1}. Output={2} "
-                                     "Error={3}".format(nsd_to_delete,
-                                                        node_to_delete,
-                                                        stdout,
-                                                        stderr))
-                        exit(1)
-                    else:
-                        logger.info("Successfully modify NSD server access "
-                                    "list for NSD={0} on Node={1}".format(
-                                        nsd_to_delete, node_to_delete))
+                    logger.info("Removing server access to NSD {0} from node "
+                                "{1}".format(nsd_to_delete, 
+                                             node_to_delete.get_admin_node_name()))
+                    SpectrumScaleNSD.remove_server_access_to_nsd(nsd_to_delete, 
+                                                node_to_delete.get_admin_node_name(),
+                                                nsd_attached_to_nodes)
    
     # All "mmchnsd" calls are asynchronous. Therefore wait here till all 
     # modifications are committed before proceeding further. For now just
     # sleep but we need to enhance this to ensure the async op has completed
-    time.sleep(60)
+    time.sleep(10)
 
     logger.debug("Function Exit: remove_multi_attach_nsd(). ")
 
@@ -638,35 +444,44 @@ def remove_multi_attach_nsd(nodes_to_be_deleted):
 # delete access to it (if its a dedicated NSD).
 #
 # Args: 
-#   nodes_to_delete: Nodes to be deleted from the cluster
+#   node_names_to_delete: Nodes to be deleted from the cluster
 #
 # Return:
 #   rc: Return code
 #   msg: Output message
-def remove_nodes(nodes_to_delete):
+def remove_nodes(logger, node_names_to_delete):
     logger.debug("Function Entry: remove_nodes(). "
-                 "Args: node_list={0}".format(nodes_to_delete))
+                 "Args: node_list={0}".format(node_names_to_delete))
+
+    rc = RC_SUCCESS
+    msg = result_json = ""
+    removed_node_list = []
+
+    logger.info("Attempting to remove node(s) {0} from the "
+                "cluster".format(' '.join(map(str, node_names_to_delete))))
+
+    # Ensure all nodes in the cluster are healthy
+    check_cluster_health(logger)
+
+    # Check that the list of nodes to delete already exist. If not, 
+    # simply ignore
+    nodes_to_delete = check_nodes_exist(logger, node_names_to_delete)
+
+    if len(nodes_to_delete) == 0:
+        msg = str("All node(s) marked for removal ({0}) are already not part "
+                  "of the cluster".format(' '.join(map(str, 
+                                                   node_names_to_delete))))
+        logger.info(msg)
+        return rc, msg, result_json
 
     # Precheck nodes to make sure they do not have any roles that should
     # not be deleted
-    gpfs_node_roles = get_gpfs_node_roles()
-    ROLES_NOT_TO_DELETE = ['quorum', 'quorumManager', 'ces', 'gateway',
-                           'tct', 'snmp_collector']
+    check_roles_before_delete(logger, nodes_to_delete)
 
-    for each_ip in nodes_to_delete:
-        for node_details in gpfs_node_roles:
-            # The node_details consists of "daemon name,ip address,admin name"
-            # Check if the node (reffered to as any of the "daemon name", 
-            # "ip address" or "admin name") 
-            if each_ip in node_details.split(','):
-                for role in ROLES_NOT_TO_DELETE:
-                    if role in gpfs_node_roles:
-                        logger.info("Cannot remove node (%s), as it was "
-                                    "holding (%s) role.", each_ip, role)
-                        logger.error("Please re-run the current command "
-                                     "without ip(s) (%s). Execution halted!",
-                                     each_ip)
-                        exit(1)
+    # For each Filesystem, Get the Filesystem to NSD (disk) mapping
+    fs_nsd_map = get_filesystem_to_nsd_mapping(logger)
+
+    check_disk_health(logger, fs_nsd_map)
 
     # An NSD node can have access to a multi attach NSD (shared NSD) or
     # dedicated access to the NSD (FPO model) or a combination of both.
@@ -675,45 +490,60 @@ def remove_nodes(nodes_to_delete):
     # that are to be deleted. Note: As long as these are Shared NSD's
     # another NSD server will continue to have access to the NSD (and 
     # therefore Data)
-    remove_multi_attach_nsd(nodes_to_delete)
+    remove_multi_attach_nsd(logger, nodes_to_delete)
 
     # Finally delete any dedicated NSDs (this will force the data to be
     # copied to another NSD in the same Filesystem). Finally delete the
     # node from the cluster
-    node_map, nsd_map = get_node_nsd_info()
 
-    all_fs_list     = get_allfsnames()
-    node_disk_map   = get_all_fs_to_disk_map(all_fs_list)
-    zimon_col_nodes = get_zimon_collectors()
-
-    logger.debug("Identified all filesystem to disk mapping: %s",
-                 node_disk_map)
-
-    for each_ip in nodes_to_delete:
-        logger.debug("Operating on server: %s", each_ip)
-        #all_node_disks = get_all_disks_of_node(each_ip, REGION)
-        all_node_disks = get_all_disks_of_node(each_ip, "")
-        logger.debug("Identified disks for server (%s): %s", each_ip,
-                     all_node_disks)
-
-        if len(all_node_disks) == 0:
-            gpfs_remove_nodes(each_ip)
-            continue
+    logger.debug("Identified all filesystem to disk mapping: "
+                 "{0}".format(fs_nsd_map))
     
-        fs_disk_map = {}
-        for fs_name, disks in node_disk_map.iteritems():
-            node_specific_disks = []
-            for each_disk in disks:
-                if each_disk in all_node_disks:
-                    node_specific_disks.append(each_disk)
-            fs_disk_map[fs_name] = node_specific_disks
-        logger.debug("Identified filesystem to disk map for server (%s): %s",
-                     each_ip, fs_disk_map)
+    for node_to_del_obj in nodes_to_delete:
+        node_to_del = node_to_del_obj.get_admin_node_name()
+        logger.debug("Operating on server: {0}".format(node_to_del))
+        
+        # For each node to be deleted, retrieve the NSDs (disks) on the node
+        all_node_disks = get_all_nsds_of_node(logger, node_to_del)
+        logger.debug("Identified disks for server ({0}): "
+                     "{1}".format(node_to_del, all_node_disks))
 
-        for each_fs in fs_disk_map:
-            disk_cap = gpfs_df_disk(each_fs)
-            logger.debug("Identified disk capacity for filesystem (%s): %s",
-                         each_fs, disk_cap)
+        # The Node does not have any disks on it (compute node). Delete the
+        # node without any more processing
+        if len(all_node_disks) == 0:
+            logger.info("Unmounting filesystem(s) on {0}".format(node_to_del))
+            SpectrumScaleFS.unmount_filesystems(node_to_del, wait=True)
+
+            logger.info("Shutting down node {0}".format(node_to_del))
+            SpectrumScaleNode.shutdown_node(node_to_del, wait=True)
+
+            logger.info("Deleting compute node {0}".format(node_to_del))
+            SpectrumScaleCluster.delete_node(node_to_del)
+
+            removed_node_list.append(node_to_del)
+            continue
+   
+        # Generate a list of NSD (disks) on the host to be deleted for
+        # each filesystem
+        #
+        # fs_disk_map{} contains the following:
+        #    Filesystem Name -> NSDs on the host to be deleted
+        fs_disk_map = {}
+        for fs_name, disks in fs_nsd_map.iteritems():
+            node_specific_disks = []
+            for disk_instance in disks:
+                if disk_instance.get_nsd_name() in all_node_disks:
+                    node_specific_disks.append(disk_instance.get_nsd_name())
+            fs_disk_map[fs_name] = node_specific_disks
+
+        logger.debug("Identified filesystem to disk map for server "
+                     "({0}): {1}".format(node_to_del, fs_disk_map))
+
+        for fs in fs_disk_map:
+            disk_cap = gpfs_df_disk(logger, fs)
+            logger.debug("Identified disk capacity for filesystem "
+                         "({0}): {1}".format(fs, disk_cap))
+
             # Algorithm used for checking at-least 20% free space during
             # mmdeldisk in progress;
             # - Identify the size of data stored in disks going to be
@@ -723,50 +553,80 @@ def remove_nodes(nodes_to_delete):
             # - Allow for disk deletion, if total_free size is 20% greater
             #   even after moving used data stored in disk going to be deleted.
             size_to_be_del = 0
-            for each_disk in fs_disk_map[each_fs]:
-                size_to_be_del += disk_cap[each_disk]['used_size']
+            for disk in fs_disk_map[fs]:
+                size_to_be_del += disk_cap[disk]['used_size']
             logger.debug("Identified data size going to be deleted from "
-                         "filesystem (%s): %s", each_fs, size_to_be_del)
+                         "filesystem ({0}): {1}".format(fs, size_to_be_del))
 
             other_disks = []
             for disk_name in disk_cap:
-                if disk_name not in fs_disk_map[each_fs]:
+                if disk_name not in fs_disk_map[fs]:
                     other_disks.append(disk_name)
-            logger.debug("Identified other disks of the filesystem (%s): %s",
-                         each_fs, other_disks)
+            logger.debug("Identified other disks of the filesystem "
+                         "({0}): {1}".format(fs, other_disks))
+
+            if not other_disks:
+                msg = str("No free disks available to restripe data "
+                          "for the filesystem {0}".format(fs))
+                logger.error(msg)
+                raise SpectrumScaleException(msg=msg, mmcmd="", cmdargs=[], 
+                                             rc=-1, stdout="", stderr="")
 
             size_avail_after_migration, total_free = 0, 0
-            for each_disk in other_disks:
+            for disk in other_disks:
                 # Accumulate free size on all disks.
-                total_free += disk_cap[each_disk]['free_size']
+                total_free += disk_cap[disk]['free_size']
                 logger.debug("Identified free size in other disks of the "
-                             "filesystem (%s): %s", each_fs, total_free)
+                             "filesystem ({0}): {1}".format(fs, total_free))
 
             size_avail_after_migration = total_free - size_to_be_del
             logger.debug("Expected size after restriping of the filesystem "
-                         "(%s): %s", each_fs, size_avail_after_migration)
-            print(size_avail_after_migration)
-            #percent = 30
+                         "({0}): {1}".format(fs, size_avail_after_migration))
+
             percent = int(size_avail_after_migration*100/total_free)
             logger.debug("Expected percentage of size left after restriping "
-                         "of the filesystem (%s): %s", each_fs, percent)
+                         "of the filesystem ({0}): {1}".format(fs, percent))
 
             if percent < 20:
-                logger.error("No enough space left for restriping data for "
-                             "filesystem (%s). Execution halted!", each_fs)
-                exit(1)
+                msg = ("Not enough space left for restriping data for "
+                       "filesystem {0}".format(fs))
+                logger.error(msg)
+                raise SpectrumScaleException(msg=msg, mmcmd="", cmdargs=[], 
+                                             rc=-1, stdout="", stderr="")
 
-            if fs_disk_map[each_fs]:
+            if fs_disk_map[fs]:
                 # mmdeldisk will not be hit if there are no disks to delete.
-                gpfs_del_disk(each_ip, each_fs, fs_disk_map[each_fs])
+                logger.info("Deleting disk(s) {0} from node "
+                            "{1}".format(' '.join(map(str, fs_disk_map[fs])), 
+                                         node_to_del))
+                SpectrumScaleDisk.delete_disk(node_to_del, fs, fs_disk_map[fs])
 
         if all_node_disks:
             # mmdelnsd will not be hot if there are no disks to delete.
-            gpfs_del_nsd(all_node_disks)
-        gpfs_remove_nodes(each_ip)
+            logger.info("Deleting all NSD(s) {0} attached to node "
+                        "{1}".format(' '.join(map(str, all_node_disks)), 
+                                     node_to_del))
+            SpectrumScaleNSD.delete_nsd(all_node_disks)
 
-    logger.debug("Function Exit: remove_nodes().")
-    return 0, ""
+        logger.info("Unmounting filesystem(s) on {0}".format(node_to_del))
+        SpectrumScaleFS.unmount_filesystems(node_to_del, wait=True)
+
+        logger.info("Shutting down node {0}".format(node_to_del))
+        SpectrumScaleNode.shutdown_node(node_to_del, wait=True)
+
+        logger.info("Deleting storage node {0}".format(node_to_del))
+        SpectrumScaleCluster.delete_node(node_to_del)
+
+        removed_node_list.append(node_to_del)
+        
+    msg = str("Successfully removed node(s) {0} from the "
+              "cluster".format(' '.join(map(str, removed_node_list))))
+
+    logger.info(msg)
+    logger.debug("Function Exit: remove_nodes(). "
+                 "Return Params: rc={0} msg={1}".format(rc, msg))
+
+    return rc, msg, result_json
 
 
 ###############################################################################
@@ -775,17 +635,144 @@ def remove_nodes(nodes_to_delete):
 ##                                                                           ##
 ###############################################################################
 
-def get_node_info(node_names):
-    msg = result_json = ""
-    stdout, stderr, rc = runCmd(["/usr/lpp/mmfs/bin/mmlscluster","-Y"], sh=False)
+def get_node_info_as_json(logger, node_names=[]):
+    logger.debug("Function Entry: get_node_info_as_json(). "
+                 "Args: node_names={0}".format(node_names))
 
-    if rc == RC_SUCCESS:
-        result_dict = parse_aggregate_cmd_output(stdout, 
-                                                 MMLSCLUSTER_SUMMARY_FIELDS)
-        result_json = json.dumps(result_dict)
-        msg = "mmlscluster successfully executed"
-    else:
-        msg = stderr
+    rc = 0
+    msg = result_json = ""
+    node_info_dict = {}
+    node_info_list = []
+
+    cluster = SpectrumScaleCluster()
+    node_instance_list = cluster.get_nodes()
+
+    for node_instance in node_instance_list:
+        if len(node_names) == 0:
+            node_info_list.append(node_instance.get_node_dict())
+        else:
+            if (node_instance.get_ip_address() in node_names or
+                node_instance.get_admin_node_name() in node_names or
+                node_instance.get_daemon_node_name() in node_names):
+                node_info_list.append(node_instance.get_node_dict())
+
+    node_info_dict["clusterNodes"] = node_info_list
+    result_json = json.dumps(node_info_dict)
+    msg = "List cluster successfully executed"
+
+    logger.debug("Function Exit: get_node_info_as_json(). "
+                 "Return Params: rc={0} msg={1} "
+                 "result_json={2}".format(rc, msg, result_json))
+
+    return rc, msg, result_json
+
+
+def get_node_status_as_json(logger, node_names=[]):
+    logger.debug("Function Entry: get_node_status_as_json(). "
+                 "Args: node_names={0}".format(node_names))
+
+    rc = 0
+    msg = result_json = ""
+    node_status = {}
+
+    node_state = SpectrumScaleNode.get_state(node_names)
+    result_json = json.dumps(node_state)
+    msg = "Cluster status successfully executed"
+
+    logger.debug("Function Exit: get_node_status_as_json(). "
+                 "Return Params: rc={0} msg={1} "
+                 "result_json={2}".format(rc, msg, result_json))
+
+    return rc, msg, result_json
+
+
+###############################################################################
+##                                                                           ##
+##           Functions to Stop/Start Node(s) in the Cluster                  ##
+##                                                                           ##
+###############################################################################
+
+def start_nodes(logger, node_names):
+    logger.debug("Function Entry: start_nodes(). "
+                 "Args: node_names={0}".format(node_names))
+
+    rc = RC_SUCCESS
+    msg = stdout = result_json = ""
+
+    for node in node_names:
+        logger.info("Attempting to start node {0}".format(node))
+        rc, stdout = SpectrumScaleNode.start_node(node, wait=True)
+
+    msg = str("Successfully started node(s) "
+              "{0}".format(' '.join(map(str, node_names))))
+
+    logger.info(msg)
+
+    logger.debug("Function Exit: start_nodes(). "
+                 "Return Params: rc={0} msg={1} "
+                 "result_json={2}".format(rc, msg, result_json))
+
+    return rc, msg, result_json
+
+
+def stop_nodes(logger, node_names):
+    logger.debug("Function Entry: stop_nodes(). "
+                 "Args: node_names={0}".format(node_names))
+
+    rc = RC_SUCCESS
+    msg = stdout = result_json = ""
+
+    for node in node_names:
+        logger.info("Attempting to stop node {0}".format(node))
+        rc, stdout = SpectrumScaleNode.shutdown_node(node, wait=True)
+
+    msg = str("Successfully stopped node(s) "
+              "{0}".format(' '.join(map(str, node_names))))
+
+    logger.info(msg)
+
+    logger.debug("Function Exit: stop_nodes(). "
+                 "Return Params: rc={0} msg={1} "
+                 "result_json={2}".format(rc, msg, result_json))
+
+    return rc, msg, result_json
+
+
+###############################################################################
+##                                                                           ##
+##               Functions to add Node(s) to the Cluster                     ##
+##                                                                           ##
+###############################################################################
+
+def add_nodes(logger, node_names, stanza, license):
+    logger.debug("Function Entry: add_nodes(). "
+                 "Args: node_names={0}".format(node_names))
+
+    rc = RC_SUCCESS
+    msg = stdout = result_json = ""
+
+    logger.info("Attempting to add node(s) {0} to the "
+                "cluster".format(' '.join(map(str, node_names))))
+
+    rc, stdout, stderr = SpectrumScaleCluster.add_node(node_names, stanza)
+
+    logger.info("Attempting to apply licenses to newly added "
+                "node(s)".format(' '.join(map(str, node_names))))
+
+    rc, stdout = SpectrumScaleCluster.apply_license(node_names, license)
+
+    for node in node_names:
+        logger.info("Attempting to start node {0}".format(node))
+        rc, stdout = SpectrumScaleNode.start_node(node, wait=True)
+
+    msg = str("Successfully added node(s) {0} to the "
+              "cluster".format(' '.join(map(str, node_names))))
+
+    logger.info(msg)
+
+    logger.debug("Function Exit: add_nodes(). "
+                 "Return Params: rc={0} msg={1} "
+                 "result_json={2}".format(rc, msg, result_json))
 
     return rc, msg, result_json
 
@@ -797,11 +784,17 @@ def get_node_info(node_names):
 ###############################################################################
 
 def main():
+    logger = SpectrumScaleLogger.get_logger()
+
+    logger.debug("----------------------------------")
+    logger.debug("Function Entry: ibm_ss_node.main()")
+    logger.debug("----------------------------------")
+
     # Setup the module argument specifications
     scale_arg_spec = dict(
                            op       = dict(
                                             type='str', 
-                                            choices=['get'], 
+                                            choices=['get', 'status', 'start', 'stop'], 
                                             required=False
                                           ),
                            state    = dict(
@@ -816,14 +809,18 @@ def main():
                            name     = dict(
                                             type='str', 
                                             required=False
-                                          )
+                                          ),
+                           license  = dict(
+                                            type='str', 
+                                            choices=['server', 'client', 'fpo'], 
+                                            required=False
+                                          ),
                          )
 
 
     scale_req_args        = [
-                              [ "state", "present", [ "stanza", "name" ] ],
-                              [ "state", "absent", [ "name" ] ],
-                              [ "op", "get", [ "name" ] ]
+                              [ "state", "present", [ "nodefile", "name", "license" ] ],
+                              [ "state", "absent", [ "name" ] ]
                             ]
 
 
@@ -831,42 +828,88 @@ def main():
                               [ "op", "state" ]
                             ]
 
+    scale_mutual_ex_args  = [
+                              [ "get", "status", "start", "stop" ]
+                            ]
+
     # Instantiate the Ansible module with the given argument specifications
     module = AnsibleModule(
                             argument_spec=scale_arg_spec,
                             required_one_of=scale_req_one_of_args,
                             required_if=scale_req_args,
+                            mutually_exclusive=scale_mutual_ex_args
                           )
 
-    rc = RC_SUCCESS
+    rc = -1
     msg = result_json = ""
     state_changed = False
 
-    if module.params['op'] and "get" in module.params['op']:
-        # Retrieve the IBM Spectrum Scale node (cluster) information
-        node_name_str = module.params['name']
-        rc, msg, result_json = get_node_info(node_name_str.split(','))
-    elif module.params['state']:
-        if "present" in module.params['state']:
-            # Create a new IBM Spectrum Scale cluster
-            rc, msg = add_node(
-                                 module.params['stanza'],
-                                 module.params['name']
-                              )
-        else:
-            listofserver = module.params['name']
-            # Delete the existing IBM Spectrum Scale cluster
-            rc, msg = remove_nodes(listofserver.split(','))
+    try:
+        if module.params['op']:
+            node_names = []
+            if module.params['name']:
+                node_names = module.params['name'].split(',')
 
-        if rc == RC_SUCCESS:
-            state_changed = True
+            if "get" in module.params['op']:
+                # Retrieve the IBM Spectrum Scale node information
+                rc, msg, result_json = get_node_info_as_json(logger, 
+                                                             node_names)
+            elif "status" in module.params['op']:
+                # Retrieve the IBM Spectrum Scale Node state
+                rc, msg, result_json = get_node_status_as_json(logger, 
+                                                               node_names)
+            elif "start" in module.params['op']:
+                # Start the IBM Spectrum Scale Server(s)
+                rc, msg, result_json = start_nodes(logger, node_names)
+            elif "stop" in module.params['op']:
+                # Stop the IBM Spectrum Scale Server(s)
+                rc, msg, result_json = stop_nodes(logger, node_names)
+
+        elif module.params['state']:
+            listofserver = module.params['name']
+            if "present" in module.params['state']:
+                # Create a new IBM Spectrum Scale cluster
+                rc, msg, result_json = add_nodes(logger,
+                                                 listofserver.split(','),
+                                                 module.params['nodefile'],
+                                                 module.params['license'])
+            else:
+                # Delete the existing IBM Spectrum Scale cluster
+                rc, msg, result_json = remove_nodes(logger, 
+                                                    listofserver.split(','))
+
+            if rc == RC_SUCCESS:
+                state_changed = True
+                
+    except SpectrumScaleException as sse:
+        st = traceback.format_exc()
+        e_msg = ("Exception: {0}  StackTrace: {1}".format(str(sse), st))
+        logger.debug(e_msg)
+        failure_msg = "FAILED: " + sse.get_message()
+        module.fail_json(msg=failure_msg, changed=False, rc=-1, 
+                         result=result_json, stderr=str(st))
+    except Exception as e:
+        st = traceback.format_exc()
+        e_msg = ("Exception: {0}  StackTrace: {1}".format(str(e), st))
+        logger.debug(e_msg)
+        failure_msg = "FAILED: " + e.get_message()
+        module.fail_json(msg=failure_msg, changed=False, rc=-1, 
+                         result=result_json, stderr=str(st))
+
+    logger.debug("---------------------------------")
+    logger.debug("Function Exit: ibm_ss_node.main()")
+    logger.debug("---------------------------------")
+
+    SpectrumScaleLogger.shutdown()
 
     # Module is done. Return back the result
-    module.exit_json(changed=state_changed, msg=msg, rc=rc, result=result_json)
+    if rc == RC_SUCCESS:
+        module.exit_json(msg=msg, changed=state_changed, rc=rc, result=result_json)
+    else:
+        failure_msg = "FAILED: " + msg
+        module.fail_json(msg=failure_msg, changed=state_changed, rc=rc, 
+                         result=result_json)
 
 
 if __name__ == '__main__':
-    # Set up the Logger. Print to console and file
-    logger = get_logger()
-    logger.addHandler(logging.StreamHandler())
     main() 
