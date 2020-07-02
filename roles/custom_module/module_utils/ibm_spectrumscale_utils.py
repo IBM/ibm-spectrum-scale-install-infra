@@ -25,7 +25,7 @@ import subprocess
 import threading
 import logging
 import signal
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import types
 from collections import OrderedDict
 
@@ -109,7 +109,7 @@ class SpectrumScaleLogger:
 ##                                  ##
 ######################################
 def decode(input_string):
-    return urllib.unquote(input_string)
+    return urllib.parse.unquote(input_string)
 
 
 def _stop_process(proc, logger, log_cmd, timeout):
@@ -142,7 +142,7 @@ def runCmd(cmd, timeout=300, sh=False, env=None, retry=0):
 
     logger = SpectrumScaleLogger.get_logger()
 
-    if isinstance(cmd, basestring):
+    if isinstance(cmd, str):
         log_cmd = cmd
     else:
         log_cmd = ' '.join(cmd)
@@ -330,10 +330,11 @@ def parse_aggregate_cmd_output(cmd_raw_out, summary_records, header_index=2):
     data_out = OrderedDict()
     headers = OrderedDict()
 
-    if isinstance(cmd_raw_out, basestring):
+    if isinstance(cmd_raw_out, str):
         lines = cmd_raw_out.splitlines()
     else:
-        lines = cmd_raw_out
+        # for python3, this will be sent back in bytes, so decode first 
+        lines = cmd_raw_out.decode("utf-8").splitlines() 
 
     for line in lines:
         values = line.split(":")
@@ -477,7 +478,7 @@ def parse_simple_cmd_output(cmd_raw_out, cmd_key, cmd_prop_name,
     data_out = OrderedDict()
     headers = OrderedDict()
 
-    if isinstance(cmd_raw_out, basestring):
+    if isinstance(cmd_raw_out, str):
         lines = cmd_raw_out.splitlines()
     else:
         lines = cmd_raw_out
@@ -598,7 +599,7 @@ def parse_unique_records(cmd_raw_out, datatype="", header_index=2):
     data_out = OrderedDict()
     headers = OrderedDict()
 
-    if isinstance(cmd_raw_out, basestring):
+    if isinstance(cmd_raw_out, str):
         lines = cmd_raw_out.splitlines()
     else:
         lines = cmd_raw_out
