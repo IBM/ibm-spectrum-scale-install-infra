@@ -21,7 +21,7 @@ import os
 import re
 import json
 import time
-from ibm_ss_utils import runCmd, GPFS_CMD_PATH, RC_SUCCESS, \
+from ibm_spectrumscale_utils import runCmd, GPFS_CMD_PATH, RC_SUCCESS, \
                          SpectrumScaleException
 
 def get_zimon_collectors():
