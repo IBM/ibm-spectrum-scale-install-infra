@@ -20,12 +20,12 @@
   gather_facts: no
   tasks:
   - name: Shutdown node
-    ibm_ss_node: 
+    ibm_spectrumscale_node: 
       op: "stop"
       name: "{{ groups['test_remove_nodes'][0] }}"
 
   - name: Attempt to remove node that is shutdown and ensure it is note removed
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       state: "absent"
       name: "{{ groups['test_remove_nodes'][0] }}"
     register: result_node_remove
@@ -34,7 +34,7 @@
       ('FAILED' not in result_node_remove.msg)
 
   - name: Check to ensure node still exists
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       op: "get"
       name: "{{ groups['test_remove_nodes'][0] }}"
     register: result_node_info
@@ -43,7 +43,7 @@
       (groups['test_remove_nodes'][0] not in (result_node_info.result | from_json).clusterNodes[0].adminNodeName)
 
   - name: Startup node
-    ibm_ss_node: 
+    ibm_spectrumscale_node: 
       op: "start"
       name: "{{ groups['test_remove_nodes'][0] }}"
 
@@ -65,7 +65,7 @@
                  "{{hostvars[groups['test_remove_storage_nodes'][0]].nsds}}"
 
       - name: Attempt to remove node with unhealthy disks and ensure node is not removed
-        ibm_ss_node:
+        ibm_spectrumscale_node:
           state: "absent"
           name: "{{ groups['test_remove_storage_nodes'][0] }}"
         register: result_node_remove
@@ -74,7 +74,7 @@
           ('FAILED' not in result_node_remove.msg)
 
       - name: Check to ensure node still exists
-        ibm_ss_node:
+        ibm_spectrumscale_node:
           op: "get"
           name: "{{ groups['test_remove_storage_nodes'][0] }}"
         register: result_node_info
@@ -98,7 +98,7 @@
   gather_facts: no
   tasks:
   - name: Attempt to remove quorum node and ensure node is not removed
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       state: "absent"
       name: "{{ groups['quorum_nodes'][0] }}"
     register: result_quorum_node_remove
@@ -115,7 +115,7 @@
   gather_facts: no
   tasks:
   - name: Attempt to remove manager node and ensure node is not removed
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       state: "absent"
       name: "{{ groups['manager_nodes'][0] }}"
     register: result_manager_node_remove
@@ -131,13 +131,13 @@
   gather_facts: no
   tasks: 
   - name: Remove a single node from the cluster
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       state: "absent"
       name: "{{ groups['test_remove_nodes'][0] }}"
     register: node_remove_result
 
   - name: Check to ensure node has been deleted
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       op: "get"
       name: "{{ groups['test_remove_nodes'][0] }}"
     register: result_node_info
@@ -152,7 +152,7 @@
   gather_facts: no
   tasks: 
   - name: Remove a non existing node from the cluster
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       state: "absent"
       name: "{{ groups['test_remove_nodes'][0] }}"
     register: node_remove_result

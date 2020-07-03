@@ -19,7 +19,7 @@
 import os
 import sys
 import json
-from ibm_ss_utils import runCmd, parse_unique_records, GPFS_CMD_PATH, \
+from ibm_spectrumscale_utils import runCmd, parse_unique_records, GPFS_CMD_PATH, \
                          RC_SUCCESS, SpectrumScaleException
 
 class SpectrumScaleDisk:

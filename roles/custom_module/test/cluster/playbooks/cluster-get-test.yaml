@@ -20,7 +20,7 @@
   gather_facts: no
   tasks: 
   - name: Query cluster information
-    ibm_ss_cluster:
+    ibm_spectrumscale_cluster:
       op: 'get'
     register: cluster_info_out
     run_once: true

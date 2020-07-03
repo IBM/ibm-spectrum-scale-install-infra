@@ -19,7 +19,7 @@
   hosts: controller
   tasks:
   - name: Run Filesystem Module
-    ibm_ss_filesystem:
+    ibm_spectrumscale_filesystem:
       op: 'get'
     register: module_out
 
