@@ -16,7 +16,7 @@
 #
 
 - name: Test Spectrum Scale Cluster Module
-  hosts: scale-51
+  hosts: controller
   gather_facts: no
   tasks: 
   - name: Query cluster information
