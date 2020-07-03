@@ -31,7 +31,7 @@
           delete_nodes: "{{ groups['scale_remove_nodes'] | list }}"
 
     - name: Delete an IBM Spectrum Scale Node from Cluster
-      ibm_ss_node:
+      ibm_spectrumscale_node:
         state: absent
         name: "{{ delete_nodes | join(',') }}"
       register: scale_delete_node

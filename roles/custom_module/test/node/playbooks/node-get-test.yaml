@@ -20,7 +20,7 @@
   gather_facts: no
   tasks: 
   - name: Query all nodes in the cluster
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       op: "get"
     register: nodes_info
 
@@ -29,7 +29,7 @@
       msg: "{{ nodes_info }}"
 
   - name: Query a single node in the cluster
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       op: "get"
       name: "node1.domain.com"
     register: node_1_info

@@ -3,7 +3,7 @@
   gather_facts: no
   tasks: 
   - name: Query all node status in the cluster
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       op: "status"
     register: nodes_status_info
 
@@ -12,7 +12,7 @@
       msg: "{{ nodes_status_info }}"
 
   - name: Query a single node status in the cluster
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       op: "status"
       name: "node1.domain.com"
     register: node_status_1_info

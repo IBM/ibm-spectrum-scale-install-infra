@@ -25,7 +25,7 @@
       dest: /tmp/NodeFile
 
   - name: Add Node(s) to cluster
-    ibm_ss_node:
+    ibm_spectrumscale_node:
       state: "present"
       name: "{{ groups['test_add_nodes'][0] }}"
       nodefile: "/tmp/NodeFile"
