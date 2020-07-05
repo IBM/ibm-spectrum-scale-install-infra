@@ -37,7 +37,5 @@
       when: hostvars[item]['is_admin_node'] is defined and hostvars[item]['is_admin_node']|bool
       with_items:
          - "{{ ansible_play_hosts }}"
-    - debug:
-         msg: "{{ admin_node_list }}"
   delegate_to: localhost
   run_once: true
