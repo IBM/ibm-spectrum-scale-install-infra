@@ -4,6 +4,18 @@
 #
 # Inspect existing, free, and defined NSDs
 #
+- block:
+    - name: storage | Find free NSDs
+      shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterNode | grep quorum | cut -d ':' -f 10
+      register: scale_existing_quorumnode
+      changed_when: false
+      failed_when: false
+
+    - name: storage | Assign admin nodes
+      set_fact:
+        admin_node: "{{ scale_existing_quorumnode.stdout_lines[0] if scale_existing_quorumnode.stdout_lines[0] is defined else admin_node_list[0] }}"
+  run_once: true
+
 - block:  ## run_once: true
     - name: storage | Find existing filesystem(s)
       shell: /usr/lpp/mmfs/bin/mmlsfs all -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
@@ -35,6 +47,7 @@
       changed_when: false
       failed_when: false
   run_once: true
+  delegate_to: "{{ admin_node }}"
 
 - name: storage | Initialize undefined variables
   set_fact:
@@ -310,3 +323,4 @@
         - scale_storage_existing_fsmounts.stdout is search(':' + item.key + ':' + item.key + ':' + scale_cluster_clustername + ':0:')
       with_dict: "{{ scale_storage_fsparams | default({}) }}"
   run_once: true
+  delegate_to: "{{ admin_node }}"

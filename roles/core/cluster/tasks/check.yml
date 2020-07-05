@@ -16,3 +16,28 @@
   set_fact:
     scale_daemon_nodename: "{{ scale_daemon_nodename }}"
   when: hostvars[inventory_hostname].scale_daemon_nodename is undefined
+
+- name: cluster | Assign default admin nodes
+  set_fact:
+     is_admin_node: true
+  when: true not in ansible_play_hosts | map('extract', hostvars, 'is_admin_node') | map('bool') | list
+  with_sequence: start=1 end={{ [ ansible_play_hosts | length, 1 ] | min }}
+  run_once: true
+  delegate_to: "{{ ansible_play_hosts[item | int - 1] }}"
+  delegate_facts: true
+
+- block:
+    - name: check | Initialize
+      set_fact:
+         admin_node_list: []
+
+    - name: check | Collect all admin nodes
+      set_fact:
+          admin_node_list: "{{ admin_node_list + [hostvars[item]['ansible_fqdn']] }}"
+      when: hostvars[item]['is_admin_node'] is defined and hostvars[item]['is_admin_node']|bool
+      with_items:
+         - "{{ ansible_play_hosts }}"
+    - debug:
+         msg: "{{ admin_node_list }}"
+  delegate_to: localhost
+  run_once: true
