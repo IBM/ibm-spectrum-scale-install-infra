@@ -26,7 +26,7 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: ibm_ss_node
+module: ibm_spectrumscale_node
 short_description: IBM Spectrum Scale Node Management
 version_added: "0.1"
 
@@ -61,19 +61,19 @@ options:
 EXAMPLES = '''
 # Retrive information about an existing IBM Spectrum Scale Node(s)
 - name: Retrieve IBM Spectrum Scale Node information
-  ibm_ss_node:
+  ibm_spectrumscale_node:
     op: list
 
 # Adds a Node to the IBM Spectrum Scale Cluster
 - name: Add node to IBM Spectrum Scale Cluster
-  ibm_ss_node:
+  ibm_spectrumscale_node:
     state: present
     nodefile: "/tmp/nodefile"
     name: "node1.domain.com"
 
 # Delete an existing IBM Spectrum Node from the Cluster
 - name: Delete an IBM Spectrum Scale Node from Cluster
-  ibm_ss_node:
+  ibm_spectrumscale_node:
     state: absent
     name: "node1.domain.com"
 '''
@@ -110,44 +110,44 @@ import traceback
 from ansible.module_utils.basic import AnsibleModule
 
 try:
-    from ansible.module_utils.ibm_ss_utils import runCmd, RC_SUCCESS, \
+    from ansible.module_utils.ibm_spectrumscale_utils import runCmd, RC_SUCCESS, \
                                                   parse_aggregate_cmd_output, \
                                                   SpectrumScaleLogger, \
                                                   SpectrumScaleException
 except:
-    from ibm_ss_utils import runCmd, RC_SUCCESS, parse_aggregate_cmd_output, \
+    from ibm_spectrumscale_utils import runCmd, RC_SUCCESS, parse_aggregate_cmd_output, \
                              SpectrumScaleLogger, SpectrumScaleException
 
 try:
-    from ansible.module_utils.ibm_ss_disk_utils import SpectrumScaleDisk
+    from ansible.module_utils.ibm_spectrumscale_disk_utils import SpectrumScaleDisk
 except:
-    from ibm_ss_disk_utils import SpectrumScaleDisk
+    from ibm_spectrumscale_disk_utils import SpectrumScaleDisk
 
 try:
-    from ansible.module_utils.ibm_ss_df_utils import SpectrumScaleDf
+    from ansible.module_utils.ibm_spectrumscale_df_utils import SpectrumScaleDf
 except:
-    from ibm_ss_df_utils import SpectrumScaleDf
+    from ibm_spectrumscale_df_utils import SpectrumScaleDf
 
 try:
-    from ansible.module_utils.ibm_ss_nsd_utils import SpectrumScaleNSD
+    from ansible.module_utils.ibm_spectrumscale_nsd_utils import SpectrumScaleNSD
 except:
-    from ibm_ss_nsd_utils import SpectrumScaleNSD
+    from ibm_spectrumscale_nsd_utils import SpectrumScaleNSD
 
 try:
-    from ansible.module_utils.ibm_ss_filesystem_utils import SpectrumScaleFS
+    from ansible.module_utils.ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
 except:
-    from ibm_ss_filesystem_utils import SpectrumScaleFS
+    from ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
 
 try:
-    from ansible.module_utils.ibm_ss_cluster_utils import SpectrumScaleCluster, \
+    from ansible.module_utils.ibm_spectrumscale_cluster_utils import SpectrumScaleCluster, \
                                                           SpectrumScaleNode
 except:
-    from ibm_ss_cluster_utils import SpectrumScaleCluster, SpectrumScaleNode
+    from ibm_spectrumscale_cluster_utils import SpectrumScaleCluster, SpectrumScaleNode
 
 try:
-    from ansible.module_utils.ibm_ss_zimon_utils import get_zimon_collectors
+    from ansible.module_utils.ibm_spectrumscale_zimon_utils import get_zimon_collectors
 except:
-    from ibm_ss_zimon_utils import get_zimon_collectors
+    from ibm_spectrumscale_zimon_utils import get_zimon_collectors
 
 ###############################################################################
 ##                                                                           ##
@@ -787,7 +787,7 @@ def main():
     logger = SpectrumScaleLogger.get_logger()
 
     logger.debug("----------------------------------")
-    logger.debug("Function Entry: ibm_ss_node.main()")
+    logger.debug("Function Entry: ibm_spectrumscale_node.main()")
     logger.debug("----------------------------------")
 
     # Setup the module argument specifications
@@ -897,7 +897,7 @@ def main():
                          result=result_json, stderr=str(st))
 
     logger.debug("---------------------------------")
-    logger.debug("Function Exit: ibm_ss_node.main()")
+    logger.debug("Function Exit: ibm_spectrumscale_node.main()")
     logger.debug("---------------------------------")
 
     SpectrumScaleLogger.shutdown()

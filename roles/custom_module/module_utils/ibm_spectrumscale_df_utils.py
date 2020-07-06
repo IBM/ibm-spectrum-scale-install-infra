@@ -19,7 +19,7 @@
 
 import os
 import json
-from ibm_ss_utils import runCmd, parse_aggregate_cmd_output, \
+from ibm_spectrumscale_utils import runCmd, parse_aggregate_cmd_output, \
                          parse_unique_records, GPFS_CMD_PATH, \
                          RC_SUCCESS, SpectrumScaleException
 

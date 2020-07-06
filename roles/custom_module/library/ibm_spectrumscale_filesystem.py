@@ -26,7 +26,7 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: ibm_ss_filesystem
+module: ibm_spectrumscale_filesystem
 short_description: IBM Spectrum Scale Filesystem Management
 version_added: "0.0"
 
@@ -85,19 +85,19 @@ options:
 EXAMPLES = '''
 # Retrive information about an existing IBM Spectrum Scale filesystem
 - name: Retrieve IBM Spectrum Scale filesystem information
-  ibm_ss_filesystem:
+  ibm_spectrumscale_filesystem:
     op: get
 
 # Create a new IBM Spectrum Scale Filesystem
 - name: Create an IBM Spectrum Scale filesystem
-  ibm_ss_filesystem:
+  ibm_spectrumscale_filesystem:
     state: present
     stanza: "/tmp/filesystem-stanza"
     name: "FS1"
 
 # Delete an existing IBM Spectrum Scale Filesystem
 - name: Delete an IBM Spectrum Scale filesystem
-  ibm_ss_filesystem:
+  ibm_spectrumscale_filesystem:
     state: absent
     name: "FS1"
 '''
@@ -130,21 +130,21 @@ import traceback
 from ansible.module_utils.basic import AnsibleModule
 
 try: 
-    from ansible.module_utils.ibm_ss_utils import RC_SUCCESS, SpectrumScaleLogger
+    from ansible.module_utils.ibm_spectrumscale_utils import RC_SUCCESS, SpectrumScaleLogger
 except:
-    from ibm_ss_utils import RC_SUCCESS, SpectrumScaleLogger
+    from ibm_spectrumscale_utils import RC_SUCCESS, SpectrumScaleLogger
 
 try:
-    from ansible.module_utils.ibm_ss_filesystem_utils import SpectrumScaleFS
+    from ansible.module_utils.ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
 except:
-    from ibm_ss_filesystem_utils import SpectrumScaleFS
+    from ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
 
 
 def main():
     logger = SpectrumScaleLogger.get_logger()
 
     logger.debug("---------------------------------------")
-    logger.debug("Function Entry: ibm_ss_filesystem.main()")
+    logger.debug("Function Entry: ibm_spectrumscale_filesystem.main()")
     logger.debug("---------------------------------------")
 
     # Setup the module argument specifications
@@ -277,7 +277,7 @@ def main():
             state_changed = True
 
     logger.debug("---------------------------------------")
-    logger.debug("Function Exit: ibm_ss_filesystem.main()")
+    logger.debug("Function Exit: ibm_spectrumscale_filesystem.main()")
     logger.debug("---------------------------------------")
 
     logger = SpectrumScaleLogger.shutdown()

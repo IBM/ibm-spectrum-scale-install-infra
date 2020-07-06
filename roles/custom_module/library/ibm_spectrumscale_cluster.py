@@ -26,7 +26,7 @@ ANSIBLE_METADATA = {
 
 DOCUMENTATION = '''
 ---
-module: ibm_ss_cluster
+module: ibm_spectrumscale_cluster
 short_description: IBM Spectrum Scale Cluster Management
 version_added: "0.0"
 
@@ -61,19 +61,19 @@ options:
 EXAMPLES = '''
 # Retrive information about an existing IBM Spectrum Scale cluster
 - name: Retrieve IBM Spectrum Scale Cluster information
-  ibm_ss_cluster:
+  ibm_spectrumscale_cluster:
     op: list
 
 # Create a new IBM Spectrum Scale Cluster
 - name: Create an IBM Spectrum Scale Cluster
-  ibm_ss_cluster:
+  ibm_spectrumscale_cluster:
     state: present
     stanza: "/tmp/stanza"
     name: "node1.domain.com"
 
 # Delete an existing IBM Spectrum Scale Cluster
 - name: Delete an IBM Spectrum Scale Cluster
-  ibm_ss_cluster:
+  ibm_spectrumscale_cluster:
     state: absent
     name: "node1.domain.com"
 '''
@@ -107,21 +107,21 @@ import traceback
 from ansible.module_utils.basic import AnsibleModule
 
 try: 
-    from ansible.module_utils.ibm_ss_utils import RC_SUCCESS, SpectrumScaleLogger
+    from ansible.module_utils.ibm_spectrumscale_utils import RC_SUCCESS, SpectrumScaleLogger
 except:
-    from ibm_ss_utils import RC_SUCCESS, SpectrumScaleLogger
+    from ibm_spectrumscale_utils import RC_SUCCESS, SpectrumScaleLogger
 
 try: 
-    from ansible.module_utils.ibm_ss_cluster_utils import SpectrumScaleCluster
+    from ansible.module_utils.ibm_spectrumscale_cluster_utils import SpectrumScaleCluster
 except:
-    from ibm_ss_cluster_utils import SpectrumScaleCluster
+    from ibm_spectrumscale_cluster_utils import SpectrumScaleCluster
 
 
 def main():
     logger = SpectrumScaleLogger.get_logger()
 
     logger.debug("------------------------------------")
-    logger.debug("Function Entry: ibm_ss_cluster.main()")
+    logger.debug("Function Entry: ibm_spectrumscale_cluster.main()")
     logger.debug("------------------------------------")
 
     # Setup the module argument specifications
@@ -212,7 +212,7 @@ def main():
             state_changed = True
 
     logger.debug("------------------------------------")
-    logger.debug("Function Exit: ibm_ss_cluster.main()")
+    logger.debug("Function Exit: ibm_spectrumscale_cluster.main()")
     logger.debug("------------------------------------")
 
     SpectrumScaleLogger.shutdown()
