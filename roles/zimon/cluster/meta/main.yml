@@ -24,4 +24,4 @@ galaxy_info:
     - zimon
 
 dependencies:
-  - core/common
+  - ../core/common

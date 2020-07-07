@@ -23,4 +23,4 @@ galaxy_info:
     - gui
 
 dependencies:
-  - core/common
+  - ../core/common
