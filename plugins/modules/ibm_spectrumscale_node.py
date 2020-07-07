@@ -109,45 +109,23 @@ import logging
 import traceback
 from ansible.module_utils.basic import AnsibleModule
 
-try:
-    from ansible.module_utils.ibm_spectrumscale_utils import runCmd, RC_SUCCESS, \
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_utils import runCmd, RC_SUCCESS, \
                                                   parse_aggregate_cmd_output, \
                                                   SpectrumScaleLogger, \
                                                   SpectrumScaleException
-except:
-    from ibm_spectrumscale_utils import runCmd, RC_SUCCESS, parse_aggregate_cmd_output, \
-                             SpectrumScaleLogger, SpectrumScaleException
 
-try:
-    from ansible.module_utils.ibm_spectrumscale_disk_utils import SpectrumScaleDisk
-except:
-    from ibm_spectrumscale_disk_utils import SpectrumScaleDisk
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_disk_utils import SpectrumScaleDisk
 
-try:
-    from ansible.module_utils.ibm_spectrumscale_df_utils import SpectrumScaleDf
-except:
-    from ibm_spectrumscale_df_utils import SpectrumScaleDf
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_df_utils import SpectrumScaleDf
 
-try:
-    from ansible.module_utils.ibm_spectrumscale_nsd_utils import SpectrumScaleNSD
-except:
-    from ibm_spectrumscale_nsd_utils import SpectrumScaleNSD
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_nsd_utils import SpectrumScaleNSD
 
-try:
-    from ansible.module_utils.ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
-except:
-    from ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_ss_filesystem_utils.ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
 
-try:
-    from ansible.module_utils.ibm_spectrumscale_cluster_utils import SpectrumScaleCluster, \
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_cluster_utils import SpectrumScaleCluster, \
                                                           SpectrumScaleNode
-except:
-    from ibm_spectrumscale_cluster_utils import SpectrumScaleCluster, SpectrumScaleNode
 
-try:
-    from ansible.module_utils.ibm_spectrumscale_zimon_utils import get_zimon_collectors
-except:
-    from ibm_spectrumscale_zimon_utils import get_zimon_collectors
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_ss_zimon_utils.ibm_spectrumscale_zimon_utils import get_zimon_collectors
 
 ###############################################################################
 ##                                                                           ##
