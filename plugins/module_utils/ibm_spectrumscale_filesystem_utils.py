@@ -18,7 +18,7 @@
 
 import os
 import json
-from ibm_spectrumscale_utils import runCmd, parse_simple_cmd_output, GPFS_CMD_PATH, \
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_utils import runCmd, parse_simple_cmd_output, GPFS_CMD_PATH, \
                          RC_SUCCESS, SpectrumScaleException
 
 class SpectrumScaleFS:
