@@ -116,6 +116,7 @@
     - name: install | Initialize gpfs profile
       set_fact:
          profile_type: ""
+         config_file_option: ""
 
     - name: install | Set gpfs profile if it is defined
       set_fact:
@@ -124,8 +125,18 @@
         - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None' 
         - (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
 
+    - name: cluster | check if Spectrum Scale config file is present
+      stat:
+         path: "{{ spectrumscale_config_file }}"
+      register: configfile_result 
+
+    - name: cluster | set configfile when file exists
+      set_fact:
+          config_file_option: "-c {{ spectrumscale_config_file }}"
+      when: configfile_result.stat.exists
+
     - name: cluster | Create new cluster
-      command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }}
+      command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ config_file_option }} {{ profile_type }}
       notify: accept-licenses
       register: mmcrcluster_results
 

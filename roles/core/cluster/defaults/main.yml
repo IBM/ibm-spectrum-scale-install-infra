@@ -71,3 +71,6 @@ gpfs_cluster_system_profile:
    - gpfsprotocolrandomio
 
 scale_cluster_profile_system_path: /var/mmfs/etc/
+
+# configuration file that can be passed to mmcrcluster [-c configFile]
+spectrumscale_config_file: ""
