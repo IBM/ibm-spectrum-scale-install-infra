@@ -120,12 +120,12 @@ from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.i
 
 from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_nsd_utils import SpectrumScaleNSD
 
-from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_ss_filesystem_utils.ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
 
 from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_cluster_utils import SpectrumScaleCluster, \
                                                           SpectrumScaleNode
 
-from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_ss_zimon_utils.ibm_spectrumscale_zimon_utils import get_zimon_collectors
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_zimon_utils import get_zimon_collectors
 
 ###############################################################################
 ##                                                                           ##
