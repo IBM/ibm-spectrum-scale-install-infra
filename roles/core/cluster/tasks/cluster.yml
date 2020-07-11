@@ -100,18 +100,21 @@
         - name: check | cluster profile format validation
           assert:
             that:
-              - stat_user_profile_result.matched == 1
+              - stat_profile_result.matched == 1
             msg: >-
               A user-defined profile must have the .profile suffix
 
         - name: cluster | Copy user defined profile
           copy:
-            src: "{{ stat_user_profile_result.files.0.path }}"
+            src: "{{ stat_profile_result.files.0.path }}"
             dest: "{{ scale_cluster_profile_system_path }}"
             mode: a+x
+            # scale-core, the files are already on the pod, running from operator
+            remote_src: true
       when: 
         - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
         - scale_cluster_profile_name not in gpfs_cluster_system_profile
+        - stat_profile_result.matched > 0
 
     - name: install | Initialize gpfs profile
       set_fact:
