@@ -96,11 +96,13 @@
       vars:
         verify: "{{ 'no' if scale_storage_fsparams[item.item].overwriteNSDs | default(scale_storage_filesystem_defaults.overwriteNSDs) else 'yes' }}"
       command: /usr/lpp/mmfs/bin/mmcrnsd -F /var/tmp/StanzaFile.new.{{ item.item }} -v {{ verify }}
-      async: 45
-      poll: 5
       when:
         - item.size > 1
       with_items: "{{ scale_storage_stanzafile_new.results }}"
+
+    - name: storage | Wait for NSD configuration to be synced across cluster
+      wait_for:
+        timeout: 30
 
 #
 # Create new filesystems
