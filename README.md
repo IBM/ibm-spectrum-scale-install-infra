@@ -32,7 +32,7 @@ Features
 
 #### Core Spectrum Scale Cluster supported features
 - [x] Install core Spectrum Scale packages on Linux nodes
-- [x] Install IBM Spectrum Scale license packages on Linux nodes
+- [x] Install Spectrum Scale license packages on Linux nodes
 - [x] Compile or install pre-compiled Linux kernel extension (mmbuildgpl)
 - [x] Configure client and server license
 - [x] Assign default quorum (maximum 7 quorum nodes) if user has not defined in the inventory
@@ -60,10 +60,10 @@ Features
 - [x] Configure callhome
 
 
-IBM Spectrum Scale supported versions
--------------------------------------
+Spectrum Scale supported versions
+---------------------------------
 
-Currently, the following IBM Spectrum Scale versions are supported: 5.0.4.0, 5.0.4.1, 5.0.4.2,....
+Currently, the following Spectrum Scale versions are supported: 5.0.4.0, 5.0.4.1, 5.0.4.2,....
 
 
 Prerequisites
@@ -79,7 +79,7 @@ Prerequisites
 
   For detailed installation procedure, refer to [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
 
-- **Download IBM Spectrum Scale packages**
+- **Download Spectrum Scale packages**
 
   1. A free Developer Edition trial available at this site:
      https://www.ibm.com/account/reg/us-en/signup?formid=urx-41728
@@ -90,7 +90,7 @@ Prerequisites
 
 - **Create password-less SSH keys between all Spectrum Scale nodes in the cluster**
 
-  A pre-requisite for installing IBM Spectrum Scale is that password-less SSH must be configured among all
+  A pre-requisite for installing Spectrum Scale is that password-less SSH must be configured among all
   nodes in the cluster. Password-less SSH must be configured and checked with FQDN, hostname, and IP of every node to every node.
 
   Example:
@@ -216,7 +216,7 @@ Installation instructions
        - classC
      ```
 
-     These node classes can optionally be used to define IBM Spectrum Scale configuration parameters. It is suggested to use `group_vars` inventory files for that purpose:
+     These node classes can optionally be used to define Spectrum Scale configuration parameters. It is suggested to use `group_vars` inventory files for that purpose:
 
      ```yaml
      # group_vars/all:
@@ -370,10 +370,10 @@ User can also define some of the following variables to override default values:
 - `scale_prepare_disable_firewall`: Firewall can be disabled. It can be either true or false (default).
 
 
-IBM Spectrum Scale Roles
-------------------------
+Spectrum Scale Roles
+--------------------
 
-If you are assembling your own IBM Spectrum Scale playbook, these roles are available for you to reuse:
+If you are assembling your own Spectrum Scale playbook, these roles are available for you to reuse:
 
 - [core gpfs](./roles/core)
 - [gpfs gui](./roles/gui)
@@ -399,7 +399,7 @@ Furthermore, upgrades are not currently in scope of this role. Spetrum Scale sup
 Troubleshooting
 ---------------
 
-This role stores configuration files in `/var/tmp` on the first host in the play. These configuration files are kept to determine if definitions have changed since the previous run, and to decide if it's necessary to run certain IBM Spectrum Scale commands (again). When experiencing problems one can simply delete these configuration files from `/var/tmp` in order to clear the cache &mdash; Doing this forces re-application of all definitions upon the next run. As a downside, the next run may take longer than expected as it might re-run unnecessary IBM Spectrum Scale commands. Doing so will automatically re-generates the cache.
+This role stores configuration files in `/var/tmp` on the first host in the play. These configuration files are kept to determine if definitions have changed since the previous run, and to decide if it's necessary to run certain Spectrum Scale commands (again). When experiencing problems one can simply delete these configuration files from `/var/tmp` in order to clear the cache &mdash; Doing this forces re-application of all definitions upon the next run. As a downside, the next run may take longer than expected as it might re-run unnecessary Spectrum Scale commands. Doing so will automatically re-generates the cache.
 
 
 Reporting Issues and Feedback
