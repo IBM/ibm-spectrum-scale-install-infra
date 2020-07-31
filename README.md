@@ -1,7 +1,22 @@
 IBM Spectrum Scale (GPFS) Deployment using Ansible Roles
 ========================================================
 
-Ansible project with multiple roles for installing and configuring IBM Spectrum Scale (GPFS)
+Ansible project with multiple roles for installing and configuring IBM Spectrum Scale (GPFS).
+
+**Table of Contents**
+
+- [Features](#features)
+- [Spectrum Scale supported versions](#spectrum-scale-supported-versions)
+- [Prerequisites](#prerequisites)
+- [Installation instructions](#installation-instructions)
+- [Optional Role Variables](#optional-role-variables)
+- [Spectrum Scale Roles](#spectrum-scale-roles)
+- [Cluster Membership](#cluster-membership)
+- [Limitations](#limitations)
+- [Troubleshooting](#troubleshooting)
+- [Reporting Issues and Feedback](#reporting-issues-and-feedback)
+- [Disclaimer](#disclaimer)
+- [Contribute Code](#contribute-code)
 
 
 Features
