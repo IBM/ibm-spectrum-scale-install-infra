@@ -71,7 +71,7 @@ Prerequisites
 
 - **Install Ansible on any node (controller node)**
 
-  ```
+  ```shell
   $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
   $ python get-pip.py --user
   $ pip install --user ansible
@@ -94,7 +94,8 @@ Prerequisites
   nodes in the cluster. Password-less SSH must be configured and checked with FQDN, hostname, and IP of every node to every node.
 
   Example:
-  ```
+
+  ```shell
   $ ssh-keygen
   $ ssh-copy-id -oStrictHostKeyChecking=no node1.gpfs.net
   $ ssh-copy-id -oStrictHostKeyChecking=no node1
@@ -109,13 +110,13 @@ Installation instructions
 
 - **Clone `ibm-spectrum-scale-install-infra` repository to your controller node on which Ansible is installed**
 
-  ```
+  ```shell
   $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
   ```
 
 - **Change working directory to `ibm-spectrum-scale-install-infra/`**
 
-  ```
+  ```shell
   $ cd ibm-spectrum-scale-install-infra/
   ```
 
@@ -123,7 +124,7 @@ Installation instructions
 
   1. Define GPFS nodes in the hosts file in the following format
 
-     ```
+     ```yaml
      # hosts:
      [cluster01]
      scale01  scale_cluster_quorum=true   scale_cluster_manager=true  scale_cluster_gui=false
@@ -152,7 +153,7 @@ Installation instructions
 
   2. To create NSDs, file systems and node classes in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
 
-     ```
+     ```yaml
      # group_vars/all:
      ---
      scale_storage:
@@ -182,7 +183,7 @@ Installation instructions
 
      The `filesystem` parameter is mandatory, `servers`, and the `device` parameter is mandatory for each of the file system's `disks`. All other file system and disk parameters are optional. Hence, a minimal file system configuration would look like this:
 
-     ```
+     ```yaml
      # group_vars/all:
      ---
      scale_storage:
@@ -199,14 +200,15 @@ Installation instructions
 
      Furthermore, Spectrum Scale node classes can be defined on a per-node basis by defining the `scale_nodeclass` variable:
 
-     ```
+     ```yaml
      # host_vars/scale01:
      ---
      scale_nodeclass:
        - classA
        - classB
      ```
-     ```
+
+     ```yaml
      # host_vars/scale02:
      ---
      scale_nodeclass:
@@ -216,7 +218,7 @@ Installation instructions
 
      These node classes can optionally be used to define IBM Spectrum Scale configuration parameters. It is suggested to use `group_vars` inventory files for that purpose:
 
-     ```
+     ```yaml
      # group_vars/all:
      ---
      scale_config:
@@ -233,7 +235,7 @@ Installation instructions
 
   3. To install and configure callhome in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
 
-     ```
+     ```yaml
      # group_vars/all.yml:
      ---
      callhome_params:
@@ -256,7 +258,7 @@ Installation instructions
 
   The basic `playbook.yml` looks as follows:
 
-  ```
+  ```yaml
   # playbook.yml:
   ---
   - hosts: cluster01
@@ -302,13 +304,13 @@ Installation instructions
 
   - Using the ansible-playbook command:
 
-    ```
+    ```shell
     $ ansible-playbook -i hosts playbook.yml
     ```
 
   - Using the Ansible automation script:
 
-    ```
+    ```shell
     $ ./ansible.sh
     ```   
 
@@ -319,7 +321,7 @@ Installation instructions
 
   Playbook execution starts here:
 
-  ```
+  ```shell
   $ ./ansible.sh
   Running #### ansible-playbook -i hosts playbook.yml
 
@@ -350,7 +352,7 @@ Installation instructions
 
   Playbook recap:
 
-  ```
+  ```shell
   #### PLAY RECAP
   ***************************************************************************************************************
   GPFS-vm1                 : ok=0   changed=65    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
