@@ -25,13 +25,13 @@ Features
 - [x] Generate SSH key
 - [x] User must set up base OS repositories
 
-#### Core GPFS prerequisites
+#### Core Spectrum Scale prerequisites
 - [x] Install yum-utils package
 - [x] Install gcc-c++, kernel-devel, make
 - [x] Install elfutils,elfutils-devel (RHEL8 specific)
 
-#### Core GPFS Cluster supported features
-- [x] Install Core GPFS packages on Linux nodes
+#### Core Spectrum Scale Cluster supported features
+- [x] Install core Spectrum Scale packages on Linux nodes
 - [x] Install IBM Spectrum Scale license packages on Linux nodes
 - [x] Compile or install pre-compiled Linux kernel extension (mmbuildgpl)
 - [x] Configure client and server license
@@ -47,16 +47,16 @@ Features
 - [x] Extend NSDs and file system
 - [x] Add disks to existing file systems
 
-#### GPFS GUI Cluster supported features
-- [x] Install GPFS GUI packages on GUI designated nodes
+#### Spectrum Scale GUI Cluster supported features
+- [x] Install Spectrum Scale GUI packages on GUI designated nodes
 - [x] maximum 3 GUI nodes to be configured
 - [x] Install performance monitoring sensor packages on all Linux nodes
 - [x] Install performance monitoring packages on all GUI designated nodes
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
 
-#### GPFS Callhome Cluster supported features
-- [x] Install GPFS callhome packages on all cluster nodes
+#### Spectrum Scale Callhome Cluster supported features
+- [x] Install Spectrum Scale callhome packages on all cluster nodes
 - [x] Configure callhome
 
 
@@ -88,7 +88,7 @@ Prerequisites
     Visit https://www.ibm.com/support/fixcentral and search for 'IBM Spectrum Scale (Software defined storage)'.
 
 
-- **Create password-less SSH keys between all GPFS nodes in the cluster**
+- **Create password-less SSH keys between all Spectrum Scale nodes in the cluster**
 
   A pre-requisite for installing IBM Spectrum Scale is that password-less SSH must be configured among all
   nodes in the cluster. Password-less SSH must be configured and checked with FQDN, hostname, and IP of every node to every node.
@@ -122,7 +122,7 @@ Installation instructions
 
 - **Create inventory**
 
-  1. Define GPFS nodes in the hosts file in the following format
+  1. Define Spectrum Scale nodes in the hosts file in the following format
 
      ```yaml
      # hosts:
@@ -136,16 +136,16 @@ Installation instructions
 
      Variables used in the above hosts file:
 
-     - `[cluster01]`: User defined host groups for GPFS cluster nodes on which
-       GPFS installation will take place.
+     - `[cluster01]`: User defined host groups for Spectrum Scale cluster nodes on which
+       Spectrum Scale installation will take place.
 
-     - `scale_cluster_quorum`: User defined node designation for GPFS quorum. It
+     - `scale_cluster_quorum`: User defined node designation for Spectrum Scale quorum. It
        can be either true or false.
 
-     - `scale_cluster_manager`: User defined node designation for GPFS manager. It
+     - `scale_cluster_manager`: User defined node designation for Spectrum Scale manager. It
        can be either true or false.
 
-     - `scale_cluster_gui`: User defined node designation for GPFS GUI. It
+     - `scale_cluster_gui`: User defined node designation for Spectrum Scale GUI. It
        can be either true or false.
 
      > **Note:**
@@ -297,10 +297,9 @@ Installation instructions
   - Installation from single directory package path (`scale_install_directory_pkg_path`)
 
   > **Important:**
-  If you are using the single directory installation method (`scale_install_directory_pkg_path`), you need to keep all required GPFS RPMs
-  in a single user-provided directory.
+  If you are using the single directory installation method (`scale_install_directory_pkg_path`), you need to keep all required Spectrum Scale RPMs in a single user-provided directory.
 
-- **Run the playbook to install and configure the GPFS cluster**
+- **Run the playbook to install and configure the Spectrum Scale cluster**
 
   - Using the ansible-playbook command:
 
@@ -366,7 +365,7 @@ Optional Role Variables
 
 User can also define some of the following variables to override default values:
 
-- `scale_cluster_clustername`: User defined GPFS cluster name.
+- `scale_cluster_clustername`: User defined Spectrum Scale cluster name.
 - `scale_prepare_disable_selinux`: SELinux can be disabled. It can be either true or false (default).
 - `scale_prepare_disable_firewall`: Firewall can be disabled. It can be either true or false (default).
 
