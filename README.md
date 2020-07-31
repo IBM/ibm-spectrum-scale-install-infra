@@ -81,7 +81,7 @@ Prerequisites
 
 - **Download Spectrum Scale packages**
 
-  1. A free Developer Edition trial available at this site:
+  1. A free Developer Edition trial is available at this site:
      https://www.ibm.com/account/reg/us-en/signup?formid=urx-41728
 
   2. Customers who have previously purchased Spectrum Scale can obtain entitled versions from IBM Fix Central:
@@ -127,8 +127,8 @@ Installation instructions
      ```yaml
      # hosts:
      [cluster01]
-     scale01  scale_cluster_quorum=true   scale_cluster_manager=true  scale_cluster_gui=false
-     scale02  scale_cluster_quorum=true   scale_cluster_manager=true  scale_cluster_gui=false
+     scale01  scale_cluster_quorum=true   scale_cluster_manager=true   scale_cluster_gui=false
+     scale02  scale_cluster_quorum=true   scale_cluster_manager=true   scale_cluster_gui=false
      scale03  scale_cluster_quorum=true   scale_cluster_manager=false  scale_cluster_gui=false
      scale04  scale_cluster_quorum=false  scale_cluster_manager=false  scale_cluster_gui=false
      scale05  scale_cluster_quorum=false  scale_cluster_manager=false  scale_cluster_gui=false
@@ -301,20 +301,20 @@ Installation instructions
 
 - **Run the playbook to install and configure the Spectrum Scale cluster**
 
-  - Using the ansible-playbook command:
+  - Using the `ansible-playbook` command:
 
     ```shell
     $ ansible-playbook -i hosts playbook.yml
     ```
 
-  - Using the Ansible automation script:
+  - Using the automation script:
 
     ```shell
     $ ./ansible.sh
     ```   
 
     > **Note:**
-    An advantage of using the Ansible automation script is that it will generates log files based on the date and the time in the `/tmp` directory.
+    An advantage of using the automation script is that it will generate log files based on the date and the time in the `/tmp` directory.
 
 - **Playbook execution screen**
 
@@ -375,9 +375,9 @@ Spectrum Scale Roles
 
 If you are assembling your own Spectrum Scale playbook, these roles are available for you to reuse:
 
-- [core gpfs](./roles/core)
-- [gpfs gui](./roles/gui)
-- [gpfs callhome](./roles/callhome)
+- [Core GPFS](./roles/core)
+- [GPFS GUI](./roles/gui)
+- [GPFS Callhome](./roles/callhome)
 
 
 Cluster Membership
