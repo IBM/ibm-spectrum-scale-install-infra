@@ -1,10 +1,11 @@
-IBM Spectrum Scale (GPFS) Deployment using Ansible Role
-======================================
+IBM Spectrum Scale (GPFS) Deployment using Ansible Roles
+========================================================
 
-Ansible project with multiple roles(precheck, node, cluster and postcheck) for installing and configuring IBM Spectrum Scale (GPFS)
+Ansible project with multiple roles for installing and configuring IBM Spectrum Scale (GPFS)
 
-## [Features](id:features)
 
+Features
+--------
 
 #### Infrastructure support
 - [x] Pre-built infrastructure (using a static inventory file)
@@ -54,180 +55,188 @@ Ansible project with multiple roles(precheck, node, cluster and postcheck) for i
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
 
-
 #### GPFS Callhome Cluster supported features
 - [x] Install GPFS callhome packages on all cluster nodes
 - [x] Configure callhome
+
 
 IBM Spectrum Scale supported versions
 -------------------------------------
 
 Currently, the following IBM Spectrum Scale versions are supported: 5.0.4.0, 5.0.4.1, 5.0.4.2,....
 
+
 Prerequisites
 -------------
 
-- #### Install Ansible on any node (controller node)
-    ```
-    $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    $ python get-pip.py --user
-    $ pip install --user ansible
-    ```
+- **Install Ansible on any node (controller node)**
 
-    For detailed installation procedure, refer to [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
+  ```
+  $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+  $ python get-pip.py --user
+  $ pip install --user ansible
+  ```
 
-- #### Download IBM Spectrum Scale packages
- 1. A free Developer Edition trial available at this site:
-    https://www.ibm.com/account/reg/us-en/signup?formid=urx-41728
-       
- 2. Customers who have previously purchased Spectrum Scale can obtain entitled versions from IBM Fix Central:
+  For detailed installation procedure, refer to [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
+
+- **Download IBM Spectrum Scale packages**
+
+  1. A free Developer Edition trial available at this site:
+     https://www.ibm.com/account/reg/us-en/signup?formid=urx-41728
+
+  2. Customers who have previously purchased Spectrum Scale can obtain entitled versions from IBM Fix Central:
     Visit https://www.ibm.com/support/fixcentral and search for 'IBM Spectrum Scale (Software defined storage)'.
-    
 
-- #### Create password-less SSH keys between all GPFS nodes in the cluster
-    A pre-requisite for installing IBM Spectrum Scale is that passwordless SSH must be configured among all
-    nodes in the cluster. Passwordless SSH must be configured and checked with FQDN, hostname, and IP of 
-    every node to every node. 
-    Example:
-    
-    ```
-    ssh-keygen
-    ssh-copy-id -oStrictHostKeyChecking=no node1.gpfs.net
-    ssh-copy-id -oStrictHostKeyChecking=no node1
-    ssh-copy-id -oStrictHostKeyChecking=no
 
-    repeat for all nodes to themselves and to all other nodes
-    ```
+- **Create password-less SSH keys between all GPFS nodes in the cluster**
+
+  A pre-requisite for installing IBM Spectrum Scale is that password-less SSH must be configured among all
+  nodes in the cluster. Password-less SSH must be configured and checked with FQDN, hostname, and IP of every node to every node.
+
+  Example:
+  ```
+  $ ssh-keygen
+  $ ssh-copy-id -oStrictHostKeyChecking=no node1.gpfs.net
+  $ ssh-copy-id -oStrictHostKeyChecking=no node1
+  $ ssh-copy-id -oStrictHostKeyChecking=no
+  ```
+
+  Repeat this for all nodes to themselves and to all other nodes.
+
 
 Installation instructions
 -------------------------
 
-- #### Clone `ibm-spectrum-scale-install-infra` repository to your controller node on which Ansible is installed.
-    ```
-    $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
-    ```
+- **Clone `ibm-spectrum-scale-install-infra` repository to your controller node on which Ansible is installed**
 
-- #### Change working directory to `ibm-spectrum-scale-install-infra`
-    ```
-    cd ibm-spectrum-scale-install-infra/
-    ```
-- #### Create inventory
- 1. Define GPFS nodes in the hosts file in the following format
-      ```
-      # hosts:
-      [cluster01]
-      scale01  scale_cluster_quorum=true   scale_cluster_manager=true scale_cluster_gui=false
-      scale02  scale_cluster_quorum=true   scale_cluster_manager=true scale_cluster_gui=false
-      scale03  scale_cluster_quorum=true   scale_cluster_manager=false scale_cluster_gui=false
-      scale04  scale_cluster_quorum=false  scale_cluster_manager=false scale_cluster_gui=false
-      scale05  scale_cluster_quorum=false  scale_cluster_manager=false scale_cluster_gui=false
+  ```
+  $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
+  ```
 
-      ```
-      Variables used in the above hosts file
-      
-      - `[cluster01]` : User defined host groups for GPFS cluster nodes on which
-        GPFS installation will take place.
+- **Change working directory to `ibm-spectrum-scale-install-infra/`**
 
-      - `scale_cluster_quorum`: User defined node designation for GPFS quorum. It
-        can be either true or false.
+  ```
+  $ cd ibm-spectrum-scale-install-infra/
+  ```
 
-      - `scale_cluster_manager`: User defined node designation for GPFS manager. It
-        can be either true or false.
+- **Create inventory**
 
-      - `scale_cluster_gui`: User defined node designation for GPFS GUI. It
-        can be either true or false.
+  1. Define GPFS nodes in the hosts file in the following format
 
-      ---
-      **NOTE:**
-      Defining node roles such as `scale_cluster_quorum` and `scale_cluster_manager` is optional. If you do not specify any quorum nodes then the first seven hosts in your inventory are automatically be assigned the quorum role.
+     ```
+     # hosts:
+     [cluster01]
+     scale01  scale_cluster_quorum=true   scale_cluster_manager=true  scale_cluster_gui=false
+     scale02  scale_cluster_quorum=true   scale_cluster_manager=true  scale_cluster_gui=false
+     scale03  scale_cluster_quorum=true   scale_cluster_manager=false  scale_cluster_gui=false
+     scale04  scale_cluster_quorum=false  scale_cluster_manager=false  scale_cluster_gui=false
+     scale05  scale_cluster_quorum=false  scale_cluster_manager=false  scale_cluster_gui=false
+     ```
 
-      ---
- 2. To create NSDs, file systems and node class in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
+     Variables used in the above hosts file:
 
-      ```
-      # group_vars/all:
-      ---
-      scale_storage:
-        - filesystem: gpfs01
-          blockSize: 4M
-          defaultMetadataReplicas: 2
-          defaultDataReplicas: 2
-          numNodes: 16
-          automaticMountOption: true
-          defaultMountPoint: /mnt/gpfs01
-          disks:
-            - device: /dev/sdb
-              nsd: nsd_1
-              servers: scale01
-              failureGroup: 10
-              usage: metadataOnly
-              pool: system
-            - device: /dev/sdc
-              nsd: nsd_2
-              servers: scale01
-              failureGroup: 10
-              usage: dataOnly
-              pool: data
-      ```
+     - `[cluster01]`: User defined host groups for GPFS cluster nodes on which
+       GPFS installation will take place.
 
-      Refer to `man mmchfs` and `man mmchnsd` man pages for a description of these storage parameters.
+     - `scale_cluster_quorum`: User defined node designation for GPFS quorum. It
+       can be either true or false.
 
-      The `filesystem` parameter is mandatory, `servers`, and the `device` parameter is mandatory for each of the file system's `disks`. All other file system and disk parameters are optional. Hence, a minimal file system configuration would look like this:
+     - `scale_cluster_manager`: User defined node designation for GPFS manager. It
+       can be either true or false.
 
-      ```
-      # group_vars/all:
-      ---
-      scale_storage:
-        - filesystem: gpfs01
-          disks:
-            - device: /dev/sdb
-              servers: scale01
-            - device: /dev/sdc
-              servers: scale01,scale02
-      ```
+     - `scale_cluster_gui`: User defined node designation for GPFS GUI. It
+       can be either true or false.
 
-      > **Important**: `scale_storage` *must* be define using `group_vars` inventory files. Do *not* define disk parameters using `host_vars` inventory 
-      files or inline `vars:` in your playbook. Doing so would apply them to all hosts in the group/play, thus defining the same disk multiple times...
+     > **Note:**
+     Defining node roles such as `scale_cluster_quorum` and `scale_cluster_manager` is optional. If you do not specify any quorum nodes then the first seven hosts in your inventory are automatically assigned the quorum role.
 
-      Furthermore, Spectrum Scale node classes can be defined on a per-node basis by defining the `scale_nodeclass` variable:
-      
-      ```
-      # host_vars/scale01:
-      ---
-      scale_nodeclass:
-        - classA
-        - classB
-      ```
-      ```
-      # host_vars/scale02:
-      ---
-      scale_nodeclass:
-        - classA
-        - classC
-      ```
+  2. To create NSDs, file systems and node classes in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
 
-      These node classes can optionally be used to define IBM Spectrum Scale configuration parameters. It is suggested to use `group_vars` inventory files for that purpose:
+     ```
+     # group_vars/all:
+     ---
+     scale_storage:
+       - filesystem: gpfs01
+         blockSize: 4M
+         defaultMetadataReplicas: 2
+         defaultDataReplicas: 2
+         numNodes: 16
+         automaticMountOption: true
+         defaultMountPoint: /mnt/gpfs01
+         disks:
+           - device: /dev/sdb
+             nsd: nsd_1
+             servers: scale01
+             failureGroup: 10
+             usage: metadataOnly
+             pool: system
+           - device: /dev/sdc
+             nsd: nsd_2
+             servers: scale01
+             failureGroup: 10
+             usage: dataOnly
+             pool: data
+     ```
 
-      ```
-      # group_vars/all:
-      ---
-      scale_config:
-        - nodeclass: classA
-          params:
-            - pagepool: 16G
-            - autoload: no
-            - ignorePrefetchLUNCount: yes
-      ```
+     Refer to `man mmchfs` and `man mmchnsd` man pages for a description of these storage parameters.
 
-      Refer to the `man mmchconfig` man page for a list of available configuration parameters.
+     The `filesystem` parameter is mandatory, `servers`, and the `device` parameter is mandatory for each of the file system's `disks`. All other file system and disk parameters are optional. Hence, a minimal file system configuration would look like this:
 
-      Note that configuration parameters can be defined as variables for *any* host in the play &mdash; the host for which you define the configuration parameters is irrelevant.
+     ```
+     # group_vars/all:
+     ---
+     scale_storage:
+       - filesystem: gpfs01
+         disks:
+           - device: /dev/sdb
+             servers: scale01
+           - device: /dev/sdc
+             servers: scale01,scale02
+     ```
 
- 3. To install callhome and configure callhome in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
-      ```
-      # group_vars/all.yml:
-      ---
-      callhome_params:
+     > **Important:**
+     `scale_storage` *must* be define using `group_vars` inventory files. Do *not* define disk parameters using `host_vars` inventory files or inline `vars:` in your playbook. Doing so would apply them to all hosts in the group/play, thus defining the same disk multiple times...
+
+     Furthermore, Spectrum Scale node classes can be defined on a per-node basis by defining the `scale_nodeclass` variable:
+
+     ```
+     # host_vars/scale01:
+     ---
+     scale_nodeclass:
+       - classA
+       - classB
+     ```
+     ```
+     # host_vars/scale02:
+     ---
+     scale_nodeclass:
+       - classA
+       - classC
+     ```
+
+     These node classes can optionally be used to define IBM Spectrum Scale configuration parameters. It is suggested to use `group_vars` inventory files for that purpose:
+
+     ```
+     # group_vars/all:
+     ---
+     scale_config:
+       - nodeclass: classA
+         params:
+           - pagepool: 16G
+           - autoload: no
+           - ignorePrefetchLUNCount: yes
+     ```
+
+     Refer to the `man mmchconfig` man page for a list of available configuration parameters.
+
+     Note that configuration parameters can be defined as variables for *any* host in the play &mdash; the host for which you define the configuration parameters is irrelevant.
+
+  3. To install and configure callhome in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
+
+     ```
+     # group_vars/all.yml:
+     ---
+     callhome_params:
        is_enabled: true
        customer_name: abc
        customer_email: abc@abc.com
@@ -241,10 +250,12 @@ Installation instructions
        callhome_server: host-vm1
        callhome_group1: [host-vm1,host-vm2,host-vm3,host-vm4]
        callhome_schedule: [daily,weekly]
-      ```
-- #### Modify playbook.yml
+     ```
 
-  The basic playbook.yml looks as follows:
+- **Modify `playbook.yml`**
+
+  The basic `playbook.yml` looks as follows:
+
   ```
   # playbook.yml:
   ---
@@ -267,101 +278,106 @@ Installation instructions
       - callhome/cluster
       - callhome/postcheck
   ```   
-  ---
-  **NOTE:**
-  
+
+  > **Note:**
   Defining the variable `scale_version` is optional for `scale_install_localpkg_path` and `scale_install_directory_pkg_path` installation methods. It is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
   by defining *one* of the following variables:
-
-   - `scale_install_repository_url` (eg: http://infraserv/gpfs_rpms/)
-   - `scale_install_remotepkg_path` (accessible on Ansible managed node)
-   - `scale_install_localpkg_path` (accessible on Ansible control machine)
-   - `scale_install_directory_pkg_path` (eg: /opt/IBM/spectrum_scale_packages)
+  - `scale_install_repository_url` (eg: http://infraserv/gpfs_rpms/)
+  - `scale_install_remotepkg_path` (accessible on Ansible managed node)
+  - `scale_install_localpkg_path` (accessible on Ansible control machine)
+  - `scale_install_directory_pkg_path` (eg: /opt/IBM/spectrum_scale_packages)
 
   The following installation methods are available:
-  
-   - Installation from (existing) YUM repository(`scale_install_repository_url`)
-   - Installation from remote installation package (`scale_install_remotepkg_path`)
-   - Installation from local installation package (`scale_install_localpkg_path`)
-   - Installation from single directory package path (`scale_install_directory_pkg_path`)
 
- 
-  > **Important**: If you are using the single directory installation method(`scale_install_directory_pkg_path`), you need to keep all required GPFS RPMs
+  - Installation from (existing) YUM repository(`scale_install_repository_url`)
+  - Installation from remote installation package (`scale_install_remotepkg_path`)
+  - Installation from local installation package (`scale_install_localpkg_path`)
+  - Installation from single directory package path (`scale_install_directory_pkg_path`)
+
+  > **Important:**
+  If you are using the single directory installation method (`scale_install_directory_pkg_path`), you need to keep all required GPFS RPMs
   in a single user-provided directory.
-  ---
 
-- #### Run the playbook to install and configure the GPFS cluster
-   - Using the ansible-playbook command:
-      ```
-      $ ansible-playbook -i hosts playbook.yml
-      ```
-   - Using the Ansible automation script:
-      ```
-      ./ansible.sh
-      ```   
-     ---
-      **NOTE:**
-      An advantage of using the Ansible automation script is that it will generates log files based on the date and the time
-      in the `/tmp` directory.
+- **Run the playbook to install and configure the GPFS cluster**
 
-     ---
+  - Using the ansible-playbook command:
 
-- #### Playbook execution screen
-  #### Playbook execution starts here:
+    ```
+    $ ansible-playbook -i hosts playbook.yml
+    ```
+
+  - Using the Ansible automation script:
+
+    ```
+    $ ./ansible.sh
+    ```   
+
+    > **Note:**
+    An advantage of using the Ansible automation script is that it will generates log files based on the date and the time in the `/tmp` directory.
+
+- **Playbook execution screen**
+
+  Playbook execution starts here:
+
   ```
-  # ./ansible.sh 
-    Running #### ansible-playbook -i hosts playbook.yml
+  $ ./ansible.sh
+  Running #### ansible-playbook -i hosts playbook.yml
 
-    PLAY #### [cluster01] 
-    **********************************************************************************************************
+  PLAY #### [cluster01]
+  **********************************************************************************************************
 
-    TASK #### [Gathering Facts] 
-    **********************************************************************************************************
-    ok: [GPFS-vm1]
-    ok: [GPFS-vm2]
-    ok: [GPFS-vm3]
+  TASK #### [Gathering Facts]
+  **********************************************************************************************************
+  ok: [GPFS-vm1]
+  ok: [GPFS-vm2]
+  ok: [GPFS-vm3]
 
-    TASK [common : check | Check Spectrum Scale version]               
-    *********************************************************************************************************
-    ok: [GPFS-vm1] => {
-        "changed": false, 
-        "msg": "All assertions passed"
-    }
-    ok: [GPFS-vm2] => {
-        "changed": false, 
-        "msg": "All assertions passed"
-    }
-    ok: [GPFS-vm3] => {
-        "changed": false, 
-        "msg": "All assertions passed"
-    }
+  TASK [common : check | Check Spectrum Scale version]               
+  *********************************************************************************************************
+  ok: [GPFS-vm1] => {
+      "changed": false,
+      "msg": "All assertions passed"
+  }
+  ok: [GPFS-vm2] => {
+      "changed": false,
+      "msg": "All assertions passed"
+  }
+  ok: [GPFS-vm3] => {
+      "changed": false,
+      "msg": "All assertions passed"
+  }
   ```
-  #### Playbook recap:
-   ```
-    #### PLAY RECAP
-    ***************************************************************************************************************
-    GPFS-vm1                 : ok=0   changed=65    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
-    GPFS-vm2                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
-    GPFS-vm3                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
-   ```
-  
-  
+
+  Playbook recap:
+
+  ```
+  #### PLAY RECAP
+  ***************************************************************************************************************
+  GPFS-vm1                 : ok=0   changed=65    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  GPFS-vm2                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  GPFS-vm3                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  ```
+
+
 Optional Role Variables
 -----------------------
+
 User can also define some of the following variables to override default values:
 
-- `scale_cluster_clustername`      : User defined GPFS cluster name.
-- `scale_prepare_disable_selinux`  : SELinux can be disabled. It can be either true or false.(By default, it is false)
-- `scale_prepare_disable_firewall` : Firewall can be disabled. It can be either true or false.(By default, it is true)
+- `scale_cluster_clustername`: User defined GPFS cluster name.
+- `scale_prepare_disable_selinux`: SELinux can be disabled. It can be either true or false (default).
+- `scale_prepare_disable_firewall`: Firewall can be disabled. It can be either true or false (default).
+
 
 IBM Spectrum Scale Roles
---------------------
+------------------------
 
 If you are assembling your own IBM Spectrum Scale playbook, these roles are available for you to reuse:
 
 - [core gpfs](./roles/core)
 - [gpfs gui](./roles/gui)
 - [gpfs callhome](./roles/callhome)
+
 
 Cluster Membership
 ------------------
@@ -391,16 +407,13 @@ Reporting Issues and Feedback
 Please use the [issue tracker](https://github.com/IBM/ibm-spectrum-scale-install-infra/issues) to ask questions, report bugs and request features.
 
 
-## Disclaimer
+Disclaimer
+----------
 
-Please note: all playbooks / modules / resources in this repo are released for use "AS IS" without any warranties of
-any kind, including, but not limited to their installation, use, or performance. We are not responsible for any damage
-or charges or data loss incurred with their use. You are responsible for reviewing and testing any scripts you run
-thoroughly before use in any production environment. This content is subject to change without notice.
+Please note: all playbooks / modules / resources in this repo are released for use "AS IS" without any warranties of any kind, including, but not limited to their installation, use, or performance. We are not responsible for any damage or charges or data loss incurred with their use. You are responsible for reviewing and testing any scripts you run thoroughly before use in any production environment. This content is subject to change without notice.
 
 
 Contribute Code
 ---------------
 
 We welcome contributions to this project, see [Contributing](CONTRIBUTING.md) for more details.
-
