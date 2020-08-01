@@ -67,11 +67,11 @@ Currently, the following IBM Spectrum Scale versions are supported: 5.0.4.0, 5.0
 Prerequisites
 -------------
 
-- #### Install Ansible on any node (controller node)
+- #### Install Ansible 2.7 or later version on any node (controller node)
     ```
     $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-    $ python get-pip.py --user
-    $ pip install --user ansible
+    $ python get-pip.py
+    $ pip install ansible
     ```
 
     For detailed installation procedure, refer to [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
@@ -250,7 +250,6 @@ Installation instructions
   ---
   - hosts: cluster01
     vars:
-      - scale_version: 5.0.4.0
       - scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
     roles:
       - core/precheck
@@ -270,8 +269,7 @@ Installation instructions
   ---
   **NOTE:**
   
-  Defining the variable `scale_version` is optional for `scale_install_localpkg_path` and `scale_install_directory_pkg_path` installation methods. It is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
-  by defining *one* of the following variables:
+  Defining the variable `scale_version` is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method by defining *one* of the following variables:
 
    - `scale_install_repository_url` (eg: http://infraserv/gpfs_rpms/)
    - `scale_install_remotepkg_path` (accessible on Ansible managed node)
