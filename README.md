@@ -6,17 +6,17 @@ Ansible project with multiple roles for installing and configuring IBM Spectrum 
 **Table of Contents**
 
 - [Features](#features)
-- [Spectrum Scale supported versions](#spectrum-scale-supported-versions)
+- [Supported Spectrum Scale Versions](#supported-spectrum-scale-versions)
 - [Prerequisites](#prerequisites)
-- [Installation instructions](#installation-instructions)
+- [Installation Instructions](#installation-instructions)
 - [Optional Role Variables](#optional-role-variables)
-- [Spectrum Scale Roles](#spectrum-scale-roles)
+- [Available Roles](#available-roles)
 - [Cluster Membership](#cluster-membership)
 - [Limitations](#limitations)
 - [Troubleshooting](#troubleshooting)
 - [Reporting Issues and Feedback](#reporting-issues-and-feedback)
 - [Disclaimer](#disclaimer)
-- [Contribute Code](#contribute-code)
+- [Contributing Code](#contributing-code)
 
 
 Features
@@ -75,7 +75,7 @@ Features
 - [x] Configure callhome
 
 
-Spectrum Scale supported versions
+Supported Spectrum Scale Versions
 ---------------------------------
 
 Currently, the following Spectrum Scale versions are supported: 5.0.4.0, 5.0.4.1, 5.0.4.2,....
@@ -120,7 +120,7 @@ Prerequisites
   Repeat this for all nodes to themselves and to all other nodes.
 
 
-Installation instructions
+Installation Instructions
 -------------------------
 
 - **Clone `ibm-spectrum-scale-install-infra` repository to your controller node on which Ansible is installed**
@@ -385,8 +385,8 @@ User can also define some of the following variables to override default values:
 - `scale_prepare_disable_firewall`: Firewall can be disabled. It can be either true or false (default).
 
 
-Spectrum Scale Roles
---------------------
+Available Roles
+---------------
 
 If you are assembling your own Spectrum Scale playbook, these roles are available for you to reuse:
 
@@ -429,7 +429,7 @@ Disclaimer
 Please note: all playbooks / modules / resources in this repo are released for use "AS IS" without any warranties of any kind, including, but not limited to their installation, use, or performance. We are not responsible for any damage or charges or data loss incurred with their use. You are responsible for reviewing and testing any scripts you run thoroughly before use in any production environment. This content is subject to change without notice.
 
 
-Contribute Code
----------------
+Contributing Code
+-----------------
 
 We welcome contributions to this project, see [Contributing](CONTRIBUTING.md) for more details.
