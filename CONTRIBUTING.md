@@ -1,7 +1,7 @@
 Contributing to this Repository
 ===============================
 
-Thank you for your interest and we gladly welcome contributions to this project. If you want to contribute, please follow the the [GitHub Pull Request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests) process.
+Thank you for your interest and we gladly welcome contributions to this project. If you want to contribute, please follow the [GitHub Pull Request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests) process.
 
 **It is required to [sign your work](#sign-your-work-for-submittal) before submitting a pull request.**
 
