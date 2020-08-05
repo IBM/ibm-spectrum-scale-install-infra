@@ -137,7 +137,7 @@ Installation Instructions
 
 - **Create inventory**
 
-  1. Define Spectrum Scale nodes in the hosts file in the following format
+  1. Define Spectrum Scale nodes in the Ansible inventory (e.g. `./hosts`) in the following format
 
      ```yaml
      # hosts:
@@ -149,7 +149,7 @@ Installation Instructions
      scale05  scale_cluster_quorum=false  scale_cluster_manager=false  scale_cluster_gui=false
      ```
 
-     Variables used in the above hosts file:
+     Variables used in the above inventory file:
 
      - `[cluster01]`: User defined host groups for Spectrum Scale cluster nodes on which
        Spectrum Scale installation will take place.
