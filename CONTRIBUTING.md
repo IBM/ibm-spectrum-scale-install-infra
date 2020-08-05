@@ -3,7 +3,9 @@ Contributing to this Repository
 
 Thank you for your interest and we gladly welcome contributions to this project. If you want to contribute, please follow the [GitHub Pull Request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests) process.
 
-**It is required to [sign your work](#sign-your-work-for-submittal) before submitting a pull request.**
+- **It is required to [sign your work](#sign-your-work-for-submittal) before submitting a pull request.**
+
+- **Please submit pull requests against the [dev branch](https://github.com/IBM/ibm-spectrum-scale-install-infra/tree/dev), only.**
 
 
 License
@@ -27,7 +29,7 @@ Contributing New Content and Updates
 
 - Fork this [repository](https://github.com/IBM/ibm-spectrum-scale-install-infra)
 - Make changes, don't forget to [sign](#sign-your-work-for-submittal) your commits
-- When you are satisfied with the changes, submit a [Pull Request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests) describing your proposed changes
+- When you are satisfied with the changes, submit a [Pull Request](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests) against the [dev branch](https://github.com/IBM/ibm-spectrum-scale-install-infra/tree/dev), describing your proposed changes
 
 
 Sign Your Work for Submittal
