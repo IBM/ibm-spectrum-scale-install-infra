@@ -20,6 +20,7 @@
   args:
     warn: false
   register: scale_repo_gpfsversion
+  when: scale_install_repository_url is undefined
   changed_when: false
 
 - name: update | Check if node needs to be updated
