@@ -23,6 +23,53 @@ Coding Practices
   - Get started with [Ansible](https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html#getting-started)
   - Practice [Ansible configuration language](https://www.ansible.com/use-cases/configuration-management)
 
+- Indent by two spaces
+
+- Always use pure YAML &mdash; i.e. write this:
+
+  ```
+  copy:
+    src: /srv/myfiles/foo.conf
+    dest: /etc/foo.conf
+  ```
+
+  ...not this:
+
+  ```
+  copy: src=/srv/myfiles/foo.conf dest=/etc/foo.conf
+  ```
+
+- Only quote if necessary:
+
+  * String starts with a YAML control character: `-`, `{`, `}`, `[`, `]`, `*`, `&`, `?`, `|`, `>`, `!`, `%`, <code>&#96;</code>, `#`, `@`, `:`
+
+  * String contains colon `:` followed by space
+
+  * String is boolean value (`yes`, `false`, ...) which should be preserved as string
+
+  * String in Jinja2 / `when:` / `until:` statement
+
+- Adhere to following order of declarations:
+
+  ```
+  - name: tag | Task description
+    vars:
+      var-1: ...
+      var-2: ...
+    task:
+      task-param-1: ...
+      task-param-2: ...
+    notify: ...
+    register: ...
+    when: ...
+    with_items: ...
+    run_once: ...
+    delegate_to: ...
+    delegate_facts: ...
+    changed_when: ...
+    failed_when: ...
+  ```
+
 
 Contributing New Content and Updates
 ------------------------------------
