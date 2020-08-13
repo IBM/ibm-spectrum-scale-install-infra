@@ -404,15 +404,15 @@ You can create multiple clusters by running multiple plays.
 Limitations
 -----------
 
-These role can (currently) be used to create new clusters or extend existing clusters. Similarly, new file systems can be created or extended. But this role does *not* remove existing nodes, disks, file systems or node classes. This is done on purpose. This is also the reason why it can not be used, for example, to change the file system pool of a disk. Changing the pool requires you to remove and then re-add the disk from a file system, which is not currently in the scope of this role.
+The roles in this project can (currently) be used to create new clusters or extend existing clusters. Similarly, new file systems can be created or extended. But this role does *not* remove existing nodes, disks, file systems or node classes. This is done on purpose. This is also the reason why it can not be used, for example, to change the file system pool of a disk. Changing the pool requires you to remove and then re-add the disk from a file system, which is not currently in the scope of this role.
 
-Furthermore, upgrades are not currently in scope of this role. Spetrum Scale supports rolling online upgrades (by taking down one node at a time), but this requires careful planning and monitoring and might require manual intervention in case of unforeseen problems.
+Furthermore, upgrades are not currently in scope of this role. Spectrum Scale supports rolling online upgrades (by taking down one node at a time), but this requires careful planning and monitoring and might require manual intervention in case of unforeseen problems.
 
 
 Troubleshooting
 ---------------
 
-This role stores configuration files in `/var/tmp` on the first host in the play. These configuration files are kept to determine if definitions have changed since the previous run, and to decide if it's necessary to run certain Spectrum Scale commands (again). When experiencing problems one can simply delete these configuration files from `/var/tmp` in order to clear the cache &mdash; Doing this forces re-application of all definitions upon the next run. As a downside, the next run may take longer than expected as it might re-run unnecessary Spectrum Scale commands. Doing so will automatically re-generates the cache.
+The roles in this project store configuration files in `/var/tmp` on the first host in the play. These configuration files are kept to determine if definitions have changed since the previous run, and to decide if it's necessary to run certain Spectrum Scale commands (again). When experiencing problems one can simply delete these configuration files from `/var/tmp` in order to clear the cache &mdash; doing so forces re-application of all definitions upon the next run. As a downside, the next run may take longer than expected as it might re-run unnecessary Spectrum Scale commands. This will automatically re-generate the cache.
 
 
 Reporting Issues and Feedback
