@@ -302,6 +302,13 @@ Installation Instructions
       - callhome/postcheck
   ```   
 
+  The following installation methods are available:
+
+  - Installation from (existing) YUM repository (`scale_install_repository_url`)
+  - Installation from remote installation package (`scale_install_remotepkg_path`)
+  - Installation from local installation package (`scale_install_localpkg_path`)
+  - Installation from single directory package path (`scale_install_directory_pkg_path`)
+
   > **Note:**
   Defining the variable `scale_version` is optional for `scale_install_localpkg_path` and `scale_install_directory_pkg_path` installation methods. It is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
   by defining *one* of the following variables:
@@ -309,13 +316,6 @@ Installation Instructions
   - `scale_install_remotepkg_path` (accessible on Ansible managed node)
   - `scale_install_localpkg_path` (accessible on Ansible control machine)
   - `scale_install_directory_pkg_path` (eg: /opt/IBM/spectrum_scale_packages)
-
-  The following installation methods are available:
-
-  - Installation from (existing) YUM repository(`scale_install_repository_url`)
-  - Installation from remote installation package (`scale_install_remotepkg_path`)
-  - Installation from local installation package (`scale_install_localpkg_path`)
-  - Installation from single directory package path (`scale_install_directory_pkg_path`)
 
   > **Important:**
   If you are using the single directory installation method (`scale_install_directory_pkg_path`), you need to keep all required Spectrum Scale RPMs in a single user-provided directory.
