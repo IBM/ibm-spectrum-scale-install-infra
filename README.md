@@ -84,7 +84,9 @@ Currently, the following Spectrum Scale versions are supported: 5.0.4.0, 5.0.4.1
 Prerequisites
 -------------
 
-- **Install Ansible on any node (controller node)**
+Users need to have a basic understanding of the [Ansible concepts](https://docs.ansible.com/ansible/latest/user_guide/basic_concepts.html) for being able to follow these instructions. Refer to the [Ansible User Guide](https://docs.ansible.com/ansible/latest/user_guide/index.html) if this is new to you.
+
+- **Install Ansible on any machine** ([control node](https://docs.ansible.com/ansible/latest/user_guide/basic_concepts.html#control-node))
 
   ```shell
   $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
@@ -92,21 +94,17 @@ Prerequisites
   $ pip install --user ansible
   ```
 
-  For detailed installation procedure, refer to [Installing Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html).
+  Refer to the [Ansible Installation Guide](https://docs.ansible.com/ansible/latest/installation_guide/index.html) for detailled installation instructions.
 
 - **Download Spectrum Scale packages**
 
-  1. A free Developer Edition trial is available at this site:
-     https://www.ibm.com/account/reg/us-en/signup?formid=urx-41728
+  1. A Developer Edition Free Trial is available at this site: https://www.ibm.com/account/reg/us-en/signup?formid=urx-41728
 
-  2. Customers who have previously purchased Spectrum Scale can obtain entitled versions from IBM Fix Central:
-    Visit https://www.ibm.com/support/fixcentral and search for 'IBM Spectrum Scale (Software defined storage)'.
-
+  2. Customers who have previously purchased Spectrum Scale can obtain entitled versions from IBM Fix Central. Visit https://www.ibm.com/support/fixcentral and search for 'IBM Spectrum Scale (Software defined storage)'.
 
 - **Create password-less SSH keys between all Spectrum Scale nodes in the cluster**
 
-  A pre-requisite for installing Spectrum Scale is that password-less SSH must be configured among all
-  nodes in the cluster. Password-less SSH must be configured and checked with FQDN, hostname, and IP of every node to every node.
+  A pre-requisite for installing Spectrum Scale is that password-less SSH must be configured among all nodes in the cluster. Password-less SSH must be configured and verified with [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name), hostname, and IP of every node to every node.
 
   Example:
 
@@ -117,13 +115,13 @@ Prerequisites
   $ ssh-copy-id -oStrictHostKeyChecking=no
   ```
 
-  Repeat this for all nodes to themselves and to all other nodes.
+  Repeat this process for all nodes to themselves and to all other nodes.
 
 
 Installation Instructions
 -------------------------
 
-- **Clone `ibm-spectrum-scale-install-infra` repository to your controller node on which Ansible is installed**
+- **Clone `ibm-spectrum-scale-install-infra` repository to your [Ansible control node](https://docs.ansible.com/ansible/latest/user_guide/basic_concepts.html#control-node)**
 
   ```shell
   $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
@@ -135,9 +133,9 @@ Installation Instructions
   $ cd ibm-spectrum-scale-install-infra/
   ```
 
-- **Create inventory**
+- **Create Ansible inventory**
 
-  1. Define Spectrum Scale nodes in the Ansible inventory (e.g. `./hosts`) in the following format
+  1. Define Spectrum Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `./hosts`) in the following format
 
      ```yaml
      # hosts:
@@ -149,7 +147,7 @@ Installation Instructions
      scale05  scale_cluster_quorum=false  scale_cluster_manager=false  scale_cluster_gui=false
      ```
 
-     Variables used in the above inventory file:
+     The following [Ansible variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) are defined in the above [inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html):
 
      - `[cluster01]`: User defined host groups for Spectrum Scale cluster nodes on which
        Spectrum Scale installation will take place.
@@ -166,7 +164,7 @@ Installation Instructions
      > **Note:**
      Defining node roles such as `scale_cluster_quorum` and `scale_cluster_manager` is optional. If you do not specify any quorum nodes then the first seven hosts in your inventory are automatically assigned the quorum role.
 
-  2. To create NSDs, file systems and node classes in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
+  2. To create NSDs, file systems and node classes in the cluster you'll need to provide additional information. It is recommended to use [Ansible group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables) (e.g. `group_vars/*`) as follows:
 
      ```yaml
      # group_vars/all:
@@ -211,7 +209,7 @@ Installation Instructions
      ```
 
      > **Important:**
-     `scale_storage` *must* be define using `group_vars` inventory files. Do *not* define disk parameters using `host_vars` inventory files or inline `vars:` in your playbook. Doing so would apply them to all hosts in the group/play, thus defining the same disk multiple times...
+     `scale_storage` *must* be define using [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables). Do *not* define disk parameters using [host variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-one-machine-host-variables) or [inline variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#defining-variables-in-a-playbook) in your playbook. Doing so would apply them to all hosts in the group/play, thus defining the same disk multiple times...
 
      Furthermore, Spectrum Scale node classes can be defined on a per-node basis by defining the `scale_nodeclass` variable:
 
@@ -231,7 +229,7 @@ Installation Instructions
        - classC
      ```
 
-     These node classes can optionally be used to define Spectrum Scale configuration parameters. It is suggested to use `group_vars` inventory files for that purpose:
+     These node classes can optionally be used to define Spectrum Scale configuration parameters. It is suggested to use [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables) for that purpose:
 
      ```yaml
      # group_vars/all:
@@ -248,7 +246,7 @@ Installation Instructions
 
      Note that configuration parameters can be defined as variables for *any* host in the play &mdash; the host for which you define the configuration parameters is irrelevant.
 
-  3. To install and configure callhome in the cluster you'll need to provide additional information. It is  recommended to use the `group_vars` inventory file as follows:
+  3. To install and configure callhome in the cluster you'll need to provide additional information. It is recommended to use [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables) as follows:
 
      ```yaml
      # group_vars/all.yml:
@@ -269,9 +267,9 @@ Installation Instructions
        callhome_schedule: [daily,weekly]
      ```
 
-- **Modify `playbook.yml`**
+- **Create Ansible playbook**
 
-  The basic `playbook.yml` looks as follows:
+  The basic [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html) (e.g. `./playbook.yml`) looks as follows:
 
   ```yaml
   # playbook.yml:
@@ -378,7 +376,7 @@ Installation Instructions
 Optional Role Variables
 -----------------------
 
-User can also define some of the following variables to override default values:
+User can also define some of the following [variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) to override default values and customize the behavior:
 
 - `scale_cluster_clustername`: User defined Spectrum Scale cluster name.
 - `scale_prepare_disable_selinux`: SELinux can be disabled. It can be either true or false (default).
@@ -388,7 +386,7 @@ User can also define some of the following variables to override default values:
 Available Roles
 ---------------
 
-If you are assembling your own Spectrum Scale playbook, these roles are available for you to reuse:
+If you are assembling your own [playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html), the following [roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) are available for you to reuse:
 
 - [Core GPFS](./roles/core)
 - [GPFS GUI](./roles/gui)
