@@ -15,8 +15,9 @@ Ansible project with multiple roles for installing and configuring IBM Spectrum 
 - [Limitations](#limitations)
 - [Troubleshooting](#troubleshooting)
 - [Reporting Issues and Feedback](#reporting-issues-and-feedback)
-- [Disclaimer](#disclaimer)
 - [Contributing Code](#contributing-code)
+- [Disclaimer](#disclaimer)
+- [Copyright and License](#copyright-and-license)
 
 
 Features
@@ -429,13 +430,19 @@ Reporting Issues and Feedback
 Please use the [issue tracker](https://github.com/IBM/ibm-spectrum-scale-install-infra/issues) to ask questions, report bugs and request features.
 
 
+Contributing Code
+-----------------
+
+We welcome contributions to this project, see [Contributing](CONTRIBUTING.md) for more details.
+
+
 Disclaimer
 ----------
 
 Please note: all playbooks / modules / resources in this repo are released for use "AS IS" without any warranties of any kind, including, but not limited to their installation, use, or performance. We are not responsible for any damage or charges or data loss incurred with their use. You are responsible for reviewing and testing any scripts you run thoroughly before use in any production environment. This content is subject to change without notice.
 
 
-Contributing Code
------------------
+Copyright and License
+---------------------
 
-We welcome contributions to this project, see [Contributing](CONTRIBUTING.md) for more details.
+Copyright IBM Corporation 2020, released under the terms of the [Apache License 2.0](LICENSE).
