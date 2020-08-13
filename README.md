@@ -6,7 +6,7 @@ Ansible project with multiple roles for installing and configuring IBM Spectrum 
 **Table of Contents**
 
 - [Features](#features)
-- [Supported Spectrum Scale Versions](#supported-spectrum-scale-versions)
+- [Supported Versions](#supported-versions)
 - [Prerequisites](#prerequisites)
 - [Installation Instructions](#installation-instructions)
 - [Optional Role Variables](#optional-role-variables)
@@ -75,10 +75,18 @@ Features
 - [x] Configure callhome
 
 
-Supported Spectrum Scale Versions
----------------------------------
+Supported Versions
+------------------
 
-Currently, the following Spectrum Scale versions are supported: 5.0.4.0, 5.0.4.1, 5.0.4.2,....
+The following Ansible versions are supported:
+
+- 2.7 and above
+
+The following IBM Spectrum Scale versions are supported:
+
+- 5.0.4.0
+- 5.0.4.1
+- 5.0.4.2
 
 
 Prerequisites
