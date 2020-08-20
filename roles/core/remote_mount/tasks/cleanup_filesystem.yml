@@ -1,0 +1,72 @@
+---
+- name: Cleanup | Client Cluster (access) | Check if the remotefilesystem is already defined
+  uri:
+    validate_certs: no
+    force_basic_auth: yes
+    url: https://{{ client_cluster_ip }}:{{ gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ client_filesystem_name }}
+    method: GET
+    user: "{{ gui_user }}"
+    password: "{{ gui_password }}"
+    body_format: json
+    status_code:
+      - 200
+  register: remote_filesystem_results
+  ignore_errors: true
+
+- name: Cleanup | Client Cluster (access) | Remove defined filesystem
+  block:
+    - name: "Client Cluster (access) | Unmount the filesystem | PUT {{ scalemgmt_endpoint }}/filesystems/{{ client_filesystem_name }}/unmount"
+      uri:
+        validate_certs: no
+        force_basic_auth: true
+        url: https://{{ client_cluster_ip }}:{{ gui_port }}/{{ scalemgmt_endpoint }}/filesystems/{{ client_filesystem_name }}/unmount
+        method: PUT
+        user: "{{ gui_user }}"
+        password: "{{ gui_password }}"
+        body_format: json
+        body: |
+          {
+            "force": "true"
+          }
+        status_code:
+          - 202
+      register: umount_call
+
+    - name: "Checking results from the job: {{ umount_call.json.jobs[0].jobId }}"
+      uri:
+        validate_certs: no
+        force_basic_auth: true
+        url: https://{{ client_cluster_ip }}:{{ gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ umount_call.json.jobs[0].jobId }}
+        method: GET
+        user: "{{ gui_user }}"
+        password: "{{ gui_password }}"
+      register: completed_check
+      until: completed_check.json.jobs[0].status == "COMPLETED"
+      retries: 10
+      delay: 2
+
+    - name: "Client Cluster (access) | Delete the filesystem | DELETE: {{ remote_mount_endpoint }}/remotefilesystems/{{ client_filesystem_name }}?force=yes"
+      uri:
+        validate_certs: no
+        force_basic_auth: true
+        url: https://{{ client_cluster_ip }}:{{ gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ client_filesystem_name }}?force=yes
+        method: DELETE
+        user: "{{ gui_user }}"
+        password: "{{ gui_password }}"
+        status_code:
+          - 202
+      register: delete_call
+
+    - name: "Checking results from the job: {{ delete_call.json.jobs[0].jobId }}"
+      uri:
+        validate_certs: no
+        force_basic_auth: true
+        url: https://{{ client_cluster_ip }}:{{ gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+        method: GET
+        user: "{{ gui_user }}"
+        password: "{{ gui_password }}"
+      register: completed_check
+      until: completed_check.json.jobs[0].status == "COMPLETED"
+      retries: 10
+      delay: 2
+  when: not remote_filesystem_results.failed

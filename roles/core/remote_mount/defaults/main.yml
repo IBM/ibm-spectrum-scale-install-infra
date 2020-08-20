@@ -1,0 +1,15 @@
+---
+# defaults file for remote_mount
+debug: false
+forceRun: false
+
+gui_port: 443
+scalemgmt_endpoint: "scalemgmt/v2"
+remote_mount_endpoint: "{{ scalemgmt_endpoint }}/remotemount"
+
+# Storage filesystem
+access_attributes: "rw"
+storage_filesystem_name: "fs1"
+
+# Client filesystem
+client_filesystem_name: "client_fs1"

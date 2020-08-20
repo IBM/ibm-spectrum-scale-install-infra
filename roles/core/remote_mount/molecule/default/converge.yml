@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include remote_mount"
+      include_role:
+        name: "remote_mount"
