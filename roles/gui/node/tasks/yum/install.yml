@@ -1,0 +1,25 @@
+---
+#
+# Install or update packages
+#
+- name: Initialize
+  set_fact:
+    disable_gpgcheck: "no"
+
+- name: Disable gpg check
+  set_fact:
+    disable_gpgcheck: "yes"
+  when: scale_version < '5.0.4.0'
+
+- block:  ## when: rhel8 node
+    - name: build | Install prereqs for GUI from source
+      dnf:
+        name: "{{ scale_gui_el8_prereqs }}"
+        state: present
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+
+- name: install | Install GPFS GUI packages
+  package:
+    name: "{{ scale_install_all_packages }}"
+    state: present
+    disable_gpg_check: "{{ disable_gpgcheck }}"

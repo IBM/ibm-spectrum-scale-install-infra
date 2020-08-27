@@ -1,0 +1,6 @@
+---
+- name: set | yum gpfs base path 
+  set_fact:
+    gpfs_path_url: '{{ gpfs_extracted_path }}/gpfs_rpms'
+  when:
+    - scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined

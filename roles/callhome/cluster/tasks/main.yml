@@ -1,3 +1,6 @@
 ---
 # tasks file for cluster
 - import_tasks: configure.yml
+  when: callhome_params is defined and callhome_params.is_enabled|bool
+
+

@@ -86,3 +86,16 @@
   set_fact:
     scale_daemon_nodename: "{{ scale_daemon_nodename }}"
   when: hostvars[inventory_hostname].scale_daemon_nodename is undefined
+
+# set dynamic variable based on supported OS
+- name: install | Set variables based on yum/dnf based OS
+  include: yum/set_vars.yml
+  when: ansible_distribution in scale_rhel_distribution
+
+- name: install | Set variables based on apt based os
+  include: apt/set_vars.yml
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- name: install | Set variables based on zypper based OS
+  include: zypper/set_vars.yml
+  when: ansible_distribution in scale_sles_distribution

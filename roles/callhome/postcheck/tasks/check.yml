@@ -2,8 +2,8 @@
 - block:
   - name: configure| Check callhome serivce post configuration
     shell:
-     cmd: mmcallhome test connection| grep OK
-     chdir: "{{ directory }}"
+     cmd: "{{ directory }}mmcallhome test connection| grep OK"
+     #chdir: "{{ directory }}"
     register: scale_callhome_status
     ignore_errors: true
 

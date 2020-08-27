@@ -1,0 +1,13 @@
+---
+- name: Disable repo metadata gpg check
+  command: "zypper modifyrepo --gpgcheck-allow-unsigned-repo --all"
+
+- name: install | Install GPFS Callhome packages
+  zypper:
+   name: "{{ scale_install_all_packages }}"
+   state: present
+   disable_gpg_check: no
+
+- name: Enable repo metadata gpg check
+  command: "zypper modifyrepo --default-gpgcheck --all"
+

@@ -43,7 +43,7 @@
 - name: install | Stat extracted packages
   stat:
     path: "{{ callhome_extracted_path }}"
-  register: scale_install_gpfs__rpmdir
+  register: scale_install_gpfs_rpmdir
 
 - name: install | Make installation package executable
   file:
@@ -72,52 +72,44 @@
 
 - name: install | callhome path
   set_fact:
+   callhome_url: 'gpfs_debs/'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: install | callhome path
+  set_fact:
    callhome_url: 'gpfs_rpms/'
-   #
-   # find gpfs.java package and add to rpm list
-   #
+  when: ansible_distribution == 'RedHat' or ansible_distribution == 'SLES'
+
 - block:
-  - name: install | Find gpfs.java (gpfs.java) RPM
+  - name: install | Find gpfs.java (gpfs.java) package
     find:
-     paths: "{{ callhome_extracted_path }}"
-     patterns: gpfs.java-*.rpm
-     # use_regex: yes
+     paths: "{{ callhome_extracted_path }}/{{ callhome_url }}"
+     patterns: gpfs.java*
     register: scale_install_gpfs_java
 
-  - name: install | Check valid GPFS (gpfs.java) RPM
+  - name: install | Check valid GPFS (gpfs.java) package
     assert:
      that: scale_install_gpfs_java.matched > 0
-     msg: "No GPFS java (gpfs.java) RPM found: {{ callhome_extracted_path }}gpfs.java*.rpm"
+     msg: "No GPFS java (gpfs.java) package found: {{ callhome_extracted_path }}/{{ callhome_url }}/gpfs.java*"
 
-  - name: install | Add GPFS java RPM to list
-    vars:
-     current_rpm: "{{ callhome_extracted_path }}/{{ item }}.rpm"
-    set_fact:
-     scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
-    with_items:
-    - "{{ scale_install_gpfs_java.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
-
-
-#
-# find gpfs.callhomE package and add it to rpm list
-#
 - block:
-  - name: install | Find gpfs.callhome (gpfs.callhome) RPM
+  - name: install | Find gpfs.callhome (gpfs.callhome) package
     find:
-     paths: "{{ callhome_extracted_path }}"
-     patterns: gpfs.callhome-ecc-client*.rpm
-     # use_regex: yes
+     paths: "{{ callhome_extracted_path }}/{{ callhome_url }}"
+     patterns: gpfs.callhome-ecc-client*
     register: scale_install_gpfs_callhome
 
-  - name: install | Check valid GPFS (gpfs.callhome) RPM
+  - name: install | Check valid GPFS (gpfs.callhome) package
     assert:
      that: scale_install_gpfs_callhome.matched > 0
-     msg: "No GPFS callhome (gpfs.callhome) RPM found: {{ callhome_extracted_path }}gpfs.callhome-ecc-client-{{ scale_version }}*.rpm"
+     msg: "No GPFS callhome (gpfs.callhome) package found: {{ callhome_extracted_path }}/{{ callhome_url }}gpfs.callhome-ecc-client*"
 
-  - name: install | Add GPFS callhome RPM to list
+- name: install | Add GPFS callhome package to list
     vars:
-     current_rpm: "{{ callhome_extracted_path }}/{{ item }}.rpm"
+     current_package: "{{ item }}"
     set_fact:
-     cale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
     with_items:
-    - "{{ scale_install_gpfs_callhome.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+    - "{{ scale_install_gpfs_java.files.0.path }}"
+    - "{{ scale_install_gpfs_callhome.files.0.path }}"
+

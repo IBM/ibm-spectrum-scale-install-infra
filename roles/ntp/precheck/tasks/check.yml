@@ -1,0 +1,17 @@
+#- block:
+        #- name: precheck| check if atleast one ntp server is present
+        #assert:
+        #that: 
+        #- ntp_server is defined
+        #- ntp_server|length > 0
+        #msg: "NTP server is not defined or has not been assigned"
+   
+- debug:
+        msg: "NTP server not defined.Assigning {{ ansible_hostname }} as ntp server"
+  when: ntp_server|length == 0
+  run_once: true
+- name: precheck| Set ntp server if not defined
+  set_fact:
+   ntp_server: ["{{ ansible_default_ipv4.address }}"]
+  when: ntp_server|length == 0
+  run_once: true

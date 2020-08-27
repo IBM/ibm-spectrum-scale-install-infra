@@ -1,0 +1,3 @@
+---
+# tasks file for node
+- import_tasks: install.yml

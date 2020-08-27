@@ -1,0 +1,63 @@
+- block:
+  - name: postcheck|Check if chrony is running
+    #command: systemctl status chronyd
+    systemd: state=started name=chronyd
+    ignore_errors: yes
+    changed_when: false
+    register: service_chrony_status
+  
+
+  - name: Report status of chrony
+    fail:
+     msg: Service chrony is not running.
+    when: service_chrony_status is  failed
+
+  - name: postcheck| Check if all nodes are syncing
+    shell: chronyc tracking| grep "{{ ntp_server }}"
+    register: ntp_sync_status
+    ignore_errors: true
+    become_user: root
+
+    # - debug:
+    #     msg: "{{ ntp_sync_status }}"
+  - name: Check if all nodes are syncing
+    assert:
+     that:
+     - ntp_sync_status.rc == 0
+     fail_msg: "NTP chrony is not synced on: {{ ansible_hostname }}. Sync ntp by running: 'systemctl stop chronyd; systemctl start chronyd; systemctl enable chronyd; chronyc tracking'."
+     success_msg: "Node {{ ansible_hostname }} synchronised with NTP server."
+  when:
+  - ansible_distribution == "RedHat"
+  - ansible_distribution_version >= "7"
+  
+- block:
+  - name: postcheck|Check if ntp is running
+    #command: systemctl status ntpd
+    systemd: state=started name=ntpd
+    ignore_errors: yes
+    changed_when: false
+    register: service_ntp_status
+
+  - name: Report status of ntp
+    fail:
+     msg: Service chrony is not running.
+    when: service_chrony_status is  failed
+
+  - name: postcheck| Check if all nodes are syncing
+    shell: chronyc tracking| grep "synchronised"
+    register: ntp_sync_status
+    ignore_errors: true
+    become_user: root
+
+  - name: Check if all nodes are syncing
+    assert:
+     that:
+     - ntp_sync_status.rc == 0
+     fail_msg: "NTP is not synced on: {{ ansible_hostname }}. Sync ntp by running: 'service ntpd stop; ntpd -q; service ntpd start'."
+     success_msg: "Node {{ ansible_hostname }} synchronised with NTP server."
+
+
+  when:
+  - ansible_distribution == "RedHat"
+  - ansible_distribution_version < "7"
+

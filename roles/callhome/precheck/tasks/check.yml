@@ -1,5 +1,7 @@
 ---
 - block:
+  - debug:
+          msg: "{{ ansible_hostname }}"
   - name: callhome_precheck | Check if callhome is enabled.
     assert:
      that:

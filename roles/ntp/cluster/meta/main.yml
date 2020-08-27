@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: ntp_cluster
+  author: IBM Corporation
+  description: Highly-customizable Ansible role for installing and configuring IBM Spectrum Scale (GPFS)
+  company: IBM
+  license: Apache
+  min_ansible_version: 2.4
+
+  platforms:
+    - name: EL
+      versions:
+        - 7
+
+  galaxy_tags:
+    - ibm
+    - spectrum
+    - scale
+    - gpfs
+
+dependencies: []
+ #- common

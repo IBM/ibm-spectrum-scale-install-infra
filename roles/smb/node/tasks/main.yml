@@ -1,0 +1,8 @@
+---
+
+# Install IBM Spectrum Scale (GPFS) Graphical User Interface (GUI)
+
+
+
+- import_tasks: install.yml
+  when: protocols is defined and protocols.smb|bool

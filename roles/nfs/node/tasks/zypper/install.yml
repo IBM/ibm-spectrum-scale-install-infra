@@ -1,0 +1,7 @@
+---
+- name: install | Install GPFS NFS packages
+  zypper:
+   name: "{{ scale_install_all_packages }}"
+   state: present
+   disable_gpg_check: no
+

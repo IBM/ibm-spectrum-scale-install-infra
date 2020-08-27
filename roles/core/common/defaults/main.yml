@@ -31,3 +31,9 @@ scale_daemon_nodename: "{{ ansible_hostname }}"
 ## Temporary directory to copy installation package to
 ## (local package installation method)
 scale_install_localpkg_tmpdir_path: /tmp
+
+## Specify package extraction path
+extracted_default_path: "/usr/lpp/mmfs"
+gpfs_extracted_path: "{{ extracted_default_path }}/{{ scale_version }}"
+gpgKey_src: "/usr/lpp/mmfs/{{ scale_version }}/Public_Keys/SpectrumScale_public_key.pgp"
+gpgKey_dest: "/root/"

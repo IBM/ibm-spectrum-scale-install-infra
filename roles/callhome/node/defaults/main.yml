@@ -1,7 +1,8 @@
 ---
-scale_install_callhome_repository_url: http://9.11.84.162/gpfs_rpms/
+#scale_install_callhome_repository_rpms: http://<ip>/gpfs_rpms/
+#scale_install_callhome_repository_debs: http://<ip>/gpfs_debs/
 
-scale_callhome_rpms:
+scale_callhome_packages:
   - gpfs.callhome-ecc-client
   - gpfs.java
 scale_rpmversion: "{{ scale_version | regex_replace('^([0-9.]+)\\.([0-9])$', '\\1-\\2') }}"

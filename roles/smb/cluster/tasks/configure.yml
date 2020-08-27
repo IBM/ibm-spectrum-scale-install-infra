@@ -1,0 +1,25 @@
+---
+- name: Check if SMB is already running
+  shell:
+   cmd: "{{ directory }}mmces service list | head -1 | grep SMB"
+  register: smb_status
+  ignore_errors: true
+  when: ansible_fqdn in smb_nodes_list
+
+- name: Enable SMB
+  shell:
+   cmd: "{{ directory }}mmces service enable SMB"
+  when: ansible_fqdn in smb_nodes_list
+
+- name: Stat ZIMonSensors_smb.cfg file
+  stat:
+   path: /opt/IBM/zimon/defaults/ZIMonSensors_smb.cfg
+  register: config_file_status
+
+- name: Configuring SMB performance monitoring sensors
+  shell:
+   cmd: "{{ directory }}mmperfmon config add --sensors=/opt/IBM/zimon/defaults/ZIMonSensors_smb.cfg"
+  when: 
+    - config_file_status.stat.exists
+    - " 'mmperfmon: There is no performance monitoring configuration data.' not in scale_zimon_conf_sensors.stderr"
+

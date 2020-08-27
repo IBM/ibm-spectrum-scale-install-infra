@@ -1,0 +1,16 @@
+---
+- name: Install GPFS smb packages
+  package:
+   name: "{{ scale_install_all_packages }}"
+   state: present
+  when: scale_install_repository_url is defined and ansible_fqdn in smb_nodes_list
+
+
+- name: install| Install GPFS SMB deb
+  apt:
+   deb: "{{ item }}"
+   state: present
+  when: scale_install_repository_url is not defined and ansible_fqdn in smb_nodes_list
+  with_items:
+  - "{{ scale_install_all_packages }}"
+

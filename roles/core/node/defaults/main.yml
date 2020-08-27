@@ -35,19 +35,19 @@ extracted_default_path: "/usr/lpp/mmfs"
 gpfs_extracted_path: "{{ extracted_default_path }}/{{ scale_version }}"
 
 ## List of GPFS RPMs to install
-scale_install_gpfs_rpms:
+scale_install_gpfs_packages:
   - gpfs.base
   - gpfs.docs
-  - gpfs.msg.en_US
+  - gpfs.msg.en*
   - gpfs.compression
   # Appropriate gpfs.gskit version will be installed automatically
 
 ## List of GPFS RPMs to install (prior to version 5.0.2.0)
-scale_install_add_rpms_pre502:
+scale_install_add_packages_pre502:
   - gpfs.ext
 
 ## List of GPFS RPMs to install for building Linux kernel extension from source
-scale_install_gplsrc_rpms:
+scale_install_gplsrc_packages:
   - gpfs.gpl
 
 
@@ -77,3 +77,19 @@ scale_build_gplsrc_prereqs:
 scale_build_gplsrc_el8_prereqs:
   - elfutils
   - elfutils-devel
+
+# Ubuntu buildgpl prereq
+scale_build_gplsrc_prereqs_deb:
+  - cpp
+  - gcc
+  - g++
+  - binutils
+  - make
+
+# Ubuntu buildgpl prereq
+scale_build_gplsrc_prereqs_zypp:
+  - kernel-devel
+  - cpp
+  - gcc
+  - gcc-c++
+  - glibc

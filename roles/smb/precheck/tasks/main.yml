@@ -1,0 +1,4 @@
+---
+# tasks file for precheck
+- import_tasks: check1.yml
+  when: protocols is defined and protocols.smb|bool

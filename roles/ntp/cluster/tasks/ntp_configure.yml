@@ -1,0 +1,31 @@
+---
+- block:
+  - name: configure| start chrony
+    service: name=chronyd state=started
+
+  - name: configure| configure chrony
+    template: src=templates/chrony.conf.j2 dest=/etc/chrony.conf
+
+  - name: configure| restart chrony
+    service: name=chronyd state=restarted
+
+  when:
+  - ansible_distribution == "RedHat"
+  - ansible_distribution_version >= "7"
+  
+- block:
+  - name: configure| start ntp
+    service: name=chronyd state=started
+
+  - name: configure| configure ntp
+    template: src=templates/ntp.conf.j2 dest=/etc/ntp.conf
+
+  - name: configure| restart ntp
+    service: name=ntpd state=restarted
+
+  when:
+  - ansible_distribution == "RedHat"
+  - ansible_distribution_version < "7"
+
+
+

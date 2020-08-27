@@ -1,0 +1,4 @@
+---
+# defaults file for precheck
+#ntp_server: [<ip>]
+ntp_server: []

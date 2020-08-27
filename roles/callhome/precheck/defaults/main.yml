@@ -1,2 +1,3 @@
 ---
 # defaults file for precheck
+command_path: /usr/lpp/mmfs/bin/

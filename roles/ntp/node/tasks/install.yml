@@ -1,0 +1,18 @@
+---
+- block:
+  - name: install|install chrony
+    package: name=chrony state=present
+  when:
+  - ansible_distribution == "RedHat"
+  - ansible_distribution_version is version('7.0', '>=')
+- block:
+  - name: install|install ntp
+    package: name=ntp state=present
+  when:
+  - ansible_distribution == "RedHat"
+  - ansible_distribution_version is version('7.0', '<')
+
+
+
+
+

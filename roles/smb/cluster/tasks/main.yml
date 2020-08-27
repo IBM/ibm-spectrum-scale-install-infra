@@ -1,0 +1,4 @@
+---
+# tasks file for configure
+- import_tasks: configure.yml
+  when: protocols is defined and protocols.smb|bool

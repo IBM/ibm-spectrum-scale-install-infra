@@ -1,0 +1,4 @@
+---
+# tasks file for cluster
+#- include_vars: file= /etc/ansible/roles/ntp/cluster/defaults/main.yml
+- import_tasks: ntp_configure.yml

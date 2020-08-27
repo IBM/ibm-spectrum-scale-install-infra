@@ -1,0 +1,24 @@
+---
+- name: Check if NFS is already running
+  shell:
+   cmd: "{{ directory }}mmces service list | head -1 | grep NFS"
+  register: nfs_status
+  ignore_errors: true
+  when: ansible_fqdn in nfs_nodes_list
+
+- name: Enable NFS
+  shell:
+   cmd: "{{ directory }}mmces service enable NFS"
+  when: ansible_fqdn in nfs_nodes_list
+
+- name: Stat GaneshaProxy.conf file
+  stat:
+   path: /opt/IBM/zimon/defaults/GaneshaProxy.conf
+  register: config_file_status
+
+- name: Configuring NFS performance monitoring sensors
+  shell:
+   cmd: "{{ directory }}mmperfmon config add --sensors=/opt/IBM/zimon/defaults/GaneshaProxy.conf"
+  when: 
+    - config_file_status.stat.exists
+    - " 'mmperfmon: There is no performance monitoring configuration data.' not in scale_zimon_conf_sensors.stderr"

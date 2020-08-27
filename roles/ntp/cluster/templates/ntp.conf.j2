@@ -1,0 +1,8 @@
+driftfile /var/lib/ntp/drift
+makestep 1.0 3
+local stratum 10
+logdir /var/log/ntp
+allow 0/0
+{% for item in ntp_server %}
+server {{ item }} iburst
+{% endfor %}

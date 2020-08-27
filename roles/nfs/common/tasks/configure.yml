@@ -1,0 +1,152 @@
+---
+- name: Initialize
+  set_fact:
+   ces_disabled_nodes: []
+   export_ips: ""
+   server_nodes: ""
+   service_list: []
+   ces_nodes: ""
+
+- name: Collect status of ces shared root
+  shell:
+   cmd: "{{ directory }}mmlsconfig | grep 'cesSharedRoot '"
+  register: ces_status
+  ignore_errors: true
+
+- name: Configuring cesSharedRoot
+  command: "{{ directory }}mmchconfig cesSharedRoot={{ protocols.mountpoint }}"
+  when: ces_status.rc > 0
+
+- name: Prepare server nodes string
+  set_fact:
+   server_nodes: "{{ server_nodes + ',' + item|string }}"
+  with_items:
+  - "{{ protocol_nodes_list }}"
+
+- name: Setting server licenses on protocol nodes
+  command: "{{ directory }}mmchlicense server --accept -N {{ server_nodes[1:] }}"
+  delegate_to: "{{ protocol_nodes_list.0 }}"
+
+- name: Collect status of ces nodes
+  shell:
+   cmd: "{{ directory }}mmces node list|grep {{ item }}"
+  register: ces_enable_status
+  with_items:
+  - "{{ protocol_nodes_list }}"
+  delegate_to: "{{ protocol_nodes_list.0 }}"
+  ignore_errors: true
+
+- name: Collect all nodes on which ces is not enabled
+  set_fact:
+   ces_disabled_nodes: "{{ ces_disabled_nodes + [ item.item ]}}"
+  when: item.rc > 0 
+  with_items:
+  - "{{ ces_enable_status.results }}"
+
+- name: Install arping
+  package:
+   name: arping
+   state: present
+  when: ansible_distribution == 'Ubuntu' and ansible_fqdn in protocol_nodes_list
+
+- name: Check if SMB is running
+  shell:
+   cmd: "{{ directory }}mmces service list|grep SMB"
+  register: service_status
+  when: ansible_fqdn in protocol_nodes_list
+  ignore_errors: true
+  run_once: true
+
+- name: Add SMB service to list
+  set_fact:
+   service_list: "{{ service_list + [service_status.stderr|regex_search('SMB')] }}"
+  when: ansible_fqdn in protocol_nodes_list and service_status.rc > 0
+  run_once: true
+
+- name: Add SMB service to list
+  set_fact:
+   service_list: "{{ service_list + ['SMB'] }}"
+  when: ansible_fqdn in protocol_nodes_list and service_status.rc == 0
+  run_once: true
+
+- name: Check if NFS is running
+  shell:
+   cmd: "{{ directory }}mmces service list|grep NFS"
+  register: service_status
+  when: ansible_fqdn in protocol_nodes_list
+  ignore_errors: true
+  run_once: true
+
+- name: Add NFS service to the list
+  set_fact:
+   service_list: "{{ service_list + [service_status.stderr|regex_search('NFS')] }}"
+  when: ansible_fqdn in protocol_nodes_list and service_status.rc > 0
+  run_once: true
+
+- name: Add NFS service to the list 
+  set_fact:
+   service_list: "{{ service_list + ['NFS'] }}"
+  when: ansible_fqdn in protocol_nodes_list and service_status.rc == 0
+  run_once: true
+
+- import_role: 
+   name: nfs/node
+  when: ces_disabled_nodes|length > 0 and 'NFS' in service_list
+
+- import_role: 
+   name: smb/node
+  when: ces_disabled_nodes|length > 0 and 'SMB' in service_list
+
+- name: Prepare ces nodes string
+  set_fact:
+   ces_nodes: "{{ ces_nodes + ',' + item|string }}"
+  with_items:
+  - "{{ ces_disabled_nodes }}"
+  when: ces_disabled_nodes|length > 0
+
+- name: Enabling CES
+  command: "{{ directory }}mmchnode -N {{ ces_nodes[1:] }} --ces-enable"
+  async: 45
+  poll: 5
+  when: ces_disabled_nodes|length > 0
+  delegate_to: "{{ protocol_nodes_list.0 }}"
+  run_once: true
+
+- name: Collect status of ces nodes
+  shell:
+   cmd: "{{ directory }}mmces node list|grep {{ item }}"
+  register: ces_enable_status
+  with_items:
+  - "{{ protocol_nodes_list }}"
+  delegate_to: "{{ protocol_nodes_list.0 }}"
+
+- name: Check CES enabled on all nodes
+  assert:
+   that:
+   -  item.rc == 0
+   fail_msg: "CES is not enabled on {{ ansible_hostname }} protocol node"
+  with_items:
+  - "{{ ces_enable_status.results }}"
+  delegate_to: "{{ protocol_nodes_list.0 }}"
+
+- name: Prepare export ips string
+  set_fact:
+    export_ips: "{{ export_ips + ',' + item|string }}"
+  with_items:
+  - "{{ protocols.export_ip_pool }}"
+
+- name: Assign export ips as pool
+  command: "{{ directory }}mmces address add --ces-ip {{ export_ips[1:] }}"
+  when: ansible_fqdn in protocol_nodes_list
+  delegate_to: "{{ protocol_nodes_list.0 }}"
+
+- name: Rebalance CES IPs
+  command: "{{ directory }}mmces address move --rebalance"
+  when: ansible_fqdn in protocol_nodes_list
+  delegate_to: "{{ protocol_nodes_list.0 }}"
+
+- name: Check if zimon sensor is configured
+  shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
+  register: scale_zimon_conf_sensors
+  failed_when: false
+  changed_when: false

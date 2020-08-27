@@ -1,0 +1,5 @@
+---
+# defaults file for cluster
+#ntp_server: [<ip1>,<ipn>]
+#ntp_server: []
+
