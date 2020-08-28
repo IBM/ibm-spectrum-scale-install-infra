@@ -1,4 +1,4 @@
 ---
 # tasks file for precheck
-- import_tasks: check1.yml
+- import_tasks: check.yml
   when: protocols is defined and protocols.nfs|bool

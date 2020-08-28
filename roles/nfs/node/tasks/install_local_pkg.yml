@@ -120,7 +120,12 @@
 - name: install | nfs path
   set_fact:
    nfs_url: 'ganesha_rpms/sles12/'
-  when: ansible_distribution == 'SLES'
+  when: ansible_distribution == 'SLES' and ansible_distribution_major_version == '12'
+
+- name: install | nfs path
+  set_fact:
+   nfs_url: 'ganesha_rpms/sles15/'
+  when: ansible_distribution == 'SLES' and ansible_distribution_major_version >= '15'
 
 - name: install | zimon path
   set_fact:
