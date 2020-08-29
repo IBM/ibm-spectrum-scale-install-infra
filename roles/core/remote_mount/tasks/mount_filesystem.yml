@@ -135,7 +135,7 @@
       - 202
   register: send_key
 
-- name: Storage Cluster (owner) | Check the result of adding the Client Cluster
+- name: "Storage Cluster (owner) | Check the result of adding the Client Cluster {{ send_key.json.jobs[0].jobId }}"
   uri:
     validate_certs: no
     force_basic_auth: true
@@ -229,7 +229,7 @@
       - 202
   register: send_key
 
-- name: Client Cluster (access) | Check the result of adding Storage Cluster
+- name: "Client Cluster (access) | Check the result of adding Storage Cluster {{ send_key.json.jobs[0].jobId }}"
   uri:
     validate_certs: no
     force_basic_auth: true
