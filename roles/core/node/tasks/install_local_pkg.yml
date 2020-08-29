@@ -103,6 +103,7 @@
   copy:
    src: "{{ gpgKey_src }}"
    dest: "{{ gpgKey_dest }}"
+   remote_src: yes
   when: ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution
 
 - rpm_key:
