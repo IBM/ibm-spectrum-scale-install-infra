@@ -1,17 +1,24 @@
 ---
+- fail:
+    msg: "client_gui_user is not defined"
+  when: client_gui_user is undefined
 
 - fail:
-    msg: "gui_user is not defined"
-  when: gui_user is undefined
-
-- fail:
-    msg: "gui_password is not defined"
-  when: gui_password is undefined
-
-- fail:
-    msg: "storage_cluster_ip is not defined"
-  when: storage_cluster_ip is undefined
+    msg: "client_gui_password is not defined"
+  when: client_gui_password is undefined
 
 - fail:
     msg: "client_cluster_ip is not defined"
   when: client_cluster_ip is undefined
+
+- fail:
+    msg: "storage_gui_user is not defined"
+  when: storage_gui_user is undefined
+
+- fail:
+    msg: "storage_gui_password is not defined"
+  when: storage_gui_password is undefined
+
+- fail:
+    msg: "storage_cluster_ip is not defined"
+  when: storage_cluster_ip is undefined
