@@ -28,12 +28,3 @@ To use this role, add following lines of code to your playbook:
          - ntp/cluster
          - ntp/postcheck
 
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).

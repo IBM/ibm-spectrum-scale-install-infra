@@ -1,5 +1,6 @@
 ---
-# defaults file for cluster
-scale_install_localpkg_tmpdir_path: /tmp
-directory: /usr/lpp/mmfs/bin/
+# Default variables for the IBM Spectrum Scale (callhome) role -
+# either edit this file or define your own variables to override the defaults
+
+## Flag to enable callhome proxy
 #scale_callhome_proxy_status: false

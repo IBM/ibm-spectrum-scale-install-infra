@@ -1,8 +1,7 @@
-#- include_tasks: roles/callhome/precheck/tasks/storage.yml
+---
 - name: configure | Check callhome capabilitiy
   shell:
-   cmd: "{{ directory }}mmcallhome capability list -Y | grep enabled"
-   # chdir: "{{ directory }}"
+   cmd: "{{ scale_command_path }}mmcallhome capability list -Y | grep enabled"
   register: scale_callhome_config_status
   ignore_errors: true
   failed_when: false
@@ -16,8 +15,7 @@
 
   - name: configure | Setup the call home proxy configuration if enabled
     shell:
-     cmd: "{{ directory }}mmcallhome proxy change --proxy-location {{callhome_params.proxy_location }} --proxy-port {{ callhome_params.proxy_ip }} --proxy-username {{ callhome_params.proxy_user }} --proxy-password {{ callhome_params.proxy_password }}"
-     #chdir: "{{ directory }}"
+     cmd: "{{ scale_command_path }}mmcallhome proxy change --proxy-location {{callhome_params.proxy_location }} --proxy-port {{ callhome_params.proxy_ip }} --proxy-username {{ callhome_params.proxy_user }} --proxy-password {{ callhome_params.proxy_password }}"
     when: scale_callhome_proxy_status | bool
     register: callhome_proxy_status
 
@@ -27,8 +25,7 @@
 
   - name: configure| Setup the call home customer configuration
     shell:
-     cmd: "{{ directory }}mmcallhome info change --customer-name {{ callhome_params.customer_name }} --customer-id {{ callhome_params.customer_id }} --email {{ callhome_params.customer_email}} --country-code {{ callhome_params.customer_country }}"
-     #chdir: "{{ directory }}"
+     cmd: "{{ scale_command_path }}mmcallhome info change --customer-name {{ callhome_params.customer_name }} --customer-id {{ callhome_params.customer_id }} --email {{ callhome_params.customer_email}} --country-code {{ callhome_params.customer_country }}"
     register: scale_callhome_customer_config
   
   - debug:
@@ -36,8 +33,7 @@
 
   - name: configure| Enable callhome
     shell:
-     cmd: "{{ directory }}mmcallhome capability enable"
-     #chdir: "{{ directory }}"
+     cmd: "{{ scale_command_path }}mmcallhome capability enable"
      stdin: accept
     register: scale_callhome_status
     changed_when: scale_callhome_customer_config|bool
@@ -51,8 +47,7 @@
   
   - name: configure | Check if callhome group is already created
     shell:
-     cmd: "{{ directory }}mmcallhome group list"
-     #chdir: "{{ directory }}"
+     cmd: "{{ scale_command_path }}mmcallhome group list"
     ignore_errors: true
     register: scale_callhome_group
 
@@ -61,8 +56,7 @@
     
   - name: configure | Create callhome group
     shell:
-     cmd: "{{ directory }}mmcallhome group auto --server {{ callhome_params.callhome_server }}"
-     # chdir: "{{ directory }}"
+     cmd: "{{ scale_command_path }}mmcallhome group auto --server {{ callhome_params.callhome_server }}"
     when: scale_callhome_group.stdout==""
     register: scale_callhome_group
 
@@ -72,8 +66,7 @@
 
   - name: configure | Setup the call home schedule configuration
     shell:
-     cmd: "{{ directory }}mmcallhome schedule add --task {{ item }}"
-     #chdir: "{{ directory }}"
+     cmd: "{{ scale_command_path }}mmcallhome schedule add --task {{ item }}"
     with_items:
      - "{{ callhome_params.callhome_schedule }}"
     register: scale_callhome_schedule_status
