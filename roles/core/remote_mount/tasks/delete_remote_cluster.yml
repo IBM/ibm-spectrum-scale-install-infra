@@ -3,7 +3,7 @@
   uri:
     validate_certs: no
     force_basic_auth: true
-    url: https://{{ client_cluster_ip }}:{{ gui_port }}/{{ remote_mount_endpoint }}/owningclusters/{{ owning_cluster_name }}
+    url: https://{{ client_cluster_hostname }}:{{ gui_port }}/{{ remote_mount_endpoint }}/owningclusters/{{ owning_cluster_name }}
     method: DELETE
     user: "{{ client_gui_user }}"
     password: "{{ client_gui_password }}"
@@ -15,7 +15,7 @@
   uri:
     validate_certs: no
     force_basic_auth: true
-    url: https://{{ client_cluster_ip }}:{{ gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+    url: https://{{ client_cluster_hostname }}:{{ gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
     method: GET
     user: "{{ client_gui_user }}"
     password: "{{ client_gui_password }}"
