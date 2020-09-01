@@ -95,8 +95,8 @@
         password: "{{ storage_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
-      retries: 10
-      delay: 2
+      retries: "{{ restapi_retries_count }}"
+      delay: "{{ restapi_retries_delay }}"
   when: not remote_clusters_results.failed
 
 - name: Client Cluster (access) | Get the Public Key
@@ -145,8 +145,8 @@
     password: "{{ client_gui_password }}"
   register: completed_check
   until: completed_check.json.jobs[0].status != "FAILED"
-  retries: 10
-  delay: 2
+  retries: "{{ restapi_retries_count }}"
+  delay: "{{ restapi_retries_delay }}"
 
 #
 # Send the Storage Cluster Key to the Client Cluster
@@ -189,8 +189,8 @@
         password: "{{ client_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
-      retries: 10
-      delay: 2
+      retries: "{{ restapi_retries_count }}"
+      delay: "{{ restapi_retries_delay }}"
   when: not access_clusters_results.failed
 
 - name: Storage Cluster (owner) | Get the Public Key
@@ -239,8 +239,8 @@
     password: "{{ client_gui_password }}"
   register: completed_check
   until: completed_check.json.jobs[0].status != "FAILED"
-  retries: 10
-  delay: 2
+  retries: "{{ restapi_retries_count }}"
+  delay: "{{ restapi_retries_delay }}"
 
 - name: Step 3
   debug:
@@ -322,8 +322,8 @@
     password: "{{ client_gui_password }}"
   register: completed_check
   until: completed_check.json.jobs[0].status == "COMPLETED"
-  retries: 10
-  delay: 2
+  retries: "{{ restapi_retries_count }}"
+  delay: "{{ restapi_retries_delay }}"
 
 - name: Step 4
   debug:
@@ -340,7 +340,7 @@
     body_format: json
     body: |
       {
-        "access": "{{ access_attributes }}"
+        "access": "{{ access_mount_attributes }}"
       }
     status_code:
       - 202
@@ -356,8 +356,8 @@
     password: "{{ storage_gui_password }}"
   register: completed_check
   until: completed_check.json.jobs[0].status == "COMPLETED"
-  retries: 10
-  delay: 2
+  retries: "{{ restapi_retries_count }}"
+  delay: "{{ restapi_retries_delay }}"
 
 - name: Step 5
   debug:
@@ -377,10 +377,10 @@
         "remoteFilesystem": "{{ client_filesystem_name }}",
         "owningFilesystem": "{{ storage_filesystem_name }}",
         "owningCluster": "{{ owning_cluster_name }}",
-        "remoteMountPath": "/{{ client_filesystem_name }}",
-        "mountOptions": "rw",
+        "remoteMountPath": "{{ client_remotemount_path }}",
+        "mountOptions": "{{ access_mount_attributes }}",
         "automount": "yes",
-        "mountOnNodes": "yes"
+        "mountOnNodes": "all"
       }
     status_code:
       - 202
@@ -396,5 +396,5 @@
     password: "{{ client_gui_password }}"
   register: completed_check
   until: completed_check.json.jobs[0].status == "COMPLETED"
-  retries: 10
-  delay: 2
+  retries: "{{ restapi_retries_count }}"
+  delay: "{{ restapi_retries_delay }}"

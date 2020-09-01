@@ -42,8 +42,8 @@
         password: "{{ client_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
-      retries: 10
-      delay: 2
+      retries: "{{ restapi_retries_count }}"
+      delay: "{{ restapi_retries_delay }}"
 
     - name: "Client Cluster (access) | Delete the filesystem | DELETE: {{ remote_mount_endpoint }}/remotefilesystems/{{ client_filesystem_name }}?force=yes"
       uri:
@@ -67,6 +67,6 @@
         password: "{{ client_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
-      retries: 10
-      delay: 2
+      retries: "{{ restapi_retries_count }}"
+      delay: "{{ restapi_retries_delay }}"
   when: not remote_filesystem_results.failed

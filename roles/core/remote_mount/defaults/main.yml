@@ -3,13 +3,13 @@
 debug: false
 forceRun: false
 
+# retries - 3 minutes (36 x 5 seconds)
+restapi_retries_count: 36
+restapi_retries_delay: 5
+
 gui_port: 443
 scalemgmt_endpoint: "scalemgmt/v2"
 remote_mount_endpoint: "{{ scalemgmt_endpoint }}/remotemount"
 
 # Storage filesystem
-access_attributes: "rw"
-storage_filesystem_name: "fs1"
-
-# Client filesystem
-client_filesystem_name: "client_fs1"
+access_mount_attributes: "rw"

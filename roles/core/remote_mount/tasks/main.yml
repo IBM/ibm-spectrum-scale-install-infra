@@ -4,7 +4,7 @@
 - name: precheck
   include_tasks: precheck.yml
 
-- name: "Client Cluster (access) | Check if the '{{ client_filesystem_name }}' is already mounted."
+- name: "Client Cluster (access) | Check if the '{{ client_filesystem_name }}' is already configured."
   uri:
     validate_certs: no
     force_basic_auth: yes
@@ -14,26 +14,26 @@
     password: "{{ client_gui_password }}"
     body_format: json
     status_code:
-      - 200
+      - 400
   register: remote_filesystem_results
   ignore_errors: true
 
 - name: msg
   debug:
-    msg: "Force Run was passed in, attempting to run mount regardless of whether the filesystem is mounted."
+    msg: "Force Run was passed in, attempting to run remote_mount role regardless of whether the filesystem is configured."
   when: forceRun | bool
 
 - block:
-    - name: "If filesystem is already mounted, end the play."
+    - name: "If filesystem is already configured, nothing to do."
       debug:
-        msg: "Filesystem '{{ client_filesystem_name }}' is already mounted, nothing to do."
+        msg: "Filesystem '{{ client_filesystem_name }}' is already configured, nothing to do."
 
     - meta: end_play
   when:
-    - remote_filesystem_results.failed is sameas false
+    - remote_filesystem_results.status == 200
     - not forceRun | bool
 
 - name: Remote mount the filesystem when it's not already mounted
   include_tasks: mount_filesystem.yml
   when:
-    - (remote_filesystem_results.failed) or (forceRun | bool)
+    - (remote_filesystem_results.status == 400) or (forceRun | bool)
