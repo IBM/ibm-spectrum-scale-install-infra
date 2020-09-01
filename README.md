@@ -30,6 +30,8 @@ Features
 #### OS support
 - [x] Support for RHEL 7 on x86_64, PPC64 and PPC64LE
 - [x] Support for RHEL 8 on x86_64 and PPC64LE
+- [x] Support for UBUNTU 20 on x86_64 and PPC64LE
+- [x] Support for SLES 15 on x86_64 and PPC64LE
 
 #### Common prerequisites
 - [x] Disable SELinux (`scale_prepare_disable_selinux: true`), by default false
@@ -88,6 +90,7 @@ The following IBM Spectrum Scale versions are supported:
 - 5.0.4.0
 - 5.0.4.1
 - 5.0.4.2
+- 5.0.5.X
 
 
 Prerequisites
@@ -260,7 +263,7 @@ Installation Instructions
      ```yaml
      # group_vars/all.yml:
      ---
-     callhome_params:
+     scale_callhome_params:
        is_enabled: true
        customer_name: abc
        customer_email: abc@abc.com

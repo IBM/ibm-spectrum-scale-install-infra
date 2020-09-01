@@ -1,0 +1,24 @@
+---
+#
+# Install or update packages
+#
+- block:  ## when: not scale_daemon_running
+    - block:
+        - name: install | dependencies pacage
+          zypper:
+            name: binutils
+            state: present
+
+        - name: install | Install GPFS packages
+          zypper:
+            name: "{{ scale_install_all_packages }}"
+            state: present
+            disable_gpg_check: no
+          register: scale_install_zypppackageresult
+
+        - name: install | Check if GPFS packages were updated
+          set_fact:
+            scale_install_updated: true
+          when:
+            - (scale_install_zypppackageresult.changed)
+  when: not scale_daemon_running
