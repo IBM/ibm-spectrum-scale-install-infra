@@ -8,7 +8,7 @@
   uri:
     validate_certs: no
     force_basic_auth: yes
-    url: https://{{ client_cluster_hostname }}:{{ gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ client_filesystem_name }}
+    url: https://{{ client_cluster_ip }}:{{ gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ client_filesystem_name }}
     method: GET
     user: "{{ client_gui_user }}"
     password: "{{ client_gui_password }}"
@@ -17,6 +17,15 @@
       - 400
   register: remote_filesystem_results
   ignore_errors: true
+
+- block:
+    - name: "Unauthorized"
+      debug:
+        msg: "The user is not authorized to access the Client Cluster, http return code: {{ remote_filesystem_results.status }}"
+
+    - meta: end_play
+  when:
+    - remote_filesystem_results.status == 401
 
 - name: msg
   debug:
