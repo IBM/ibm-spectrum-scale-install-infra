@@ -8,7 +8,7 @@
   uri:
     validate_certs: no
     force_basic_auth: yes
-    url: https://{{ client_cluster_ip }}:{{ gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ client_filesystem_name }}
+    url: https://{{ client_cluster_hostname }}:{{ client_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ client_filesystem_name }}
     method: GET
     user: "{{ client_gui_user }}"
     password: "{{ client_gui_password }}"

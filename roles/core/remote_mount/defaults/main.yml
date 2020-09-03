@@ -7,7 +7,9 @@ forceRun: false
 restapi_retries_count: 36
 restapi_retries_delay: 5
 
-gui_port: 443
+client_gui_port: 443
+storage_gui_port: 443
+
 scalemgmt_endpoint: "scalemgmt/v2"
 remote_mount_endpoint: "{{ scalemgmt_endpoint }}/remotemount"
 
