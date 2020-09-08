@@ -12,10 +12,13 @@
   failed_when: false
 
 - name: wait-daemon-active
-  shell: /usr/lpp/mmfs/bin/mmgetstate -N localhost -Y | grep -v HEADER | cut -d ':' -f 9
+  shell: /usr/lpp/mmfs/bin/mmgetstate -N {{ scale_daemon_node_list | join(',') }} -Y | grep -v HEADER | cut -d ':' -f 9
   register: state
-  until: state.stdout == 'active'
+  until:
+     - ((state.stdout_lines | union(scale_state)) | length) == (scale_state | length)
+     - "'active' in state.stdout_lines"
   retries: 10
   delay: 30
   changed_when: false
-# handlers file for node
+  delegate_to: "{{ deligate_node }}"
+  when: scale_daemon_node_list|length > 0

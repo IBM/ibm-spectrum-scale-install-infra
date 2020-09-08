@@ -1,0 +1,19 @@
+---
+
+#
+# Install or update RPMs
+#
+- name: install | Install GPFS Zimon packages
+  package:
+    name: "{{ scale_install_all_packages }}"
+    state: present
+  when: scale_install_zimon_repository_url is defined
+
+- block:
+    - name: install | Install GPFS zimon packages
+      apt:
+        deb: "{{ item }}"
+        state: present
+      with_items:
+        - "{{ scale_install_all_packages }}"
+  when: scale_install_zimon_repository_url is not defined

@@ -35,6 +35,7 @@
       changed_when: false
       failed_when: false
   run_once: true
+  delegate_to: "{{ groups['scale_cluster_admin_nodes'].0 }}"
 
 - name: storage | Initialize undefined variables
   set_fact:
@@ -98,6 +99,10 @@
       when:
         - item.size > 1
       with_items: "{{ scale_storage_stanzafile_new.results }}"
+
+    - name: storage | Wait for NSD configuration to be synced across cluster
+      wait_for:
+        timeout: 30
 
 #
 # Create new filesystems
@@ -310,3 +315,4 @@
         - scale_storage_existing_fsmounts.stdout is search(':' + item.key + ':' + item.key + ':' + scale_cluster_clustername + ':0:')
       with_dict: "{{ scale_storage_fsparams | default({}) }}"
   run_once: true
+  delegate_to: "{{ groups['scale_cluster_admin_nodes'].0 }}"

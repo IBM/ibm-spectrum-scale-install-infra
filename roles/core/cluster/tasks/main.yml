@@ -1,6 +1,9 @@
 ---
 # Configure IBM Spectrum Scale (GPFS)
 
+- import_tasks: check.yml
+  tags: always
+
 - import_tasks: cluster.yml
   tags: cluster
 
@@ -15,3 +18,7 @@
 
 - import_tasks: finalize.yml
   tags: always
+
+# cluster node remover playbook
+- import_tasks: removenode.yml
+  tags: removenode

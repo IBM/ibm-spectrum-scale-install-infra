@@ -1,0 +1,35 @@
+---
+# Sanity check of configuration variables
+
+- name: check | Count daemon processes
+  command: pgrep mmfsd
+  register: scale_daemon_procs
+  changed_when: false
+  failed_when: false
+
+- name: check | Check if daemon is running
+  set_fact:
+    scale_daemon_running: "{{ true if scale_daemon_procs.rc == 0 else false }}"
+
+# Make default variables available in hostvars
+- name: check | Set default daemon nodename
+  set_fact:
+    scale_daemon_nodename: "{{ scale_daemon_nodename }}"
+  when: hostvars[inventory_hostname].scale_daemon_nodename is undefined
+
+- name: check | Assign default admin nodes
+  set_fact:
+     is_admin_node: true
+  when: true not in ansible_play_hosts | map('extract', hostvars, 'is_admin_node') | map('bool') | list
+  with_sequence: start=1 end={{ [ ansible_play_hosts | length, 1 ] | min }}
+  run_once: true
+  delegate_to: "{{ ansible_play_hosts[item | int - 1] }}"
+  delegate_facts: true
+
+- name: check | Find admin nodes
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_admin_nodes
+  when: hostvars[item].is_admin_node is defined and hostvars[item].is_admin_node | bool
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false

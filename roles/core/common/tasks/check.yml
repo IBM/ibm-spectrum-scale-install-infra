@@ -3,7 +3,20 @@
 
 - block:
     - block:
-        - name: common | Find available scale version
+        - name: check | Stat GPFS base package
+          find:
+            paths: "{{ scale_install_directory_pkg_path }}"
+            patterns: gpfs.base*{{ scale_architecture }}*
+          register: scale_stat_result
+
+        - name: check | If GPFS base package is exists or not
+          assert:
+            that: scale_stat_result.matched > 0
+            msg: >-
+              Unable to determine GPFS version. Ensure the GPFS packages are
+              available in a relative path to the specified directory.
+
+        - name: check | Find available scale version
           shell: rpm -qp "{{ scale_install_directory_pkg_path }}/gpfs.base-*.{{ scale_architecture }}.rpm"
                  --qf '%{VERSION}.%{RELEASE}\n' | cut -d '.' -f -4
           args:
@@ -27,7 +40,7 @@
             scale_package: "{{ scale_install_remotepkg_path | basename }}"
           when: scale_install_remotepkg_path is defined
 
-        - name: common | Find available scale version
+        - name: check | Find available scale version
           shell: "echo {{ scale_package }} | cut -d '-' -f 2"
           args:
            warn: false
@@ -73,3 +86,16 @@
   set_fact:
     scale_daemon_nodename: "{{ scale_daemon_nodename }}"
   when: hostvars[inventory_hostname].scale_daemon_nodename is undefined
+
+# set dynamic variable based on supported OS
+- name: check | Set variables based on yum/dnf based OS
+  include: yum/set_vars.yml
+  when: ansible_distribution in scale_rhel_distribution
+
+- name: check | Set variables based on apt based os
+  include: apt/set_vars.yml
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- name: check | Set variables based on zypper based OS
+  include: zypper/set_vars.yml
+  when: ansible_distribution in scale_sles_distribution

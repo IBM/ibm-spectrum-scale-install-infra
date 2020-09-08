@@ -1,0 +1,141 @@
+---
+# Local package installation method
+
+- block:  ## run_once: true
+    - name: install | Stat local installation package
+      stat:
+        path: "{{ scale_install_localpkg_path }}"
+      register: scale_install_localpkg
+
+    - name: install | Check local installation package
+      assert:
+        that: scale_install_localpkg.stat.exists
+        msg: >-
+          Please set the variable 'scale_install_localpkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+#
+# Optionally, verify package checksum
+#
+    - name: install | Stat checksum file
+      stat:
+        path: "{{ scale_install_localpkg_path }}.md5"
+      register: scale_install_md5_file
+
+    - block:  ## when: scale_install_md5_file.stat.exists
+        - name: install | Read checksum from file
+          set_fact:
+            scale_install_md5_sum: "{{ lookup('file', scale_install_localpkg_path + '.md5') }}"
+
+        - name: install | Compare checksums
+          assert:
+            that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.md5
+            msg: >-
+              Checksums don't match. Please check integritiy of your local
+              installation package!
+      when: scale_install_md5_file.stat.exists
+  run_once: true
+  delegate_to: localhost
+
+#
+# Copy installation package
+#
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ scale_callhome_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
+    - name: install | Stat temporary directory
+      stat:
+        path: "{{ scale_install_localpkg_tmpdir_path }}"
+      register: scale_install_localpkg_tmpdir
+
+    - name: install | Check temporary directory
+      assert:
+        that:
+          - scale_install_localpkg_tmpdir.stat.exists
+          - scale_install_localpkg_tmpdir.stat.isdir
+        msg: >-
+          Please set the variable 'scale_install_localpkg_tmpdir_path' to point
+          to a temporary directory on the remote system!
+    - name: install | Copy installation package to node
+      copy:
+        src: "{{ scale_install_localpkg_path }}"
+        dest: "{{ scale_install_localpkg_tmpdir_path }}"
+        mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+#
+# Extract installation package
+#
+- name: install | Extract installation package
+  vars:
+    localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+  command: "{{ localpkg + ' --silent' }}"
+  args:
+    creates: "{{ scale_callhome_extracted_path }}"
+
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ scale_callhome_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs_rpmdir.stat.exists
+      - scale_install_gpfs_rpmdir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      local installation package!
+#
+# Delete installation package
+#
+- name: install | Delete installation package from node
+  file:
+    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+    state: absent
+
+- name: install | callhome path
+  set_fact:
+   callhome_url: 'gpfs_rpms/'
+  when: ansible_distribution == 'RedHat' or ansible_distribution == 'SLES'
+
+- name: install | callhome path
+  set_fact:
+   callhome_url: 'gpfs_debs/'
+  when: ansible_distribution == 'Ubuntu'
+
+- block:
+  - name: install | Find gpfs.java (gpfs.java) package
+    find:
+     paths: "{{ scale_callhome_extracted_path }}/{{ callhome_url }}"
+     patterns: gpfs.java*
+    register: scale_install_gpfs_java
+
+  - name: install | Check valid GPFS (gpfs.java) package
+    assert:
+     that: scale_install_gpfs_java.matched > 0
+     msg: "No GPFS java (gpfs.java) package found: {{ scale_callhome_extracted_path }}/{{ callhome_url }}gpfs.java*"
+
+- block:
+  - name: install | Find gpfs.callhome (gpfs.callhome) package
+    find:
+     paths: "{{ scale_callhome_extracted_path }}/{{ callhome_url }}"
+     patterns: gpfs.callhome-ecc-client*
+    register: scale_install_gpfs_callhome
+
+  - name: install | Check valid GPFS (gpfs.callhome) package
+    assert:
+     that: scale_install_gpfs_callhome.matched > 0
+     msg: "No GPFS callhome (gpfs.callhome) package found: {{ scale_callhome_extracted_path }}/{{ callhome_url }}/gpfs.callhome-ecc-client-*"
+
+- name: install | Add GPFS callhome package to list
+  vars:
+   current_package: "{{ item }}"
+  set_fact:
+   scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
+  - "{{ scale_install_gpfs_java.files.0.path }}"
+  - "{{ scale_install_gpfs_callhome.files.0.path }}"
+

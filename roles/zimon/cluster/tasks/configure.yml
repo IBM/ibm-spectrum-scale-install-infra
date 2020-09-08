@@ -2,12 +2,12 @@
 # Configure GUI service and performance collection
 
 # Make default variables available in hostvars
-- name: cluster | Set default zimon collector role
+- name: configure | Set default zimon collector role
   set_fact:
     scale_zimon_collector: "{{ scale_zimon_collector }}"
   when: hostvars[inventory_hostname].scale_zimon_collector is undefined
 
-- name: cluster | Set default zimon collector role if GUI node is defined
+- name: configure | Set default zimon collector role if GUI node is defined
   set_fact:
     scale_zimon_collector: "{{ scale_cluster_gui }}"
   when: (scale_cluster_gui is defined and scale_cluster_gui | bool)
@@ -25,7 +25,7 @@
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
-- name: cluster | check if zimon is enabled
+- name: configure | check if zimon is enabled
   set_fact:
     scale_cluster_zimon: true
   when:
@@ -67,7 +67,7 @@
         - " 'mmperfmon: There is no performance monitoring configuration data.' in scale_zimon_conf_pmcollector_check.stderr"
     #- " ( collector_nodes | join(',') ) not in scale_zimon_conf_pmcollector_check.stdout"
 
-    - name: configure | update performace collection for new node
+    - name: configure | update performance collection for new node
       vars:
         collector_nodes_new: "{{ groups['scale_zimon_collectors'] | list }}"
       command: /usr/lpp/mmfs/bin/mmperfmon config update --collectors "{{ collector_nodes_new | join(',') }}"
@@ -100,6 +100,8 @@
   vars:
     sensor_nodes: "{{ ansible_play_hosts | list }}"
   command: /usr/lpp/mmfs/bin/mmchnode --perfmon -N {{ sensor_nodes | join(',') }}
+  async: 45
+  poll: 5
   register: scale_zimon_conf_enable_node_perfmon
   run_once: true
   ignore_errors: yes

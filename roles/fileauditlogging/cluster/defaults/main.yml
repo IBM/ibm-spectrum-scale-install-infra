@@ -1,0 +1,14 @@
+---
+# Default variables for the IBM Spectrum Scale (GPFS) (audit logging) role -
+# either edit this file or define your own variables to override the defaults
+
+## Flag to enable fileauditlogging
+scale_fileauditlogging_enable: true
+
+## Default filesystem parameters for file audit logging-
+## can be overridden for each filesystem individually
+scale_storage_fal_defaults:
+  logfileset: .audit_log
+  retention: 365
+## To Enabled output from Ansible task in stdout and stderr for some tasks.
+## Run the playbook with -vv

@@ -16,10 +16,11 @@
   failed_when: false
 
 - name: update | Find available version
-  shell: rpm -qp "{{ gpfs_path_url }}/gpfs.base-*.{{ scale_architecture }}.rpm" --qf '%{VERSION}-%{RELEASE}\n'
+  shell: rpm -qp "{{ scale_gpfs_path_url }}/gpfs.base-*.{{ scale_architecture }}.rpm" --qf '%{VERSION}-%{RELEASE}\n'
   args:
     warn: false
   register: scale_repo_gpfsversion
+  when: scale_install_repository_url is undefined
   changed_when: false
 
 - name: update | Check if node needs to be updated

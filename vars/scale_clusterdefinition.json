@@ -2,39 +2,77 @@
   "node_details": [
     {
       "fqdn" : host-vm1,
-      "ip_address" : 192.168.100.101,
-      "is_nsd_server": True,
-      "is_quorum_node" : True,
-      "is_manager_node" : True,
-      "is_gui_server" : False,
+      "ip_address" : 127.0.0.1,
+      "is_protocol_node" :false,
+      "is_nsd_server" : false,
+      "is_quorum_node" : false,
+      "is_manager_node" : false,
+      "is_gui_server" : false,
+      "is_callhome_node" : false,
+      "scale_zimon_collector" : false
     },
     {
       "fqdn" : host-vm2,
-      "ip_address" : 192.168.100.102,
-      "is_nsd_server": True,
-      "is_quorum_node" : True,
-      "is_manager_node" : True,
-      "is_gui_server" : False,
+      "ip_address" : 127.0.0.1,
+      "is_protocol_node" : false,
+      "is_nsd_server" : false,
+      "is_quorum_node" : false,
+      "is_manager_node" : false,
+      "is_gui_server" : false,
+      "is_callhome_node" : false,
+      "scale_zimon_collector" : false
     },
+    {
+      "fqdn" : host-vm3,
+      "ip_address" : 127.0.0.1,
+      "is_protocol_node" : false,
+      "is_nsd_server" : false,
+      "is_quorum_node" : false,
+      "is_manager_node" : false,
+      "is_gui_server" : false,
+      "is_callhome_node" : false,
+      "scale_zimon_collector" : false
+    }
   ],
   "scale_storage":[
     {
-      "filesystem": "fs1",
+      "filesystem": "cesSharedRoot",
       "blockSize": 4M,
+      "defaultMetadataReplicas": 1,
       "defaultDataReplicas": 1,
-      "defaultMountPoint": "/mnt/fs1",
+      "automaticMountOption": true,
+      "defaultMountPoint": /gpfs/cesSharedRoot,
       "disks": [
        {
-        "device": "/dev/sdd",
+        "device": "/dev/sdb",
         "nsd": "nsd1",
-        "servers": "host-vm1"
-       },
-       {
-        "device": "/dev/sdf",
-        "nsd": "nsd2",
-        "servers": "host-vm1,host-vm2"
+        "servers": "host-vm3",
+        "usage": dataAndMetadata,
+        "pool": system
        }
       ]
     }
-  ]   
+  ],
+  "scale_callhome_params":{
+      "is_enabled": false,
+      "customer_name": abc,
+      "customer_email": abc@abc.com,
+      "customer_id": 12345,
+      "customer_country": IN,
+      "proxy_ip":,
+      "proxy_port":,
+      "proxy_user":,
+      "proxy_password":,
+      "proxy_location":,
+      "callhome_server": host-vm1,
+      "callhome_group1": [host-vm1,host-vm2,host-vm3],
+      "callhome_schedule": [daily,weekly]
+  },
+  "scale_protocols":{
+      "smb": false,
+      "nfs": false,
+      "export_ip_pool": [192.168.100.100,192.168.100.101],
+      "filesystem": cesSharedRoot,
+      "mountpoint": /gpfs/cesSharedRoot
+  }
 }
