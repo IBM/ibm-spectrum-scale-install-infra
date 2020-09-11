@@ -211,37 +211,6 @@
     var: owningkey_result
   when: debug is true
 
-- name: Client Cluster (access) | Send the Public Key of the Storage Cluster (owner)
-  uri:
-    validate_certs: no
-    force_basic_auth: true
-    url: https://{{ client_cluster_hostname }}:{{ client_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters
-    method: POST
-    user: "{{ client_gui_user }}"
-    password: "{{ client_gui_password }}"
-    body_format: json
-    body: |
-      {
-        "remoteCluster": "{{ owning_cluster_name }}",
-        "key": {{ owningkey_result.json.key | trim | replace(", ", ",") }}
-      }
-    status_code:
-      - 202
-  register: send_key
-
-- name: "Client Cluster (access) | Check the result of adding Storage Cluster {{ send_key.json.jobs[0].jobId }}"
-  uri:
-    validate_certs: no
-    force_basic_auth: true
-    url: https://{{ client_cluster_hostname }}:{{ client_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ send_key.json.jobs[0].jobId }}
-    method: GET
-    user: "{{ client_gui_user }}"
-    password: "{{ client_gui_password }}"
-  register: completed_check
-  until: completed_check.json.jobs[0].status != "FAILED"
-  retries: "{{ restapi_retries_count }}"
-  delay: "{{ restapi_retries_delay }}"
-
 - name: Step 3
   debug:
     msg: "Add the storage cluster (mmremotecluster add)"
