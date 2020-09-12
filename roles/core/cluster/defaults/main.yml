@@ -57,17 +57,12 @@ scale_storage_filesystem_defaults:
 # defaults file for node
 
 # Specifies a predefined profile of attributes to be applied.
-# System-defined profiles are located in /usr/lpp/mmfs/profiles/. 
-# The following system-defined profile names are accepted: 
+# System-defined profiles are located in /usr/lpp/mmfs/profiles/.
+# The following system-defined profile names are accepted:
 # gpfsprotocoldefaults and gpfsprotocolrandomio
 # eg: If you want to apply gpfsprotocoldefaults then specify scale_cluster_profile_name: gpfsprotocoldefaults
 scale_cluster_profile_name: None
 
+# Fixed variable related to mmcrcluster profile
 # System-defined profiles are located in /usr/lpp/mmfs/profiles/
 scale_cluster_profile_dir_path: /usr/lpp/mmfs/profiles/
-
-gpfs_cluster_system_profile:
-   - gpfsprotocoldefaults
-   - gpfsprotocolrandomio
-
-scale_cluster_profile_system_path: /var/mmfs/etc/

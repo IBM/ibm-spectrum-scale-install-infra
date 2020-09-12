@@ -1,0 +1,15 @@
+---
+- name: set | Get architecture
+  command: dpkg --print-architecture
+  register: scale_ubuntu_arch
+  changed_when: false
+
+- name: set | Set scale_architecture
+  set_fact:
+    scale_architecture: "{{ scale_ubuntu_arch.stdout }}"
+
+- name: set | apt gpfs base path
+  set_fact:
+    scale_gpfs_path_url: "{{ scale_extracted_path }}/gpfs_debs"
+  when:
+    - scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
