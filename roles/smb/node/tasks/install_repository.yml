@@ -1,7 +1,7 @@
 ---
 - name: install | Initialize
   set_fact:
-   smb_url: ""
+   scale_smb_url: ""
    gpgcheck: "yes"
 
 - name: install | Disable gpg check
@@ -11,34 +11,34 @@
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_rpms/rhel7/'
+   scale_smb_url: 'smb_rpms/rhel7/'
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_rpms/rhel8/'
+   scale_smb_url: 'smb_rpms/rhel8/'
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_rpms/sles12/'
+   scale_smb_url: 'smb_rpms/sles12/'
   when: ansible_distribution == 'SLES'
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_debs/ubuntu/ubuntu16/'
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_debs/ubuntu/ubuntu18/'
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
 
 - name: install | Configure smb YUM repository
   yum_repository:
     name: spectrum-scale-smb
     description: IBM Spectrum Scale (smb)
-    baseurl: "{{ scale_install_repository_url }}{{ smb_url }}"
+    baseurl: "{{ scale_install_repository_url }}{{ scale_smb_url }}"
     gpgcheck: "{{ gpgcheck }}"
     repo_gpgcheck: no
     state: present
@@ -50,7 +50,7 @@
 - name: install | Configure smb zypper repository
   zypper_repository:
     name: spectrum-scale-smb-rpms
-    repo: "{{ scale_install_repository_url }}{{ smb_url }}"
+    repo: "{{ scale_install_repository_url }}{{ scale_smb_url }}"
     runrefresh: yes
     state: present
     disable_gpg_check: yes
@@ -61,7 +61,7 @@
 - name: install | Configure smb APT repository
   apt_repository:
     filename: spectrum-scale-smb-debs
-    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ smb_url }} ./"
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ scale_smb_url }} ./"
     validate_certs: no
     state: present
     update_cache: yes
