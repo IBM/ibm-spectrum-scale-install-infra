@@ -1,0 +1,5 @@
+---
+# tasks file for postcheck
+- include_tasks: check.yml
+  tags: always
+  when: (scale_fileauditlogging_enable | bool)
