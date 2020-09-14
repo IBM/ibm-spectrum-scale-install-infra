@@ -1,4 +1,7 @@
 {
+  "scale_cluster": {
+        "scale_cluster_name": "gpfs1.local"
+  },
   "node_details": [
     {
       "fqdn" : host-vm1,
