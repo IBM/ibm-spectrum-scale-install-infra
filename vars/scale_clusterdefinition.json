@@ -1,8 +1,12 @@
 {
+  "scale_cluster": {
+        "scale_cluster_name": "gpfs1.local"
+  },
   "node_details": [
     {
       "fqdn" : host-vm1,
       "ip_address" : 127.0.0.1,
+      "is_protocol_node" :false,
       "is_nsd_server" : false,
       "is_quorum_node" : false,
       "is_manager_node" : false,
@@ -13,6 +17,7 @@
     {
       "fqdn" : host-vm2,
       "ip_address" : 127.0.0.1,
+      "is_protocol_node" : false,
       "is_nsd_server" : false,
       "is_quorum_node" : false,
       "is_manager_node" : false,
@@ -23,6 +28,7 @@
     {
       "fqdn" : host-vm3,
       "ip_address" : 127.0.0.1,
+      "is_protocol_node" : false,
       "is_nsd_server" : false,
       "is_quorum_node" : false,
       "is_manager_node" : false,
@@ -64,5 +70,12 @@
       "callhome_server": host-vm1,
       "callhome_group1": [host-vm1,host-vm2,host-vm3],
       "callhome_schedule": [daily,weekly]
+  },
+  "scale_protocols":{
+      "smb": false,
+      "nfs": false,
+      "export_ip_pool": [192.168.100.100,192.168.100.101],
+      "filesystem": cesSharedRoot,
+      "mountpoint": /gpfs/cesSharedRoot
   }
 }

@@ -1,0 +1,13 @@
+---
+- name: postcheck | Check if NFS is running
+  shell:
+   cmd: "{{ scale_command_path }}mmces service list|grep NFS"
+  register: scale_nfs_status
+  when: ansible_fqdn in scale_nfs_nodes_list
+
+- name: postcheck | Check if NFS is running
+  assert:
+   that:
+   - scale_nfs_status.rc == 0
+   fail_msg: "NFS is not active on {{ ansible_hostname }}"
+  when: ansible_fqdn in scale_nfs_nodes_list

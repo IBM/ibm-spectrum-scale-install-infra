@@ -1,0 +1,78 @@
+---
+- name: install | Initialize
+  set_fact:
+   scale_smb_url: ""
+   gpgcheck: "yes"
+
+- name: install | Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_rpms/rhel7/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_rpms/rhel8/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_rpms/sles12/'
+  when: ansible_distribution == 'SLES'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
+
+- name: install | Configure smb YUM repository
+  yum_repository:
+    name: spectrum-scale-smb
+    description: IBM Spectrum Scale (smb)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_smb_url }}"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure smb zypper repository
+  zypper_repository:
+    name: spectrum-scale-smb-rpms
+    repo: "{{ scale_install_repository_url }}{{ scale_smb_url }}"
+    runrefresh: yes
+    state: present
+    disable_gpg_check: yes
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure smb APT repository
+  apt_repository:
+    filename: spectrum-scale-smb-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ scale_smb_url }} ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (SMB debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Add GPFS smb packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_smb_packages }}"

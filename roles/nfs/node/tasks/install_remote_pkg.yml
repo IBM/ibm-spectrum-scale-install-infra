@@ -1,0 +1,306 @@
+---
+# Remote package installation method
+
+- name: install | Stat remote installation package
+  stat:
+    path: "{{ scale_install_remotepkg_path }}"
+  register: scale_install_remotepkg
+
+- name: install | Check remote installation package
+  assert:
+    that: scale_install_remotepkg.stat.exists
+    msg: >-
+      Please set the variable 'scale_install_remotepkg_path' to point to the
+      remote installation package (accessible on Ansible managed node)!
+
+#
+# Optionally, verify package checksum
+#
+- name: install | Stat checksum file
+  stat:
+    path: "{{ scale_install_remotepkg_path }}.md5"
+  register: scale_install_md5_file
+
+- block:  ## when: scale_install_md5_file.stat.exists
+    - name: install | Read checksum from file
+      slurp:
+        src: "{{ scale_install_remotepkg_path }}.md5"
+      register: scale_install_md5_sum
+
+    - name: install | Compare checksums
+      vars:
+        md5sum: "{{ scale_install_md5_sum.content | b64decode }}"
+      assert:
+        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.md5
+        msg: >-
+          Checksums don't match. Please check integritiy of your remote
+          installation package!
+  when: scale_install_md5_file.stat.exists
+
+#
+# Extract installation package
+#
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ nfs_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Make installation package executable
+  file:
+    path: "{{ scale_install_remotepkg_path }}"
+    mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+- name: install | Extract installation package
+  command: "{{ scale_install_remotepkg_path + ' --silent' }}"
+  args:
+    creates: "{{ nfs_extracted_path }}"
+
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ nfs_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs_rpmdir.stat.exists
+      - scale_install_gpfs_rpmdir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      remote installation package!
+
+- name: install | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_rpms/rhel7/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+
+- name: install | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_rpms/rhel8/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+
+- name: install | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_debs/ubuntu16/'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: install | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_rpms/sles12/'
+  when: ansible_distribution == 'SLES'
+
+- name: install | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/rhel7/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+
+- name: install | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/rhel8/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+
+- name: install | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_debs/ubuntu16/'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: install | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/sles12/'
+  when: ansible_distribution == 'SLES' and ansible_distribution_major_version == '12'
+
+- name: install | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/sles15/'
+  when: ansible_distribution == 'SLES' and ansible_distribution_major_version == '15'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
+
+- block:  ## when: host is defined as a protocol node
+
+  - name: install | Find gpfs.smb (gpfs.smb) package
+    find:
+     paths:  "{{ nfs_extracted_path }}/{{ scale_smb_url }}"
+     patterns: gpfs.smb*
+    register: scale_install_gpfs_smb
+
+  - name: install | Check valid GPFS (gpfs.smb) package
+    assert:
+     that: scale_install_gpfs_smb.matched > 0
+     msg: "No GPFS nfs ganesha(gpfs.nfs-ganesha) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha*"
+
+  - name: install | Add GPFS package to list
+    vars:
+     current_package: "{{ item.path }}"
+    set_fact:
+     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+    when: scale_install_gpfs_nfs_ganesha.files is defined
+    with_items:
+    - "{{ scale_install_gpfs_smb.files }}"
+  when: ansible_distribution == 'Ubuntu'
+
+- block:  ## when: host is defined as a protocol node
+
+  - name: install | Find gpfs.nfs-ganesha (gpfs.nfs-ganesha) package
+    find:
+     paths:  "{{ nfs_extracted_path }}/{{ scale_nfs_url }}"
+     patterns: gpfs.nfs-ganesha_*
+    register: scale_install_gpfs_nfs_ganesha
+
+  - name: install | Check valid GPFS (gpfs.nfs-ganesha) package
+    assert:
+     that: scale_install_gpfs_nfs_ganesha.matched > 0
+     msg: "No GPFS nfs ganesha(gpfs.nfs-ganesha) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha*"
+  
+  - name: install | Add GPFS package to list
+    vars:
+     current_package: "{{ item.path }}"
+    set_fact:
+     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+    when: scale_install_gpfs_nfs_ganesha.files is defined
+    with_items:
+    - "{{ scale_install_gpfs_nfs_ganesha.files }}"
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- block:  ## when: host is defined as a protocol node
+
+  - name: install | Find gpfs.nfs-ganesha (gpfs.nfs-ganesha) package
+    find:
+     paths:  "{{ nfs_extracted_path }}/{{ scale_nfs_url }}"
+     patterns: gpfs.nfs-ganesha*
+    register: scale_install_gpfs_nfs_ganesha
+
+  - name: install | Check valid GPFS (gpfs.nfs-ganesha) package
+    assert:
+     that: scale_install_gpfs_nfs_ganesha.matched > 0
+     msg: "No GPFS nfs ganesha(gpfs.nfs-ganesha) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha*"
+
+  - name: install | Add GPFS package to list
+    vars:
+     current_package: "{{ item.path }}"
+    set_fact:
+     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+    when: scale_install_gpfs_nfs_ganesha.files is defined
+    with_items:
+    - "{{ scale_install_gpfs_nfs_ganesha.files }}"
+  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
+
+- block:
+  - name: install | Find gpfs.nfs-ganesha-utils (gpfs.nfs-ganesha) package
+    find:
+     paths:  "{{ nfs_extracted_path }}/{{ scale_nfs_url }}"
+     patterns: gpfs.nfs-ganesha-utils*
+    register: scale_install_gpfs_nfs_utils
+
+  - name: install | Check valid GPFS (gpfs.nfs-ganesha) package
+    assert:
+     that: scale_install_gpfs_nfs_utils.matched > 0
+     msg: "No GPFS utils (gpfs.nfs-ganesha-utils) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha-utils*"
+  when: ansible_distribution == 'RedHat'
+
+- block:
+  - name: install | Find gpfs.nfs-ganesha-gpfs (gpfs.nfs-ganesha) package
+    find:
+     paths:  "{{ nfs_extracted_path }}/{{ scale_nfs_url }}"
+     patterns: gpfs.nfs-ganesha-gpfs*
+    register: scale_install_gpfs_nfs_gpfs
+
+  - name: install | Check valid GPFS (gpfs.nfs-ganesha) package
+    assert:
+     that: scale_install_gpfs_nfs_gpfs.matched > 0
+     msg: "No GPFS utils (gpfs.nfs-ganesha-gpfs)  found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha-gpfs*"
+
+- block:
+  - name: install | Find gpfs.nfs-ganesha-doc (gpfs.nfs-ganesha-doc) package
+    find:
+     paths:  "{{ nfs_extracted_path }}/{{ scale_nfs_url }}"
+     patterns: gpfs.nfs-ganesha-doc*
+    register: scale_install_gpfs_nfs_doc
+
+  - name: install | Check valid GPFS (gpfs.nfs-ganesha-doc) package
+    assert:
+     that: scale_install_gpfs_nfs_doc.matched > 0
+     msg: "No GPFS utils (gpfs.nfs-ganesha-doc) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha-doc*"
+  when: ansible_distribution == 'Ubuntu'
+
+- block:
+  - name: install | Find gpfs.python-nfs-ganesha (gpfs.python-nfs-ganesha) package
+    find:
+     paths:  "{{ nfs_extracted_path }}/{{ scale_nfs_url }}"
+     patterns: gpfs.python-nfs-ganesha*
+    register: scale_install_gpfs_nfs_python
+
+  - name: install | Check valid GPFS (gpfs.python-nfs-ganesha) package
+    assert:
+     that: scale_install_gpfs_nfs_python.matched > 0
+     msg: "No GPFS utils (gpfs.python-nfs-ganesha) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.python-nfs-ganesha*"
+  when: ansible_distribution == 'Ubuntu'
+
+- block:
+  - name: install | Find gpfs.pm-ganesha (gpfs.pm-ganesha) package
+    find:
+     paths:  "{{ nfs_extracted_path }}/{{ scale_zimon_url }}"
+     patterns: gpfs.pm-ganesha*
+    register: scale_install_gpfs_nfs_pm
+
+  - name: install | Check valid GPFS (gpfs.pm-ganesha) package
+    assert:
+     that: scale_install_gpfs_nfs_pm.matched > 0
+     msg: "No GPFS utils (gpfs.pm-ganesha) package found {{ nfs_extracted_path }}/{{ scale_zimon_url }}gpfs.pm-ganesha*"
+
+- block:  ## when: host is defined as a protocol node
+
+  - name: install | Find gpfs.nfs-ganesha (gpfs.nfs-ganesha) package
+    find:
+     paths:  "{{ nfs_extracted_path }}/{{ scale_nfs_url }}"
+     patterns: gpfs.nfs-ganesha-debuginfo*
+    register: scale_install_gpfs_nfs_ganesha_debuginfo
+
+  - name: install | Check valid GPFS (gpfs.nfs-ganesha-debuginfo) package
+    assert:
+     that: scale_install_gpfs_nfs_ganesha_debuginfo.matched > 0
+     msg: "No GPFS nfs ganesha(gpfs.nfs-ganesha-debuginfo) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha-debuginfo*"
+  when: ansible_distribution == 'RedHat'
+
+- name: install | Add GPFS package to list
+  vars:
+   current_package: "{{ item.path }}"
+  set_fact:
+   scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
+  - "{{ scale_install_gpfs_nfs_python.files }}"
+  - "{{ scale_install_gpfs_nfs_doc.files }}"
+  when: ansible_distribution == 'Ubuntu'
+
+- name: install | Add GPFS package to list
+  vars:
+   current_package: "{{ item.path }}"
+  set_fact:
+   scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
+  - "{{ scale_install_gpfs_nfs_pm.files }}"
+
+- block:
+  - name: initialize
+    set_fact:
+     debuginfo_package: []
+
+  - name: install | Add GPFS package to list
+    set_fact:
+     debuginfo_package: "{{ debuginfo_package + [ item.path ] }}"
+    with_items:
+    - "{{ scale_install_gpfs_nfs_ganesha_debuginfo.files }}"
+    
+  - name: remove debuginfo from packages
+    set_fact:
+     scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
+  when: not install_debuginfo|bool and ansible_distribution == 'RedHat'

@@ -1,0 +1,9 @@
+---
+# tasks file for common
+- include_tasks: check.yml
+  when: scale_protocols is defined and scale_protocols.nfs|bool
+  tags: always
+
+- include_tasks: configure.yml
+  when: scale_protocols is defined and scale_protocols.nfs|bool
+  tags: configure
