@@ -7,23 +7,23 @@
   vars:
     - scale_install_localpkg_path: /root/Spectrum_Scale_Advanced-5.1.0.0-x86_64-Linux-install
   roles:
-     #- core/precheck
-     #- core/node
-     #- core/cluster
-     #- gui/precheck
-     #- gui/node
-     #- gui/cluster
-     #- gui/postcheck
-     #- zimon/precheck
-     #- zimon/node
-     #- zimon/cluster
-     #- zimon/postcheck
-     #- callhome/precheck
-     #- callhome/cluster
+     - core/precheck
+     - core/node
+     - core/cluster
+     - gui/precheck
+     - gui/node
+     - gui/cluster
+     - gui/postcheck
+     - zimon/precheck
+     - zimon/node
+     - zimon/cluster
+     - zimon/postcheck
+     - callhome/precheck
+     - callhome/cluster
      - nfs/common
-     #- nfs/precheck
-     #- nfs/node
-     #- nfs/cluster
-     #- smb/precheck
-     #- smb/node
-     #- smb/cluster
+     - nfs/precheck
+     - nfs/node
+     - nfs/cluster
+     - smb/precheck
+     - smb/node
+     - smb/cluster

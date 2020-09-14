@@ -88,7 +88,7 @@ The following IBM Spectrum Scale versions are supported:
 - 5.0.4.0
 - 5.0.4.1
 - 5.0.4.2
-
+- 5.0.5.X
 
 Prerequisites
 -------------
@@ -260,7 +260,7 @@ Installation Instructions
      ```yaml
      # group_vars/all.yml:
      ---
-     callhome_params:
+     scale_callhome_params:
        is_enabled: true
        customer_name: abc
        customer_email: abc@abc.com

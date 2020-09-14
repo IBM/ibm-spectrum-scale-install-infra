@@ -107,32 +107,32 @@
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_rpms/rhel7/'
+   scale_smb_url: 'smb_rpms/rhel7/'
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_rpms/rhel8/'
+   scale_smb_url: 'smb_rpms/rhel8/'
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_rpms/sles12/'
+   scale_smb_url: 'smb_rpms/sles12/'
   when: ansible_distribution == 'SLES' and ansible_distribution_major_version == '12'
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_rpms/sles15/'
+   scale_smb_url: 'smb_rpms/sles15/'
   when: ansible_distribution == 'SLES' and ansible_distribution_major_version >= '15'
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_debs/ubuntu/ubuntu16/'
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
 
 - name: install | smb path
   set_fact:
-   smb_url: 'smb_debs/ubuntu/ubuntu18/'
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
 
 #
@@ -143,14 +143,14 @@
 
   - name: install | Find gpfs.smb (gpfs.smb) package
     find:
-     paths:  "{{ smb_extracted_path }}/{{ smb_url }}"
+     paths:  "{{ smb_extracted_path }}/{{ scale_smb_url }}"
      patterns: gpfs.smb*
     register: scale_install_gpfs_smb
 
   - name: install | Check valid GPFS (gpfs.smb) package
     assert:
      that: scale_install_gpfs_smb.matched > 0
-     msg: "No GPFS smb (gpfs.smb) package found {{ smb_extracted_path }}/{{ smb_url }}gpfs.smb*"
+     msg: "No GPFS smb (gpfs.smb) package found {{ smb_extracted_path }}/{{ scale_smb_url }}gpfs.smb*"
 
   - name: install | Add GPFS smb package to list
     vars:
@@ -164,14 +164,14 @@
 
   - name: install | Find gpfs.smb-debuginfo (gpfs.smb-debuginfo) package
     find:
-     paths:  "{{ smb_extracted_path }}/{{ smb_url }}"
+     paths:  "{{ smb_extracted_path }}/{{ scale_smb_url }}"
      patterns: gpfs.smb-debuginfo*
     register: scale_install_gpfs_smb_debuginfo
 
   - name: install | Check valid GPFS (gpfs.smb-debuginfo) package
     assert:
      that: scale_install_gpfs_smb_debuginfo.matched > 0
-     msg: "No GPFS smb (gpfs.smb-debuginfo) package found {{ smb_extracted_path }}/{{ smb_url }}gpfs.smb-debuginfo*"
+     msg: "No GPFS smb (gpfs.smb-debuginfo) package found {{ smb_extracted_path }}/{{ scale_smb_url }}gpfs.smb-debuginfo*"
   when: ansible_distribution == 'RedHat'
 
 - block:
