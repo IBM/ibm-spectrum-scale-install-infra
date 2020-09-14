@@ -1,0 +1,107 @@
+---
+- name: Initialize
+  set_fact:
+   nfs_url: ""
+   smb_url: ""
+   gpgcheck: "yes"
+
+- name: Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
+
+- name: install | nfs path
+  set_fact:
+   nfs_url: 'ganesha_rpms/rhel7/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+
+- name: install | nfs path
+  set_fact:
+   nfs_url: 'ganesha_rpms/rhel8/'
+  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+
+- name: install | nfs path
+  set_fact:
+   nfs_url: 'ganesha_debs/ubuntu16/'
+  when: ansible_distribution == 'Ubuntu'
+
+- name: install | nfs path
+  set_fact:
+   nfs_url: 'ganesha_rpms/sles12/'
+  when: ansible_distribution == 'SLES'
+
+- name: install | smb path
+  set_fact:
+   smb_url: 'smb_debs/ubuntu/ubuntu16/'
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
+
+- name: install | smb path
+  set_fact:
+   smb_url: 'smb_debs/ubuntu/ubuntu18/'
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
+
+- name: install|configure nfs YUM repository
+  yum_repository:
+    name: spectrum-scale-nfs-rpms
+    description: IBM Spectrum Scale (NFS RPMS)
+    baseurl: "{{ scale_install_repository_url }}{{ nfs_url }}"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure nfs APT repository
+  apt_repository:
+    filename: spectrum-scale-nfs-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ nfs_url }} ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (NFS debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure smb APT repository
+  apt_repository:
+    filename: spectrum-scale-smb-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ smb_url }} ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (SMB debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure nfs zypper repository
+  zypper_repository:
+    name: spectrum-scale-nfs-rpms
+    repo: "{{ scale_install_repository_url }}{{ nfs_url }}"
+    runrefresh: yes
+    state: present
+    disable_gpg_check: yes
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Add GPFS nfs packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_rpms }}"
+  when: ansible_distribution == 'RedHat' or ansible_distribution == 'SLES'
+
+- name: install | Add GPFS nfs packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_debs }}"
+  when: ansible_distribution == 'Ubuntu'
+
+

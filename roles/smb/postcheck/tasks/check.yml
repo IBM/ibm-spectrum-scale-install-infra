@@ -1,0 +1,14 @@
+---
+- name: postcheck | Check if SMB is running
+  shell:
+   cmd: "{{ scale_command_path }}mmces service list|grep SMB"
+  register: scale_smb_status
+  when: ansible_fqdn in scale_smb_node_list
+  ignore_errors: true
+
+- name: postcheck | Check if SMB is running
+  assert:
+   that:
+   - scale_smb_status.rc == 0
+   fail_msg: "SMB is not active on {{ ansible_hostname }}"
+  when: ansible_fqdn in scale_smb_node_list
