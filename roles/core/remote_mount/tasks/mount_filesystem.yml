@@ -346,7 +346,7 @@
         "remoteFilesystem": "{{ client_filesystem_name }}",
         "owningFilesystem": "{{ storage_filesystem_name }}",
         "owningCluster": "{{ owning_cluster_name }}",
-        "remoteMountPath": "{{ client_remotemount_path }}",
+        "remoteMountPath": "{{ client_remotemount_path | realpath }}",
         "mountOptions": "{{ access_mount_attributes }}",
         "automount": "yes",
         "mountOnNodes": "all"
