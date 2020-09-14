@@ -118,3 +118,16 @@ Please define the CES shared root file system mount point in the inventory."
    that:
    - ccr_status.rc == 0
    fail_msg: "CCR is not enabled on the cluster. CCR must be enabled to install protocols"
+
+- name: check|Check if interface is defined
+  assert:
+   that:
+   - "{{ scale_protocols.interface }}|length > 0"
+  when: scale_protocols.use_ipv6
+
+# requires netaddr python library(pip3 install netaddr)
+- name: check| Check if all ces ips are either IPv4 or IPv6
+  assert:
+   that:
+   - (scale_protocols.export_ip_pool|ipv4|length) == (scale_protocols.export_ip_pool|length)
+   fail_msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6."

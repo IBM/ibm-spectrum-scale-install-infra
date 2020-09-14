@@ -1,11 +1,18 @@
 ---
-- name: configure | Initialize
+- name: configure | Initialize lists
   set_fact:
    scale_ces_disabled_nodes: []
    scale_export_ips: ""
    scale_server_nodes: ""
    scale_service_list: []
    scale_ces_nodes: ""
+
+- name: configure | Enable IPv6 mode
+  shell:
+   cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
+  when: scale_protocols.use_ipv6 and scale_protocols.interface|length > 0
+  with_items:
+  - "{{ scale_protocols.interface }}"
 
 - name: configure | Collect status of ces shared root
   shell:
