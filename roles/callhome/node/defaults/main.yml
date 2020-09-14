@@ -1,0 +1,17 @@
+---
+# Default variables for the IBM Spectrum Scale (callhome) role -
+# either edit this file or define your own variables to override the defaults
+
+
+## Specify the URL of the (existing) Spectrum Scale YUM repository
+#scale_install_callhome_repository_rpms: http://<ip>/gpfs_rpms/
+#scale_install_callhome_repository_debs: http://<ip>/gpfs_debs/
+
+## List of GPFS callhome packages to install
+scale_callhome_packages:
+  - gpfs.callhome-ecc-client
+  - gpfs.java
+
+## Temporary directory to copy installation package to
+## (local package installation method)
+scale_install_localpkg_tmpdir_path: /tmp

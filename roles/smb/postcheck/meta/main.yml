@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: nfs_node
+  author: IBM Corporation
+  description: Highly-customizable Ansible role for installing and configuring IBM Spectrum Scale (GPFS)
+  company: IBM
+  license: Apache-2.0
+  min_ansible_version: 2.4
+
+  platforms:
+    - name: EL
+      versions:
+        - 7
+        - 8
+
+  galaxy_tags:
+    - ibm
+    - spectrum
+    - scale
+    - gpfs
+
+dependencies: []

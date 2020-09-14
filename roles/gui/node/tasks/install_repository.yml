@@ -4,17 +4,51 @@
 #
 # Configure YUM repository
 #
+- name: install | Initialize
+  set_fact:
+   gpgcheck: "yes"
+
+- name: install | Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
+
 - name: install | Configure GUI YUM repository
   yum_repository:
     name: spectrum-scale-gui
     description: IBM Spectrum Scale (GUI)
-    baseurl: "{{ scale_install_gui_repository_url }}"
-    gpgcheck: false
+    baseurl: "{{ scale_install_repository_url }}"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
     state: present
   notify: yum-clean-metadata
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-    - scale_install_gui_repository_url != 'existing'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure gui APT repository
+  apt_repository:
+    filename: spectrum-scale-gui-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}/gpfs_debs/ ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (GUI debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure GUI repository
+  zypper_repository:
+    name: spectrum-scale-gui
+    description: IBM Spectrum Scale (GUI)
+    repo: "{{ scale_install_repository_url }}/gpfs_rpms/"
+    disable_gpg_check: no
+    state: present
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url != 'existing'
 
 #
 # Add GUI RPMs
@@ -22,7 +56,7 @@
 
 - name: install | Add GUI RPMs to list
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
-    - "{{ scale_gui_rpms }}"
+    - "{{ scale_gui_packages }}"
   when: scale_cluster_gui | bool

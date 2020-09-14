@@ -1,0 +1,8 @@
+---
+- block:
+    - name: install | Install GPFS zimon packages
+      zypper:
+          name: "{{ scale_install_all_packages }}"
+          state: present
+          disable_gpg_check: no
+ 

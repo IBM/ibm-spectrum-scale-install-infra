@@ -1,0 +1,16 @@
+---
+- block:
+  - name: postcheck | Check callhome serivce post configuration
+    shell:
+     cmd: "{{ scale_command_path }}mmcallhome test connection| grep OK"
+    register: scale_callhome_status
+    ignore_errors: true
+
+  - debug:
+     msg: "The call home configuration is not completed successfully.Verify the configuration details and retry"
+    when: scale_callhome_status.stdout==""
+
+  - debug:
+     msg: "Callhome installed and configured."
+    when: scale_callhome_status.stdout!=""
+  when: ansible_hostname== scale_callhome_params.callhome_server

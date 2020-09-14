@@ -24,5 +24,4 @@ galaxy_info:
 
 dependencies:
   - core/common
-  - node
   - zimon/cluster

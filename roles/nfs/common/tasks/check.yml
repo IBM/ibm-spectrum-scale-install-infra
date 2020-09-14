@@ -2,147 +2,118 @@
 # role to check if all ces configuration is properly defined
 # protocols variable defined in group_vars/
 
-- name: Initialize
+- name: check | Initialize
   set_fact:
-   protocol_nodes_list: []
-   admin_node_list: []
-   os_list: []
-   arch_list: []
-   export_ip: []
-   #gpfs_version: "0.0.0"
+   scale_protocol_node_list: []
+   scale_admin_node_list: []
+   scale_os_list: []
+   scale_arch_list: []
+   scale_export_ip: []
   run_once: true
 
-- name: Collect all protocol nodes
+- name: check | Collect all protocol nodes
   set_fact:
-   protocol_nodes_list: "{{ protocol_nodes_list + [hostvars[item]['fqdn']] }}"
-  when: hostvars[item]['is_protocol_node']|bool
+   scale_protocol_node_list: "{{ scale_protocol_node_list + [hostvars[item]['ansible_fqdn']] }}"
+  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
   with_items:
-   - "{{ groups['all'] }}"
+   - "{{ ansible_play_hosts }}"
   delegate_to: localhost
   run_once: true
 
-- name: Check if atleast one protocol node is present
+- name: check | Check if atleast one protocol node is present
   assert:
    that:
-   - protocol_nodes_list|length > 0
+   - scale_protocol_node_list|length > 0
    fail_msg: "Atleast one protocol node is required.Please define a protocol node."
   delegate_to: localhost
   run_once: true
 
-- name: Collect admin nodes
+- name: check | Collect all protocol node OS
   set_fact:
-   admin_node_list: "{{ admin_node_list + [hostvars[item]['fqdn']] }}"
-  when: hostvars[item]['is_admin_node']|bool
+   scale_os_list: "{{ scale_os_list + [hostvars[item]['ansible_distribution']] }}"
+  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
   with_items:
-  - "{{ groups['all'] }}"
+  - "{{ ansible_play_hosts }}"
   delegate_to: localhost
-  run_once: true
 
-- name: Check if admin node is present
+- name: check | Check if OS is unique
   assert:
    that:
-   - admin_node_list|length > 0
-   fail_msg: "Atleast one protocol node is required.Please define a protocol node."
-  delegate_to: localhost
-  run_once: true
-
-- name: Collect all protocol node OS
-  set_fact:
-   os_list: "{{ os_list + [hostvars[item]['os']] }}"
-  when: hostvars[item]['is_protocol_node']|bool
-  with_items:
-  - "{{ groups['all'] }}"
-  delegate_to: localhost
-
-- name: Check if OS is unique
-  assert:
-   that:
-   - os_list|unique|length == 1
+   - scale_os_list|unique|length == 1
    fail_msg: "Mix Operating system found on protocol nodes, please make sure same OS on all protocol nodes."
   delegate_to: localhost
   run_once: true
 
-- name: Collect all protocol node architecture
+- name: check | Collect all protocol node architecture
   set_fact:
-   arch_list: "{{ arch_list + [hostvars[item]['arch']] }}"
-  when: hostvars[item]['is_protocol_node']|bool
+   scale_arch_list: "{{ scale_arch_list + [hostvars[item]['ansible_architecture']] }}"
+  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
   with_items:
-  - "{{ groups['all'] }}"
+  - "{{ ansible_play_hosts }}"
   delegate_to: localhost
 
-- name: Check if all protocol nodes have same architecture
+- name: check | Check if all protocol nodes have same architecture
   assert:
    that:
-   - arch_list|unique|length == 1
+   - scale_arch_list|unique|length == 1
    fail_msg: "Mix architecture found on protocol nodes, please make sure all protocol nodes have same machine architecture."
   delegate_to: localhost
   run_once: true
 
-- name: check if cesSharedRoot filesystem defined
+- name: check | Check if cesSharedRoot filesystem defined
   assert:
    that:
-   - protocols.filesystem is defined
-   - protocols.filesystem == "cesSharedRoot"
+   - scale_protocols.filesystem is defined
+   - scale_protocols.filesystem | length > 0
    fail_msg: "Installer did not find the file system to be used for CES (protocols) shared root.
-Please define the CES shared root file system using './spectrumscale config protocols -f <file system name> -m <mount location>'."
+Please define the CES shared root file system in the inventory."
 
-- name: check if mount point defined for cesSharedRoot file system
+- name: check | Check if mount point defined for cesSharedRoot file system
   assert:
    that:
-   - protocols.mountpoint is defined
-   - protocols.mountpoint|length > 0
+   - scale_protocols.mountpoint is defined
+   - scale_protocols.mountpoint|length > 0
    fail_msg: "Installer did not find the file system mount point point to be used for CES (protocols) shared root.
-Please define the CES shared root file system mount point using
-'./spectrumscale config protocols -f <file system name> -m <mount location>'."
+Please define the CES shared root file system mount point in the inventory."
 
-- name: Check if ces export ips are defined
+- name: check | Check if ces export ips are defined
   assert:
    that:
-   - protocols.export_ip_pool is defined
-   - protocols.export_ip_pool|length > 0
+   - scale_protocols.export_ip_pool is defined
+   - scale_protocols.export_ip_pool|length > 0
    fail_msg: "CES export ip pool is not defined or empty"
   run_once: true
 
-- name: Collect unique export ips
+- name: check | Collect unique export ips
   set_fact:
-   export_ip: "{{ protocols.export_ip_pool|unique }}"
+   scale_export_ip: "{{ scale_protocols.export_ip_pool|unique }}"
   run_once: true
 
-- name: Check if export ips are duplicated
+- name: check | Check if export ips are duplicated
   assert:
    that:
-   - protocols.export_ip_pool|length == export_ip|length
+   - scale_protocols.export_ip_pool|length == scale_export_ip|length
    fail_msg: "Duplicate ips found in export ip pool"
   run_once: true
 
-- name: Check no protocol ips are also node ips
-  assert:
-   that:
-   - hostvars[item]['ip_address'] not in protocols.export_ip_pool
-   fail_msg: "A node IP cannot also be a protocol IP.following IP addresses are not both
-a node and protocol IP before continuing: {{ hostvars[item]['ip_address'] }}"
-  with_items:
-  - "{{ groups['all'] }}"
-  delegate_to: localhost
-
-- name: Get list of GPFS nodes which are not reporting active state
+- name: check | Get list of GPFS nodes which are not reporting active state
   shell:
-   cmd: mmgetstate|grep "active"
+   cmd: "{{ scale_command_path }}mmgetstate|grep active"
   register: inactive_nodes
   ignore_errors: true
 
-- name: check if any nodes are inactive
+- name: check | Check if any nodes are inactive
   assert:
    that:
    - inactive_nodes.rc == 0
    fail_msg: "GPFS is not active on: {{ ansible_hostname }}. Ensure GPFS is active on all nodes before continuing with the install toolkit"
 
-- name: Check if ccr is enabled
+- name: check | Check if ccr is enabled
   shell:
-   cmd: mmlscluster|grep "CCR"
+   cmd: "{{ scale_command_path }}mmlscluster|grep CCR"
   register: ccr_status
 
-- name: Check if ccr is enabled
+- name: check | Check if ccr is enabled
   assert:
    that:
    - ccr_status.rc == 0
