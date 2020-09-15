@@ -125,7 +125,11 @@ Please define the CES shared root file system mount point in the inventory."
    - "{{ scale_protocols.interface }}|length > 0"
   when: scale_protocols.use_ipv6
 
-# requires netaddr python library(pip3 install netaddr)
+- name: Install netaddr python package
+  package:
+   name: netaddr
+   state: present
+
 - name: check| Check if all ces ips are either IPv4 or IPv6
   assert:
    that:
