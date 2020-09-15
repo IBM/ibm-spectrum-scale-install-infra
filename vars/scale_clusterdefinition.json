@@ -4,9 +4,9 @@
   },
   "node_details": [
     {
-      "fqdn" : host-vm1,
+      "fqdn" : scale-41.localnet.com,
       "ip_address" : 127.0.0.1,
-      "is_protocol_node" :false,
+      "is_protocol_node" :true,
       "is_nsd_server" : false,
       "is_quorum_node" : false,
       "is_manager_node" : false,
@@ -15,7 +15,7 @@
       "scale_zimon_collector" : false
     },
     {
-      "fqdn" : host-vm2,
+      "fqdn" : scale-42.localnet.com,
       "ip_address" : 127.0.0.1,
       "is_protocol_node" : false,
       "is_nsd_server" : false,
@@ -26,9 +26,9 @@
       "scale_zimon_collector" : false
     },
     {
-      "fqdn" : host-vm3,
+      "fqdn" : scale-43.localnet.com,
       "ip_address" : 127.0.0.1,
-      "is_protocol_node" : false,
+      "is_protocol_node" : true,
       "is_nsd_server" : false,
       "is_quorum_node" : false,
       "is_manager_node" : false,
@@ -49,7 +49,7 @@
        {
         "device": "/dev/sdb",
         "nsd": "nsd1",
-        "servers": "host-vm3",
+        "servers": "scale-43.localnet.com",
         "usage": dataAndMetadata,
         "pool": system
        }
@@ -72,9 +72,11 @@
       "callhome_schedule": [daily,weekly]
   },
   "scale_protocols":{
-      "smb": false,
-      "nfs": false,
-      "export_ip_pool": [192.168.100.100,192.168.100.101],
+      "smb": true,
+      "nfs": true,
+      "use_ipv6": true,
+      "interface": [eth0,eth1],
+      "export_ip_pool": [fd9e:f0d0:1002:11::100,fd9e:f0d0:1002:11::101,fd9e:f0d0:1002:11::102,fd9e:f0d0:1002:11::103,fd9e:f0d0:1002:11::104],
       "filesystem": cesSharedRoot,
       "mountpoint": /gpfs/cesSharedRoot
   }
