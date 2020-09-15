@@ -61,7 +61,7 @@
 - name: install | Configure fal repository
   zypper_repository:
     name: spectrum-scale-fal-sles
-    description: IBM Spectrum Scale (ZIMon)
+    description: IBM Spectrum Scale (FAL)
     repo: "{{ scale_install_fileauditlogging_repository_url }}{{ scale_fal_url }}"
     disable_gpg_check: no
     state: present

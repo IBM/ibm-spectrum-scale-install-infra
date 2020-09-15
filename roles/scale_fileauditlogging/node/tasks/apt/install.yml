@@ -3,7 +3,7 @@
 #
 # Install or update RPMs
 #
-- name: install | Install GPFS Zimon packages
+- name: install | Install GPFS file audit logging packages
   package:
     name: "{{ scale_install_all_packages }}"
     state: present

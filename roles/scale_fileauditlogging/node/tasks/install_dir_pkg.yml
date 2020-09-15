@@ -67,7 +67,7 @@
           No GPFS auditlogin librakafka(gpfs.librdkafka) package found
           {{ gpfs_path_url }}gpfs.librdkafka*.rpm
 
-    - name: install | Add GPFS zimon collector packages to list
+    - name: install | Add GPFS file audit logging packages to list
       vars:
         current_package: "{{ gpfs_path_url }}/{{ item }}"
       set_fact:
