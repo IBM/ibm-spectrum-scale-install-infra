@@ -6,7 +6,7 @@
   tasks:
   - name: Read all intermediate output from Resource Details
     include_vars:
-       file: vars/scale_clusterdefinition1.json
+       file: vars/scale_clusterdefinition.json
     register: scale_json
 
   - name: Check valid json file
