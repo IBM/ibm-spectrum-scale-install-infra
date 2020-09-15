@@ -9,7 +9,6 @@
    scale_os_list: []
    scale_arch_list: []
    scale_export_ip: []
-   scale_ip: ""
   run_once: true
 
 - name: check | Collect all protocol nodes
@@ -124,7 +123,7 @@ Please define the CES shared root file system mount point in the inventory."
   assert:
    that:
    - "{{ scale_protocols.interface }}|length > 0"
-  when: scale_protocols.use_ipv6
+  when: scale_protocols.scale_ces_ipv6_enable
 
 - name: Install python netaddr library
   shell:
@@ -132,7 +131,6 @@ Please define the CES shared root file system mount point in the inventory."
 
 - name: check| Check if all ces ips are either IPv4 or IPv6
   debug:
-   msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6."
-  #when: scale_protocols.export_ip_pool|ipv4|length > 0 and scale_protocols.export_ip_pool|ipv6|length > 0
+   msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6." 
   failed_when: scale_protocols.export_ip_pool|ipv4|length > 0 and scale_protocols.export_ip_pool|ipv6|length > 0
   
