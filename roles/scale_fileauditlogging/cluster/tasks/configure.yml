@@ -1,17 +1,21 @@
 ---
-- block:  ## run_once: true
-    - name: configure | Consolidate defined filesystems
-      set_fact:
-        scale_storage_fsdefs_audit:
-          "{{ ansible_play_hosts | map('extract', hostvars, 'scale_storage') | sum(start=[]) | map(attribute='filesystem') | list | unique }}"
+- name: configure | Consolidate defined filesystems for file audit logging
+  set_fact:
+     scale_storage_fsdefs_audit:
+       "{{ scale_storage | map(attribute='filesystem') | list | unique }}"
+  when: scale_storage is defined
+  run_once: true
 
-    - name: configure | Consolidate defined filesystem parameters for file audit logging
-      set_fact:
-        scale_storage_fsparams_audit:
-          "{{ scale_storage_fsparams_audit | default({}) | combine({ item.filesystem:item }, recursive=true) }}"
-      with_items: "{{ ansible_play_hosts | map('extract', hostvars, 'scale_storage') | sum(start=[]) }}"
+- name: configure | Consolidate defined filesystem parameters for file audit logging
+  set_fact:
+     scale_storage_fsparams_audit:
+       "{{ scale_storage_fsparams_audit | default({}) | combine({ item.filesystem:item }, recursive=true) }}"
+  with_items: "{{ scale_storage | list }}"
+  when: scale_storage is defined
+  run_once: true
 
 
+- block: ## run_once: true
     - name: configure | Find created filesystem(s)
       shell:
        cmd: "/usr/lpp/mmfs/bin/mmlsfs all -Y | grep -v HEADER | cut -d ':' -f 7 | uniq"
@@ -29,7 +33,7 @@
         {{ scale_fal_localspace_force }}
       register: scale_audit_command
       when:
-        - scale_storage_fsdefs_audit | length >= 1
+        - scale_storage_fsdefs_audit is defined and scale_storage_fsdefs_audit | length >= 1
         - (scale_storage_fsparams_audit[item].scale_fal_enable is defined) and (scale_storage_fsparams_audit[item].scale_fal_enable | bool)
       with_items: "{{ scale_storage_fsdefs_audit }}"
 
