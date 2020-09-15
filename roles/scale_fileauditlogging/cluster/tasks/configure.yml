@@ -1,0 +1,38 @@
+---
+- block:  ## run_once: true
+    - name: configure | Consolidate defined filesystems
+      set_fact:
+        scale_storage_fsdefs:
+          "{{ ansible_play_hosts | map('extract', hostvars, 'scale_storage') | sum(start=[]) | map(attribute='filesystem') | list | unique }}"
+
+    - name: configure | Consolidate defined filesystem parameters for file audit logging
+      set_fact:
+        scale_storage_fsparams:
+          "{{ scale_storage_fsparams | default({}) | combine({ item.filesystem:item }, recursive=true) }}"
+      with_items: "{{ ansible_play_hosts | map('extract', hostvars, 'scale_storage') | sum(start=[]) }}"
+
+
+    - name: configure | Find created filesystem(s)
+      shell:
+       cmd: "/usr/lpp/mmfs/bin/mmlsfs all -Y | grep -v HEADER | cut -d ':' -f 7 | uniq"
+      register: scale_storage_filesystem
+      changed_when: false
+      failed_when: false
+
+    - name: configure | configure file audit logging
+      vars:
+        scale_fal_localspace_force: "{{ '--skip-local-space-check' if scale_fal_skip_localspace is defined else '' }}"
+      command:
+        /usr/lpp/mmfs/bin/mmaudit {{ item }} enable
+        --log-fileset {{ scale_storage_fsparams[item].logfileset | default(scale_storage_fal_defaults.logfileset) }}
+        --retention {{ scale_storage_fsparams[item].retention | default(scale_storage_fal_defaults.retention) }}
+        {{ scale_fal_localspace_force }}
+      register: scale_audit_command
+      when:
+        - scale_storage_fsdefs | length >= 1
+        - (scale_storage_fsparams[item].scale_fal_enable is defined) and (scale_storage_fsparams[item].scale_fal_enable | bool)
+      with_items: "{{ scale_storage_fsdefs }}"
+
+    - debug:
+        msg: "{{ scale_audit_command.results }}"
+  run_once: true
