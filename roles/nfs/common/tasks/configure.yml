@@ -138,15 +138,14 @@
 - name: configure | Add IPv6 interface
   shell:
    cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
-  when: scale_protocols.export_ip_pool|ipv6|length > 0 and scale_protocols.interface|length > 0
+  when: scale_ces_ipv6_list|length > 0 and scale_protocols.interface|length > 0
   with_items:
   - "{{ scale_protocols.interface }}"
 
 - name: configure | Enable interface mode
   shell:
    cmd: "mmces interface mode interface --force"
-  when: scale_protocols.export_ip_pool|ipv6|length > 0
-  with_items:
+  when: scale_ces_ipv6_list|length > 0
 
 - name: configure | Assign export ips as pool
   command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
