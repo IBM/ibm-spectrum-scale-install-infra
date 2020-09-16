@@ -1,4 +1,5 @@
 ---
+# Ansible Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster.
 - hosts: cluster01
   vars:
     - scale_version: 5.0.4.0
