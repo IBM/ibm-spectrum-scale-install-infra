@@ -1,4 +1,5 @@
 ---
+# This playbook will read all required input from json inventory
 #- name: Create the required groups
 - hosts: localhost
   connection: local

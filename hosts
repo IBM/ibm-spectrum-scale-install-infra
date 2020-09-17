@@ -1,6 +1,5 @@
 # hosts:
+# Sample host file for deploying IBM Spectrum Scale (GPFS) cluster
 [cluster01]
-slitherfang-vm5 scale_cluster_quorum=true scale_cluster_manager=true scale_cluster_gui=false
-slitherfang-vm6 scale_cluster_quorum=true scale_cluster_manager=true scale_cluster_gui=false
-slitherfang-vm7 scale_cluster_quorum=true scale_cluster_manager=true scale_cluster_gui=false
-slitherfang-vm8 scale_cluster_quorum=true scale_cluster_manager=true scale_cluster_gui=false
+host-vm1 scale_cluster_quorum=true   scale_cluster_manager=true scale_cluster_gui=false
+host-vm3 scale_cluster_quorum=true   scale_cluster_manager=true scale_cluster_gui=false

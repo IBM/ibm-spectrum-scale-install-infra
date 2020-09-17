@@ -121,7 +121,7 @@
     - name: install | Find gpfs.librdkafka (gpfs.librdkafka) package
       find:
         paths: "{{ scale_extracted_path }}/{{ scale_fal_url }}"
-        patterns: gpfs.librdkafka*.rpm
+        patterns: gpfs.librdkafka*
       register: scale_install_gpfs_fal
 
     - name: install | Check valid GPFS (gpfs.librdkafka) package
@@ -129,7 +129,7 @@
         that: scale_install_gpfs_fal.matched > 0
         msg: >-
           No GPFS auditlogin librakafka(gpfs.librdkafka) package found
-          {{ scale_extracted_path }}/{{ scale_fal_url }}gpfs.librdkafka*.rpm
+          {{ scale_extracted_path }}/{{ scale_fal_url }}gpfs.librdkafka*
 
     - name: install | Add GPFS file audit logging packages to list
       vars:

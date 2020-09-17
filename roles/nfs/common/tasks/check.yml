@@ -9,6 +9,8 @@
    scale_os_list: []
    scale_arch_list: []
    scale_export_ip: []
+   scale_ces_ipv6_list: []
+   scale_ces_ipv4_list: []
   run_once: true
 
 - name: check | Collect all protocol nodes
@@ -119,15 +121,28 @@ Please define the CES shared root file system mount point in the inventory."
    - ccr_status.rc == 0
    fail_msg: "CCR is not enabled on the cluster. CCR must be enabled to install protocols"
 
-- name: check|Check if interface is defined
+- name: check | Prepare IPv6 export ip list
+  set_fact:
+   scale_ces_ipv6_list: "{{ scale_ces_ipv6_list + [ item ]}}"
+  when: item is regex("(?:^|(?<=\s))(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))(?=\s|$)")
+  with_items:
+  - "{{ scale_protocols.export_ip_pool }}"
+
+- name: check | Prepare IPv4 export ip list
+  set_fact:
+   scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
+  when: item is regex("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
+  with_items:
+  - "{{ scale_protocols.export_ip_pool }}"
+
+- name: check | Check if interface is defined
   assert:
    that:
    - "{{ scale_protocols.interface }}|length > 0"
-  when: scale_protocols.use_ipv6
+  when: scale_ces_ipv6_list|length > 0
 
-# requires netaddr python library(pip3 install netaddr)
-- name: check| Check if all ces ips are either IPv4 or IPv6
-  assert:
-   that:
-   - (scale_protocols.export_ip_pool|ipv4|length) == (scale_protocols.export_ip_pool|length)
-   fail_msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6."
+- name: check | Check if all ces ips are either IPv4 or IPv6
+  debug:
+   msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6." 
+  when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
+  failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0

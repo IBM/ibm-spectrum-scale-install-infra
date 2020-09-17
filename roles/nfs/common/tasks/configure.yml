@@ -7,13 +7,6 @@
    scale_service_list: []
    scale_ces_nodes: ""
 
-- name: configure | Enable IPv6 mode
-  shell:
-   cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
-  when: scale_protocols.use_ipv6 and scale_protocols.interface|length > 0
-  with_items:
-  - "{{ scale_protocols.interface }}"
-
 - name: configure | Collect status of ces shared root
   shell:
    cmd: "{{ scale_command_path }}mmlsconfig | grep 'cesSharedRoot '"
@@ -141,6 +134,18 @@
     scale_export_ips: "{{ scale_export_ips + ',' + item|string }}"
   with_items:
   - "{{ scale_protocols.export_ip_pool }}"
+
+- name: configure | Add IPv6 interface
+  shell:
+   cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
+  when: scale_ces_ipv6_list|length > 0 and scale_protocols.interface|length > 0
+  with_items:
+  - "{{ scale_protocols.interface }}"
+
+- name: configure | Enable interface mode
+  shell:
+   cmd: "mmces interface mode interface --force"
+  when: scale_ces_ipv6_list|length > 0
 
 - name: configure | Assign export ips as pool
   command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
