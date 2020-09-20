@@ -23,6 +23,6 @@ galaxy_info:
     - gui
 
 dependencies:
-  - core/common
+  - ../core/common
   - node
-  - zimon/cluster
+  - ../zimon/cluster

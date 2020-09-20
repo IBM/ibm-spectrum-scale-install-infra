@@ -129,16 +129,9 @@ import sys
 import traceback
 from ansible.module_utils.basic import AnsibleModule
 
-try: 
-    from ansible.module_utils.ibm_spectrumscale_utils import RC_SUCCESS, SpectrumScaleLogger
-except:
-    from ibm_spectrumscale_utils import RC_SUCCESS, SpectrumScaleLogger
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_utils import RC_SUCCESS, SpectrumScaleLogger
 
-try:
-    from ansible.module_utils.ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
-except:
-    from ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
-
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_filesystem_utils import SpectrumScaleFS
 
 def main():
     logger = SpectrumScaleLogger.get_logger()

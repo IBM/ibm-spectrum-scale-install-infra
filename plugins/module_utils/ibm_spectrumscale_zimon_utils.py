@@ -21,7 +21,7 @@ import os
 import re
 import json
 import time
-from ibm_spectrumscale_utils import runCmd, GPFS_CMD_PATH, RC_SUCCESS, \
+from ansible_collections.ibm_spectrum_scale.install_infra.plugins.module_utils.ibm_spectrumscale_utils import runCmd, GPFS_CMD_PATH, RC_SUCCESS, \
                          SpectrumScaleException
 
 def get_zimon_collectors():
