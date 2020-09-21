@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright 2020 IBM Corporation
 # and other contributors as indicated by the @author tags.
@@ -25,7 +25,8 @@ import subprocess
 import threading
 import logging
 import signal
-import urllib
+import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 import types
 from collections import OrderedDict
 
@@ -109,24 +110,24 @@ class SpectrumScaleLogger:
 ##                                  ##
 ######################################
 def decode(input_string):
-    return urllib.unquote(input_string)
+    return urllib.parse.unquote(input_string)
 
 
 def _stop_process(proc, logger, log_cmd, timeout):
     try:
         if proc.poll() is None:
             logger.info("Command %s timed out after %s sec. Sending SIGTERM", log_cmd, timeout)
-            print("Command %s timed out after %s sec. Sending SIGTERM", log_cmd, timeout)
+            print(("Command %s timed out after %s sec. Sending SIGTERM", log_cmd, timeout))
             os.kill(proc.pid, signal.SIGTERM)  # SIGKILL or SIGTERM
 
             time.sleep(0.5)
             if proc.poll() is None:
                 logger.info("Command %s timed out after %s sec. Sending SIGKILL", log_cmd, timeout)
-                print("Command %s timed out after %s sec. Sending SIGKILL", log_cmd, timeout)
+                print(("Command %s timed out after %s sec. Sending SIGKILL", log_cmd, timeout))
                 os.kill(proc.pid, signal.SIGKILL)
     except Exception as e:
         logger.warning(str(e))
-        print(str(e))
+        print((str(e)))
 
 
 def runCmd(cmd, timeout=300, sh=False, env=None, retry=0):
@@ -142,7 +143,7 @@ def runCmd(cmd, timeout=300, sh=False, env=None, retry=0):
 
     logger = SpectrumScaleLogger.get_logger()
 
-    if isinstance(cmd, basestring):
+    if isinstance(cmd, str):
         log_cmd = cmd
     else:
         log_cmd = ' '.join(cmd)
@@ -157,7 +158,7 @@ def runCmd(cmd, timeout=300, sh=False, env=None, retry=0):
         # so we can later kill the process and all its child processes
         proc = subprocess.Popen(cmd, shell=sh,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                close_fds=False, env=env)
+                                close_fds=False, env=env, universal_newlines=True)
 
         timer = threading.Timer(timeout, _stop_process, [proc, logger, log_cmd, timeout])
         timer.start()
@@ -330,7 +331,7 @@ def parse_aggregate_cmd_output(cmd_raw_out, summary_records, header_index=2):
     data_out = OrderedDict()
     headers = OrderedDict()
 
-    if isinstance(cmd_raw_out, basestring):
+    if isinstance(cmd_raw_out, str):
         lines = cmd_raw_out.splitlines()
     else:
         lines = cmd_raw_out
@@ -368,7 +369,7 @@ def parse_aggregate_cmd_output(cmd_raw_out, summary_records, header_index=2):
         else:
             json_d_type = "array"
             json_array = []
-            if datatype in data_out.keys():
+            if datatype in list(data_out.keys()):
                 # An element in the array already exists
                 json_array = data_out[datatype]
             json_array.append(json_object)
@@ -477,7 +478,7 @@ def parse_simple_cmd_output(cmd_raw_out, cmd_key, cmd_prop_name,
     data_out = OrderedDict()
     headers = OrderedDict()
 
-    if isinstance(cmd_raw_out, basestring):
+    if isinstance(cmd_raw_out, str):
         lines = cmd_raw_out.splitlines()
     else:
         lines = cmd_raw_out
@@ -516,7 +517,7 @@ def parse_simple_cmd_output(cmd_raw_out, cmd_key, cmd_prop_name,
 
         json_array = []
         obj_found = False
-        if datatype in data_out.keys():
+        if datatype in list(data_out.keys()):
             # List of OrederDict
             json_array = data_out[datatype]
             prop_list = []
@@ -598,7 +599,7 @@ def parse_unique_records(cmd_raw_out, datatype="", header_index=2):
     data_out = OrderedDict()
     headers = OrderedDict()
 
-    if isinstance(cmd_raw_out, basestring):
+    if isinstance(cmd_raw_out, str):
         lines = cmd_raw_out.splitlines()
     else:
         lines = cmd_raw_out
@@ -632,7 +633,7 @@ def parse_unique_records(cmd_raw_out, datatype="", header_index=2):
             del json_object['reserved']
 
         json_array = []
-        if datatype in data_out.keys():
+        if datatype in list(data_out.keys()):
             # List of OrederDict
             json_array = data_out[datatype]
         json_array.append(json_object)
@@ -676,7 +677,7 @@ def main():
 
 
     if rc:
-        print("Error executing command: %s %s", sout, serr)
+        print(("Error executing command: %s %s", sout, serr))
 
     json_str = json.dumps(out_list, indent=2)
     print(json_str)
