@@ -298,8 +298,8 @@ Installation Instructions
        # group_vars/all.yml:
        ---
        scale_protocols:
-           smb: False
-           nfs: False
+           smb: false
+           nfs: false
            export_ip_pool: [192.168.100.100,192.168.100.101]
            filesystem: cesSharedRoot
            mountpoint: /gpfs/cesSharedRoot
@@ -318,8 +318,8 @@ Installation Instructions
        # group_vars/all.yml:
        ---
        scale_protocols:
-            smb: False
-            nfs: False,
+            smb: false
+            nfs: false,
             interface: [eht0]
             export_ip_pool: [2002:90b:e006:84:250:56ff:feb9:7787]
             filesystem: cesSharedRoot
