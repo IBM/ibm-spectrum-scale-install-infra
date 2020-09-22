@@ -132,6 +132,7 @@
 - name: configure | Create CES groups
   shell:
    cmd: "{{ scale_command_path }}mmchnode --ces-group {{ item.group_name }} -N {{ item.node_list|join(',') }}"
+  when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0
   with_items:
   - "{{ scale_protocols.scale_ces_groups }}"
 
@@ -153,12 +154,17 @@
    cmd: "mmces interface mode interface --force"
   when: scale_ces_ipv6_list|length > 0
 
-- name: configure | Assign export ips as pool
+- name: configure | Assign export ips as pool for CES groups
   command: "{{ scale_command_path }}mmces address add --ces-ip {{ item.export_ip_pool|join(',') }} --ces-group {{ item.group_name}}"
-  when: ansible_fqdn in scale_protocol_node_list
+  when: ansible_fqdn in scale_protocol_node_list and scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   with_items:
   - "{{ scale_protocols.scale_ces_groups }}"
+
+- name: configure | Assign export ips as pool
+  command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
+  when: ansible_fqdn in scale_protocol_node_list and scale_protocols.scale_ces_groups is not defined
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
 
 - name: configure | Rebalance CES IPs
   command: "{{ scale_command_path }}mmces address move --rebalance"
