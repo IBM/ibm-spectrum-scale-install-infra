@@ -123,8 +123,8 @@
     force_basic_auth: true
     url: https://{{ storage_cluster_hostname }}:{{ storage_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters
     method: POST
-    user: "{{ client_gui_user }}"
-    password: "{{ client_gui_password }}"
+    user: "{{ storage_gui_user }}"
+    password: "{{ storage_gui_password }}"
     body_format: json
     body: |
       {
@@ -141,8 +141,8 @@
     force_basic_auth: true
     url: https://{{ storage_cluster_hostname }}:{{ storage_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ send_key.json.jobs[0].jobId }}
     method: GET
-    user: "{{ client_gui_user }}"
-    password: "{{ client_gui_password }}"
+    user: "{{ storage_gui_user }}"
+    password: "{{ storage_gui_password }}"
   register: completed_check
   until: completed_check.json.jobs[0].status != "FAILED"
   retries: "{{ restapi_retries_count }}"
