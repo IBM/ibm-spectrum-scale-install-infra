@@ -17,7 +17,7 @@
   yum_repository:
     name: spectrum-scale-gpfs
     description: IBM Spectrum Scale (GPFS)
-    baseurl: "{{ scale_install_repository_url }}"
+    baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
     gpgcheck: "{{ gpgcheck }}"
     repo_gpgcheck: no
     state: present
@@ -47,7 +47,7 @@
   zypper_repository:
     name: spectrum-scale-gpfs
     description: IBM Spectrum Scale (GPFS)
-    repo: "{{ scale_install_repository_url }}/gpfs_rpms/"
+    repo: "{{ scale_install_repository_url }}gpfs_rpms/"
     disable_gpg_check: yes
     state: present
   when:
