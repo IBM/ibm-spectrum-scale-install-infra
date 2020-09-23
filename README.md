@@ -320,7 +320,7 @@ Installation Instructions
        scale_protocols:
             smb: false
             nfs: false,
-            interface: [eht0]
+            interface: [eth0]
             export_ip_pool: [2002:90b:e006:84:250:56ff:feb9:7787]
             filesystem: cesSharedRoot
             mountpoint: /gpfs/cesSharedRoot
@@ -559,7 +559,6 @@ JSON inventory method
       "scale_protocols":{
           "smb": false,
           "nfs": false,
-          "interface": [eht0,eth1]
           "export_ip_pool": [192.168.100.100,192.168.100.101],
           "filesystem": cesSharedRoot,
           "mountpoint": /gpfs/cesSharedRoot
