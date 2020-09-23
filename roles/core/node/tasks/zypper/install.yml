@@ -16,6 +16,13 @@
             disable_gpg_check: no
           register: scale_install_zypppackageresult
 
+        - name: install | Install GPFS License packages
+          zypper:
+            name: "{{ scale_install_license_packages }}"
+            state: present
+            disable_gpg_check: no
+          register: scale_install_license_packageresult
+
         - name: install | Check if GPFS packages were updated
           set_fact:
             scale_install_updated: true
