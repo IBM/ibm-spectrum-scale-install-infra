@@ -56,7 +56,7 @@ Features
 - [x] Assign default quorum (maximum 7 quorum nodes) if user has not defined in the inventory
 - [x] Assign default manager nodes(all nodes will act as manager node) if user has not defined in the inventory
 - [x] Create new cluster (mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }})
-- [ ]  Create cluster with profiles
+- [x] Create cluster with profiles
 - [x] Add new node into existing cluster
 - [x] Configure node classes
 - [x] Define configuration parameters based on node classes
@@ -77,6 +77,11 @@ Features
 - [x] Install Spectrum Scale callhome packages on all cluster nodes
 - [x] Configure callhome
 
+#### Spectrum Scale CES (SMB and NFS) Protocol supported features (5.0.5.2)
+- [x] Install Spectrum Scale SMB or NFS on selected cluster nodes
+- [x] CES IPV4 or IPV6 support
+- [x] CES interface mode support 
+- 
 
 Supported Versions
 ------------------
@@ -91,7 +96,11 @@ The following IBM Spectrum Scale versions are supported:
 - 5.0.4.1
 - 5.0.4.2
 - 5.0.5.X
+- 5.0.5.2 For CES (SMB and NFS)  
 
+Specific OS Requirements.
+
+- For CES (SMB/NFS) on SLES15, Python3 is required.
 
 Prerequisites
 -------------
@@ -172,6 +181,9 @@ Installation Instructions
 
      - `scale_cluster_gui`: User defined node designation for Spectrum Scale GUI. It
        can be either true or false.
+       
+     - `is_protocol_node`: User defined node designation for Spectrum Scale Protocol. It
+        can be either true or false.true `scale_protocols:` variable also needs to set in group_vars.
 
      > **Note:**
      Defining node roles such as `scale_cluster_quorum` and `scale_cluster_manager` is optional. If you do not specify any quorum nodes then the first seven hosts in your inventory are automatically assigned the quorum role.
@@ -278,7 +290,66 @@ Installation Instructions
        callhome_group1: [host-vm1,host-vm2,host-vm3,host-vm4]
        callhome_schedule: [daily,weekly]
      ```
-
+     
+  4. To Install and configure Protocol Service (SMB and NFS) in the cluster you'll need to provide additional information. It is recommended to use [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables) as follows:
+       
+       **IPv4 CES inventory:**
+       ```yaml
+       # group_vars/all.yml:
+       ---
+       scale_protocols:
+           smb: false
+           nfs: false
+           export_ip_pool: [192.168.100.100,192.168.100.101]
+           filesystem: cesSharedRoot
+           mountpoint: /gpfs/cesSharedRoot
+       ```
+     
+       ```yaml
+       smb: set True for required protocol
+       nfs: set True for required protocol
+       export_ip_pool: Comma separated list of ipv6 CES IP
+       filesystem: Any file system that is going to act as cesSharedRoot filesystem
+       mountpoint: CES shared root file system mount point.
+       ```
+     
+       **IPv6 CES inventory:**
+       ```yaml
+       # group_vars/all.yml:
+       ---
+       scale_protocols:
+            smb: false
+            nfs: false,
+            interface: [eth0]
+            export_ip_pool: [2002:90b:e006:84:250:56ff:feb9:7787]
+            filesystem: cesSharedRoot
+            mountpoint: /gpfs/cesSharedRoot
+       ```
+     
+      User have to set True` for required protocol **smb** and or **nfs**
+      
+       ```yaml
+       interface: Comma separated list of ipv6 interface eg , eht0,eht1
+       export_ip_pool: Comma separated list of ipv6 CES IP
+       filesystem: Any file system that is going to act as cesSharedRoot filesystem
+       mountpoint: CES shared root file system mount point.
+       ```       
+       
+       Minimum Playbook roles to install SMB and NFS.
+       
+       ```yaml
+       roles:         
+          - core/precheck  
+          - core/node        
+          - core/cluster         `
+          - nfs/precheck         
+          - nfs/node         
+          - nfs/cluster
+          - smb/precheck 
+          - smb/node     
+          - smb/cluster
+       ````
+     
 - **Create Ansible playbook**
 
   The basic [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html) (e.g. `./playbook.yml`) looks as follows:
@@ -385,6 +456,117 @@ Installation Instructions
   ```
 
 
+JSON inventory method
+----------------------
+
+ There is also created Ansible playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using json inventory.
+ 
+ **playbook_json.ces.yml** --> **set_json_variables.yml** --> **vars/scale_clusterdefinition.json**
+ 
+- **Ansible Playbook:** 
+    - **playbook_json.ces.yml**
+         -  Spectrum Scale Core, ZIMON, GUI, protocol (NFS, SMB), CallHome and Scale file audit logging. 
+ 
+ 
+- **set_json_variables.yml**
+
+    - The Playbook set variables from `set_json_variables.yml` that is read from `vars/scale_clusterdefinition.json`
+
+- **vars/scale_clusterdefinition.json**
+ 
+   - This file can be adjusted to your environment or created.
+   - Example scale_clusterdefinition.json` is separated into:
+   
+       - `scale_cluster`: 
+       - `node_details`: Variables that set's variables to each node (*host_vars*)
+       - `scale_storage`:
+       - `scale_callhome_params`:
+       - `scale_protocols`:
+       
+ 
+  ```json
+    {
+      "scale_cluster": {
+            "scale_cluster_name": "gpfs1.local",
+            "scale_cluster_profile_name": "gpfsprotocoldefaults"
+      },
+      "node_details": [
+        {
+          "fqdn" : host-vm1,
+          "is_protocol_node" :false,
+          "is_nsd_server" : false,
+          "is_quorum_node" : false,
+          "is_manager_node" : false,
+          "is_gui_server" : false,
+          "is_callhome_node" : false,
+          "scale_zimon_collector" : false
+        },
+        {
+          "fqdn" : host-vm2,
+          "is_protocol_node" : false,
+          "is_nsd_server" : false,
+          "is_quorum_node" : false,
+          "is_manager_node" : false,
+          "is_gui_server" : false,
+          "is_callhome_node" : false,
+          "scale_zimon_collector" : false
+        },
+        {
+          "fqdn" : host-vm3,
+          "is_protocol_node" : false,
+          "is_nsd_server" : false,
+          "is_quorum_node" : false,
+          "is_manager_node" : false,
+          "is_gui_server" : false,
+          "is_callhome_node" : false,
+          "scale_zimon_collector" : false
+        }
+      ],
+      "scale_storage":[
+        {
+          "filesystem": "cesSharedRoot",
+          "blockSize": 4M,
+          "defaultMetadataReplicas": 1,
+          "defaultDataReplicas": 1,
+          "automaticMountOption": true,
+          "defaultMountPoint": /gpfs/cesSharedRoot,
+          "disks": [
+           {
+            "device": "/dev/sdb",
+            "nsd": "nsd1",
+            "servers": "host-vm1",
+            "usage": dataAndMetadata,
+            "pool": system
+           }
+          ]
+        }
+      ],
+      "scale_callhome_params":{
+          "is_enabled": false,
+          "customer_name": abc,
+          "customer_email": abc@abc.com,
+          "customer_id": 12345,
+          "customer_country": IN,
+          "proxy_ip":,
+          "proxy_port":,
+          "proxy_user":,
+          "proxy_password":,
+          "proxy_location":,
+          "callhome_server": host-vm1,
+          "callhome_group1": [host-vm1,host-vm2,host-vm3],
+          "callhome_schedule": [daily,weekly]
+      },
+      "scale_protocols":{
+          "smb": false,
+          "nfs": false,
+          "export_ip_pool": [192.168.100.100,192.168.100.101],
+          "filesystem": cesSharedRoot,
+          "mountpoint": /gpfs/cesSharedRoot
+      }
+    }
+  ```
+
+
 Optional Role Variables
 -----------------------
 
@@ -403,6 +585,9 @@ If you are assembling your own [playbook](https://docs.ansible.com/ansible/lates
 - [Core GPFS](./roles/core)
 - [GPFS GUI](./roles/gui)
 - [GPFS Callhome](./roles/callhome)
+- [GPFS SMB](./roles/smb)
+- [GPFS NFS](./roles/nfs)
+- [GPFS SCALE_FILEAUDITLOGGING](./roles/scale_fileauditlogging)
 
 
 Cluster Membership
