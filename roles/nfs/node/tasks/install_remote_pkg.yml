@@ -88,7 +88,7 @@
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/sles12/'
-  when: ansible_distribution in scale_ubuntu_distribution
+  when: ansible_distribution in scale_sles_distribution
 
 - name: install | zimon path
   set_fact:
