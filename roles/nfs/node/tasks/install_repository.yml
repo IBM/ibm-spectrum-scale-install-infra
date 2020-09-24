@@ -13,32 +13,32 @@
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/rhel7/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/rhel8/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_debs/ubuntu16/'
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/sles12/'
-  when: ansible_distribution == 'SLES'
+  when: ansible_distribution in scale_sles_distribution
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
 
 - name: install|configure nfs YUM repository
   yum_repository:
@@ -95,13 +95,13 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_nfs_rpms }}"
-  when: ansible_distribution == 'RedHat' or ansible_distribution == 'SLES'
+  when: ansible_distribution in scale_rhel_distribution or
+        ansible_distribution in scale_sles_distribution
 
 - name: install | Add GPFS nfs packages to list
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_nfs_debs }}"
-  when: ansible_distribution == 'Ubuntu'
-
+  when: ansible_distribution in scale_ubuntu_distribution
 

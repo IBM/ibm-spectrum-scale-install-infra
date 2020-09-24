@@ -47,7 +47,7 @@
   package:
    name: arping
    state: present
-  when: ansible_distribution == 'Ubuntu' and ansible_fqdn in scale_protocol_node_list
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_fqdn in scale_protocol_node_list
 
 - name: configure | Check if SMB is running
   shell:

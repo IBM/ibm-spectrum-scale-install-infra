@@ -100,77 +100,77 @@
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/rhel7/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/rhel8/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_debs/ubuntu16/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version != '20'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_debs/ubuntu/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '20'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/sles12/'
-  when: ansible_distribution == 'SLES' and ansible_distribution_major_version == '12'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/sles15/'
-  when: ansible_distribution == 'SLES' and ansible_distribution_major_version >= '15'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_rpms/rhel7/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_rpms/rhel8/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_rpms/sles12/'
-  when: ansible_distribution == 'SLES' and ansible_distribution_major_version == '12'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_rpms/sles15/'
-  when: ansible_distribution == 'SLES' and ansible_distribution_major_version == '15'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_debs/ubuntu16/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version != '20'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_debs/ubuntu/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '20'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '20'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 # Find nfs rpms
 - block:  ## when: host is defined as a protocol node
@@ -193,7 +193,7 @@
      scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
     with_items:
     - "{{ scale_install_gpfs_smb.files }}"
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - block:  ## when: host is defined as a protocol node
 
@@ -216,7 +216,7 @@
     when: scale_install_gpfs_nfs_ganesha.files is defined
     with_items:
     - "{{ scale_install_gpfs_nfs_ganesha.files }}"
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - block:  ## when: host is defined as a protocol node
 

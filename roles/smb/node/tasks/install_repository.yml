@@ -12,27 +12,27 @@
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_rpms/rhel7/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_rpms/rhel8/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_rpms/sles12/'
-  when: ansible_distribution == 'SLES'
+  when: ansible_distribution in scale_sles_distribution
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
 
 - name: install | Configure smb YUM repository
   yum_repository:
