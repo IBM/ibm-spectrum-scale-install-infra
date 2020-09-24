@@ -36,19 +36,19 @@
   yum_repository:
     name: spectrum-scale-fal
     description: IBM Spectrum Scale (FAL)
-    baseurl: "{{ scale_install_fileauditlogging_repository_url }}{{ scale_fal_url }}"
+    baseurl: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
     gpgcheck: "{{ gpgcheck }}"
     repo_gpgcheck: no
     state: present
   notify: yum-clean-metadata
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-    - scale_install_fileauditlogging_repository_url != 'existing'
+    - scale_install_repository_url != 'existing'
 
 - name: install | Configure fal APT repository
   apt_repository:
     filename: spectrum-scale-fal-debs
-    repo: "deb [trusted=yes] {{ scale_install_fileauditlogging_repository_url }}{{ scale_fal_url }} ./"
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ scale_fal_url }} ./"
     validate_certs: no
     state: present
     update_cache: yes
@@ -56,13 +56,13 @@
     mode: 0777
   when:
     - ansible_pkg_mgr == 'apt'
-    - scale_install_fileauditlogging_repository_url != 'existing'
+    - scale_install_repository_url != 'existing'
 
 - name: install | Configure fal repository
   zypper_repository:
     name: spectrum-scale-fal-sles
     description: IBM Spectrum Scale (FAL)
-    repo: "{{ scale_install_fileauditlogging_repository_url }}{{ scale_fal_url }}"
+    repo: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
     disable_gpg_check: no
     state: present
   when:
