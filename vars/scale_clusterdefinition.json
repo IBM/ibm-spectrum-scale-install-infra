@@ -74,8 +74,8 @@
   "scale_protocols":{
       "smb": false,
       "nfs": false,
-      "interface": [eht0,eth1]
-      "export_ip_pool": [192.168.100.100,192.168.100.101],
+      "interface": [],
+      "export_ip_pool": [192.168.100.102,192.168.100.103],
       "filesystem": cesSharedRoot,
       "mountpoint": /gpfs/cesSharedRoot
   }

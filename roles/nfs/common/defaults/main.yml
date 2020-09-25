@@ -1,3 +1,23 @@
 ---
 # Default variables for the IBM Spectrum Scale (NFS) role -
 # either edit this file or define your own variables to override the defaults
+# If ces groups is defined, scale_protocols in scale_clusterdefinition.json will look like below
+#"scale_protocols":{
+#      "smb": false,
+#      "nfs": false,
+#      "interface": [interface1,interface2],
+#      "scale_ces_groups":[
+#       {
+#        "group_name": "group1",
+#        "node_list": [host-vm1,host-vm2],
+#        "export_ip_pool": [192.168.100.100,192.168.100.101]
+#       },
+#       {
+#        "group_name": "group2",
+#        "node_list": [host-vm3],
+#        "export_ip_pool": [192.168.100.102,192.168.100.103]
+#       }
+#      ],
+#      "filesystem": cesSharedRoot,
+#      "mountpoint": /gpfs/cesSharedRoot
+#  }
