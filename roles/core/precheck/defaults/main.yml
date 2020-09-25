@@ -9,7 +9,7 @@
 
 ## Specify the URL of the (existing) Spectrum Scale YUM repository
 ## (copy the contents of /usr/lpp/mmfs/.../gpfs_rpms to build your repository)
-#scale_install_repository_url: http://infraserv/gpfs_rpms/
+#scale_install_repository_url: http://infraserv/
 ## Note that if this is a URL then a new repository definition will be created.
 ## If this variable is set to 'existing' then it is assumed that a repository
 ## definition already exists and thus will *not* be created.

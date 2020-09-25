@@ -73,57 +73,57 @@
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/rhel7/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/rhel8/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_debs/ubuntu16/'
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/sles12/'
-  when: ansible_distribution == 'SLES'
+  when: ansible_distribution in scale_sles_distribution
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_rpms/rhel7/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '7'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_rpms/rhel8/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_debs/ubuntu16/'
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_rpms/sles12/'
-  when: ansible_distribution == 'SLES' and ansible_distribution_major_version == '12'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
 
 - name: install | zimon path
   set_fact:
    scale_zimon_url: 'zimon_rpms/sles15/'
-  when: ansible_distribution == 'SLES' and ansible_distribution_major_version == '15'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '16'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
 
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
-  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version == '18'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
 
 - block:  ## when: host is defined as a protocol node
 
@@ -146,7 +146,7 @@
     when: scale_install_gpfs_nfs_ganesha.files is defined
     with_items:
     - "{{ scale_install_gpfs_smb.files }}"
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - block:  ## when: host is defined as a protocol node
 
@@ -205,7 +205,7 @@
     assert:
      that: scale_install_gpfs_nfs_utils.matched > 0
      msg: "No GPFS utils (gpfs.nfs-ganesha-utils) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha-utils*"
-  when: ansible_distribution == 'RedHat'
+  when: ansible_distribution in scale_rhel_distribution
 
 - block:
   - name: install | Find gpfs.nfs-ganesha-gpfs (gpfs.nfs-ganesha) package
@@ -230,7 +230,7 @@
     assert:
      that: scale_install_gpfs_nfs_doc.matched > 0
      msg: "No GPFS utils (gpfs.nfs-ganesha-doc) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha-doc*"
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - block:
   - name: install | Find gpfs.python-nfs-ganesha (gpfs.python-nfs-ganesha) package
@@ -243,7 +243,7 @@
     assert:
      that: scale_install_gpfs_nfs_python.matched > 0
      msg: "No GPFS utils (gpfs.python-nfs-ganesha) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.python-nfs-ganesha*"
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - block:
   - name: install | Find gpfs.pm-ganesha (gpfs.pm-ganesha) package
@@ -269,7 +269,7 @@
     assert:
      that: scale_install_gpfs_nfs_ganesha_debuginfo.matched > 0
      msg: "No GPFS nfs ganesha(gpfs.nfs-ganesha-debuginfo) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha-debuginfo*"
-  when: ansible_distribution == 'RedHat'
+  when: ansible_distribution in scale_rhel_distribution
 
 - name: install | Add GPFS package to list
   vars:
@@ -279,7 +279,7 @@
   with_items:
   - "{{ scale_install_gpfs_nfs_python.files }}"
   - "{{ scale_install_gpfs_nfs_doc.files }}"
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - name: install | Add GPFS package to list
   vars:
@@ -303,4 +303,4 @@
   - name: remove debuginfo from packages
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
-  when: not install_debuginfo|bool and ansible_distribution == 'RedHat'
+  when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution

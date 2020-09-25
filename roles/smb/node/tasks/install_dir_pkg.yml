@@ -85,7 +85,7 @@
     assert:
      that: scale_install_gpfs_smb_debuginfo.matched > 0
      msg: "No GPFS smb (gpfs.smb-debuginfo) package found {{ gpfs_path_url }}gpfs.smb-debuginfo*"
-  when: ansible_distribution == 'RedHat'
+  when: ansible_distribution in scale_rhel_distribution
 
 - block:
   - name: initialize
@@ -101,7 +101,7 @@
   - name: remove debuginfo from packages
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
-  when: not install_debuginfo|bool and ansible_distribution == 'RedHat'
+  when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
 
 - debug:
    msg: "{{ scale_install_all_packages }}"

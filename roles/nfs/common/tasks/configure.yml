@@ -47,7 +47,7 @@
   package:
    name: arping
    state: present
-  when: ansible_distribution == 'Ubuntu' and ansible_fqdn in scale_protocol_node_list
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_fqdn in scale_protocol_node_list
 
 - name: configure | Check if SMB is running
   shell:
@@ -129,12 +129,6 @@
   - "{{ scale_ces_enable_status.results }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
 
-- name: configure | Prepare export ips string
-  set_fact:
-    scale_export_ips: "{{ scale_export_ips + ',' + item|string }}"
-  with_items:
-  - "{{ scale_protocols.export_ip_pool }}"
-
 - name: configure | Add IPv6 interface
   shell:
    cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
@@ -147,10 +141,33 @@
    cmd: "mmces interface mode interface --force"
   when: scale_ces_ipv6_list|length > 0
 
-- name: configure | Assign export ips as pool
-  command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
-  when: ansible_fqdn in scale_protocol_node_list
-  delegate_to: "{{ scale_protocol_node_list.0 }}"
+- block:
+  - name: configure | Create CES groups
+    shell:
+     cmd: "{{ scale_command_path }}mmchnode --ces-group {{ item.group_name }} -N {{ item.node_list|join(',') }}"
+    with_items:
+    - "{{ scale_protocols.scale_ces_groups }}"
+
+  - name: configure | Assign export ips as pool for CES groups
+    command: "{{ scale_command_path }}mmces address add --ces-ip {{ item.export_ip_pool|join(',') }} --ces-group {{ item.group_name}}"
+    when: ansible_fqdn in scale_protocol_node_list
+    delegate_to: "{{ scale_protocol_node_list.0 }}"
+    with_items:
+    - "{{ scale_protocols.scale_ces_groups }}"
+  when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0
+
+- block:
+  - name: configure | Prepare export ips string
+    set_fact:
+     scale_export_ips: "{{ scale_export_ips + ',' + item|string }}"
+    with_items:
+    - "{{ scale_protocols.export_ip_pool }}"
+
+  - name: configure | Assign export ips as pool
+    command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
+    when: ansible_fqdn in scale_protocol_node_list and scale_protocols.scale_ces_groups is not defined
+    delegate_to: "{{ scale_protocol_node_list.0 }}"
+  when: scale_protocols.scale_ces_groups is not defined
 
 - name: configure | Rebalance CES IPs
   command: "{{ scale_command_path }}mmces address move --rebalance"
