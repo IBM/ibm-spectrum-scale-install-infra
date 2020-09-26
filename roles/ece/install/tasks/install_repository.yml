@@ -1,0 +1,34 @@
+---
+- name: Initialize
+  set_fact:
+   scale_gnr_url: ""
+   gpgcheck: "yes"
+
+- name: Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
+
+- name: install | gnr path
+  set_fact:
+   scale_gnr_url: 'gpfs_rpms/'
+  when: ansible_distribution in scale_rhel_distribution
+
+- name: install | Configure gnr YUM repository
+  yum_repository:
+    name: spectrum-scale-gnr
+    description: IBM Spectrum Scale (gnr)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_gnr_url }}"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Add GPFS gnr packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_gnr_packages }}"
