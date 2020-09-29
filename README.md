@@ -387,7 +387,7 @@ Installation Instructions
   > **Note:**
   Defining the variable `scale_version` is optional for `scale_install_localpkg_path` and `scale_install_directory_pkg_path` installation methods. It is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
   by defining *one* of the following variables:
-  - `scale_install_repository_url` (eg: http://infraserv/gpfs_rpms/)
+  - `scale_install_repository_url` (eg: http://infraserv/scale/) - root of the Scale package folders and remember the last slash `/` in the url.
   - `scale_install_remotepkg_path` (accessible on Ansible managed node)
   - `scale_install_localpkg_path` (accessible on Ansible control machine)
   - `scale_install_directory_pkg_path` (eg: /opt/IBM/spectrum_scale_packages)
@@ -395,6 +395,9 @@ Installation Instructions
   > **Important:**
   If you are using the single directory installation method (`scale_install_directory_pkg_path`), you need to keep all required Spectrum Scale RPMs in a single user-provided directory.
 
+  - When using the `scale_install_repository_url` the other Ansible Roles will use the main path. example GUI will add /gpfs_rpms/` to the path and create seperate repo.
+  
+  
 - **Run the playbook to install and configure the Spectrum Scale cluster**
 
   - Using the `ansible-playbook` command:
@@ -465,7 +468,7 @@ JSON inventory method
  
 - **Ansible Playbook:** 
     - **playbook_json.ces.yml**
-         -  Spectrum Scale Core, ZIMON, GUI, protocol (NFS, SMB), CallHome and Scale file audit logging. 
+         -  Roles Include: Core, zimon, GUI, Protocol (NFS, SMB), callhome and scale_fileauditlogging. 
  
  
 - **set_json_variables.yml**
@@ -475,15 +478,16 @@ JSON inventory method
 - **vars/scale_clusterdefinition.json**
  
    - This file can be adjusted to your environment or created.
-   - Example scale_clusterdefinition.json` is separated into:
+   - Example `scale_clusterdefinition.json` is separated into:
    
        - `scale_cluster`: 
-       - `node_details`: Variables that set's variables to each node (*host_vars*)
+       - `node_details`: Variables that set's variables to each node (* like host_vars*)
        - `scale_storage`:
        - `scale_callhome_params`:
        - `scale_protocols`:
        
- 
+- Example **scale_clusterdefinition.json**
+
   ```json
     {
       "scale_cluster": {
@@ -565,7 +569,33 @@ JSON inventory method
       }
     }
   ```
-
+---
+- **Scale Protocols**
+  - If CES Groups is desired `scale_protocols` example below can be used.
+     - For more information about [CES Groups](https://www.ibm.com/support/knowledgecenter/STXKQY_5.0.5/com.ibm.spectrum.scale.v5r05.doc/bl1adm_configcesprotocolservipadd.htm)
+  
+    ```json
+    },
+    "scale_protocols":{
+          "smb": false,
+          "nfs": false,
+          "interface": [],
+          "scale_ces_groups":[
+           {
+             "group_name": "group1",
+             "node_list": [host-vm1,host-vm2],
+             "export_ip_pool": [192.168.100.100,192.168.100.101]
+           },
+           {
+             "group_name": "group2",
+             "node_list": [host-vm3],
+             "export_ip_pool": [192.168.100.102,192.168.100.103]
+          }
+          ],
+          "filesystem": cesSharedRoot,
+          "mountpoint": /gpfs/cesSharedRoot
+    }
+    ```
 
 Optional Role Variables
 -----------------------
