@@ -9,7 +9,7 @@
 
 ## Specify the URL of the (existing) Spectrum Scale YUM repository
 ## (copy the contents of /usr/lpp/mmfs/.../gpfs_rpms to build your repository)
-#scale_install_repository_url: http://infraserv/gpfs_rpms/
+#scale_install_repository_url: http://infraserv/
 ## Note that if this is a URL then a new repository definition will be created.
 ## If this variable is set to 'existing' then it is assumed that a repository
 ## definition already exists and thus will *not* be created.
@@ -31,23 +31,26 @@ scale_architecture: "{{ ansible_architecture }}"
 scale_install_localpkg_tmpdir_path: /tmp
 
 ## Specify package extraction path
-extracted_default_path: "/usr/lpp/mmfs"
-gpfs_extracted_path: "{{ extracted_default_path }}/{{ scale_version }}"
+scale_extracted_default_path: "/usr/lpp/mmfs"
+scale_extracted_path: "{{ scale_extracted_default_path }}/{{ scale_version }}"
+
+## Enable/disable gpg key flag
+scale_enable_gpg_check: true
 
 ## List of GPFS RPMs to install
-scale_install_gpfs_rpms:
+scale_install_gpfs_packages:
   - gpfs.base
   - gpfs.docs
-  - gpfs.msg.en_US
+  - gpfs.msg.en*
   - gpfs.compression
   # Appropriate gpfs.gskit version will be installed automatically
 
 ## List of GPFS RPMs to install (prior to version 5.0.2.0)
-scale_install_add_rpms_pre502:
+scale_install_add_packages_pre502:
   - gpfs.ext
 
 ## List of GPFS RPMs to install for building Linux kernel extension from source
-scale_install_gplsrc_rpms:
+scale_install_gplsrc_packages:
   - gpfs.gpl
 
 
@@ -77,3 +80,19 @@ scale_build_gplsrc_prereqs:
 scale_build_gplsrc_el8_prereqs:
   - elfutils
   - elfutils-devel
+
+# Ubuntu buildgpl prereq
+scale_build_gplsrc_prereqs_deb:
+  - cpp
+  - gcc
+  - g++
+  - binutils
+  - make
+
+# Ubuntu buildgpl prereq
+scale_build_gplsrc_prereqs_zypp:
+  - kernel-devel
+  - cpp
+  - gcc
+  - gcc-c++
+  - glibc

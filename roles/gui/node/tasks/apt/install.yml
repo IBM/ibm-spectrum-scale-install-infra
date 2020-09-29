@@ -1,0 +1,18 @@
+---
+#
+# Install or update packages
+#
+- block:
+    - name: install | Install GPFS GUI packages
+      package:
+        name: "{{ scale_install_all_packages }}"
+        state: present
+      when: scale_install_repository_url is defined
+
+    - name: install | Install GPFS GUI packages
+      apt:
+        deb: "{{ item }}"
+        state: present
+      with_items:
+        - "{{ scale_install_all_packages }}"
+      when: scale_install_repository_url is not defined

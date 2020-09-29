@@ -1,4 +1,5 @@
 ---
+# This playbook will read all required input from json inventory
 #- name: Create the required groups
 - hosts: localhost
   connection: local
@@ -28,7 +29,6 @@
      scale_cluster_gui: "{{ item.is_gui_server | default(false) }}"
      scale_zimon_collector: "{{ item.is_collector_node | default(false) }}"
      state: "{{ item.state | default('present') }}"
-     is_admin_node: "{{ item.is_admin_node | default('true') }}"
      scale_nodeclass: "{{ item.scale_nodeclass | default(omit) }}"
      scale_config: "{{ scale_config | default(omit) }}"
      ansible_ssh_private_key_file: "{{ item.ansible_ssh_private_key_file | default(omit) }}"
@@ -37,6 +37,9 @@
      scale_cluster_profile_dir_path: "{{ scale_cluster.scale_cluster_profile_dir_path | default(omit) }}"
      scale_service_gui_start: "{{ scale_cluster.scale_service_gui_start | default(true) }}"
      scale_sync_replication_config: "{{ scale_cluster.scale_sync_replication_config | default(false) }}"
+     is_protocol_node: "{{ item.is_protocol_node | default(false) }}"
+     scale_callhome_params: "{{ scale_callhome_params | default(omit) }}"
+     scale_protocols: "{{ scale_protocols | default(omit) }}"
     loop: "{{ node_details }}"
   tags:
   - scale_inventory

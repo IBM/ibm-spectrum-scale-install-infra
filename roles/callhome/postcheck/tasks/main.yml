@@ -1,3 +1,6 @@
 ---
 # tasks file for postcheck
 - include_tasks: check.yml
+  when: scale_callhome_params is defined and scale_callhome_params.is_enabled|bool
+
+

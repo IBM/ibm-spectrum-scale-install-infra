@@ -3,3 +3,6 @@
 
 - import_tasks: install.yml
   tags: install
+  when: scale_callhome_params is defined and scale_callhome_params.is_enabled|bool
+
+
