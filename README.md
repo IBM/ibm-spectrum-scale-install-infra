@@ -326,10 +326,10 @@ Installation Instructions
             mountpoint: /gpfs/cesSharedRoot
        ```
      
-      User have to set True` for required protocol **smb** and or **nfs**
+      User have to set `true` for required protocol **smb** and or **nfs**
       
        ```yaml
-       interface: Comma separated list of ipv6 interface eg , eht0,eht1
+       interface: Comma separated list of ipv6 interface eg, eth0,eth1
        export_ip_pool: Comma separated list of ipv6 CES IP
        filesystem: Any file system that is going to act as cesSharedRoot filesystem
        mountpoint: CES shared root file system mount point.
