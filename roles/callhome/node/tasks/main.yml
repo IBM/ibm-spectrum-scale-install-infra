@@ -1,5 +1,5 @@
 ---
-# Install IBM Spectrum Scale (GPFS) Graphical User Interface (GUI)
+# Install IBM Spectrum Scale (GPFS) Callhome
 
 - import_tasks: install.yml
   tags: install

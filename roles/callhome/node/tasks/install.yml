@@ -55,9 +55,12 @@
 - include_tasks: install_{{ scale_installmethod }}.yml
 
 - debug:
-        msg: "{{ scale_install_all_packages }}"
+    msg: "{{ scale_install_all_packages }}"
 
-- meta: flush_handlers
+- name: yum-clean-metadata
+  command: yum clean metadata
+  args:
+   warn: false
 
 #
 # Install or update RPMs

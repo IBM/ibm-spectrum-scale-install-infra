@@ -4,7 +4,7 @@
 #
 - block:  ## when: not scale_daemon_running
     - block:
-        - name: install | dependencies pacage
+        - name: install | dependencies packages
           zypper:
             name: binutils
             state: present
