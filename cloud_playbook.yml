@@ -1,7 +1,7 @@
 ---
-# This file is mandatory to import and it will load scale
+# This file is mandatory to import and it will load scale 
 # inventory variable form vars/scale_clusterdefinition.json.
-- import_playbook: set_json_variables.yml
+- import_playbook: "set_json_variables.yml"
 
 # Ensure provisioned VMs are up and Passwordless SSH setup
 # has been compleated and operational
@@ -21,40 +21,43 @@
 - hosts: scale_node
   any_errors_fatal: true
   vars:
-  - scale_install_directory_pkg_path: /opt/IBM/gpfs_cloud_rpms
+    - scale_install_directory_pkg_path: /opt/IBM/gpfs_cloud_rpms
   roles:
-  - core/precheck
-  - core/node
-  - core/cluster
-  - gui/precheck
-  - gui/node
-  - gui/cluster
-  - gui/postcheck
-  - zimon/precheck
-  - zimon/node
-  - zimon/cluster
-  - zimon/postcheck
+     - core/precheck
+     - core/node
+     - core/cluster
+     - gui/precheck
+     - gui/node
+     - gui/cluster
+     - gui/postcheck
+     - zimon/precheck
+     - zimon/node
+     - zimon/cluster
+     - zimon/postcheck
 
-  # Cloud deployment specific actions after Spectrum Scale 
+  # Cloud deployment specific actions after Spectrum Scale
   # cluster installation and setup
   tasks:
-  - block:
-    - name: Accept client lisence for compute descriptor node
-      command: /usr/lpp/mmfs/bin/mmchnode --client -N "computedescnodegrp"
-    - name: set filesystem
-      set_fact:
-        fs_name: '{{ scale_storage.0.filesystem }}'
-      when:
-      - scale_storage is defined
-    - name: Prevent filesystem ount on descriptor node
-      command: /usr/lpp/mmfs/bin/mmdsh -N "computedescnodegrp" touch /var/mmfs/etc/ignoreAnyMount.{{fs_name }}
-    - name: Unmount filesystem on descriptor node
-      command: /usr/lpp/mmfs/bin/mmumount {{ fs_name }} -N "computedescnodegrp"
-    run_once: true
-    when:
-    - scale_sync_replication_config | bool
-  - name: Prevent kernel upgrade
-    lineinfile:
-      path: /etc/yum.conf
-      line: exclude=kernel* redhat-release*
+    - block:
+       - name: accept client lisence for compute descriptor node
+         command: /usr/lpp/mmfs/bin/mmchnode --client -N "computedescnodegrp"
 
+       - name: set filesystem
+         set_fact:
+           fs_name: "{{ scale_storage.0.filesystem }}"
+         when:
+          - scale_storage is defined
+
+       - name: create empty file on descriptor node
+         command: /usr/lpp/mmfs/bin/mmdsh -N "computedescnodegrp" touch /var/mmfs/etc/ignoreAnyMount.{{ fs_name }}
+
+       - name: unmount filesystem on descriptor node
+         command: /usr/lpp/mmfs/bin/mmumount {{ fs_name }} -N "computedescnodegrp"
+      run_once: true
+      when:
+        - scale_sync_replication_config | bool
+
+    - name: Prevent kernel upgrade
+      lineinfile:
+        path: /etc/yum.conf
+        line: exclude=kernel* redhat-release*
