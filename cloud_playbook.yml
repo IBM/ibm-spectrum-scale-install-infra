@@ -3,6 +3,22 @@
 # inventory variable form vars/scale_clusterdefinition.json.
 - import_playbook: "set_json_variables.yml"
 
+# Ensure provisioned VMs are up and Passwordless SSH setup
+# has been compleated and operational
+- name: Check passwordless SSH connection is setup
+  hosts: scale_node
+  any_errors_fatal: true
+  gather_facts: false
+  connection: local
+  tasks:
+  - name: Check passwordless SSH on all scale inventory hosts
+    shell: ssh -i {{ ansible_ssh_private_key_file }} {{ inventory_hostname }} "echo PASSWDLESS_SSH_ENABLED"
+    register: result
+    until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
+    retries: 30
+    delay: 10
+
+# Setup Spectrum Scale on nodes and create cluster
 - hosts: scale_node
   any_errors_fatal: true
   vars:
@@ -20,7 +36,8 @@
      - zimon/cluster
      - zimon/postcheck
 
-  # Below task specific to cloud deployment.
+  # Cloud deployment specific actions after Spectrum Scale
+  # cluster installation and setup
   tasks:
     - block:
        - name: accept client lisence for compute descriptor node
@@ -40,3 +57,8 @@
       run_once: true
       when:
         - scale_sync_replication_config | bool
+
+    - name: Prevent kernel upgrade
+      lineinfile:
+        path: /etc/yum.conf
+        line: exclude=kernel* redhat-release*
