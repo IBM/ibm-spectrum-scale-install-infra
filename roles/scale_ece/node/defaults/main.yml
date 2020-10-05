@@ -1,0 +1,7 @@
+---
+scale_gnr_packages:
+- gpfs.gnr
+- gpfs.gnr.base
+- gpfs.gnr.support-scaleout
+scale_rpmversion: "{{ scale_version | regex_replace('^([0-9.]+)\\.([0-9])$', '\\1-\\2') }}"
+scale_install_localpkg_tmpdir_path: /tmp
