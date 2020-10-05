@@ -276,10 +276,11 @@ Optional Role Variables
 
 Users can define [variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) to override default values and customize behavior of the roles. Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
-Additional functionality can be enabled by defining further variables. Browse the examples in the [samples/](samples/) directory to learn how to:
+Additional functionality can be enabled by defining further [variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html). Browse the examples in the [samples/](samples/) directory to learn how to:
 
 - Configure storage and file systems (see [samples/playbook_storage.yml](samples/playbook_storage.yml))
 - Configure node classes and Spectrum Scale configuration attributes (see [samples/playbook_nodeclass.yml](samples/playbook_nodeclass.yml))
+- Deploy Spectrum Scale using JSON inventory (see [samples/playbook_json_ces.yml](samples/playbook_json_ces.yml))
 
 
 Available Roles
@@ -294,7 +295,7 @@ The following [roles](https://docs.ansible.com/ansible/latest/user_guide/playboo
 - [GPFS Call Home](roles/callhome)
 - [GPFS File Audit Logging](roles/scale_fileauditlogging)
 
-Note that [Core GPFS](roles/core) is the only mandatory role, all other roles are optional. Each of the optional roles requires additional configuration options. Browse the examples in the [samples/](samples/) directory to learn how to:
+Note that [Core GPFS](roles/core) is the only mandatory role, all other roles are optional. Each of the optional roles requires additional configuration variables. Browse the examples in the [samples/](samples/) directory to learn how to:
 
 - Configure Graphical User Interface (GUI) (see [samples/playbook_gui.yml](samples/playbook_gui.yml))
 - Configure Protocol Services (SMB & NFS) (see [samples/playbook_ces.yml](samples/playbook_ces.yml))
@@ -305,7 +306,7 @@ Note that [Core GPFS](roles/core) is the only mandatory role, all other roles ar
 Cluster Membership
 ------------------
 
-All hosts in the play are configured as nodes in the same cluster. If you want to add hosts to an existing cluster then add at least one node from that existing cluster to the play.
+All hosts in the play are configured as nodes in the same Spectrum Scale cluster. If you want to add hosts to an existing cluster then add at least one node from that existing cluster to the play.
 
 You can create multiple clusters by running multiple plays.
 
@@ -313,7 +314,7 @@ You can create multiple clusters by running multiple plays.
 Limitations
 -----------
 
-The roles in this project can (currently) be used to create new clusters or extend existing clusters. Similarly, new file systems can be created or extended. But this role does *not* remove existing nodes, disks, file systems or node classes. This is done on purpose. This is also the reason why it can not be used, for example, to change the file system pool of a disk. Changing the pool requires you to remove and then re-add the disk from a file system, which is not currently in the scope of this role.
+The roles in this project can (currently) be used to create new clusters or extend existing clusters. Similarly, new file systems can be created or extended. But this role does *not* remove existing nodes, disks, file systems or node classes. This is done on purpose &mdash; and this is also the reason why it can not be used, for example, to change the file system pool of a disk. Changing the pool requires you to remove and then re-add the disk from a file system, which is not currently in the scope of this role.
 
 Furthermore, upgrades are not currently in scope of this role. Spectrum Scale supports rolling online upgrades (by taking down one node at a time), but this requires careful planning and monitoring and might require manual intervention in case of unforeseen problems.
 
@@ -333,7 +334,7 @@ Please use the [issue tracker](https://github.com/IBM/ibm-spectrum-scale-install
 Contributing Code
 -----------------
 
-We welcome contributions to this project, see [Contributing](CONTRIBUTING.md) for more details.
+We welcome contributions to this project, see [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 
 Disclaimer
