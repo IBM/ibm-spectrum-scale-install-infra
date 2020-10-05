@@ -207,7 +207,7 @@ Please define the CES shared root file system mount point in the inventory."
     debug:
      msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6." 
     when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
-    failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0 
-    when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0
+    failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
+ 
   when: scale_protocols.scale_ces_groups is not defined 
 
