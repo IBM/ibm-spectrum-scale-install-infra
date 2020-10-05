@@ -1,0 +1,54 @@
+---
+- block:
+   - name: create | Find defined RGs
+     set_fact:
+       scale_rg_nodeclass:
+         "{{ scale_rg_nodeclass | default([]) + [ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) ] }}"
+       scale_recoverygroup:
+         "{{ scale_recoverygroup | default([]) + [ item.1.rg | default('rg_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) ] }}"
+       scale_nc_servers:
+         "{{ scale_nc_servers | default([]) + [ item.1.servers ] }}"
+     when:
+       - item.1.servers is defined
+
+   - name: create | Create Node Class
+     vars:
+       current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+       current_nc_servers: "{{ item.1.servers }}"
+     command: "{{ scale_command_path }}mmvdisk nc create --node-class {{ current_nc }} -N {{ current_nc_servers }}"
+     register: scale_nc_create
+     failed_when: scale_nc_create.rc != 0
+     when:
+       - item.1.servers is defined
+
+
+   - name: create | Server configuration in process
+     debug:
+        msg: Configuring servers for filesystem creation. This may take a while. Please be patient.
+     run_once: true
+
+   - name: create | Configure Server
+     vars:
+       current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+     command: "{{ scale_command_path }}mmvdisk server configure --nc {{ current_nc }} --recycle one"
+     register: scale_serv_configure
+     failed_when: scale_serv_configure.rc != 0
+
+   - name: create | Waiting for node become active
+     shell: "{{ scale_command_path }}mmgetstate -Y | grep active"
+     register: scale_gpfs_state
+     until: scale_gpfs_state.rc == 0
+     retries: 5
+     delay: 30
+     ignore_errors: True
+
+   - name: create | Create Recovery Group
+     vars:
+       current_rg: "{{ item.1.rg | default('rg_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+       current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+     command: "{{ scale_command_path }}mmvdisk rg create --rg {{ current_rg }} --nc {{ current_nc }}"
+     register: scale_rg_create
+     failed_when: scale_rg_create.rc != 0
+  rescue:
+   - debug:
+        msg: "I caught an error, Please take a look to the output given and refer to the Knowledge center!"

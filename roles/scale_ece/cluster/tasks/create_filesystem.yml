@@ -1,0 +1,34 @@
+---
+- block:
+    - name: create | Create filesystem
+      command: "{{ scale_command_path }}mmvdisk fs create --fs {{ item.1.filesystem }} --vs {{ item.1.vs }} --mmcrfs -T {{ item.1.mount_point }}/{{ item.1.filesystem }}"
+      register: scale_fs_create
+      failed_when: scale_fs_create.rc != 0
+      when:
+        - item.1.filesystem is defined
+        - item.1.vs
+        - item.1.mount_point
+
+    - name: create | Waiting for node become active
+      shell: "{{ scale_command_path }}mmgetstate -Y | grep active"
+      register: scale_gpfs_state
+      until: scale_gpfs_state.rc == 0
+      retries: 5
+      delay: 30
+      ignore_errors: True
+
+    - name: create | Mount filesystem
+      command: "{{ scale_command_path }}mmmount {{ item.1.filesystem }} -a"
+      register: scale_fs_mount
+      failed_when: scale_fs_mount.rc != 0
+      when:
+        - item.1.filesystem is defined
+
+    - name: create | End of filesystem creation
+      debug:
+        msg: filesystem {{ item.1.filesystem }} was successfully created.
+      when:
+        - item.1.filesystem is defined
+  rescue:
+    - debug:
+        msg: "I caught an error, Please take a look to the output given and refer to the Knowledge center!."
