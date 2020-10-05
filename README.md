@@ -80,8 +80,8 @@ Features
 #### Spectrum Scale CES (SMB and NFS) Protocol supported features (5.0.5.2)
 - [x] Install Spectrum Scale SMB or NFS on selected cluster nodes
 - [x] CES IPV4 or IPV6 support
-- [x] CES interface mode support 
-- 
+- [x] CES interface mode support
+-
 
 Supported Versions
 ------------------
@@ -181,7 +181,7 @@ Installation Instructions
 
      - `scale_cluster_gui`: User defined node designation for Spectrum Scale GUI. It
        can be either true or false.
-       
+
      - `is_protocol_node`: User defined node designation for Spectrum Scale Protocol. It
         can be either true or false.true `scale_protocols:` variable also needs to set in group_vars.
 
@@ -290,9 +290,9 @@ Installation Instructions
        callhome_group1: [host-vm1,host-vm2,host-vm3,host-vm4]
        callhome_schedule: [daily,weekly]
      ```
-     
+
   4. To Install and configure Protocol Service (SMB and NFS) in the cluster you'll need to provide additional information. It is recommended to use [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables) as follows:
-       
+
        **IPv4 CES inventory:**
        ```yaml
        # group_vars/all.yml:
@@ -304,7 +304,7 @@ Installation Instructions
            filesystem: cesSharedRoot
            mountpoint: /gpfs/cesSharedRoot
        ```
-     
+
        ```yaml
        smb: set True for required protocol
        nfs: set True for required protocol
@@ -312,7 +312,7 @@ Installation Instructions
        filesystem: Any file system that is going to act as cesSharedRoot filesystem
        mountpoint: CES shared root file system mount point.
        ```
-     
+
        **IPv6 CES inventory:**
        ```yaml
        # group_vars/all.yml:
@@ -325,18 +325,18 @@ Installation Instructions
             filesystem: cesSharedRoot
             mountpoint: /gpfs/cesSharedRoot
        ```
-     
+
       User have to set `true` for required protocol **smb** and or **nfs**
-      
+
        ```yaml
        interface: Comma separated list of ipv6 interface eg, eth0,eth1
        export_ip_pool: Comma separated list of ipv6 CES IP
        filesystem: Any file system that is going to act as cesSharedRoot filesystem
        mountpoint: CES shared root file system mount point.
        ```       
-       
+
        Minimum Playbook roles to install SMB and NFS.
-       
+
        ```yaml
        roles:         
           - core/precheck  
@@ -345,11 +345,11 @@ Installation Instructions
           - nfs/precheck         
           - nfs/node         
           - nfs/cluster
-          - smb/precheck 
+          - smb/precheck
           - smb/node     
           - smb/cluster
        ````
-     
+
 - **Create Ansible playbook**
 
   The basic [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html) (e.g. `./playbook.yml`) looks as follows:
@@ -396,8 +396,8 @@ Installation Instructions
   If you are using the single directory installation method (`scale_install_directory_pkg_path`), you need to keep all required Spectrum Scale RPMs in a single user-provided directory.
 
   - When using the `scale_install_repository_url` the other Ansible Roles will use the main path. example GUI will add /gpfs_rpms/` to the path and create seperate repo.
-  
-  
+
+
 - **Run the playbook to install and configure the Spectrum Scale cluster**
 
   - Using the `ansible-playbook` command:
@@ -409,6 +409,7 @@ Installation Instructions
   - Using the automation script:
 
     ```shell
+    $ cd samples/
     $ ./ansible.sh
     ```   
 
@@ -463,29 +464,29 @@ JSON inventory method
 ----------------------
 
  There is also created Ansible playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using json inventory.
- 
+
  **playbook_json.ces.yml** --> **set_json_variables.yml** --> **vars/scale_clusterdefinition.json**
- 
-- **Ansible Playbook:** 
+
+- **Ansible Playbook:**
     - **playbook_json.ces.yml**
-         -  Roles Include: Core, zimon, GUI, Protocol (NFS, SMB), callhome and scale_fileauditlogging. 
- 
- 
+         -  Roles Include: Core, zimon, GUI, Protocol (NFS, SMB), callhome and scale_fileauditlogging.
+
+
 - **set_json_variables.yml**
 
     - The Playbook set variables from `set_json_variables.yml` that is read from `vars/scale_clusterdefinition.json`
 
 - **vars/scale_clusterdefinition.json**
- 
+
    - This file can be adjusted to your environment or created.
    - Example `scale_clusterdefinition.json` is separated into:
-   
-       - `scale_cluster`: 
+
+       - `scale_cluster`:
        - `node_details`: Variables that set's variables to each node (* like host_vars*)
        - `scale_storage`:
        - `scale_callhome_params`:
        - `scale_protocols`:
-       
+
 - Example **scale_clusterdefinition.json**
 
   ```json
@@ -573,7 +574,7 @@ JSON inventory method
 - **Scale Protocols**
   - If CES Groups is desired `scale_protocols` example below can be used.
      - For more information about [CES Groups](https://www.ibm.com/support/knowledgecenter/STXKQY_5.0.5/com.ibm.spectrum.scale.v5r05.doc/bl1adm_configcesprotocolservipadd.htm)
-  
+
     ```json
     },
     "scale_protocols":{

@@ -1,8 +1,7 @@
 ---
-# Ansible playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using json inventory.
-# This also cantains protocol(NFS, SMB), callhome and gpfs file audit logging. 
-# This file is mandatory to import and it will load scale 
-# inventory variable form vars/scale_clusterdefinition.json.
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using JSON inventory.
+# This also contains protocols (NFS & SMB), callhome and file audit logging.
+# This file is mandatory to import and it will load inventory variables form vars/scale_clusterdefinition.json.
 - import_playbook: "set_json_variables.yml"
 
 - hosts: scale_node
