@@ -116,7 +116,7 @@ Users need to have a basic understanding of the [Ansible concepts](https://docs.
   $ pip install --user ansible
   ```
 
-  Refer to the [Ansible Installation Guide](https://docs.ansible.com/ansible/latest/installation_guide/index.html) for detailled installation instructions.
+  Refer to the [Ansible Installation Guide](https://docs.ansible.com/ansible/latest/installation_guide/index.html) for detailed installation instructions.
 
 - **Download Spectrum Scale packages**
 
@@ -157,7 +157,7 @@ Installation Instructions
 
 - **Create Ansible inventory**
 
-  Define Spectrum Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `./hosts`) in the following format
+  Define Spectrum Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `./hosts`) in the following format:
 
   ```yaml
   # hosts:
@@ -180,6 +180,8 @@ Installation Instructions
   > **Note:**
   Defining node roles such as `scale_cluster_quorum` and `scale_cluster_manager` is optional. If you do not specify any quorum nodes then the first seven hosts in your inventory are automatically assigned the quorum role.
 
+  The above is just a minimal example. There are many other variables available which can be defined to customize the behavior of the roles. Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
+
 - **Create Ansible playbook**
 
   The basic [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html) (e.g. `./playbook.yml`) looks as follows:
@@ -198,12 +200,14 @@ Installation Instructions
       - core/postcheck
   ```   
 
-  The following installation methods are available:
+  Again, this is just a minimal example. There are different installation methods available, each offering a specific set of options:
 
   - Installation from (existing) YUM repository (see [samples/playbook_repository.yml](samples/playbook_repository.yml))
   - Installation from remote installation package (see [samples/playbook_remotepkg.yml](samples/playbook_remotepkg.yml))
   - Installation from local installation package (see [samples/playbook_localpkg.yml](samples/playbook_localpkg.yml))
   - Installation from single directory package path (see [samples/playbook_directory.yml](samples/playbook_directory.yml))
+
+  Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
 - **Run the playbook to install and configure the Spectrum Scale cluster**
 
@@ -270,24 +274,32 @@ Installation Instructions
 Optional Role Variables
 -----------------------
 
-User can also define some of the following [variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) to override default values and customize the behavior:
+Users can define [variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) to override default values and customize behavior of the roles. Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
-- `scale_cluster_clustername`: User defined Spectrum Scale cluster name.
-- `scale_prepare_disable_selinux`: SELinux can be disabled. It can be either true or false (default).
-- `scale_prepare_disable_firewall`: Firewall can be disabled. It can be either true or false (default).
+Additional functionality can be enabled by defining further variables. Browse the examples in the [samples/](samples/) directory to learn how to:
+
+- Configure storage and file systems (see [samples/playbook_storage.yml](samples/playbook_storage.yml))
+- Configure node classes and Spectrum Scale configuration attributes (see [samples/playbook_nodeclass.yml](samples/playbook_nodeclass.yml))
 
 
 Available Roles
 ---------------
 
-If you are assembling your own [playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html), the following [roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) are available for you to reuse:
+The following [roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) are available for you to reuse when assembling your own [playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html):
 
-- [Core GPFS](./roles/core)
-- [GPFS GUI](./roles/gui)
-- [GPFS Callhome](./roles/callhome)
-- [GPFS SMB](./roles/smb)
-- [GPFS NFS](./roles/nfs)
-- [GPFS SCALE_FILEAUDITLOGGING](./roles/scale_fileauditlogging)
+- [Core GPFS](roles/core)*
+- [GPFS GUI](roles/gui)
+- [GPFS SMB](roles/smb)
+- [GPFS NFS](roles/nfs)
+- [GPFS Call Home](roles/callhome)
+- [GPFS File Audit Logging](roles/scale_fileauditlogging)
+
+Note that [Core GPFS](roles/core) is the only mandatory role, all other roles are optional. Each of the optional roles requires additional configuration options. Browse the examples in the [samples/](samples/) directory to learn how to:
+
+- Configure Graphical User Interface (GUI) (see [samples/playbook_gui.yml](samples/playbook_gui.yml))
+- Configure Protocol Services (SMB & NFS) (see [samples/playbook_ces.yml](samples/playbook_ces.yml))
+- Configure Call Home (see [samples/playbook_callhome.yml](samples/playbook_callhome.yml))
+- Configure File Audit Logging (see [samples/playbook_fileauditlogging.yml](samples/playbook_fileauditlogging.yml))
 
 
 Cluster Membership
