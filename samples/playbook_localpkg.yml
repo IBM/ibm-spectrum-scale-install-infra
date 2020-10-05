@@ -1,5 +1,5 @@
 ---
-# Ansible Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster.
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using local package installation method.
 - hosts: cluster01
   vars:
     - scale_version: 5.0.4.0
