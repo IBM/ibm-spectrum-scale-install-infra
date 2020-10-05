@@ -1,5 +1,5 @@
 ---
-# Variables for the IBM Spectrum Scale (GPFS) role -
+# Variables for the Erasure code Edition node role -
 # these variables are *not* meant to be overridden
 
 ## Compute RPM version from Spectrum Scale version
