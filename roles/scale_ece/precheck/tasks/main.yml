@@ -1,3 +1,4 @@
 ---
 # tasks file for precheck
 - import_tasks: check.yml
+  tags: check
