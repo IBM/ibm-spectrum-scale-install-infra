@@ -1,0 +1,28 @@
+---
+# tasks file for configure
+- include_tasks: create_recoverygroup.yml
+  tags: configure
+  when:
+    - scale_ece_rg is defined
+  with_subelements:
+    - "{{ scale_ece_rg }}"
+    - rg
+  run_once: true
+
+- include_tasks: create_vdisk.yml
+  tags: configure
+  when:
+    - scale_ece_vdisk is defined
+  with_subelements:
+    - "{{ scale_ece_vdisk }}"
+    - vs
+  run_once: true
+
+- include_tasks: create_filesystem.yml
+  tags: configure
+  when:
+    - scale_ece_filesystem is defined
+  with_subelements:
+    - "{{ scale_ece_filesystem }}"
+    - fs
+  run_once: true
