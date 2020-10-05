@@ -1,5 +1,5 @@
 ---
-# Variables for the IBM Spectrum Scale (File audit logging) role -
+# Variables for the IBM Spectrum Scale (ECE) (Erasure Code Edition) role -
 # these variables are *not* meant to be overridden
 
 # default mm command exection path
