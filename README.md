@@ -231,24 +231,21 @@ Installation Instructions
 
   TASK #### [Gathering Facts]
   **********************************************************************************************************
-  ok: [GPFS-vm1]
-  ok: [GPFS-vm2]
-  ok: [GPFS-vm3]
+  ok: [scale01]
+  ok: [scale02]
+  ok: [scale03]
+  ok: [scale04]
+  ok: [scale05]
 
   TASK [common : check | Check Spectrum Scale version]               
   *********************************************************************************************************
-  ok: [GPFS-vm1] => {
-      "changed": false,
-      "msg": "All assertions passed"
-  }
-  ok: [GPFS-vm2] => {
-      "changed": false,
-      "msg": "All assertions passed"
-  }
-  ok: [GPFS-vm3] => {
-      "changed": false,
-      "msg": "All assertions passed"
-  }
+  ok: [scale01]
+  ok: [scale02]
+  ok: [scale03]
+  ok: [scale04]
+  ok: [scale05]
+
+  ...
   ```
 
   Playbook recap:
@@ -256,9 +253,11 @@ Installation Instructions
   ```shell
   #### PLAY RECAP
   ***************************************************************************************************************
-  GPFS-vm1                 : ok=0   changed=65    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
-  GPFS-vm2                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
-  GPFS-vm3                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale01                 : ok=0   changed=65    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale02                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale03                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale04                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale05                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
   ```
 
 
