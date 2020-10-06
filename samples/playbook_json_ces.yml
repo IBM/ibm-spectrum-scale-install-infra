@@ -1,7 +1,14 @@
 ---
-# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using JSON inventory.
-# This also contains protocols (NFS & SMB), callhome and file audit logging.
-# This file is mandatory to import and it will load inventory variables form vars/scale_clusterdefinition.json.
+#
+# samples/playbook_json_ces.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using
+# inventory in JSON format. This sample also contains protocols (NFS & SMB),
+# callhome and file audit logging.
+
+# This file is mandatory to import and it will load inventory variables form
+# vars/scale_clusterdefinition.json
 - import_playbook: "set_json_variables.yml"
 
 - hosts: scale_node
