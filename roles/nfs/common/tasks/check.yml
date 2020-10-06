@@ -157,14 +157,14 @@ Please define the CES shared root file system mount point in the inventory."
   - name: check | Prepare IPv6 export ip list
     set_fact:
      scale_ces_ipv6_list: "{{ scale_ces_ipv6_list + [ item ]}}"
-    when: item is regex ( "{{ scale_ipv6_regex }}" )
+    when: item is regex ( scale_ipv6_regex )
     with_items:
     - "{{ scale_export_ip }}"
   
   - name: check | Prepare IPv4 export ip list
     set_fact:
      scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
-    when: item is regex ( "{{ scale_ipv4_regex }}" )
+    when: item is regex ( scale_ipv4_regex )
     with_items:
     - "{{ scale_export_ip }}"
   
@@ -186,14 +186,14 @@ Please define the CES shared root file system mount point in the inventory."
   - name: check | Prepare IPv6 export ip list
     set_fact:
      scale_ces_ipv6_list: "{{ scale_ces_ipv6_list + [ item ]}}"
-    when: item is regex ( "{{ scale_ipv6_regex }}" )
+    when: item is regex ( scale_ipv6_regex )
     with_items:
     - "{{ scale_protocols.export_ip_pool }}"
 
   - name: check | Prepare IPv4 export ip list
     set_fact:
      scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
-    when: item is regex ( "{{ scale_ipv4_regex }}" )
+    when: item is regex ( scale_ipv4_regex )
     with_items:
     - "{{ scale_protocols.export_ip_pool }}"
 

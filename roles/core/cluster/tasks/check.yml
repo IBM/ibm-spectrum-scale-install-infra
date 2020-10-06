@@ -33,3 +33,20 @@
   when: hostvars[item].is_admin_node is defined and hostvars[item].is_admin_node | bool
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
+
+# Update ListenAddress at sshd_config for daemon network 
+- block:
+    - name: Update ListenAddress at /etc/ssh/sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        regexp: '#ListenAddress 0.'
+        line: 'ListenAddress {{ ansible_fqdn }}'
+
+    - name: Restart ssh daemon
+      systemd:
+        name: sshd
+        state: reloaded
+
+  when: scale_sshd_config_update is defined and scale_sshd_config_update|bool
+
