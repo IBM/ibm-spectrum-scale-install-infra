@@ -169,18 +169,9 @@ Installation Instructions
   scale05  scale_cluster_quorum=false  scale_cluster_manager=false
   ```
 
-  The following [Ansible variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) are defined in the above [inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html):
+  The above is just a minimal example. It defines [Ansible variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) directly in the [inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html). There are other ways to define variables, such as [host variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#host-variables) and [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#group-variables).
 
-  - `[cluster01]`: User defined host groups for Spectrum Scale cluster nodes on which Spectrum Scale installation will take place.
-
-  - `scale_cluster_quorum`: User defined node designation for Spectrum Scale quorum. It can be either true or false.
-
-  - `scale_cluster_manager`: User defined node designation for Spectrum Scale manager. It can be either true or false.
-
-  > **Note:**
-  Defining node roles such as `scale_cluster_quorum` and `scale_cluster_manager` is optional. If you do not specify any quorum nodes then the first seven hosts in your inventory are automatically assigned the quorum role.
-
-  The above is just a minimal example. There are many other variables available which can be defined to customize the behavior of the roles. Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
+  Numerous variables are available which can be defined in either way to customize the behavior of the roles. Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
 - **Create Ansible playbook**
 
@@ -276,7 +267,7 @@ Optional Role Variables
 
 Users can define [variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) to override default values and customize behavior of the roles. Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
-Additional functionality can be enabled by defining further [variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html). Browse the examples in the [samples/](samples/) directory to learn how to:
+Additional functionality can be enabled by defining further variables. Browse the examples in the [samples/](samples/) directory to learn how to:
 
 - Configure storage and file systems (see [samples/playbook_storage.yml](samples/playbook_storage.yml))
 - Configure node classes and Spectrum Scale configuration attributes (see [samples/playbook_nodeclass.yml](samples/playbook_nodeclass.yml))
