@@ -8,8 +8,8 @@
 # callhome and file audit logging.
 
 # This file is mandatory to import and it will load inventory variables form
-# vars/scale_clusterdefinition.json
-- import_playbook: "set_json_variables.yml"
+# samples/vars/scale_clusterdefinition.json
+- import_playbook: set_json_variables.yml
 
 - hosts: scale_node
   any_errors_fatal: true
