@@ -1,0 +1,18 @@
+---
+#
+# saples/vars/config_vars.yml
+#
+
+# Refer to the `man mmchconfig` man page for a list of available configuration
+# attributes.
+
+# Note that configuration attributes can be defined as variables for *any* host
+# in the play — the host for which you define the configuration attribute is
+# irrelevant.
+
+scale_config:
+  - nodeclass: classA
+    params:
+      - pagepool: 16G
+      - autoload: no
+      - ignorePrefetchLUNCount: yes
