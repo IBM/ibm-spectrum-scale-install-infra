@@ -125,6 +125,7 @@ Please define the CES shared root file system mount point in the inventory."
    cmd: "{{ scale_command_path }}mmgetstate|grep active"
   register: inactive_nodes
   ignore_errors: true
+  failed_when: false
 
 - name: check | Check if any nodes are inactive
   assert:
@@ -136,6 +137,7 @@ Please define the CES shared root file system mount point in the inventory."
   shell:
    cmd: "{{ scale_command_path }}mmlscluster|grep CCR"
   register: ccr_status
+  failed_when: false
 
 - name: check | Check if ccr is enabled
   assert:
