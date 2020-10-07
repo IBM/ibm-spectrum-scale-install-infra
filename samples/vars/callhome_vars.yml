@@ -1,0 +1,19 @@
+---
+#
+# saples/vars/callhome_vars.yml
+#
+
+scale_callhome_params:
+  is_enabled: true
+  customer_name: abc
+  customer_email: abc@abc.com
+  customer_id: 12345
+  customer_country: IN
+  proxy_ip:
+  proxy_port:
+  proxy_user:
+  proxy_password:
+  proxy_location:
+  callhome_server: scale01
+  callhome_group1: [scale01,scale02,scale03,scale04]
+  callhome_schedule: [daily,weekly]
