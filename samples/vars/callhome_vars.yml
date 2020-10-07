@@ -3,6 +3,9 @@
 # saples/vars/callhome_vars.yml
 #
 
+# Refer to `man mmcallhome` man pages for a description of these Call Home
+# parameters.
+
 scale_callhome_params:
   is_enabled: true
   customer_name: abc
