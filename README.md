@@ -88,7 +88,7 @@ Supported Versions
 
 The following Ansible versions are supported:
 
-- 2.7 and above
+- 2.9 and above
 
 The following IBM Spectrum Scale versions are supported:
 
@@ -112,7 +112,7 @@ Users need to have a basic understanding of the [Ansible concepts](https://docs.
 
   ```shell
   $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  $ python get-pip.py --user
+  $ python get-pip.py
   $ pip install --user ansible
   ```
 
