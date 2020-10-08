@@ -6,6 +6,7 @@
 - import_playbook: "set_json_variables.yml"
 
 - hosts: scale_node
+  any_errors_fatal: true
   vars:
     - scale_install_localpkg_path: /root/Spectrum_Scale_Advanced-5.1.0.0-x86_64-Linux-install
   roles:
