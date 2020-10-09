@@ -29,7 +29,7 @@ Variables used by Spectrum Scale (GPFS) Ansible project
   - example: `http://server/gpfs/`
   - default: none
 
-  Specify the URL of the (existing) Spectrum Scale YUM repository (copy the contents of /usr/lpp/mmfs/.../gpfs_rpms to build your repository).
+  Specify the URL of the (existing) Spectrum Scale YUM repository (copy the contents of /usr/lpp/mmfs/{{ scale_version }}/ to a web server in order to build your repository).
 
   Note that if this is a URL then a new repository definition will be created. If this variable is set to `existing` then it is assumed that a repository definition already exists and thus will *not* be created.
 
