@@ -149,10 +149,18 @@ Installation Instructions
   $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
   ```
 
-- **Change working directory to `ibm-spectrum-scale-install-infra/`**
+- **Change working directory**
+
+  There are different methods for accessing the roles provided by this project. You can either change your working directory to the cloned repository and create your own files inside this directory (optionally copying examples from the [samples/](samples/) subdirectory):
 
   ```shell
   $ cd ibm-spectrum-scale-install-infra/
+  ```
+
+  Alternatively, you can define an [Ansible environment variable](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#envvar-ANSIBLE_ROLES_PATH) to make the roles accessible in any external project directory:
+
+  ```shell
+  $ export ANSIBLE_ROLES_PATH=$(pwd)/ibm-spectrum-scale-install-infra/roles/
   ```
 
 - **Create Ansible inventory**
