@@ -2,6 +2,12 @@
 # Default variables for the IBM Spectrum Scale (ECE) (Erasure Code Edition) role -
 # either edit this file or define your own variables to override the defaults
 
+## Default rg parameters -
+## can be overridden for each rg individually
+scale_ece_rg_defaults:
+  ## for an existing RG header (dangerous!)
+  overwriteRGs: false
+
 ## Default ECE parameters for mmvdisk-
 ## can be overridden for each filesystem individually
 ## To Enabled output from Ansible task in stdout and stderr for some tasks.

@@ -5,7 +5,7 @@
 
 - name: check | Collect all ece nodes
   set_fact:
-    scale_ece_nodes_list: "{{ scale_ece_nodes_list + [hostvars[item]['ansible_fqdn']] }}"
+    scale_ece_nodes_list: "{{ scale_ece_nodes_list + [hostvars[item]['inventory_hostname']] }}"
   when: hostvars[item]['scale_out_node'] is defined and hostvars[item]['scale_out_node']|bool
   with_items:
     - "{{ ansible_play_hosts }}"

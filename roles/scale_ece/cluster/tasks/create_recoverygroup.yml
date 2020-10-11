@@ -1,5 +1,17 @@
 ---
 - block:
+   - name: storage | Find existing nodeclass(s)
+     shell: /usr/lpp/mmfs/bin/mmvdisk nc list -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
+     register: scale_existing_nc
+     changed_when: false
+     failed_when: false
+
+   - name: storage | Find existing recoverygroup(s)
+     shell: /usr/lpp/mmfs/bin/mmvdisk rg list -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
+     register: scale_existing_rg
+     changed_when: false
+     failed_when: false
+
    - name: create | Find defined RGs
      set_fact:
        scale_rg_nodeclass:
@@ -19,20 +31,30 @@
      register: scale_nc_create
      failed_when: scale_nc_create.rc != 0
      when:
+       - current_nc not in scale_existing_nc.stdout_lines
        - item.1.servers is defined
-
 
    - name: create | Server configuration in process
      debug:
         msg: Configuring servers for filesystem creation. This may take a while. Please be patient.
      run_once: true
 
+   - name: storage | Find existing nodeclass configuration
+     vars:
+       current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+     shell: /usr/lpp/mmfs/bin/mmvdisk server list --nc {{ current_nc }} | grep 'unconfigured'
+     register: scale_nc_configure_check
+     changed_when: false
+     failed_when: false
+   
    - name: create | Configure Server
      vars:
        current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
      command: "{{ scale_command_path }}mmvdisk server configure --nc {{ current_nc }} --recycle one"
      register: scale_serv_configure
      failed_when: scale_serv_configure.rc != 0
+     when:
+       - scale_nc_configure_check.rc == 0
 
    - name: create | Waiting for node become active
      shell: "{{ scale_command_path }}mmgetstate -Y | grep active"
@@ -44,11 +66,14 @@
 
    - name: create | Create Recovery Group
      vars:
+       verify: "{{ 'no' if item.1.overwriteRGs | default(scale_ece_rg_defaults.overwriteRGs) else 'yes' }}"
        current_rg: "{{ item.1.rg | default('rg_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
        current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
-     command: "{{ scale_command_path }}mmvdisk rg create --rg {{ current_rg }} --nc {{ current_nc }}"
+     command: "{{ scale_command_path }}mmvdisk rg create --rg {{ current_rg }} --nc {{ current_nc }} -v {{ verify }}"
      register: scale_rg_create
      failed_when: scale_rg_create.rc != 0
+     when:
+       - current_rg not in scale_existing_rg.stdout_lines
   rescue:
    - debug:
         msg: "I caught an error, Please take a look to the output given and refer to the Knowledge center!"
