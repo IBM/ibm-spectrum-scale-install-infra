@@ -18,7 +18,6 @@
     verbosity: 2
 
 ## Computed.Name is used to determine the provisioned environment
--
 - name: hasi_vault_user | Hasicorp Vault - Create local admin user and write password to Vault
   shell: |
     vault kv put secret/private/{{ computed.name | default(AdminGUI) }}/gui gui_admin_pwd=$(vault write -field='value' gen/password length=12 symbols=0)
