@@ -22,4 +22,6 @@ galaxy_info:
     - interface
     - gui
 
-dependencies: []
+dependencies:
+   - core/common
+   - precheck
