@@ -231,17 +231,23 @@ class SpectrumScaleNode:
 
 
     @staticmethod
-    def get_state(node_names=[]):
+    def get_state(node_names=[], admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
+        cmd = []
+        mmcmd_idx = 1
 
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmgetstate")]
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmgetstate")])
 
         if len(node_names) == 0:
             cmd.append("-a")
         else:
             # If a set of node names have ben provided, use that instead
-            node_name_str = ' '.join(node_names)
+            node_name_str = ','.join(node_names)
             cmd.append("-N")
             cmd.append(node_name_str)
            
@@ -250,12 +256,12 @@ class SpectrumScaleNode:
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Retrieving the node state failed",
-                                         cmd[0], cmd[1:],
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          rc, stdout, stderr)
 
         node_state_dict = parse_unique_records(stdout)
@@ -269,9 +275,15 @@ class SpectrumScaleNode:
 
 
     @staticmethod
-    def shutdown_node(node_name, wait=True):
+    def shutdown_node(node_name, wait=True, admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
+        cmd = []
+        mmcmd_idx = 1
+
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
 
         if isinstance(node_name, str):
             node_name_str = node_name
@@ -280,16 +292,16 @@ class SpectrumScaleNode:
             node_name_str = ' '.join(node_name)
             node_name_list = node_name
  
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmshutdown"), "-N", node_name_str]
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmshutdown"), "-N", node_name_str])
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Shutting down node failed",
-                                         cmd[0], cmd[1:],
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          rc, stdout, stderr)
 
         if wait:
@@ -299,21 +311,27 @@ class SpectrumScaleNode:
             done = False
             while(not done and retry < MAX_RETRY):
                 time.sleep(5)
-                node_state = SpectrumScaleNode.get_state(node_name_list)
+                node_state = SpectrumScaleNode.get_state(node_name_list, admin_ip)
                 done = all("down" in state for state in list(node_state.values()))
                 retry = retry + 1
 
             if not done:
                 raise SpectrumScaleException("Shutting down node(s) timed out",
-                                             cmd[0], cmd[1:], -1, "",
+                                             cmd[0:mmcmd_idx], cmd[mmcmd_idx:], -1, "",
                                              "Node state is not \"down\" after retries")
         return rc, stdout
 
 
     @staticmethod
-    def start_node(node_name, wait=True):
+    def start_node(node_name, wait=True, admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
+        cmd = []
+        mmcmd_idx = 1
+
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
 
         if isinstance(node_name, str):
             node_name_str = node_name
@@ -322,16 +340,17 @@ class SpectrumScaleNode:
             node_name_str = ' '.join(node_name)
             node_name_list = node_name
  
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmstartup"), "-N", node_name_str]
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmstartup"), "-N", node_name_str])
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:], 
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
-            raise SpectrumScaleException("Starting node failed", cmd[0], 
-                                         cmd[1:], rc, stdout, stderr)
+            raise SpectrumScaleException("Starting node failed",
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
+                                         rc, stdout, stderr)
 
         if wait:
             # Wait for a maximum of 36 * 5 = 180 seconds (3 minutes)
@@ -340,13 +359,13 @@ class SpectrumScaleNode:
             done = False
             while(not done and retry < MAX_RETRY):
                 time.sleep(5)
-                node_state = SpectrumScaleNode.get_state(node_name_list)
+                node_state = SpectrumScaleNode.get_state(node_name_list, admin_ip)
                 done = all("active" in state for state in list(node_state.values()))
                 retry = retry + 1
 
             if not done:
                 raise SpectrumScaleException("Starting node(s) timed out",
-                                             cmd[0], cmd[1:], -1, ""
+                                             cmd[0:mmcmd_idx], cmd[mmcmd_idx:], -1, "",
                                              "Node state is not \"active\" after retries")
         return rc, stdout
 
