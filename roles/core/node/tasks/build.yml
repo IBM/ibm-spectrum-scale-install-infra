@@ -11,6 +11,10 @@
         state: present
         disable_excludes: all
       when: ansible_pkg_mgr == 'yum'
+      register: scale_gpl_yum_result
+      retries: 10
+      until: scale_gpl_yum_result is success
+      delay: 20
 
     - name: build | Install prereqs for building GPL module from source
       dnf:
@@ -18,6 +22,10 @@
         state: present
         disable_excludes: all
       when: ansible_pkg_mgr == 'dnf'
+      register: scale_gpl_dnf_result
+      retries: 10
+      until: scale_gpl_dnf_result is success
+      delay: 20
 
     - block:  ## when: rhel8 node
         - name: build | Install prereqs for building GPL from source

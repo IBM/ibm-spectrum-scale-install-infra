@@ -59,6 +59,10 @@
       dnf:
         name: "{{ scale_gui_el8_prereqs }}"
         state: present
+      register: scale_gui_dnf_result
+      retries: 10
+      until: scale_gui_dnf_result is success
+      delay: 20
   when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
 
 #
@@ -68,4 +72,8 @@
   package:
     name: "{{ scale_install_all_rpms }}"
     state: present
+  register: scale_gui_result
+  retries: 10
+  until: scale_gui_result is success
+  delay: 20
   when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
