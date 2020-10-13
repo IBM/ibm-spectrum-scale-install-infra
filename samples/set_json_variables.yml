@@ -44,4 +44,3 @@
     loop: "{{ node_details }}"
   tags:
   - scale_inventory
-
