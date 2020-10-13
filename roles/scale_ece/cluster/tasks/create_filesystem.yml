@@ -1,10 +1,17 @@
 ---
 - block:
+    - name: create | Find existing filesystem(s)
+      shell: /usr/lpp/mmfs/bin/mmvdisk fs list -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
+      register: scale_existing_fs
+      changed_when: false
+      failed_when: false
+
     - name: create | Create filesystem
       command: "{{ scale_command_path }}mmvdisk fs create --fs {{ item.1.filesystem }} --vs {{ item.1.vs }} --mmcrfs -T {{ item.1.mount_point }}/{{ item.1.filesystem }}"
       register: scale_fs_create
       failed_when: scale_fs_create.rc != 0
       when:
+        - item.1.filesystem not in scale_existing_fs.stdout_lines
         - item.1.filesystem is defined
         - item.1.vs
         - item.1.mount_point
@@ -22,12 +29,14 @@
       register: scale_fs_mount
       failed_when: scale_fs_mount.rc != 0
       when:
+        - item.1.filesystem not in scale_existing_fs.stdout_lines
         - item.1.filesystem is defined
 
     - name: create | End of filesystem creation
       debug:
         msg: filesystem {{ item.1.filesystem }} was successfully created.
       when:
+        - item.1.filesystem not in scale_existing_fs.stdout_lines
         - item.1.filesystem is defined
   rescue:
     - debug:
