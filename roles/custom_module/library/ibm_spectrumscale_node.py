@@ -462,8 +462,13 @@ def remove_nodes(logger, node_names_to_delete):
     logger.info("Attempting to remove node(s) {0} from the "
                 "cluster".format(' '.join(map(str, node_names_to_delete))))
 
+    # TODO: The cluster health check should only fail if we are attempting
+    #       to remove NSD servers while other NSD servers are down. The
+    #       removal of compute nodes should be permitted even if NSD
+    #       servers are down. For now disable check until correct algorithm
+    #       can be implemented
     # Ensure all nodes in the cluster are healthy
-    check_cluster_health(logger)
+    #check_cluster_health(logger)
 
     # Check that the list of nodes to delete already exist. If not, 
     # simply ignore
@@ -483,7 +488,11 @@ def remove_nodes(logger, node_names_to_delete):
     # For each Filesystem, Get the Filesystem to NSD (disk) mapping
     fs_nsd_map = get_filesystem_to_nsd_mapping(logger)
 
-    check_disk_health(logger, fs_nsd_map)
+    # TODO: The disk health check should only fail if we are attempting
+    #       to remove NSD servers when any disks are down. The removal
+    #       of compute nodes should be permitted even if disks are down.
+    #       For now disable check until correct algorithm can be implemented
+    #check_disk_health(logger, fs_nsd_map)
 
     # An NSD node can have access to a multi attach NSD (shared NSD) or
     # dedicated access to the NSD (FPO model) or a combination of both.
