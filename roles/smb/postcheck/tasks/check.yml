@@ -5,6 +5,7 @@
   register: scale_smb_status
   when: ansible_fqdn in scale_smb_node_list
   ignore_errors: true
+  failed_when: false
 
 - name: postcheck | Check if SMB is running
   assert:
