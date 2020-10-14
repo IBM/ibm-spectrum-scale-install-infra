@@ -173,7 +173,7 @@ Please define the CES shared root file system mount point in the inventory."
   - name: check | Check if interface is defined
     assert:
      that:
-     - "{{ scale_protocols.interface }}|length > 0"
+     - scale_protocols.interface|length > 0
     when: scale_ces_ipv6_list|length > 0
 
   - name: check | Check if all ces ips are either IPv4 or IPv6

@@ -55,6 +55,7 @@
   register: scale_service_status
   when: ansible_fqdn in scale_protocol_node_list
   ignore_errors: true
+  failed_when: false
   run_once: true
 
 - name: configure | Add SMB service to list
@@ -75,6 +76,7 @@
   register: scale_service_status
   when: ansible_fqdn in scale_protocol_node_list
   ignore_errors: true
+  failed_when: false
   run_once: true
 
 - name: configure | Add NFS service to the list
