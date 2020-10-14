@@ -17,6 +17,11 @@
     scale_daemon_nodename: "{{ scale_daemon_nodename }}"
   when: hostvars[inventory_hostname].scale_daemon_nodename is undefined
 
+- name: check | Set default admin nodename
+  set_fact:
+    scale_admin_nodename: "{{ scale_admin_nodename }}"
+  when: hostvars[inventory_hostname].scale_admin_nodename is undefined
+
 - name: check | Assign default admin nodes
   set_fact:
      is_admin_node: true
@@ -33,20 +38,4 @@
   when: hostvars[item].is_admin_node is defined and hostvars[item].is_admin_node | bool
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
-
-# Update ListenAddress at sshd_config for daemon network 
-- block:
-    - name: Update ListenAddress at /etc/ssh/sshd_config
-      lineinfile:
-        path: /etc/ssh/sshd_config
-        state: present
-        regexp: '#ListenAddress 0.'
-        line: 'ListenAddress {{ ansible_fqdn }}'
-
-    - name: Restart ssh daemon
-      systemd:
-        name: sshd
-        state: reloaded
-
-  when: scale_sshd_config_update is defined and scale_sshd_config_update|bool
 

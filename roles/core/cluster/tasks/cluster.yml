@@ -43,20 +43,6 @@
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
-- name: cluster | Group defined daemon network nodename
-  add_host:
-     name: "{{ item }}"
-     groups: scale_daemon_network_nodes
-  when: hostvars[item]['scale_daemon_network'] is defined
-  with_items: "{{ ansible_play_hosts }}"
-
-- assert:
-    that: ansible_play_hosts|length == groups['scale_daemon_nodes']|length
-    msg: >-
-         Please specify the daemon network for all nodes in the cluster.
-  when: groups['scale_daemon_nodes'] is defined
-  run_once: true
-
 #
 # Assign default quorum nodes
 #
@@ -125,15 +111,6 @@
       template:
         src: NewNodeFile.j2
         dest: /var/tmp/NodeFile
-      when: 
-       - groups['scale_daemon_network_nodes'] is undefined        
-
-    - name: cluster | Prepare new cluster Daemon Network NodeFile
-      template:
-        src: DaemonNodeFile.j2
-        dest: /var/tmp/NodeFile
-      when: 
-        - groups['scale_daemon_network_nodes'] is defined     
 
     - name: cluster | Stat GPFS profile file
       find:

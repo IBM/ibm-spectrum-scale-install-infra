@@ -25,6 +25,9 @@
 ## Spectrum Scale daemon nodename (defaults to node's hostname)
 scale_daemon_nodename: "{{ ansible_hostname }}"
 
+## Spectrum Scale admin nodename (defaults to node's hostname)
+scale_admin_nodename: "{{ ansible_hostname }}"
+
 ## Default cluster name
 scale_cluster_clustername: gpfs1.local
 

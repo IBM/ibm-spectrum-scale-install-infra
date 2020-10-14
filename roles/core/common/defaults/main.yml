@@ -28,11 +28,6 @@ scale_architecture: "{{ ansible_architecture }}"
 ## Spectrum Scale daemon nodename (defaults to node's hostname)
 scale_daemon_nodename: "{{ ansible_hostname }}"
 
-## For the Spectrum Scale daemon network the 'ListenAddress' needs to be set 
-## at /etc/ssh/sshd_config to allow only the admin IP to login.
-## Set the scale_sshd_config_update to 'true' to update the sshd_config
-scale_sshd_config_update: false
-
 ## Temporary directory to copy installation package to
 ## (local package installation method)
 scale_install_localpkg_tmpdir_path: /tmp
