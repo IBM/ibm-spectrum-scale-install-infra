@@ -17,6 +17,8 @@
     until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
     retries: 30
     delay: 10
+    when:
+      - hostvars[inventory_hostname].state is defined and hostvars[inventory_hostname].state != 'maintenance'
 
 # Ensure all provisioned VMs are running the supported OS versions
 - name: Check for supported OS
@@ -34,6 +36,8 @@
             ansible_distribution_version is match("8.1") or
             ansible_distribution_version is match("8.2"))
        fail_msg: "Only instances running RedHat Enterprise Linux version 7.7, 7.8, 8.1 and 8.2 are supported"
+    when:
+      - hostvars[inventory_hostname].state is defined and hostvars[inventory_hostname].state != 'maintenance' 
 
 # Setup Spectrum Scale on nodes and create cluster
 - hosts: scale_node
@@ -91,6 +95,7 @@
          name: "{{ item }}"
          groups: scale_compute_members
       when:
+         - hostvars[item].state is defined and hostvars[item].state != 'maintenance'
          - hostvars[item]['scale_nodeclass'] is defined and 'computenodegrp' in hostvars[item]['scale_nodeclass']
       with_items: "{{ ansible_play_hosts }}"
       changed_when: false
@@ -100,6 +105,7 @@
          name: "{{ item }}"
          groups: scale_storage_members
       when:
+         - hostvars[item].state is defined and hostvars[item].state != 'maintenance'
          - hostvars[item]['scale_nodeclass'] is defined and 'storagenodegrp' in hostvars[item]['scale_nodeclass']
       with_items: "{{ ansible_play_hosts }}"
       changed_when: false
@@ -178,11 +184,13 @@
       command: "/usr/lpp/mmfs/bin/mmchconfig pagepool={{ pagepool_compute }}G -i -N computenodegrp"
       when:
         - pagepool_compute is defined
+      delegate_to: "{{ groups['scale_compute_members'].0 }}"
       run_once: true
 
     - name: Spectrum Scale Config | Assign Storage Pagepool
       command: "/usr/lpp/mmfs/bin/mmchconfig pagepool={{ pagepool_storage }}G -i -N storagenodegrp"
       when:
         - pagepool_storage is defined
+      delegate_to: "{{ groups['scale_storage_members'].0 }}"
       run_once: true
 
