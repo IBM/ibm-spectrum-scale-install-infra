@@ -114,22 +114,44 @@
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
 
-- name: configure | Collect status of ces nodes
-  shell:
-   cmd: "{{ scale_command_path }}mmces node list|grep {{ item }}"
-  register: scale_ces_enable_status
-  with_items:
-  - "{{ scale_protocol_node_list }}"
-  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  #- name: configure | Collect status of ces nodes
+  #shell:
+  # cmd: "{{ scale_command_path }}mmces node list|grep {{ item }}"
+  #register: scale_ces_enable_status
+  #with_items:
+  #- "{{ scale_protocol_node_list }}"
+  #delegate_to: "{{ scale_protocol_node_list.0 }}"
 
-- name: configure | Check CES enabled on all nodes
-  assert:
-   that:
-   -  item.rc == 0
-   fail_msg: "CES is not enabled on {{ ansible_hostname }} protocol node"
-  with_items:
-  - "{{ scale_ces_enable_status.results }}"
+  #- name: configure | Check CES enabled on all nodes
+  #assert:
+  # that:
+  # -  item.rc == 0
+  # fail_msg: "CES is not enabled on {{ ansible_hostname }} protocol node"
+  #with_items:
+  #- "{{ scale_ces_enable_status.results }}"
+  #delegate_to: "{{ scale_protocol_node_list.0 }}"
+
+- name: Collect status of ces nodes
+  command: "{{ scale_command_path }}mmces node list"
+  register: scale_ces_enable_status
   delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
+
+- name: List status of ces nodes
+  debug:
+    var: scale_ces_enable_status.stdout_lines
+  run_once: true
+
+- name: Check CES enabled on all nodes
+  assert:
+    that:
+      - "item in scale_ces_enable_status.stdout"
+    fail_msg: "CES is not enabled on {{ item }} protocol node"
+    success_msg: "Successful enabling of CES on protocol node {{ item }}"
+  with_items:
+    - "{{ scale_protocol_node_list }}"
+  delegate_to: scale_protocol_node_list.0
+  run_once: true
 
 - name: configure | Add IPv6 interface
   shell:
