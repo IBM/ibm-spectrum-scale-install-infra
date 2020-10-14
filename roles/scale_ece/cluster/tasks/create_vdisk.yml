@@ -1,5 +1,11 @@
 ---
 - block:
+      - name: create | Find existing Vdiskset(s)
+        shell: /usr/lpp/mmfs/bin/mmvdisk vs list -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
+        register: scale_existing_vs
+        changed_when: false
+        failed_when: false
+
       - name: create | Define Vdiskset
         vars:
           current_vs: "{{ item.1.vdisk | default('vs_' + (item.1.rg | regex_replace('\\W', '_')) | basename) }}"
@@ -11,6 +17,7 @@
         register: scale_vs_define
         failed_when: scale_vs_define.rc != 0
         when:
+          - current_vs not in scale_existing_vs.stdout_lines
           - item.1.vdisk is defined
           - item.1.rg is defined
           - item.1.ec is defined
