@@ -11,6 +11,7 @@
     path: /root/.bashrc
     line: PATH=$PATH:/usr/lpp/mmfs/bin
     state: present
+  when: ansible_pkg_mgr != 'zypper'
 
 #
 # Configure SSH server

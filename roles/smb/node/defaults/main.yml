@@ -1,0 +1,19 @@
+---
+# Default variables for the IBM Spectrum Scale (SMB) role -
+# either edit this file or define your own variables to override the defaults
+
+## Specify the URL of the (existing) Spectrum Scale YUM/apt/zypper repository
+#scale_install_smb_repository_rpms: http://<ip>/smb_rpms/
+#scale_install_smb_repository_debs: http://<ip>/smb_debs/
+#scale_install_smb_repository_rpms_sles: http://<ip>/smb_rpms/sles12/
+
+## List of NFS packages to install
+scale_smb_packages:
+- gpfs.smb
+
+## Temporary directory to copy installation package to
+## (local package installation method)
+scale_install_localpkg_tmpdir_path: /tmp
+
+## Flag to install smb debug package
+install_debuginfo: true

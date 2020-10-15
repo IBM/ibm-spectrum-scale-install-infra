@@ -1,6 +1,6 @@
 ---
 
-- name: configure | check gui node
+- name: check | Check gui node
   add_host:
     name: "{{ hostvars[item]['ansible_fqdn'] }}"
     groups: scale_gui_nodes
@@ -10,7 +10,7 @@
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
-- name: cluster | check if gui is enabled
+- name: check | Check if gui is enabled
   set_fact:
     scale_cluster_gui_node: true
   when:
@@ -20,7 +20,7 @@
   run_once: true
   delegate_facts: true
 
-- name: config | Find existing gui nodes
+- name: check | Find existing gui nodes
   shell: set -o pipefail && mmlsnodeclass GUI_MGMT_SERVERS -Y |grep -v HEADER | cut -d ':' -f 10
   register: scale_config_existing_guinode
   changed_when: false
@@ -32,21 +32,21 @@
   run_once: true
 
 - block:
-   - name: precheck | initialize existing gui nodes
+   - name: check | initialize existing gui nodes
      set_fact:
        inventory_gui_nodes: "{{ groups['scale_gui_nodes'] | list }}"
        existing_gui_nodes: "{{ scale_config_existing_guinode.stdout.split(',') }}"
      when:
        - scale_config_existing_guinode.stdout_lines | length > 0
 
-   - name: precheck | initialize existing gui and inventory gui nodes
+   - name: check | initialize existing gui and inventory gui nodes
      set_fact:
        gui_merged: "{{ (inventory_gui_nodes + existing_gui_nodes) | unique }}"
      when:
        - (inventory_gui_nodes is defined and inventory_gui_nodes | length > 0)
        - (existing_gui_nodes is defined and existing_gui_nodes | length >0)
 
-   - name: precheck | Check number of gui nodes in inventory if existing gui node found
+   - name: check | Check number of gui nodes in inventory if existing gui node found
      assert:
       that:
         - "{{ gui_merged | length <= 3 }}"
@@ -61,7 +61,7 @@
   run_once: true
 
 - block:
-  - name: precheck | Check number of gui nodes in inventory
+  - name: check | Check number of gui nodes in inventory
     assert:
      that:
      - "{{ groups['scale_gui_nodes'] | length <= 3 }}"

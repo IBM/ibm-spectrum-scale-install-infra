@@ -1,0 +1,79 @@
+---
+# YUM repository installation method
+
+#
+# Configure YUM repository
+#
+- name: install | Initialize
+  set_fact:
+   scale_fal_url: ""
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel/'
+  when: ansible_distribution in scale_rhel_distribution
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel/'
+  when: ansible_distribution in scale_sles_distribution
+
+- name: install | Initialize
+  set_fact:
+   gpgcheck: "yes"
+
+- name: install | Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
+
+- name: install | Configure fal YUM repository
+  yum_repository:
+    name: spectrum-scale-fal
+    description: IBM Spectrum Scale (FAL)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure fal APT repository
+  apt_repository:
+    filename: spectrum-scale-fal-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ scale_fal_url }} ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (FAL debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure fal repository
+  zypper_repository:
+    name: spectrum-scale-fal-sles
+    description: IBM Spectrum Scale (FAL)
+    repo: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
+    disable_gpg_check: no
+    state: present
+  when:
+    - ansible_pkg_mgr == 'zypper'
+
+#
+# Add FAL packages
+#
+- name: install | Add GPFS file audit logging packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_auditlogging_packages }}"
+  when: (scale_fileauditlogging_enable | bool)

@@ -6,15 +6,12 @@
 #
 
 - block:  ## run_once: true
-    - debug:
-       msg: "{{ scale_install_callhome_repository_url }}"
     - name: install | Check for repository installation method
       set_fact:
         scale_installmethod: repository
       when:
-        - scale_install_callhome_repository_url is defined
-    - debug:
-            msg: "{{ scale_install_callhome_repository_url }}"
+        - scale_install_repository_url is defined
+ 
     - name: install | Check for remotepkg installation method
       set_fact:
        scale_installmethod: remote_pkg
@@ -42,31 +39,35 @@
 #
 # Run chosen installation method to get list of RPMs
 #
-- name: install | Initialize list of RPMs
+- name: install | Initialize list of packages
   set_fact:
-    scale_install_all_rpms: []
+    scale_install_all_packages: []
 
 - name: install | Set the extracted package directory path
   set_fact:
-    callhome_extracted_path: "{{ gpfs_extracted_path }}/gpfs_rpms"
+    scale_callhome_extracted_path: "{{ scale_extracted_path }}"
 
 - name: install | Stat extracted packages directory
   stat:
-    path: "{{ callhome_extracted_path }}"
+    path: "{{ scale_callhome_extracted_path }}"
   register: scale_extracted_gpfs_dir
 
 - include_tasks: install_{{ scale_installmethod }}.yml
 
 - debug:
-        msg: "{{ scale_install_all_rpms }}"
+        msg: "{{ scale_install_all_packages }}"
 
 - meta: flush_handlers
 
 #
 # Install or update RPMs
 #
-- name: install | Install GPFS Callhome RPMs
-  package:
-    name: "{{ scale_install_all_rpms }}"
-    state: present
-  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- import_tasks: yum/install.yml
+  when: ansible_distribution in scale_rhel_distribution
+
+- import_tasks: zypper/install.yml
+  when: ansible_distribution in scale_sles_distribution
+

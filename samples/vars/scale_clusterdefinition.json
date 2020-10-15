@@ -1,0 +1,82 @@
+{
+  "scale_cluster": {
+        "scale_cluster_name": "gpfs1.local"
+  },
+  "node_details": [
+    {
+      "fqdn" : host-vm1,
+      "ip_address" : 127.0.0.1,
+      "is_protocol_node" :false,
+      "is_nsd_server" : false,
+      "is_quorum_node" : false,
+      "is_manager_node" : false,
+      "is_gui_server" : false,
+      "is_callhome_node" : false,
+      "scale_zimon_collector" : false
+    },
+    {
+      "fqdn" : host-vm2,
+      "ip_address" : 127.0.0.1,
+      "is_protocol_node" : false,
+      "is_nsd_server" : false,
+      "is_quorum_node" : false,
+      "is_manager_node" : false,
+      "is_gui_server" : false,
+      "is_callhome_node" : false,
+      "scale_zimon_collector" : false
+    },
+    {
+      "fqdn" : host-vm3,
+      "ip_address" : 127.0.0.1,
+      "is_protocol_node" : false,
+      "is_nsd_server" : false,
+      "is_quorum_node" : false,
+      "is_manager_node" : false,
+      "is_gui_server" : false,
+      "is_callhome_node" : false,
+      "scale_zimon_collector" : false
+    }
+  ],
+  "scale_storage":[
+    {
+      "filesystem": "cesSharedRoot",
+      "blockSize": 4M,
+      "defaultMetadataReplicas": 1,
+      "defaultDataReplicas": 1,
+      "automaticMountOption": true,
+      "defaultMountPoint": /gpfs/cesSharedRoot,
+      "disks": [
+       {
+        "device": "/dev/sdb",
+        "nsd": "nsd1",
+        "servers": "host-vm3",
+        "usage": dataAndMetadata,
+        "pool": system
+       }
+      ]
+    }
+  ],
+  "scale_callhome_params":{
+      "is_enabled": false,
+      "customer_name": abc,
+      "customer_email": abc@abc.com,
+      "customer_id": 12345,
+      "customer_country": IN,
+      "proxy_ip":,
+      "proxy_port":,
+      "proxy_user":,
+      "proxy_password":,
+      "proxy_location":,
+      "callhome_server": host-vm1,
+      "callhome_group1": [host-vm1,host-vm2,host-vm3],
+      "callhome_schedule": [daily,weekly]
+  },
+  "scale_protocols":{
+      "smb": false,
+      "nfs": false,
+      "interface": [],
+      "export_ip_pool": [192.168.100.102,192.168.100.103],
+      "filesystem": cesSharedRoot,
+      "mountpoint": /gpfs/cesSharedRoot
+  }
+}

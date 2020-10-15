@@ -1,0 +1,49 @@
+---
+#
+# samples/playbook_cloud.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using
+# inventory in JSON format.
+
+# This file is mandatory to import and it will load inventory variables form
+# vars/scale_clusterdefinition.json
+- import_playbook: "set_json_variables.yml"
+
+- hosts: scale_node
+  any_errors_fatal: true
+  vars:
+    - scale_install_directory_pkg_path: /opt/IBM/gpfs_cloud_rpms
+  roles:
+     - core/precheck
+     - core/node
+     - core/cluster
+     - gui/precheck
+     - gui/node
+     - gui/cluster
+     - gui/postcheck
+     - zimon/precheck
+     - zimon/node
+     - zimon/cluster
+     - zimon/postcheck
+
+  # Below task specific to cloud deployment.
+  tasks:
+    - block:
+       - name: accept client lisence for compute descriptor node
+         command: /usr/lpp/mmfs/bin/mmchnode --client -N "computedescnodegrp"
+
+       - name: set filesystem
+         set_fact:
+           fs_name: "{{ scale_storage.0.filesystem }}"
+         when:
+          - scale_storage is defined
+
+       - name: create empty file on descriptor node
+         command: /usr/lpp/mmfs/bin/mmdsh -N "computedescnodegrp" touch /var/mmfs/etc/ignoreAnyMount.{{ fs_name }}
+
+       - name: unmount filesystem on descriptor node
+         command: /usr/lpp/mmfs/bin/mmumount {{ fs_name }} -N "computedescnodegrp"
+      run_once: true
+      when:
+        - scale_sync_replication_config | bool

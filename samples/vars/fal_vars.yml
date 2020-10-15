@@ -1,0 +1,12 @@
+---
+#
+# saples/vars/fal_vars.yml
+#
+
+#
+
+scale_storage:
+  - filesystem: gpfs01
+    scale_fal_enable: true
+    logfileset: .audit_log
+    retention: 365

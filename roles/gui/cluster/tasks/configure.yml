@@ -2,7 +2,7 @@
 # Configure GUI service and performance collection
 
 # Make default variables available in hostvars
-- name: cluster | Set default collector role
+- name: configure | Set default collector role
   set_fact:
     scale_cluster_gui: "{{ scale_cluster_gui }}"
   when: hostvars[inventory_hostname].scale_cluster_gui is undefined

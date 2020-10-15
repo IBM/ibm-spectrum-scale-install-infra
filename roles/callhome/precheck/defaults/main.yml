@@ -1,2 +1,3 @@
 ---
-# defaults file for precheck
+# Default variables for the IBM Spectrum Scale (callhome) role -
+# either edit this file or define your own variables to override the defaults
