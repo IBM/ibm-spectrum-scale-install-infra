@@ -32,6 +32,17 @@
         line: PubkeyAuthentication yes
         state: present
       notify: reload-sshd
+
+    # prepare | Update ListenAddress at sshd_config for daemon network
+    - name: Update ListenAddress at /etc/ssh/sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        regexp: '#ListenAddress 0.'
+        line: 'ListenAddress {{ ansible_fqdn }}'
+      notify: reload-sshd
+      when: scale_sshd_config_update is defined and scale_sshd_config_update|bool
+
   when: scale_prepare_enable_ssh_login | bool
 
 - meta: flush_handlers
