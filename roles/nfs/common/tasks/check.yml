@@ -191,7 +191,7 @@ Please define the CES shared root file system mount point in the inventory."
     when: item is regex ( scale_ipv6_regex )
     with_items:
     - "{{ scale_protocols.export_ip_pool }}"
-
+      
   - name: check | Prepare IPv4 export ip list
     set_fact:
      scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
