@@ -33,7 +33,7 @@
         state: present
       notify: reload-sshd
 
-    # prepare | Update ListenAddress at sshd_config for daemon network
+    # prepare | Restrict SSH access to admin nodename
     - name: Update ListenAddress at /etc/ssh/sshd_config
       lineinfile:
         path: /etc/ssh/sshd_config
@@ -41,7 +41,7 @@
         regexp: '#ListenAddress 0.'
         line: 'ListenAddress {{ ansible_fqdn }}'
       notify: reload-sshd
-      when: scale_sshd_config_update is defined and scale_sshd_config_update|bool
+      when: scale_prepare_restrict_ssh_address is defined and scale_prepare_restrict_ssh_address|bool
 
   when: scale_prepare_enable_ssh_login | bool
 
