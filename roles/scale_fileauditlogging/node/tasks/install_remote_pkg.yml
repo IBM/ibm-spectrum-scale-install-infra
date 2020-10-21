@@ -6,6 +6,7 @@
 - name: install | Stat remote installation package
   stat:
     path: "{{ scale_install_remotepkg_path }}"
+    checksum_algorithm: md5
   register: scale_install_remotepkg
 
 
@@ -37,7 +38,7 @@
       vars:
         md5sum: "{{ scale_install_md5_sum.content | b64decode }}"
       assert:
-        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.md5
+        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.checksum
         msg: >-
           Checksums don't match. Please check integritiy of your remote
           installation package!

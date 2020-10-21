@@ -4,6 +4,7 @@
 - name: install | Stat remote installation package
   stat:
     path: "{{ scale_install_remotepkg_path }}"
+    checksum_algorithm: md5
   register: scale_install_remotepkg
 
 - name: install | Check remote installation package
@@ -31,7 +32,7 @@
       vars:
         md5sum: "{{ scale_install_md5_sum.content | b64decode }}"
       assert:
-        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.md5
+        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.checksum
         msg: >-
           Checksums don't match. Please check integritiy of your remote
           installation package!
@@ -160,7 +161,7 @@
     assert:
      that: scale_install_gpfs_nfs_ganesha.matched > 0
      msg: "No GPFS nfs ganesha(gpfs.nfs-ganesha) package found {{ nfs_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha*"
-  
+
   - name: install | Add GPFS package to list
     vars:
      current_package: "{{ item.path }}"
@@ -299,7 +300,7 @@
      debuginfo_package: "{{ debuginfo_package + [ item.path ] }}"
     with_items:
     - "{{ scale_install_gpfs_nfs_ganesha_debuginfo.files }}"
-    
+
   - name: remove debuginfo from packages
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"

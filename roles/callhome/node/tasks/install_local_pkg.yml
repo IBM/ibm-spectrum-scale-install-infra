@@ -5,6 +5,7 @@
     - name: install | Stat local installation package
       stat:
         path: "{{ scale_install_localpkg_path }}"
+        checksum_algorithm: md5
       register: scale_install_localpkg
 
     - name: install | Check local installation package
@@ -28,7 +29,7 @@
 
         - name: install | Compare checksums
           assert:
-            that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.md5
+            that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.checksum
             msg: >-
               Checksums don't match. Please check integritiy of your local
               installation package!
@@ -139,4 +140,3 @@
   with_items:
   - "{{ scale_install_gpfs_java.files.0.path }}"
   - "{{ scale_install_gpfs_callhome.files.0.path }}"
-
