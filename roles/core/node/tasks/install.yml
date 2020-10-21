@@ -90,13 +90,16 @@
         disablerepo: spectrum-scale-gpfs
       register: scale_install_rpmlist
       when: ansible_pkg_mgr == 'yum'
-
+      
     - name: install | Install GPFS RPMs
       yum:
         name: "{{ scale_install_all_rpms }}"
         state: present
       register: scale_install_rpmresult
       when: ansible_pkg_mgr == 'yum'
+      retries: 10
+      until: scale_install_rpmresult is success
+      delay: 20
 
     - name: install | Install GPFS License RPMs
       yum:
@@ -104,6 +107,9 @@
         state: present
       register: scale_install_license_rpmresult
       when: ansible_pkg_mgr == 'yum'
+      retries: 10
+      until: scale_install_license_rpmresult is success
+      delay: 20
 
     - name: install | List installed GPFS RPMs
       dnf:
@@ -118,6 +124,9 @@
         state: present
       register: scale_install_dnfrpmresult
       when: ansible_pkg_mgr == 'dnf'
+      retries: 10
+      until: scale_install_dnfrpmresult is success
+      delay: 20
 
     - name: install | Install GPFS License RPMs
       dnf:
@@ -125,6 +134,9 @@
         state: present
       register: scale_install_license_dnfrpmresult
       when: ansible_pkg_mgr == 'dnf'
+      retries: 10
+      until: scale_install_license_dnfrpmresult is success
+      delay: 20
 
     - name: install | Check if GPFS RPMs were updated
       set_fact:

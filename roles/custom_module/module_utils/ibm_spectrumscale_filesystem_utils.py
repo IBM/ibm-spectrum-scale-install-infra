@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright 2020 IBM Corporation
 # and other contributors as indicated by the @author tags.
@@ -18,8 +18,15 @@
 
 import os
 import json
-from ibm_spectrumscale_utils import runCmd, parse_simple_cmd_output, GPFS_CMD_PATH, \
-                         RC_SUCCESS, SpectrumScaleException
+
+try:
+    from ansible.module_utils.ibm_spectrumscale_utils import runCmd, \
+            parse_simple_cmd_output, GPFS_CMD_PATH, RC_SUCCESS, \
+            SpectrumScaleException
+except:
+    from ibm_spectrumscale_utils import runCmd, parse_simple_cmd_output, \
+            GPFS_CMD_PATH, RC_SUCCESS, SpectrumScaleException
+
 
 class SpectrumScaleFS:
 
@@ -233,64 +240,77 @@ class SpectrumScaleFS:
         return json.dumps(self.properties_list)
 
     def print_filesystem(self):
-        print("Device Name                       : {0}".format(self.get_device_name()))
-        print("Syspool Min Fragment Size         : {0}".format(self.get_syspool_min_fragment_size()))
-        print("Other Pool Min Fragment Size      : {0}".format(self.get_other_pool_min_fragment_size()))
-        print("Inode Size                        : {0}".format(self.get_inode_size()))
-        print("Indirect Block Size               : {0}".format(self.get_indirect_block_size()))
-        print("Default Metadata Replicas         : {0}".format(self.get_default_metadata_replicas()))
-        print("Max Metadata Replicas             : {0}".format(self.get_max_metadata_replicas()))
-        print("Default Data Replicas             : {0}".format(self.get_default_data_replicas()))
-        print("Max Data Replicas                 : {0}".format(self.get_max_data_replicas()))
-        print("Block Allocation Type             : {0}".format(self.get_block_allocation_type()))
-        print("File Locking Semantics            : {0}".format(self.get_file_locking_semantics()))
-        print("ACL Semantics                     : {0}".format(self.get_acl_semantics()))
-        print("Num Nodes                         : {0}".format(self.get_num_nodes()))
-        print("Syspool Block Size                : {0}".format(self.get_syspool_block_size()))
-        print("Other Pool Block Size             : {0}".format(self.get_other_pool_block_size()))
-        print("Quotas Accounting Enabled         : {0}".format(self.get_quotas_accounting_enabled()))
-        print("Quotas Enforced                   : {0}".format(self.get_quotas_enforced()))
-        print("Default Quotas Enabled            : {0}".format(self.get_default_quotas_enabled()))
-        print("Per Fileset Quotas                : {0}".format(self.get_per_fileset_quotas()))
-        print("Fileset df Enabled                : {0}".format(self.is_fileset_df_enabled()))
-        print("Filesystem Version                : {0}".format(self.get_filesystem_version()))
-        print("Filesystem Version Local          : {0}".format(self.get_filesystem_version_local()))
-        print("Filesystem Version Manager        : {0}".format(self.get_filesystem_version_manager()))
-        print("Filesystem Version Original       : {0}".format(self.get_filesystem_version_original()))
-        print("Filesystem Highest Supported      : {0}".format(self.get_filesystem_highest_supported()))
-        print("Create Time                       : {0}".format(self.get_create_time()))
-        print("DMAPI Enabled                     : {0}".format(self.is_dmapi_enabled()))
-        print("Logfile Size                      : {0}".format(self.get_logfile_size()))
-        print("Is Exact m Time                   : {0}".format(self.is_exact_m_time()))
-        print("Suppress atime                    : {0}".format(self.get_suppress_atime()))
-        print("Strict Replication                : {0}".format(self.get_strict_replication()))
-        print("Is Fast EA Enabled                : {0}".format(self.is_fast_ea_enabled()))
-        print("Is Encrypted                      : {0}".format(self.is_encrypted()))
-        print("Max Number Of Inodes              : {0}".format(self.get_max_number_of_inodes()))
-        print("Max Snapshot Id                   : {0}".format(self.get_max_snapshot_id()))
-        print("UID                               : {0}".format(self.get_uid()))
-        print("Log Replicas                      : {0}".format(self.get_log_replicas()))
-        print("Is 4K Aligned                     : {0}".format(self.is_4k_aligned()))
-        print("Is Rapid Repair Enabled           : {0}".format(self.is_rapid_repair_enabled()))
-        print("Write Cache Threshold             : {0}".format(self.get_write_cache_threshold()))
-        print("Subblocks Per Full Block          : {0}".format(self.get_subblocks_per_full_block()))
-        print("Storage Pools                     : {0}".format(self.get_storage_pools()))
-        print("Is File Audit Log Enabled         : {0}".format(self.is_file_audit_log_enabled()))
-        print("Is Maintenance Mode               : {0}".format(self.is_maintenance_mode()))
-        print("Disks                             : {0}".format(self.get_disks()))
-        print("Is Automatic Mount Option Enabled : {0}".format(self.is_automatic_mount_option_enabled()))
-        print("Additional Mount Options          : {0}".format(self.get_additional_mount_options()))
-        print("Default Mount Point               : {0}".format(self.get_default_mount_point()))
-        print("Mount Priority                    : {0}".format(self.get_mount_priority()))
+        print(("Device Name                       : {0}".format(self.get_device_name())))
+        print(("Syspool Min Fragment Size         : {0}".format(self.get_syspool_min_fragment_size())))
+        print(("Other Pool Min Fragment Size      : {0}".format(self.get_other_pool_min_fragment_size())))
+        print(("Inode Size                        : {0}".format(self.get_inode_size())))
+        print(("Indirect Block Size               : {0}".format(self.get_indirect_block_size())))
+        print(("Default Metadata Replicas         : {0}".format(self.get_default_metadata_replicas())))
+        print(("Max Metadata Replicas             : {0}".format(self.get_max_metadata_replicas())))
+        print(("Default Data Replicas             : {0}".format(self.get_default_data_replicas())))
+        print(("Max Data Replicas                 : {0}".format(self.get_max_data_replicas())))
+        print(("Block Allocation Type             : {0}".format(self.get_block_allocation_type())))
+        print(("File Locking Semantics            : {0}".format(self.get_file_locking_semantics())))
+        print(("ACL Semantics                     : {0}".format(self.get_acl_semantics())))
+        print(("Num Nodes                         : {0}".format(self.get_num_nodes())))
+        print(("Syspool Block Size                : {0}".format(self.get_syspool_block_size())))
+        print(("Other Pool Block Size             : {0}".format(self.get_other_pool_block_size())))
+        print(("Quotas Accounting Enabled         : {0}".format(self.get_quotas_accounting_enabled())))
+        print(("Quotas Enforced                   : {0}".format(self.get_quotas_enforced())))
+        print(("Default Quotas Enabled            : {0}".format(self.get_default_quotas_enabled())))
+        print(("Per Fileset Quotas                : {0}".format(self.get_per_fileset_quotas())))
+        print(("Fileset df Enabled                : {0}".format(self.is_fileset_df_enabled())))
+        print(("Filesystem Version                : {0}".format(self.get_filesystem_version())))
+        print(("Filesystem Version Local          : {0}".format(self.get_filesystem_version_local())))
+        print(("Filesystem Version Manager        : {0}".format(self.get_filesystem_version_manager())))
+        print(("Filesystem Version Original       : {0}".format(self.get_filesystem_version_original())))
+        print(("Filesystem Highest Supported      : {0}".format(self.get_filesystem_highest_supported())))
+        print(("Create Time                       : {0}".format(self.get_create_time())))
+        print(("DMAPI Enabled                     : {0}".format(self.is_dmapi_enabled())))
+        print(("Logfile Size                      : {0}".format(self.get_logfile_size())))
+        print(("Is Exact m Time                   : {0}".format(self.is_exact_m_time())))
+        print(("Suppress atime                    : {0}".format(self.get_suppress_atime())))
+        print(("Strict Replication                : {0}".format(self.get_strict_replication())))
+        print(("Is Fast EA Enabled                : {0}".format(self.is_fast_ea_enabled())))
+        print(("Is Encrypted                      : {0}".format(self.is_encrypted())))
+        print(("Max Number Of Inodes              : {0}".format(self.get_max_number_of_inodes())))
+        print(("Max Snapshot Id                   : {0}".format(self.get_max_snapshot_id())))
+        print(("UID                               : {0}".format(self.get_uid())))
+        print(("Log Replicas                      : {0}".format(self.get_log_replicas())))
+        print(("Is 4K Aligned                     : {0}".format(self.is_4k_aligned())))
+        print(("Is Rapid Repair Enabled           : {0}".format(self.is_rapid_repair_enabled())))
+        print(("Write Cache Threshold             : {0}".format(self.get_write_cache_threshold())))
+        print(("Subblocks Per Full Block          : {0}".format(self.get_subblocks_per_full_block())))
+        print(("Storage Pools                     : {0}".format(self.get_storage_pools())))
+        print(("Is File Audit Log Enabled         : {0}".format(self.is_file_audit_log_enabled())))
+        print(("Is Maintenance Mode               : {0}".format(self.is_maintenance_mode())))
+        print(("Disks                             : {0}".format(self.get_disks())))
+        print(("Is Automatic Mount Option Enabled : {0}".format(self.is_automatic_mount_option_enabled())))
+        print(("Additional Mount Options          : {0}".format(self.get_additional_mount_options())))
+        print(("Default Mount Point               : {0}".format(self.get_default_mount_point())))
+        print(("Mount Priority                    : {0}".format(self.get_mount_priority())))
 
 
     @staticmethod
-    def get_filesystems():
+    def get_filesystems(admin_ip=None):
         filesystem_info_list = []
 
-        stdout, stderr, rc = runCmd([os.path.join(GPFS_CMD_PATH, "mmlsfs"),
-                                                  "all", "-Y"],
-                                                  sh=False)
+        stdout = stderr = ""
+        rc = RC_SUCCESS
+
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmlsfs"), "all", "-Y"])
+
+        try:
+            stdout, stderr, rc = runCmd(cmd, sh=False)
+        except Exception as e:
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
+                                         -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
             if 'mmlsfs: No file systems were found.' in stdout or \
@@ -298,9 +318,8 @@ class SpectrumScaleFS:
                 return filesystem_info_list
 
             raise SpectrumScaleException("Retrieving filesystem information failed",
-                                     "mmlsfs",
-                                     ["all", "-Y"],
-                                     rc, stdout, stderr)
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:], rc,
+                                         stdout, stderr)
 
         filesystem_dict = parse_simple_cmd_output(stdout, "deviceName", 
                                               "properties", "filesystems")
@@ -309,20 +328,28 @@ class SpectrumScaleFS:
         for filesystem in filesystem_list:
             device_name   = filesystem["deviceName"]
             fs_properties = filesystem["properties"]
-            filesystem_instance = SpectrumScaleFS(device_name, 
-                                                                fs_properties)
+            filesystem_instance = SpectrumScaleFS(device_name, fs_properties)
             filesystem_info_list.append(filesystem_instance)
 
         return filesystem_info_list
 
 
     @staticmethod
-    def unmount_filesystems(node_name, wait=True):
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmumount"), "all", "-N", node_name] 
+    def unmount_filesystems(node_name, wait=True, admin_ip=None):
+        stdout = stderr = ""
+        rc = RC_SUCCESS
+
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmumount"), "all", "-N", node_name])
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
@@ -332,7 +359,7 @@ class SpectrumScaleFS:
                 return RC_SUCCESS
 
             raise SpectrumScaleException("Unmounting filesystems on node failed",
-                                         cmd[0], cmd[1:], rc, stdout, stderr)
+                    cmd[0:mmcmd_idx], cmd[mmcmd_idx:], rc, stdout, stderr)
         return rc, stdout 
 
 
@@ -341,26 +368,35 @@ class SpectrumScaleFS:
                           default_metadata_replicas,
                           default_data_replicas, num_nodes,
                           automatic_mount_option, 
-                          default_mount_point):
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmcrfs"), name,
+                          default_mount_point, admin_ip=None):
+        stdout = stderr = ""
+        rc = RC_SUCCESS
+
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmcrfs"), name,
                                      "-F", stanza_path,
                                      "-B", block_size,
                                      "-m", default_metadata_replicas,
                                      "-r", default_data_replicas,
                                      "-n", num_nodes,
                                      "-A", automatic_mount_option,
-                                     "-T", default_mount_point]
+                                     "-T", default_mount_point])
         # TODO: Make this idempotent
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Create filesystems on node failed",
-                                         cmd[0], cmd[1:], rc, stdout, stderr)
-
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:], rc, 
+                                         stdout, stderr)
 
         return rc, stdout
 

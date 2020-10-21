@@ -23,7 +23,6 @@
 #
 # Create Local GUI Admin User
 #
--
 - name: users | Create local Admin user for GUI
   shell: /usr/lpp/mmfs/gui/cli/mkuser "{{ scale_gui_admin_user }}" -g "{{ scale_gui_admin_role }}" -p "{{ scale_gui_admin_password }}"
   run_once: true
