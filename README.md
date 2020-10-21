@@ -63,15 +63,15 @@ Features
 - [x] Extend NSDs and file system
 - [x] Add disks to existing file systems
 
-#### Spectrum Scale GUI Cluster features
-- [x] Install Spectrum Scale GUI packages on GUI designated nodes
-- [x] maximum 3 GUI nodes to be configured
+#### Spectrum Scale Management GUI features
+- [x] Install Spectrum Scale management GUI packages on GUI designated nodes
+- [x] maximum 3 management GUI nodes to be configured
 - [x] Install performance monitoring sensor packages on all Linux nodes
 - [x] Install performance monitoring packages on all GUI designated nodes
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
 
-#### Spectrum Scale Callhome Cluster features
+#### Spectrum Scale Callhome features
 - [x] Install Spectrum Scale callhome packages on all cluster nodes
 - [x] Configure callhome
 
