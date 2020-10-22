@@ -57,6 +57,7 @@ Features
 - [x] Assign default manager nodes(all nodes will act as manager node) if user has not defined in the inventory
 - [x] Create new cluster (mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }})
 - [x] Create cluster with profiles
+- [x] Create Cluster with daemon and admin network
 - [x] Add new node into existing cluster
 - [x] Configure node classes
 - [x] Define configuration parameters based on node classes
@@ -299,7 +300,7 @@ Note that [Core GPFS](roles/core) is the only mandatory role, all other roles ar
 - Configure Protocol Services (SMB & NFS) (see [samples/playbook_ces.yml](samples/playbook_ces.yml))
 - Configure Call Home (see [samples/playbook_callhome.yml](samples/playbook_callhome.yml))
 - Configure File Audit Logging (see [samples/playbook_fileauditlogging.yml](samples/playbook_fileauditlogging.yml))
-
+- Configure cluster with daemon and admin network (see samples/daemon_admin_network)
 
 Cluster Membership
 ------------------

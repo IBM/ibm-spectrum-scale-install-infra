@@ -1,0 +1,13 @@
+hosts:
+# Sample parameter for the host file for deploying IBM Spectrum Scale (GPFS) cluster
+# with admin and daemon network.
+#
+# To allow ssh to the cluster with the defined scale_admin_nodename only, the sshd_config
+# needs to be updated. To allow update of sshd_config set the variables 
+# scale_prepare_enable_ssh_login and scale_prepare_restrict_ssh_address to true 
+# (see roles/core/precheck/defaults/main.yml).
+
+[cluster01]
+scale01 scale_admin_nodename=scale01   scale_daemon_nodename=scale01d
+scale02 scale_admin_nodename=scale02   scale_daemon_nodename=scale02d
+
