@@ -52,7 +52,7 @@ scale_prepare_disable_firewall: false
 ## For the Spectrum Scale daemon network the 'ListenAddress' needs to be set
 ## at /etc/ssh/sshd_config to allow only the admin IP to login.
 ## Set the scale_sshd_config_update to 'true' to update the sshd_config
-scale_sshd_config_update: false
+scale_prepare_restrict_ssh_address: false
 
 ## Temporary directory to copy installation package to
 ## (local package installation method)
