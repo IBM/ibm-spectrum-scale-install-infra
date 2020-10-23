@@ -114,10 +114,12 @@ Users need to have a basic understanding of the [Ansible concepts](https://docs.
   ```shell
   $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
   $ python get-pip.py
-  $ pip install --user ansible
+  $ pip3 install ansible==2.9
   ```
 
   Refer to the [Ansible Installation Guide](https://docs.ansible.com/ansible/latest/installation_guide/index.html) for detailed installation instructions.
+
+  Note that [Python 3](https://docs.ansible.com/ansible/latest/reference_appendices/python_3_support.html) is required for certain functionality of this project to work. Ansible should automatically detect and use Python 3 on managed machines, refer to the [Ansible documentation](https://docs.ansible.com/ansible/latest/reference_appendices/python_3_support.html#using-python-3-on-the-managed-machines-with-commands-and-playbooks) for details and workarounds.
 
 - **Download Spectrum Scale packages**
 
