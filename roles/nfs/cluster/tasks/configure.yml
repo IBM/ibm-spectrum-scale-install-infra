@@ -9,7 +9,8 @@
 - name: configure | Enable NFS
   shell:
    cmd: "{{ scale_command_path }}mmces service enable NFS"
-  when: ansible_fqdn in scale_nfs_nodes_list
+  delegate_to: "{{ scale_nfs_nodes_list.0 }}"
+  run_once: true
 
 - name: configure | Stat GaneshaProxy.conf file
   stat:

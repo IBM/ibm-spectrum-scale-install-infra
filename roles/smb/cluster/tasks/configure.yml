@@ -9,7 +9,8 @@
 - name: configure | Enable SMB
   shell:
    cmd: "{{ scale_command_path }}mmces service enable SMB"
-  when: ansible_fqdn in scale_smb_node_list
+  delegate_to: "{{ scale_smb_node_list.0 }}"
+  run_once: true
 
 - name: configure | Stat ZIMonSensors_smb.cfg file
   stat:
