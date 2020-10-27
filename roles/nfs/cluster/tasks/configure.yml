@@ -1,11 +1,4 @@
 ---
-- name: configure | Check if NFS is already running
-  shell:
-   cmd: "{{ scale_command_path }}mmces service list | head -1 | grep NFS"
-  register: scale_nfs_status
-  ignore_errors: true
-  when: ansible_fqdn in scale_nfs_nodes_list
-
 - name: configure | Enable NFS
   shell:
    cmd: "{{ scale_command_path }}mmces service enable NFS"
