@@ -41,5 +41,5 @@ scale_sles_distribution:
 scale_extracted_default_path: "/usr/lpp/mmfs"
 scale_extracted_path: "{{ scale_extracted_default_path }}/{{ scale_version }}"
 scale_gpgKey_src: "/usr/lpp/mmfs/{{ scale_version }}/Public_Keys/SpectrumScale_public_key.pgp"
-scale_gpgKey_repository_src: "{{ scale_install_repository_url }}/Public_Keys/SpectrumScale_public_key.pgp"
+scale_gpgKey_repository_src: "{{ scale_install_repository_url }}Public_Keys/SpectrumScale_public_key.pgp"
 scale_gpgKey_dest: "/root/"
