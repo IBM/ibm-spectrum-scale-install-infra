@@ -15,24 +15,24 @@
    - name: create | Find defined RGs
      set_fact:
        scale_rg_nodeclass:
-         "{{ scale_rg_nodeclass | default([]) + [ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) ] }}"
+         "{{ scale_rg_nodeclass | default([]) + [ item.nodeclass | default('nc_' + (item.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) ] }}"
        scale_recoverygroup:
-         "{{ scale_recoverygroup | default([]) + [ item.1.rg | default('rg_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) ] }}"
+         "{{ scale_recoverygroup | default([]) + [ item.rg | default('rg_' + (item.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) ] }}"
        scale_nc_servers:
-         "{{ scale_nc_servers | default([]) + [ item.1.servers ] }}"
+         "{{ scale_nc_servers | default([]) + [ item.servers ] }}"
      when:
-       - item.1.servers is defined
+       - item.servers is defined
 
    - name: create | Create Node Class
      vars:
-       current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
-       current_nc_servers: "{{ item.1.servers }}"
+       current_nc: "{{ item.nodeclass | default('nc_' + (item.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+       current_nc_servers: "{{ item.servers }}"
      command: "{{ scale_command_path }}mmvdisk nc create --node-class {{ current_nc }} -N {{ current_nc_servers }}"
      register: scale_nc_create
      failed_when: scale_nc_create.rc != 0
      when:
        - current_nc not in scale_existing_nc.stdout_lines
-       - item.1.servers is defined
+       - item.servers is defined
 
    - name: create | Server configuration in process
      debug:
@@ -41,7 +41,7 @@
 
    - name: storage | Find existing nodeclass configuration
      vars:
-       current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+       current_nc: "{{ item.nodeclass | default('nc_' + (item.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
      shell: /usr/lpp/mmfs/bin/mmvdisk server list --nc {{ current_nc }} | grep 'unconfigured'
      register: scale_nc_configure_check
      changed_when: false
@@ -49,7 +49,7 @@
    
    - name: create | Configure Server
      vars:
-       current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+       current_nc: "{{ item.nodeclass | default('nc_' + (item.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
      command: "{{ scale_command_path }}mmvdisk server configure --nc {{ current_nc }} --recycle one"
      register: scale_serv_configure
      failed_when: scale_serv_configure.rc != 0
@@ -66,14 +66,15 @@
 
    - name: create | Create Recovery Group
      vars:
-       verify: "{{ 'no' if item.1.overwriteRGs | default(scale_ece_rg_defaults.overwriteRGs) else 'yes' }}"
-       current_rg: "{{ item.1.rg | default('rg_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
-       current_nc: "{{ item.1.nodeclass | default('nc_' + (item.1.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+       verify: "{{ 'no' if item.overwriteRGs | default(scale_ece_rg_defaults.overwriteRGs) else 'yes' }}"
+       current_rg: "{{ item.rg | default('rg_' + (item.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
+       current_nc: "{{ item.nodeclass | default('nc_' + (item.servers.split(',')[0] | regex_replace('\\W', '_')) | basename) }}"
      command: "{{ scale_command_path }}mmvdisk rg create --rg {{ current_rg }} --nc {{ current_nc }} -v {{ verify }}"
      register: scale_rg_create
      failed_when: scale_rg_create.rc != 0
      when:
        - current_rg not in scale_existing_rg.stdout_lines
   rescue:
-   - debug:
-        msg: "I caught an error, Please take a look to the output given and refer to the Knowledge center!"
+    - name: Failure detected in during ECE filesystem creation
+      fail:
+        msg: "I caught an error, Please take a look to the output given!."
