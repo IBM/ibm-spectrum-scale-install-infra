@@ -21,6 +21,9 @@ scale_nfs_debs:
 - gpfs.nfs-ganesha-doc
 - gpfs.python-nfs-ganesha
 
+## pm ganesha package for nfs performance monitoring
+scale_pm_package:
+  - gpfs.pm-ganesha 
 ## Temporary directory to copy installation package to
 ## (local package installation method)
 scale_install_localpkg_tmpdir_path: /tmp
