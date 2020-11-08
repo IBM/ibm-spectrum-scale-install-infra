@@ -32,6 +32,47 @@
    gpgcheck: "no"
   when: scale_version < '5.0.4.0'
 
+- name: install | Configure GPFS Java YUM repository
+  yum_repository:
+    name: spectrum-scale-gpfs-java
+    description: IBM Spectrum Scale (GPFS Java)
+    baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+#
+# Configure apt repository
+#
+- name: install | Configure GPFS Java APT repository
+  apt_repository:
+    filename: spectrum-scale-gpfs-java-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}gpfs_debs/ ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (gpfs java debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+#
+# Configure zypper repository
+#
+- name: install | Configure GPFS Java repository
+  zypper_repository:
+    name: spectrum-scale-gpfs-java
+    description: IBM Spectrum Scale (GPFS java)
+    repo: "{{ scale_install_repository_url }}gpfs_rpms/"
+    disable_gpg_check: yes
+    state: present
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url != 'existing'
+ 
 - name: install | Configure fal YUM repository
   yum_repository:
     name: spectrum-scale-fal
