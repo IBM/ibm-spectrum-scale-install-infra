@@ -20,11 +20,10 @@
 
 - name: install | Get license package
   shell:
-   cmd: zypper info gpfs.license.*
+   cmd: zypper info gpfs.license.* | grep Name | cut -d ':' -f 2 | tr -d '[:space:]'
   register: package_name_version_zypp
   when:
     - ansible_pkg_mgr == 'zypper'
-
 
 - name: install | Check valid only one GPFS License (gpfs.license) RPM
   assert:
@@ -51,7 +50,7 @@
 
 - name: install | Find GPFS License package
   set_fact:
-   scale_gpfs_license_package: "{{ package_name_version_zypp.stdout_lines.7[17:] }}" 
+   scale_gpfs_license_package: "{{ package_name_version_zypp.stdout }}" 
   when:
   - ansible_pkg_mgr == 'zypper'
 
@@ -72,6 +71,3 @@
   when: 
      - '"gpfs.license.std" in scale_gpfs_license_package'
      - '"gpfs.license.da" in scale_gpfs_license_package'
-
-- debug: 
-   msg: "{{ scale_install_license_packages }}"
