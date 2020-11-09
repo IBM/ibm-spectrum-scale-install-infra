@@ -29,7 +29,7 @@
 - name: install | Configure HPT APT repository
   apt_repository:
     filename: spectrum-scale-hpt-debs
-    repo: "deb [trusted=yes] {{ scale_install_repository_url }}/gpfs_debs/ ./"
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}gpfs_debs/ ./"
     validate_certs: no
     state: present
     update_cache: yes
@@ -43,7 +43,7 @@
   zypper_repository:
     name: spectrum-scale-hpt
     description: IBM Spectrum Scale (HPT)
-    repo: "{{ scale_install_repository_url }}/gpfs_rpms/"
+    repo: "{{ scale_install_repository_url }}gpfs_rpms/"
     disable_gpg_check: no
     state: present
   when:
