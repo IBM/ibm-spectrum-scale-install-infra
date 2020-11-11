@@ -13,7 +13,7 @@
           current_code: "{{ item.ec }}"
           current_bs: "{{ item.blocksize }}"
           current_size: "{{ item.Size }}"
-        command: "{{ scale_command_path }}mmvdisk vs define --vs {{ current_vs }} --rg {{ current_rg }} --code {{ current_code }} --bs {{ current_bs }} --ss {{ current_size }}"
+        command: "{{ scale_command_path }}mmvdisk vs define --vs {{ current_vs }} --rg {{ current_rg }} --code {{ current_code }} --bs {{ current_bs }} --ss {{ current_size }}%"
         register: scale_vs_define
         failed_when: scale_vs_define.rc != 0
         when:
