@@ -63,6 +63,7 @@
     repo: "{{ scale_install_repository_url }}gpfs_rpms/"
     disable_gpg_check: yes
     state: present
+    overwrite_multiple: yes
   when:
     - ansible_pkg_mgr == 'zypper'
     - scale_install_repository_url != 'existing'
