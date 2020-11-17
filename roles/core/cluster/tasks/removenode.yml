@@ -1,5 +1,5 @@
 ---
-- name: delete | initialize delete node
+- name: delete | Initialize delete nodes
   add_host:
     name: "{{ hostvars[item]['ansible_fqdn'] }}"
     groups: scale_remove_nodes
@@ -9,7 +9,7 @@
   changed_when: false
   run_once: true
 
-- block:
+- block:  ## when: groups['scale_remove_nodes'] is defined and groups['scale_remove_nodes'] | length > 0
     - name: delete | Find existing cluster
       shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterSummary | cut -d ':' -f 8
       register: scale_cluster_clusterId
@@ -29,7 +29,7 @@
 
     - name: delete | Set delete node
       set_fact:
-          delete_nodes: "{{ groups['scale_remove_nodes'] | list }}"
+        delete_nodes: "{{ groups['scale_remove_nodes'] | list }}"
 
     - name: delete | Delete an IBM Spectrum Scale Node from Cluster
       ibm_spectrumscale_node:
