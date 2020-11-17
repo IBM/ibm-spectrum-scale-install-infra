@@ -20,5 +20,5 @@
   retries: 10
   delay: 30
   changed_when: false
-  delegate_to: "{{ deligate_node }}"
-  when: scale_daemon_node_list|length > 0
+  delegate_to: "{{ delegate_node }}"
+  when: scale_daemon_node_list | length > 0

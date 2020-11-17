@@ -6,15 +6,15 @@
   set_fact:
     scale_daemon_node_list: []
 
-- name: cluster | Find deligate node for new cluster
+- name: cluster | Find delegate node for new cluster
   set_fact:
-    deligate_node: "{{ groups['scale_cluster_candidates'].0 }}"
+    delegate_node: "{{ groups['scale_cluster_candidates'].0 }}"
   when:
     - groups['scale_cluster_candidates'] is defined
 
-- name: cluster | Find deligate node for existing cluster
+- name: cluster | Find delegate node for existing cluster
   set_fact:
-    deligate_node: "{{ groups['scale_cluster_members'].0 }}"
+    delegate_node: "{{ groups['scale_cluster_members'].0 }}"
   when:
     - groups['scale_cluster_members'] is defined
 
@@ -36,15 +36,15 @@
   run_once: true
   delegate_to: localhost
 
-- block:  ## when: deligate_node is defined
+- block:  ## when: delegate_node is defined
     - name: cluster | Start daemons
       command: /usr/lpp/mmfs/bin/mmstartup -N "{{ scale_daemon_node_list | join(',') }}"
       when: scale_daemon_node_list | length > 0
       notify: wait-daemon-active
   when:
-    - deligate_node is defined
+    - delegate_node is defined
   run_once: true
-  delegate_to: "{{ deligate_node }}"
+  delegate_to: "{{ delegate_node }}"
 
 - meta: flush_handlers
 
