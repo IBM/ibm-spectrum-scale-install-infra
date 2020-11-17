@@ -21,7 +21,7 @@ scale_install_updated: false
 scale_config_changed: false
 
 # GPFS daemon state
-scale_state:
+scale_active_states:
   - active
 
 # scale supported profile
