@@ -1,0 +1,3 @@
+---
+# Default variables for the IBM Spectrum Scale (NFS) cluster role -
+# either edit this file or define your own variables to override the defaults

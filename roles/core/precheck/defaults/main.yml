@@ -9,7 +9,7 @@
 
 ## Specify the URL of the (existing) Spectrum Scale YUM repository
 ## (copy the contents of /usr/lpp/mmfs/.../gpfs_rpms to build your repository)
-#scale_install_repository_url: http://infraserv/gpfs_rpms/
+#scale_install_repository_url: http://infraserv/
 ## Note that if this is a URL then a new repository definition will be created.
 ## If this variable is set to 'existing' then it is assumed that a repository
 ## definition already exists and thus will *not* be created.
@@ -49,6 +49,10 @@ scale_prepare_disable_selinux: false
 ## rules prior to running this role (e.g. as pre_tasks)
 scale_prepare_disable_firewall: false
 
+## For the Spectrum Scale daemon network the 'ListenAddress' needs to be set
+## at /etc/ssh/sshd_config to allow only the admin IP to login.
+## Set the scale_sshd_config_update to 'true' to update the sshd_config
+scale_prepare_restrict_ssh_address: false
 
 ## Temporary directory to copy installation package to
 ## (local package installation method)

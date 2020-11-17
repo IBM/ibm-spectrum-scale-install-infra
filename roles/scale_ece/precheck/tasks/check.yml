@@ -1,0 +1,54 @@
+---
+- name: check | Initialize
+  set_fact:
+    scale_ece_nodes_list: []
+
+- name: check | Collect all ece nodes
+  set_fact:
+    scale_ece_nodes_list: "{{ scale_ece_nodes_list + [hostvars[item]['inventory_hostname']] }}"
+  when: hostvars[item]['scale_out_node'] is defined and hostvars[item]['scale_out_node']|bool
+  with_items:
+    - "{{ ansible_play_hosts }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: check | Check if number of ece node is greater than or equal to 4
+  assert:
+    that:
+      - scale_ece_nodes_list|length >= 4
+    fail_msg: "Number of ece nodes is less than 4"
+  run_once: true
+
+- name: check | Check if ece node is not protocol node
+  assert:
+    that:
+      - not hostvars[item]['is_protocol_node']|bool
+    fail_msg: "ECE node cannot be protocol node"
+  when: hostvars[item]['is_protocol_node'] is defined
+  with_items:
+    - "{{ scale_ece_nodes_list }}"
+  run_once: true
+  any_errors_fatal: true
+
+- name: check | Check if ece node is not gui node
+  assert:
+    that:
+      - not hostvars[item]['scale_cluster_gui']|bool
+    fail_msg: "ECE node cannot be gui node"
+  when: hostvars[item]['scale_cluster_gui'] is defined
+  with_items:
+    - "{{ scale_ece_nodes_list }}"
+  run_once: true
+  any_errors_fatal: true
+
+- name: check | Check if ece node is not nsd node
+  assert:
+    that:
+      - not hostvars[item]['is_nsd_server']|bool
+    fail_msg: "ECE node cannot be nsd server"
+  when: hostvars[item]['is_nsd_server'] is defined
+  with_items:
+    - "{{ scale_ece_nodes_list }}"
+  run_once: true
+  any_errors_fatal: true
+

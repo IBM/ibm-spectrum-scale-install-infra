@@ -24,6 +24,4 @@ galaxy_info:
 
 dependencies:
   - core/common
-  - precheck
-  - core/node
   - zimon/node

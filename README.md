@@ -27,9 +27,11 @@ Features
 - [x] Pre-built infrastructure (using a static inventory file)
 - [ ] Dynamic inventory file
 
-#### Minimal tested OS
-- [x] RHEL 7 on x86_64, PPC64 and PPC64LE
-- [x] RHEL 8 on x86_64 and PPC64LE
+#### OS support
+- [x] Support for RHEL 7 on x86_64, PPC64 and PPC64LE
+- [x] Support for RHEL 8 on x86_64 and PPC64LE
+- [x] Support for UBUNTU 20 on x86_64 and PPC64LE
+- [x] Support for SLES 15 on x86_64 and PPC64LE
 
 #### Common prerequisites
 - [x] Disable SELinux (`scale_prepare_disable_selinux: true`), by default false
@@ -54,7 +56,8 @@ Features
 - [x] Assign default quorum (maximum 7 quorum nodes) if user has not defined in the inventory
 - [x] Assign default manager nodes(all nodes will act as manager node) if user has not defined in the inventory
 - [x] Create new cluster (mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }})
-- [ ]  Create cluster with profiles
+- [x] Create cluster with profiles
+- [x] Create Cluster with daemon and admin network
 - [x] Add new node into existing cluster
 - [x] Configure node classes
 - [x] Define configuration parameters based on node classes
@@ -75,19 +78,31 @@ Features
 - [x] Install Spectrum Scale callhome packages on all cluster nodes
 - [x] Configure callhome
 
+#### Spectrum Scale CES (SMB and NFS) Protocol supported features (5.0.5.2)
+- [x] Install Spectrum Scale SMB or NFS on selected cluster nodes
+- [x] CES IPV4 or IPV6 support
+- [x] CES interface mode support
+
 
 Minimal tested Versions
 -----------------------
 
 The following Ansible versions are tested:
 
-- 2.9
+- 2.9 and above
 
 The following IBM Spectrum Scale versions are tested:
 
 - 5.0.4.0
 - 5.0.4.1
 - 5.0.4.2
+- 5.0.5.X
+- 5.0.5.2 For CES (SMB and NFS)  
+
+Specific OS requirements:
+
+- For CES (SMB/NFS) on SLES15, Python3 is required.
+=======
 - 5.0.5.0
 - 5.0.5.1
 - 5.0.5.2
@@ -103,17 +118,19 @@ Users need to have a basic understanding of the [Ansible concepts](https://docs.
 
   ```shell
   $ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-  $ python get-pip.py --user
-  $ pip install --user ansible
+  $ python get-pip.py
+  $ pip3 install ansible==2.9
   ```
 
-  Refer to the [Ansible Installation Guide](https://docs.ansible.com/ansible/latest/installation_guide/index.html) for detailled installation instructions.
+  Refer to the [Ansible Installation Guide](https://docs.ansible.com/ansible/latest/installation_guide/index.html) for detailed installation instructions.
+
+  Note that [Python 3](https://docs.ansible.com/ansible/latest/reference_appendices/python_3_support.html) is required for certain functionality of this project to work. Ansible should automatically detect and use Python 3 on managed machines, refer to the [Ansible documentation](https://docs.ansible.com/ansible/latest/reference_appendices/python_3_support.html#using-python-3-on-the-managed-machines-with-commands-and-playbooks) for details and workarounds.
 
 - **Download Spectrum Scale packages**
 
-  1. A Developer Edition Free Trial is available at this site: https://www.ibm.com/account/reg/us-en/signup?formid=urx-41728
+  - A Developer Edition Free Trial is available at this site: https://www.ibm.com/account/reg/us-en/signup?formid=urx-41728
 
-  2. Customers who have previously purchased Spectrum Scale can obtain entitled versions from IBM Fix Central. Visit https://www.ibm.com/support/fixcentral and search for 'IBM Spectrum Scale (Software defined storage)'.
+  - Customers who have previously purchased Spectrum Scale can obtain entitled versions from IBM Fix Central. Visit https://www.ibm.com/support/fixcentral and search for 'IBM Spectrum Scale (Software defined storage)'.
 
 - **Create password-less SSH keys between all Spectrum Scale nodes in the cluster**
 
@@ -140,145 +157,37 @@ Installation Instructions
   $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
   ```
 
-- **Change working directory to `ibm-spectrum-scale-install-infra/`**
+- **Change working directory**
+
+  There are different methods for accessing the roles provided by this project. You can either change your working directory to the cloned repository and create your own files inside this directory (optionally copying examples from the [samples/](samples/) subdirectory):
 
   ```shell
   $ cd ibm-spectrum-scale-install-infra/
   ```
 
+  Alternatively, you can define an [Ansible environment variable](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#envvar-ANSIBLE_ROLES_PATH) to make the roles accessible in any external project directory:
+
+  ```shell
+  $ export ANSIBLE_ROLES_PATH=$(pwd)/ibm-spectrum-scale-install-infra/roles/
+  ```
+
 - **Create Ansible inventory**
 
-  1. Define Spectrum Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `./hosts`) in the following format
+  Define Spectrum Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `./hosts`) in the following format:
 
-     ```yaml
-     # hosts:
-     [cluster01]
-     scale01  scale_cluster_quorum=true   scale_cluster_manager=true   scale_cluster_gui=false
-     scale02  scale_cluster_quorum=true   scale_cluster_manager=true   scale_cluster_gui=false
-     scale03  scale_cluster_quorum=true   scale_cluster_manager=false  scale_cluster_gui=false
-     scale04  scale_cluster_quorum=false  scale_cluster_manager=false  scale_cluster_gui=false
-     scale05  scale_cluster_quorum=false  scale_cluster_manager=false  scale_cluster_gui=false
-     ```
+  ```yaml
+  # hosts:
+  [cluster01]
+  scale01  scale_cluster_quorum=true   scale_cluster_manager=true
+  scale02  scale_cluster_quorum=true   scale_cluster_manager=true
+  scale03  scale_cluster_quorum=true   scale_cluster_manager=false
+  scale04  scale_cluster_quorum=false  scale_cluster_manager=false
+  scale05  scale_cluster_quorum=false  scale_cluster_manager=false
+  ```
 
-     The following [Ansible variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) are defined in the above [inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html):
+  The above is just a minimal example. It defines [Ansible variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) directly in the [inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html). There are other ways to define variables, such as [host variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#host-variables) and [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#group-variables).
 
-     - `[cluster01]`: User defined host groups for Spectrum Scale cluster nodes on which
-       Spectrum Scale installation will take place.
-
-     - `scale_cluster_quorum`: User defined node designation for Spectrum Scale quorum. It
-       can be either true or false.
-
-     - `scale_cluster_manager`: User defined node designation for Spectrum Scale manager. It
-       can be either true or false.
-
-     - `scale_cluster_gui`: User defined node designation for Spectrum Scale GUI. It
-       can be either true or false.
-
-     > **Note:**
-     Defining node roles such as `scale_cluster_quorum` and `scale_cluster_manager` is optional. If you do not specify any quorum nodes then the first seven hosts in your inventory are automatically assigned the quorum role.
-
-  2. To create NSDs, file systems and node classes in the cluster you'll need to provide additional information. It is recommended to use [Ansible group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables) (e.g. `group_vars/*`) as follows:
-
-     ```yaml
-     # group_vars/all:
-     ---
-     scale_storage:
-       - filesystem: gpfs01
-         blockSize: 4M
-         defaultMetadataReplicas: 2
-         defaultDataReplicas: 2
-         numNodes: 16
-         automaticMountOption: true
-         defaultMountPoint: /mnt/gpfs01
-         disks:
-           - device: /dev/sdb
-             nsd: nsd_1
-             servers: scale01
-             failureGroup: 10
-             usage: metadataOnly
-             pool: system
-           - device: /dev/sdc
-             nsd: nsd_2
-             servers: scale01
-             failureGroup: 10
-             usage: dataOnly
-             pool: data
-     ```
-
-     Refer to `man mmchfs` and `man mmchnsd` man pages for a description of these storage parameters.
-
-     The `filesystem` parameter is mandatory, `servers`, and the `device` parameter is mandatory for each of the file system's `disks`. All other file system and disk parameters are optional. Hence, a minimal file system configuration would look like this:
-
-     ```yaml
-     # group_vars/all:
-     ---
-     scale_storage:
-       - filesystem: gpfs01
-         disks:
-           - device: /dev/sdb
-             servers: scale01
-           - device: /dev/sdc
-             servers: scale01,scale02
-     ```
-
-     > **Important:**
-     `scale_storage` *must* be define using [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables). Do *not* define disk parameters using [host variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-one-machine-host-variables) or [inline variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#defining-variables-in-a-playbook) in your playbook. Doing so would apply them to all hosts in the group/play, thus defining the same disk multiple times...
-
-     Furthermore, Spectrum Scale node classes can be defined on a per-node basis by defining the `scale_nodeclass` variable:
-
-     ```yaml
-     # host_vars/scale01:
-     ---
-     scale_nodeclass:
-       - classA
-       - classB
-     ```
-
-     ```yaml
-     # host_vars/scale02:
-     ---
-     scale_nodeclass:
-       - classA
-       - classC
-     ```
-
-     These node classes can optionally be used to define Spectrum Scale configuration parameters. It is suggested to use [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables) for that purpose:
-
-     ```yaml
-     # group_vars/all:
-     ---
-     scale_config:
-       - nodeclass: classA
-         params:
-           - pagepool: 16G
-           - autoload: no
-           - ignorePrefetchLUNCount: yes
-     ```
-
-     Refer to the `man mmchconfig` man page for a list of available configuration parameters.
-
-     Note that configuration parameters can be defined as variables for *any* host in the play &mdash; the host for which you define the configuration parameters is irrelevant.
-
-  3. To install and configure callhome in the cluster you'll need to provide additional information. It is recommended to use [group variables](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables) as follows:
-
-     ```yaml
-     # group_vars/all.yml:
-     ---
-     callhome_params:
-       is_enabled: true
-       customer_name: abc
-       customer_email: abc@abc.com
-       customer_id: 12345
-       customer_country: IN
-       proxy_ip:
-       proxy_port:
-       proxy_user:
-       proxy_password:
-       proxy_location:
-       callhome_server: host-vm1
-       callhome_group1: [host-vm1,host-vm2,host-vm3,host-vm4]
-       callhome_schedule: [daily,weekly]
-     ```
+  Numerous variables are available which can be defined in either way to customize the behavior of the roles. Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
 - **Create Ansible playbook**
 
@@ -295,35 +204,17 @@ Installation Instructions
       - core/precheck
       - core/node
       - core/cluster
-      - gui/precheck
-      - gui/node
-      - gui/cluster
-      - zimon/precheck
-      - zimon/node
-      - zimon/cluster
-      - callhome/precheck
-      - callhome/node
-      - callhome/cluster
-      - callhome/postcheck
+      - core/postcheck
   ```   
 
-  The following installation methods are available:
+  Again, this is just a minimal example. There are different installation methods available, each offering a specific set of options:
 
-  - Installation from (existing) YUM repository (`scale_install_repository_url`)
-  - Installation from remote installation package (`scale_install_remotepkg_path`)
-  - Installation from local installation package (`scale_install_localpkg_path`)
-  - Installation from single directory package path (`scale_install_directory_pkg_path`)
+  - Installation from (existing) YUM repository (see [samples/playbook_repository.yml](samples/playbook_repository.yml))
+  - Installation from remote installation package (see [samples/playbook_remotepkg.yml](samples/playbook_remotepkg.yml))
+  - Installation from local installation package (see [samples/playbook_localpkg.yml](samples/playbook_localpkg.yml))
+  - Installation from single directory package path (see [samples/playbook_directory.yml](samples/playbook_directory.yml))
 
-  > **Note:**
-  Defining the variable `scale_version` is optional for `scale_install_localpkg_path` and `scale_install_directory_pkg_path` installation methods. It is mandatory for `scale_install_repository_url` and `scale_install_remotepkg_path` installation methods. Furthermore, you'll need to configure an installation method
-  by defining *one* of the following variables:
-  - `scale_install_repository_url` (eg: http://infraserv/gpfs_rpms/)
-  - `scale_install_remotepkg_path` (accessible on Ansible managed node)
-  - `scale_install_localpkg_path` (accessible on Ansible control machine)
-  - `scale_install_directory_pkg_path` (eg: /opt/IBM/spectrum_scale_packages)
-
-  > **Important:**
-  If you are using the single directory installation method (`scale_install_directory_pkg_path`), you need to keep all required Spectrum Scale RPMs in a single user-provided directory.
+  Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
 - **Run the playbook to install and configure the Spectrum Scale cluster**
 
@@ -336,6 +227,7 @@ Installation Instructions
   - Using the automation script:
 
     ```shell
+    $ cd samples/
     $ ./ansible.sh
     ```   
 
@@ -355,24 +247,21 @@ Installation Instructions
 
   TASK #### [Gathering Facts]
   **********************************************************************************************************
-  ok: [GPFS-vm1]
-  ok: [GPFS-vm2]
-  ok: [GPFS-vm3]
+  ok: [scale01]
+  ok: [scale02]
+  ok: [scale03]
+  ok: [scale04]
+  ok: [scale05]
 
   TASK [common : check | Check Spectrum Scale version]               
   *********************************************************************************************************
-  ok: [GPFS-vm1] => {
-      "changed": false,
-      "msg": "All assertions passed"
-  }
-  ok: [GPFS-vm2] => {
-      "changed": false,
-      "msg": "All assertions passed"
-  }
-  ok: [GPFS-vm3] => {
-      "changed": false,
-      "msg": "All assertions passed"
-  }
+  ok: [scale01]
+  ok: [scale02]
+  ok: [scale03]
+  ok: [scale04]
+  ok: [scale05]
+
+  ...
   ```
 
   Playbook recap:
@@ -380,36 +269,50 @@ Installation Instructions
   ```shell
   #### PLAY RECAP
   ***************************************************************************************************************
-  GPFS-vm1                 : ok=0   changed=65    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
-  GPFS-vm2                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
-  GPFS-vm3                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale01                 : ok=0   changed=65    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale02                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale03                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale04                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
+  scale05                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
   ```
 
 
 Optional Role Variables
 -----------------------
 
-User can also define some of the following [variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) to override default values and customize the behavior:
+Users can define [variables](https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html) to override default values and customize behavior of the roles. Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
-- `scale_cluster_clustername`: User defined Spectrum Scale cluster name.
-- `scale_prepare_disable_selinux`: SELinux can be disabled. It can be either true or false (default).
-- `scale_prepare_disable_firewall`: Firewall can be disabled. It can be either true or false (default).
+Additional functionality can be enabled by defining further variables. Browse the examples in the [samples/](samples/) directory to learn how to:
+
+- Configure storage and file systems (see [samples/playbook_storage.yml](samples/playbook_storage.yml))
+- Configure node classes and Spectrum Scale configuration attributes (see [samples/playbook_nodeclass.yml](samples/playbook_nodeclass.yml))
+- Deploy Spectrum Scale using JSON inventory (see [samples/playbook_json_ces.yml](samples/playbook_json_ces.yml))
 
 
 Available Roles
 ---------------
 
-If you are assembling your own [playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html), the following [roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) are available for you to reuse:
+The following [roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) are available for you to reuse when assembling your own [playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html):
 
-- [Core GPFS](./roles/core)
-- [GPFS GUI](./roles/gui)
-- [GPFS Callhome](./roles/callhome)
+- [Core GPFS](roles/core)*
+- [GPFS GUI](roles/gui)
+- [GPFS SMB](roles/smb)
+- [GPFS NFS](roles/nfs)
+- [GPFS Call Home](roles/callhome)
+- [GPFS File Audit Logging](roles/scale_fileauditlogging)
 
+Note that [Core GPFS](roles/core) is the only mandatory role, all other roles are optional. Each of the optional roles requires additional configuration variables. Browse the examples in the [samples/](samples/) directory to learn how to:
+
+- Configure Graphical User Interface (GUI) (see [samples/playbook_gui.yml](samples/playbook_gui.yml))
+- Configure Protocol Services (SMB & NFS) (see [samples/playbook_ces.yml](samples/playbook_ces.yml))
+- Configure Call Home (see [samples/playbook_callhome.yml](samples/playbook_callhome.yml))
+- Configure File Audit Logging (see [samples/playbook_fileauditlogging.yml](samples/playbook_fileauditlogging.yml))
+- Configure cluster with daemon and admin network (see samples/daemon_admin_network)
 
 Cluster Membership
 ------------------
 
-All hosts in the play are configured as nodes in the same cluster. If you want to add hosts to an existing cluster then add at least one node from that existing cluster to the play.
+All hosts in the play are configured as nodes in the same Spectrum Scale cluster. If you want to add hosts to an existing cluster then add at least one node from that existing cluster to the play.
 
 You can create multiple clusters by running multiple plays.
 
@@ -417,7 +320,7 @@ You can create multiple clusters by running multiple plays.
 Limitations
 -----------
 
-The roles in this project can (currently) be used to create new clusters or extend existing clusters. Similarly, new file systems can be created or extended. But this role does *not* remove existing nodes, disks, file systems or node classes. This is done on purpose. This is also the reason why it can not be used, for example, to change the file system pool of a disk. Changing the pool requires you to remove and then re-add the disk from a file system, which is not currently in the scope of this role.
+The roles in this project can (currently) be used to create new clusters or extend existing clusters. Similarly, new file systems can be created or extended. But this role does *not* remove existing nodes, disks, file systems or node classes. This is done on purpose &mdash; and this is also the reason why it can not be used, for example, to change the file system pool of a disk. Changing the pool requires you to remove and then re-add the disk from a file system, which is not currently in the scope of this role.
 
 Furthermore, upgrades are not currently in scope of this role. Spectrum Scale supports rolling online upgrades (by taking down one node at a time), but this requires careful planning and monitoring and might require manual intervention in case of unforeseen problems.
 
@@ -437,7 +340,7 @@ Please use the [issue tracker](https://github.com/IBM/ibm-spectrum-scale-install
 Contributing Code
 -----------------
 
-We welcome contributions to this project, see [Contributing](CONTRIBUTING.md) for more details.
+We welcome contributions to this project, see [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 
 Disclaimer

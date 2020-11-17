@@ -1,0 +1,20 @@
+---
+#
+# samples/playbook_directory.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using the
+# directory installation method. You need to keep all required Spectrum Scale
+# packages in a single user-provided directory.
+
+# Note that specifying the variable 'scale_version' is *not* required for this
+# installation method.
+
+- hosts: cluster01
+  vars:
+    - scale_install_directory_pkg_path: /root/spectrum_scale_packages
+  roles:
+    - core/precheck
+    - core/node
+    - core/cluster
+    - core/postcheck

@@ -1,0 +1,32 @@
+---
+# Default variables for the IBM Spectrum Scale (NFS) role -
+# either edit this file or define your own variables to override the defaults
+
+## Specify the URL of the (existing) Spectrum Scale YUM/apt/zypper repository
+#scale_install_nfs_repository_rpms: http://<ip>/ganesha_rpms/
+#scale_install_nfs_repository_debs: http://<ip>/ganesha_debs/ubuntu16
+#scale_install_nfs_repository_rpms_sles: http://<ip>/ganesha_rpms/sles12
+
+## List of NFS RPMs to install
+scale_nfs_rpms:
+- gpfs.nfs-ganesha-gpfs
+- gpfs.nfs-ganesha
+- gpfs.nfs-ganesha-utils
+
+## List of NFS debian package to install
+scale_nfs_debs:
+- gpfs.smb
+- gpfs.nfs-ganesha-gpfs
+- gpfs.nfs-ganesha
+- gpfs.nfs-ganesha-doc
+- gpfs.python-nfs-ganesha
+
+## pm ganesha package for nfs performance monitoring
+scale_pm_package:
+  - gpfs.pm-ganesha 
+## Temporary directory to copy installation package to
+## (local package installation method)
+scale_install_localpkg_tmpdir_path: /tmp
+
+## Flag to install ganesha debug package
+install_debuginfo: true

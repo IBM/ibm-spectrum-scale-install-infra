@@ -1,0 +1,27 @@
+---
+#
+# samples/playbook_callhome.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster with Call Home
+# enabled. Additional variables need to be defined for this, it is recommended
+# to use Ansible group variables for this purpose:
+# https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
+
+# Sample definitions can be found in samples/vars/callhome_vars.yml
+
+- hosts: cluster01
+  vars:
+    - scale_version: 5.0.4.0
+    - scale_install_localpkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
+  pre_tasks:
+    - include_vars: callhome_vars.yml
+  roles:
+    - core/precheck
+    - core/node
+    - core/cluster
+    - core/postcheck
+    - callhome/precheck
+    - callhome/node
+    - callhome/cluster
+    - callhome/postcheck

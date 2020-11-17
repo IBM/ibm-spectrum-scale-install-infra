@@ -1,0 +1,25 @@
+---
+# Default variables for the IBM Spectrum Scale (GPFS) (audit logging) role -
+# either edit this file or define your own variables to override the defaults
+
+## Specify the URL of the (existing) Spectrum Scale file audit logging repository
+## (copy the contents of /usr/lpp/mmfs/.../gpfs_rpms/rhel7 to build your repository)
+# scale_install_repository_url: http://infraserv/
+
+## Note that if this is a URL then a new repository definition will be created.
+## If this variable is set to 'existing' then it is assumed that a repository
+## definition already exists and thus will *not* be created.
+
+## Specify the Spectrum Scale architecture that you want to install on your nodes
+scale_architecture: "{{ ansible_architecture }}"
+
+## List of packages to install for file audit logging
+scale_auditlogging_packages:
+  - gpfs.librdkafka*
+  - gpfs.java
+
+## Flag to enable fileauditlogging
+scale_fileauditlogging_enable: true
+
+## To Enabled output from Ansible task in stdout and stderr for some tasks.
+## Run the playbook with -vv

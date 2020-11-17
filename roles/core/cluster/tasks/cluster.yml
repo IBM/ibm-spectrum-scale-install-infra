@@ -63,7 +63,7 @@
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
-- name: check | Find GPFS user profile
+- name: cluster | Find GPFS user profile
   find:
     paths: "{{ scale_cluster_profile_dir_path }}"
     patterns: "{{ scale_cluster_profile_name }}.profile"
@@ -75,14 +75,14 @@
     - scale_cluster_profile_name not in gpfs_cluster_system_profile
 
 - block:
-    - name: check | cluster profile name validation
+    - name: cluster | cluster profile name validation
       assert:
         that:
           - scale_cluster_profile_name is not match("gpfs.*")
         msg: >-
           A user-defined profile must not begin with the string 'gpfs'
 
-    - name: check | cluster profile format validation
+    - name: cluster | cluster profile format validation
       assert:
         that:
           - stat_user_profile_result.matched == 1
@@ -112,21 +112,21 @@
         src: NewNodeFile.j2
         dest: /var/tmp/NodeFile
 
-    - name: check | Stat GPFS profile file
+    - name: cluster | Stat GPFS profile file
       find:
         paths: "{{ scale_cluster_profile_dir_path }}"
         patterns: "{{ scale_cluster_profile_name }}.profile"
       register: stat_profile_result
 
-    - name: install | Initialize gpfs profile
+    - name: cluster | Initialize gpfs profile
       set_fact:
          profile_type: ""
 
-    - name: install | Set gpfs profile if it is defined
+    - name: cluster | Set gpfs profile if it is defined
       set_fact:
          profile_type: "--profile {{ scale_cluster_profile_name }}"
       when:
-        - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None' 
+        - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
         - (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
 
     - name: cluster | Create new cluster
@@ -136,7 +136,7 @@
 
     - debug:
          msg: "{{ mmcrcluster_results.cmd }}"
-     
+
     - name: cluster | Cleanup new cluster NodeFile
       file:
         path: /var/tmp/NodeFile
