@@ -17,7 +17,16 @@ Variables used by Spectrum Scale (GPFS) Ansible project
   - example: `scale01`
   - dafault: `{{ scale_daemon_nodename }}`
 
-  Spectrum Scale daemon nodename (defaults to node's hostname).
+  Spectrum Scale admin nodename (defaults to node's hostname).
+
+- `scale_daemon_state`
+  - example: `maintenance`
+  - default: `present`
+
+  Desired state of the Spectrum Scale daemon. Can be `present`, `maintenance` or `absent`:
+  - present - daemon will be started
+  - maintenance - daemon will not be started
+  - absent - node will be removed from cluster
 
 - `scale_install_localpkg_path`
   - example: `/root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install`
