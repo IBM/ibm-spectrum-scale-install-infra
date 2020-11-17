@@ -10,6 +10,39 @@
 # vars/scale_clusterdefinition.json
 - import_playbook: "set_json_variables.yml"
 
+# Ensure provisioned VMs are up and Passwordless SSH setup
+# has been compleated and operational
+- name: Check passwordless SSH connection is setup
+  hosts: scale_node
+  any_errors_fatal: true
+  gather_facts: false
+  connection: local
+  tasks:
+  - name: Check passwordless SSH on all scale inventory hosts
+    shell: ssh -i {{ ansible_ssh_private_key_file }} {{ inventory_hostname }} "echo PASSWDLESS_SSH_ENABLED"
+    register: result
+    until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
+    retries: 30
+    delay: 10
+
+# Ensure all provisioned VMs are running the supported OS versions
+- name: Check for supported OS
+  hosts: scale_node
+  any_errors_fatal: true
+  gather_facts: true
+  tasks:
+  - name: Spectrum Scale Precheck | Check OS Distribution
+    assert:
+       that:
+         - ansible_distribution == "RedHat"
+         - ansible_distribution_major_version == "7" or ansible_distribution_major_version == "8"
+         - (ansible_distribution_version is match("7.7") or
+            ansible_distribution_version is match("7.8") or
+            ansible_distribution_version is match("8.1") or
+            ansible_distribution_version is match("8.2"))
+       fail_msg: "Only instances running RedHat Enterprise Linux version 7.7, 7.8, 8.1 and 8.2 are supported"
+
+# Setup Spectrum Scale on nodes and create cluster
 - hosts: scale_node
   any_errors_fatal: true
   vars:
@@ -27,7 +60,8 @@
      - zimon/cluster
      - zimon/postcheck
 
-  # Below task specific to cloud deployment.
+  # Cloud deployment specific actions after Spectrum Scale
+  # cluster installation and setup
   tasks:
     - block:
        - name: accept client lisence for compute descriptor node
@@ -47,3 +81,115 @@
       run_once: true
       when:
         - scale_sync_replication_config | bool
+
+    - name: Prevent kernel upgrade
+      lineinfile:
+        path: /etc/yum.conf
+        line: exclude=kernel* redhat-release*
+
+# Configure the Spectrum Scale Pagepool setings
+- hosts: scale_node
+  any_errors_fatal: false
+  gather_facts: true
+  tasks:
+  - block:
+    - name: Spectrum Scale Config | Find Compute Nodes
+      add_host:
+         name: "{{ item }}"
+         groups: scale_compute_members
+      when:
+         - hostvars[item]['scale_nodeclass'] is defined and 'computenodegrp' in hostvars[item]['scale_nodeclass']
+      with_items: "{{ ansible_play_hosts }}"
+      changed_when: false
+
+    - name: Spectrum Scale Config | Find Storage Nodes
+      add_host:
+         name: "{{ item }}"
+         groups: scale_storage_members
+      when:
+         - hostvars[item]['scale_nodeclass'] is defined and 'storagenodegrp' in hostvars[item]['scale_nodeclass']
+      with_items: "{{ ansible_play_hosts }}"
+      changed_when: false
+
+    - name: Spectrum Scale Config | Determine Compute Node Total Memory
+      set_fact:
+         scale_compute_total_mem: "{{ hostvars[item]['ansible_memtotal_mb'] }}"
+      when: hostvars[item]['ansible_memtotal_mb'] is defined and hostvars[item]['ansible_memtotal_mb']
+      with_items: "{{ groups['scale_compute_members'].0 }}"
+      run_once: true
+
+    - name: Spectrum Scale Config | Determine Storage Node Total Memory
+      set_fact:
+         scale_storage_total_mem: "{{ hostvars[item]['ansible_memtotal_mb'] }}"
+      when: hostvars[item]['ansible_memtotal_mb'] is defined and hostvars[item]['ansible_memtotal_mb']
+      with_items: "{{ groups['scale_storage_members'].0 }}"
+      run_once: true
+
+    - name: Spectrum Scale Config | Determine Compute Node Pagepool Memory
+      set_fact:
+         scale_compute_total_mem_per: "{{ ((scale_compute_total_mem | int / 1024) * 0.25) | round(0, 'ceil') | int | abs }}"
+      when: scale_compute_total_mem is defined
+      run_once: true
+
+    - name: Spectrum Scale Config | Determine Storage Node Pagepool Memory
+      set_fact:
+         scale_storage_total_mem_per: "{{ ((scale_storage_total_mem | int / 1024) * 0.25) | round(0, 'ceil') | int | abs }}"
+      when: scale_storage_total_mem is defined
+      run_once: true
+
+    - name: Spectrum Scale Config | Define Compute Raw Pagepool Size
+      set_fact:
+        pagepool_compute: "{{ scale_compute_total_mem_per }}"
+      when: scale_compute_total_mem_per is defined
+      run_once: true
+
+    - name: Spectrum Scale Config | Define Storage Raw Pagepool Size
+      set_fact:
+        pagepool_storage: "{{ scale_storage_total_mem_per }}"
+      when: scale_storage_total_mem_per is defined
+      run_once: true
+
+    - name: Spectrum Scale Config | Check Compute Pagepool Floor Value
+      set_fact:
+        pagepool_compute: "1"
+      when:
+        - pagepool_compute is defined
+        - pagepool_compute | int  < 1
+      run_once: true
+
+    - name: Spectrum Scale Config | Check Compute Pagepool Ceiling Value
+      set_fact:
+        pagepool_compute: "16"
+      when:
+        - pagepool_compute is defined
+        - pagepool_compute | int  > 16
+      run_once: true
+
+    - name: Spectrum Scale Config | Check Storage Pagepool Floor Value
+      set_fact:
+        pagepool_storage: "1"
+      when:
+        - pagepool_storage is defined
+        - pagepool_storage | int  < 1
+      run_once: true
+
+    - name: Spectrum Scale Config | Check Storage Pagepool Ceiling Value
+      set_fact:
+        pagepool_compute: "16"
+      when:
+        - pagepool_storage is defined
+        - pagepool_storage | int  > 16
+      run_once: true
+
+    - name: Spectrum Scale Config | Assign Compute Pagepool
+      command: "/usr/lpp/mmfs/bin/mmchconfig pagepool={{ pagepool_compute }}G -i -N computenodegrp"
+      when:
+        - pagepool_compute is defined
+      run_once: true
+
+    - name: Spectrum Scale Config | Assign Storage Pagepool
+      command: "/usr/lpp/mmfs/bin/mmchconfig pagepool={{ pagepool_storage }}G -i -N storagenodegrp"
+      when:
+        - pagepool_storage is defined
+      run_once: true
+

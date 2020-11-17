@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright 2020 IBM Corporation
 # and other contributors as indicated by the @author tags.
@@ -19,9 +19,15 @@
 
 import os
 import json
-from ibm_spectrumscale_utils import runCmd, parse_aggregate_cmd_output, \
-                         parse_unique_records, GPFS_CMD_PATH, \
-                         RC_SUCCESS, SpectrumScaleException
+
+try:
+    from ansible.module_utils.ibm_spectrumscale_utils import runCmd, \
+            parse_aggregate_cmd_output, parse_unique_records, GPFS_CMD_PATH, \
+            RC_SUCCESS, SpectrumScaleException
+except:
+    from ibm_spectrumscale_utils import runCmd, parse_aggregate_cmd_output, \
+            parse_unique_records, GPFS_CMD_PATH, RC_SUCCESS, SpectrumScaleException
+
 
 class SpectrumScaleDf:
     nsd_df = {}
@@ -90,37 +96,49 @@ class SpectrumScaleDf:
         return self.nsd_df_dict
 
     def print_nsd_df(self):
-        print("NSD Name                : {0}".format(self.get_nsd_name()))
-        print("Storage Pool            : {0}".format(self.get_storage_pool()))
-        print("Disk Size               : {0}".format(self.get_disk_size()))
-        print("Failure Group           : {0}".format(self.get_failure_group()))
-        print("Stores Metadata         : {0}".format(self.stores_meta_data()))
-        print("Stores Data             : {0}".format(self.stores_data()))
-        print("Free Blocks             : {0}".format(self.get_free_blocks()))
-        print("Free Blocks %           : {0}".format(self.get_free_blocks_pct()))
-        print("Free Fragments          : {0}".format(self.get_free_fragments()))
-        print("Free Fragments %        : {0}".format(self.get_free_fragments_pct()))
-        print("Disk Available For Alloc: {0}".format(self.get_disk_available_for_alloc()))
+        print(("NSD Name                : {0}".format(self.get_nsd_name())))
+        print(("Storage Pool            : {0}".format(self.get_storage_pool())))
+        print(("Disk Size               : {0}".format(self.get_disk_size())))
+        print(("Failure Group           : {0}".format(self.get_failure_group())))
+        print(("Stores Metadata         : {0}".format(self.stores_meta_data())))
+        print(("Stores Data             : {0}".format(self.stores_data())))
+        print(("Free Blocks             : {0}".format(self.get_free_blocks())))
+        print(("Free Blocks %           : {0}".format(self.get_free_blocks_pct())))
+        print(("Free Fragments          : {0}".format(self.get_free_fragments())))
+        print(("Free Fragments %        : {0}".format(self.get_free_fragments_pct())))
+        print(("Disk Available For Alloc: {0}".format(self.get_disk_available_for_alloc())))
 
 
     @staticmethod
-    def get_df_info(filesystem_name):
+    def get_df_info(filesystem_name, admin_ip=None):
         nsd_df_info_list = []
+
+        stdout = stderr = ""
+        rc = RC_SUCCESS
+
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
 
         # TODO
         # The original code executed the command "/usr/lpp/mmfs/bin/mmdf <fs_name> -d -Y"
         # but this did not work if there were multiple Pools with a separate System Pool.
         # Therefore the "-d" flag has been removed. Check to see why the "-d" flag was
         # was used in the first place
-        stdout, stderr, rc = runCmd([os.path.join(GPFS_CMD_PATH, "mmdf"),
-                                                  filesystem_name, "-Y"], 
-                                    sh=False)
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmdf"), filesystem_name, "-Y"])
+
+        try: 
+            stdout, stderr, rc = runCmd(cmd, sh=False)
+        except Exception as e:
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
+                                         -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Retrieving filesystem disk space usage failed",
-                                     "mmdf",
-                                     [filesystem_name, "-Y"],
-                                     rc, stdout, stderr)
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:], rc,
+                                         stdout, stderr)
 
         df_dict = parse_aggregate_cmd_output(stdout, ["poolTotal", "data", 
                                                       "metadata", "fsTotal", 

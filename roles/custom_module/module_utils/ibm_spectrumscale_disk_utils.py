@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright 2020 IBM Corporation
 # and other contributors as indicated by the @author tags.
@@ -19,8 +19,15 @@
 import os
 import sys
 import json
-from ibm_spectrumscale_utils import runCmd, parse_unique_records, GPFS_CMD_PATH, \
-                         RC_SUCCESS, SpectrumScaleException
+
+try:
+    from ansible.module_utils.ibm_spectrumscale_utils import runCmd, \
+            parse_unique_records, GPFS_CMD_PATH, RC_SUCCESS, \
+            SpectrumScaleException
+except:
+    from ibm_spectrumscale_utils import runCmd, parse_unique_records, \
+            GPFS_CMD_PATH, RC_SUCCESS, SpectrumScaleException
+
 
 class SpectrumScaleDisk:
     disk = {}
@@ -110,30 +117,43 @@ class SpectrumScaleDisk:
         return json.dumps(self.disk)
 
     def print_disk(self):
-        print("NSD Name           : {0}".format(self.get_nsd_name()))
-        print("Driver Type        : {0}".format(self.get_driver_type()))
-        print("Sector Size        : {0}".format(self.get_sector_size()))
-        print("Failure Group      : {0}".format(self.get_failure_group()))
-        print("Contains Metadata  : {0}".format(self.contains_metadata()))
-        print("Contains Data      : {0}".format(self.contains_data()))
-        print("Status             : {0}".format(self.get_status()))
-        print("Availability       : {0}".format(self.get_availability()))
-        print("Disk ID            : {0}".format(self.get_disk_id()))
-        print("Storage Pool       : {0}".format(self.get_storage_pool()))
-        print("Remarks            : {0}".format(self.get_remarks()))
-        print("Num Quorum Disks   : {0}".format(self.get_num_quorum_disks()))
-        print("Read Quorum Value  : {0}".format(self.get_read_quorum_value()))
-        print("Write Quorum Value : {0}".format(self.get_write_quorum_value()))
-        print("NSD Disk Size (KB) : {0}".format(self.get_disk_size_KB()))
-        print("Disk UID           : {0}".format(self.get_disk_UID()))
-        print("Thin Disk Type     : {0}".format(self.get_thin_disk_type()))
+        print(("NSD Name           : {0}".format(self.get_nsd_name())))
+        print(("Driver Type        : {0}".format(self.get_driver_type())))
+        print(("Sector Size        : {0}".format(self.get_sector_size())))
+        print(("Failure Group      : {0}".format(self.get_failure_group())))
+        print(("Contains Metadata  : {0}".format(self.contains_metadata())))
+        print(("Contains Data      : {0}".format(self.contains_data())))
+        print(("Status             : {0}".format(self.get_status())))
+        print(("Availability       : {0}".format(self.get_availability())))
+        print(("Disk ID            : {0}".format(self.get_disk_id())))
+        print(("Storage Pool       : {0}".format(self.get_storage_pool())))
+        print(("Remarks            : {0}".format(self.get_remarks())))
+        print(("Num Quorum Disks   : {0}".format(self.get_num_quorum_disks())))
+        print(("Read Quorum Value  : {0}".format(self.get_read_quorum_value())))
+        print(("Write Quorum Value : {0}".format(self.get_write_quorum_value())))
+        print(("NSD Disk Size (KB) : {0}".format(self.get_disk_size_KB())))
+        print(("Disk UID           : {0}".format(self.get_disk_UID())))
+        print(("Thin Disk Type     : {0}".format(self.get_thin_disk_type())))
 
     @staticmethod
-    def get_all_disk_info(fs_name):
+    def get_all_disk_info(fs_name, admin_ip=None):
         disk_info_list = []
-        stdout, stderr, rc = runCmd([os.path.join(GPFS_CMD_PATH, "mmlsdisk"),
-                                                  fs_name, "-Y"],
-                                                  sh=False)
+        stdout = stderr = ""
+        rc = RC_SUCCESS
+
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmlsdisk"), fs_name, "-Y"])
+        
+        try:
+            stdout, stderr, rc = runCmd(cmd, sh=False)
+        except Exception as e:
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
+                                         -1, stdout, stderr)
 
         if rc == RC_SUCCESS:
             # TODO: Check the return codes and examine other possibility and verify below
@@ -141,9 +161,8 @@ class SpectrumScaleDisk:
                 return nsd_info_list
         else:
             raise SpectrumScaleException("Retrieving disk information failed",
-                                     "mmlsdisk",
-                                     [fs_name, "-Y"], 
-                                     rc, stdout, stderr) 
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:], rc,
+                                         stdout, stderr) 
 
         disk_dict = parse_unique_records(stdout)
         disk_list = disk_dict["mmlsdisk"]
@@ -156,7 +175,7 @@ class SpectrumScaleDisk:
 
 
     @staticmethod
-    def delete_disk(node_name, filesystem_name, disk_names):
+    def delete_disk(node_name, filesystem_name, disk_names, admin_ip=None):
         """
             This function performs "mmdeldisk".
             Args:
@@ -165,17 +184,30 @@ class SpectrumScaleDisk:
                 disk_names (list): Disk name to be deleted.
                                   Ex: ['gpfs1nsd', 'gpfs2nsd', 'gpfs3nsd']
         """
+        stdout = stderr = ""
+        rc = RC_SUCCESS
+
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
         disk_name_str = ";".join(disk_names)
-        stdout, stderr, rc = runCmd([os.path.join(GPFS_CMD_PATH, "mmdeldisk"), 
-                                     filesystem_name,
-                                     disk_name_str, '-N', node_name])
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmdeldisk"), filesystem_name,
+                    disk_name_str, '-N', node_name])
+
+        try:
+            stdout, stderr, rc = runCmd(cmd, sh=False)
+        except Exception as e:
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
+                                         -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
-            cmd_args = "{0} {1} {2}".format(node_name, filesystem_name, disk_name_str)
             raise SpectrumScaleException("Deleting disk(s) failed. ",
-                                     "mmdeldisk ",
-                                     cmd_args, 
-                                     rc, stdout, stderr) 
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:], rc,
+                                         stdout, stderr) 
 
                                  
 def main():

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright 2020 IBM Corporation
 # and other contributors as indicated by the @author tags.
@@ -21,21 +21,40 @@ import os
 import re
 import json
 import time
-from ibm_spectrumscale_utils import runCmd, GPFS_CMD_PATH, RC_SUCCESS, \
-                         SpectrumScaleException
+
+try:
+    from ansible.module_utils.ibm_spectrumscale_utils import runCmd, \
+            GPFS_CMD_PATH, RC_SUCCESS, SpectrumScaleException
+except:
+    from ibm_spectrumscale_utils import runCmd, GPFS_CMD_PATH, \
+            RC_SUCCESS, SpectrumScaleException
+
 
 def get_zimon_collectors():
     """
         This function returns zimon collector node ip's.
     """
-    stdout, stderr, rc = runCmd([os.path.join(GPFS_CMD_PATH, "mmperfmon"),
-                                 "config", "show"])
+    stdout = stderr = ""
+    rc = RC_SUCCESS
+
+    cmd = []
+    mmcmd_idx = 1
+    if admin_ip:
+        cmd.extend(["ssh", admin_ip])
+        mmcmd_idx = len(cmd) + 1
+
+    cmd.extend([os.path.join(GPFS_CMD_PATH, "mmperfmon"), "config", "show"])
+
+    try:
+        stdout, stderr, rc = runCmd(cmd, sh=False)
+    except Exception as e:
+        raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
+                                     -1, stdout, stderr)
 
     if rc != RC_SUCCESS:
         raise SpectrumScaleException("Retrieving Zimon information failed",
-                                 "mmperfmon",
-                                 ["config", "show"],
-                                 rc, stdout, stderr)
+                                     cmd[0:mmcmd_idx], cmd[mmcmd_idx:], rc,
+                                     stdout, stderr)
 
     output = stdout.splitlines()
     col_regex = re.compile(r'colCandidates\s=\s(?P<collectors>.*)')

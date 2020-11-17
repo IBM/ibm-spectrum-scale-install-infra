@@ -6,7 +6,7 @@ Ansible project with multiple roles for installing and configuring IBM Spectrum 
 **Table of Contents**
 
 - [Features](#features)
-- [Supported Versions](#supported-versions)
+- [Versions](#minimal-tested-versions)
 - [Prerequisites](#prerequisites)
 - [Installation Instructions](#installation-instructions)
 - [Optional Role Variables](#optional-role-variables)
@@ -23,7 +23,7 @@ Ansible project with multiple roles for installing and configuring IBM Spectrum 
 Features
 --------
 
-#### Infrastructure support
+#### Infrastructure minimal tested configuration
 - [x] Pre-built infrastructure (using a static inventory file)
 - [ ] Dynamic inventory file
 
@@ -48,7 +48,7 @@ Features
 - [x] Install gcc-c++, kernel-devel, make
 - [x] Install elfutils,elfutils-devel (RHEL8 specific)
 
-#### Core Spectrum Scale Cluster supported features
+#### Core Spectrum Scale Cluster features
 - [x] Install core Spectrum Scale packages on Linux nodes
 - [x] Install Spectrum Scale license packages on Linux nodes
 - [x] Compile or install pre-compiled Linux kernel extension (mmbuildgpl)
@@ -66,15 +66,15 @@ Features
 - [x] Extend NSDs and file system
 - [x] Add disks to existing file systems
 
-#### Spectrum Scale GUI Cluster supported features
-- [x] Install Spectrum Scale GUI packages on GUI designated nodes
-- [x] maximum 3 GUI nodes to be configured
+#### Spectrum Scale Management GUI features
+- [x] Install Spectrum Scale management GUI packages on GUI designated nodes
+- [x] maximum 3 management GUI nodes to be configured
 - [x] Install performance monitoring sensor packages on all Linux nodes
 - [x] Install performance monitoring packages on all GUI designated nodes
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
 
-#### Spectrum Scale Callhome Cluster supported features
+#### Spectrum Scale Callhome features
 - [x] Install Spectrum Scale callhome packages on all cluster nodes
 - [x] Configure callhome
 
@@ -84,14 +84,14 @@ Features
 - [x] CES interface mode support
 
 
-Supported Versions
-------------------
+Minimal tested Versions
+-----------------------
 
-The following Ansible versions are supported:
+The following Ansible versions are tested:
 
 - 2.9 and above
 
-The following IBM Spectrum Scale versions are supported:
+The following IBM Spectrum Scale versions are tested:
 
 - 5.0.4.0
 - 5.0.4.1
@@ -102,6 +102,11 @@ The following IBM Spectrum Scale versions are supported:
 Specific OS requirements:
 
 - For CES (SMB/NFS) on SLES15, Python3 is required.
+=======
+- 5.0.5.0
+- 5.0.5.1
+- 5.0.5.2
+- 5.0.5.3
 
 
 Prerequisites
