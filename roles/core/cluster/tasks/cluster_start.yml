@@ -1,4 +1,6 @@
 ---
+# Start daemons and finalize node roles
+
 #
 # Start daemon on nodes
 #
@@ -17,12 +19,6 @@
     delegate_node: "{{ groups['scale_cluster_members'].0 }}"
   when:
     - groups['scale_cluster_members'] is defined
-
-# Make default variables available in hostvars
-- name: cluster | Set default daemon state
-  set_fact:
-    scale_daemon_state: "{{ scale_daemon_state }}"
-  when: hostvars[inventory_hostname].scale_daemon_state is undefined
 
 - name: cluster | Identify nodes to start daemon on
   set_fact:

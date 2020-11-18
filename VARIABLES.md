@@ -24,9 +24,9 @@ Variables used by Spectrum Scale (GPFS) Ansible project
   - default: `present`
 
   Desired state of the Spectrum Scale daemon. Can be `present`, `maintenance` or `absent`:
-  - present - daemon will be started
-  - maintenance - daemon will not be started
-  - absent - node will be removed from cluster
+  - `present` - node will be added to cluster, daemon will be started
+  - `maintenance` - node will be added to cluster, daemon will not be started
+  - `absent` - node will be removed from cluster
 
 - `scale_install_localpkg_path`
   - example: `/root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install`
