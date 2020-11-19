@@ -5,6 +5,13 @@
   delegate_to: "{{ scale_smb_node_list.0 }}"
   run_once: true
 
+- name: configure | Check if zimon sensor is configured
+  shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
+  register: scale_zimon_conf_sensors
+  failed_when: false
+  changed_when: false
+  run_once: true
+
 - name: configure | Stat ZIMonSensors_smb.cfg file
   stat:
    path: /opt/IBM/zimon/defaults/ZIMonSensors_smb.cfg
