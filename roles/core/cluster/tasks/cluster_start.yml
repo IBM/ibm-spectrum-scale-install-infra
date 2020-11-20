@@ -4,10 +4,6 @@
 #
 # Start daemon on nodes
 #
-- name: cluster | Initialize daemon nodes
-  set_fact:
-    scale_daemon_node_list: []
-
 - name: cluster | Find delegate node for new cluster
   set_fact:
     delegate_node: "{{ groups['scale_cluster_candidates'].0 }}"
@@ -22,7 +18,7 @@
 
 - name: cluster | Identify nodes to start daemon on
   set_fact:
-    scale_daemon_node_list: "{{ scale_daemon_node_list + [hostvars[item].scale_daemon_nodename] }}"
+    scale_daemon_node_list: "{{ scale_daemon_node_list | default([]) + [hostvars[item].scale_daemon_nodename] }}"
   when:
     - hostvars[item].scale_daemon_state is defined and hostvars[item].scale_daemon_state == 'present'
     - hostvars[item].scale_daemon_nodename is defined
