@@ -39,4 +39,5 @@
 
     - debug:
         msg: "{{ scale_audit_command.results }}"
+      when: scale_audit_command.results is defined
   run_once: true
