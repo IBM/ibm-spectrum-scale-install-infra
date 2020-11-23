@@ -5,6 +5,11 @@
 #
 # Install gplsrc prereqs
 #
+    - name: build | Set prereqs for building GPL from sourece
+      set_fact:
+         scale_build_gplsrc_prereqs: "{{ scale_build_gplsrc_prereqs_s390x }}"
+      when: ansible_architecture == "s390x"
+
     - name: build | Install prereqs for building GPL module from source
       yum:
         name: "{{ scale_build_gplsrc_prereqs }}"
