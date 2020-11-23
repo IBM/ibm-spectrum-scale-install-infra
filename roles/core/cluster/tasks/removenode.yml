@@ -4,7 +4,7 @@
     name: "{{ hostvars[item]['ansible_fqdn'] }}"
     groups: scale_remove_nodes
   when:
-    - hostvars[item].scale_daemon_state is defined and hostvars[item].scale_daemon_state == 'absent'
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
   run_once: true
@@ -21,7 +21,7 @@
         name: "{{ item }}"
         groups: scale_cluster_members
       when:
-        - hostvars[item].scale_daemon_state is defined and hostvars[item].scale_daemon_state == 'present'
+        - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'present'
         - hostvars[item].is_admin_node is defined and hostvars[item].is_admin_node|bool
         - hostvars[item].scale_cluster_clusterId.stdout
       with_items: "{{ ansible_play_hosts }}"
