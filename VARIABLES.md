@@ -17,7 +17,7 @@ Variables used by Spectrum Scale (GPFS) Ansible project
   - example: `scale01`
   - dafault: `{{ scale_daemon_nodename }}`
 
-  Spectrum Scale daemon nodename (defaults to node's hostname).
+  Spectrum Scale admin nodename (defaults to node's hostname).
 
 - `scale_prepare_disable_selinux`
   - example: `true`
