@@ -85,29 +85,31 @@
 #
 # Disable firewall
 #
-- name: prepare | List installed firewall RPMs
-  yum:
-    list: firewalld
-  register: scale_prepare_firewallrpm
-  when: ansible_pkg_mgr == 'yum'
 
-- name: prepare | List installed firewall RPMs
-  dnf:
-    list: firewalld
-  register: scale_prepare_firewalldnfrpm
-  when: ansible_pkg_mgr == 'dnf'
+- block:  # when: scale_prepare_disable_firewall
+    - name: prepare | List installed firewall RPMs
+      yum:
+        list: firewalld
+      register: scale_prepare_firewallrpm
+      when: ansible_pkg_mgr == 'yum'
 
-- name: prepare | Stop and disable firewall
-  service:
-    name: firewalld
-    state: stopped
-    enabled: false
-  failed_when: false
-  changed_when: false
-  when:
-    - scale_prepare_disable_firewall | bool
-    - ("'installed' in scale_prepare_firewallrpm.results | map(attribute='yumstate') | list") or
-      ("'installed' in scale_prepare_firewalldnfrpm.results | map(attribute='yumstate') | list")
+    - name: prepare | List installed firewall RPMs
+      dnf:
+        list: firewalld
+      register: scale_prepare_firewalldnfrpm
+      when: ansible_pkg_mgr == 'dnf'
+
+    - name: prepare | Stop and disable firewall
+      service:
+        name: firewalld
+        state: stopped
+        enabled: false
+      failed_when: false
+      changed_when: false
+      when:
+        - ("'installed' in scale_prepare_firewallrpm.results | map(attribute='yumstate') | list") or
+          ("'installed' in scale_prepare_firewalldnfrpm.results | map(attribute='yumstate') | list")
+  when: scale_prepare_disable_firewall | bool
 
 #
 # Install prereq RPMs
