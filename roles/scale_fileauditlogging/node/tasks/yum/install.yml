@@ -2,17 +2,8 @@
 #
 # Install or update RPMs
 #
-- name: Initialize
-  set_fact:
-    disable_gpgcheck: "no"
-
-- name: Disable gpg check
-  set_fact:
-    disable_gpgcheck: "yes"
-  when: scale_version < '5.0.4.0'
-
 - name: install | Install GPFS file audit logging packages
   package:
     name: "{{ scale_install_all_packages }}"
     state: present
-    disable_gpg_check: "{{ disable_gpgcheck }}"
+    disable_gpg_check: "{{ scale_install_disable_gpgcheck }}"

@@ -23,21 +23,12 @@
     scale_fal_url: 'gpfs_rpms/rhel/'
   when: ansible_distribution in scale_sles_distribution
 
-- name: install | Initialize
-  set_fact:
-   gpgcheck: "yes"
-
-- name: install | Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: install | Configure GPFS Java YUM repository
   yum_repository:
     name: spectrum-scale-gpfs-java
     description: IBM Spectrum Scale (GPFS Java)
     baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     state: present
   notify: yum-clean-metadata
@@ -73,13 +64,13 @@
   when:
     - ansible_pkg_mgr == 'zypper'
     - scale_install_repository_url != 'existing'
- 
+
 - name: install | Configure fal YUM repository
   yum_repository:
     name: spectrum-scale-fal
     description: IBM Spectrum Scale (FAL)
     baseurl: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     state: present
   notify: yum-clean-metadata
