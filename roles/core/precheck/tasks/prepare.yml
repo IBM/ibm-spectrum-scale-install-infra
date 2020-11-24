@@ -33,7 +33,6 @@
         state: present
       notify: reload-sshd
 
-    # prepare | Update ListenAddress at sshd_config for daemon network
     - name: prepare | Restrict SSH access to admin nodename
       lineinfile:
         path: /etc/ssh/sshd_config
