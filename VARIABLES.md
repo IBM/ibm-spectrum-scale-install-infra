@@ -19,6 +19,48 @@ Variables used by Spectrum Scale (GPFS) Ansible project
 
   Spectrum Scale daemon nodename (defaults to node's hostname).
 
+- `scale_prepare_disable_selinux`
+  - example: `true`
+  - default: `false`
+
+  Whether or not to disable SELinux.
+
+- `scale_prepare_enable_ssh_login`
+  - example: `true`
+  - default: `false`
+
+  Whether or not enable SSH root login (PermitRootLogin) and public key authentication (PubkeyAuthentication).
+
+- `scale_prepare_restrict_ssh_address`
+  - example: `true`
+  - default: `false`
+
+  Whether or not to restrict SSH access to the admin nodename (ListenAddress). Requires `scale_prepare_enable_ssh_login` to be enabled, too.
+
+- `scale_prepare_disable_ssh_hostkeycheck`
+  - example: `true`
+  - default: `false`
+
+  Whether or not to disable SSH hostkey checking (StrictHostKeyChecking).
+
+- `scale_prepare_exchange_keys`
+  - example: `true`
+  - default: `false`
+
+  Whether or not to exchange SSH keys between all nodes.
+
+- `scale_prepare_pubkey_path`
+  - example: `/root/.ssh/gpfskey.pub`
+  - default: `/root/.ssh/id_rsa.pub`
+
+  Path to public SSH key - will be generated (if it does not exist) and exchanged between nodes. Requires `scale_prepare_exchange_keys` to be enabled, too.
+
+- `scale_prepare_disable_firewall`
+  - example: `true`
+  - default: `false`
+
+  Whether or not to disable Linux firewalld - if you need to keep firewalld active then change this variable to `false` and apply your custom firewall rules prior to running this role (e.g. as pre_tasks).
+
 - `scale_install_localpkg_path`
   - example: `/root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install`
   - default: none
