@@ -25,6 +25,12 @@ Variables used by Spectrum Scale (GPFS) Ansible project
 
   Whether or not to disable SELinux.
 
+- `scale_reboot_automatic`
+  - example: `true`
+  - default: `false`
+
+  Whether or not to automatically reboot nodes - if set to `false` then only a message is printed. If set to `true` then nodes are automatically rebooted (dangerous!).
+
 - `scale_prepare_enable_ssh_login`
   - example: `true`
   - default: `false`
