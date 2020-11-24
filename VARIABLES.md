@@ -39,6 +39,12 @@ Variables used by Spectrum Scale (GPFS) Ansible project
 
   Note that if this is a URL then a new repository definition will be created. If this variable is set to `existing` then it is assumed that a repository definition already exists and thus will *not* be created.
 
+- `scale_install_directory_pkg_path`
+  - example: `/tmp/gpfs/`
+  - default: none
+
+  Specify the path to the user-provided directory, containing all Spectrum Scale packages. Note that for this installation method all packages need to be kept in a single directory.
+
 - `scale_version`
   - example: `5.0.4.0`
   - default: none
