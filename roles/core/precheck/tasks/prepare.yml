@@ -40,7 +40,7 @@
         regexp: '#ListenAddress 0.'
         line: 'ListenAddress {{ scale_admin_nodename }}'
       notify: reload-sshd
-      when: scale_prepare_restrict_ssh_address is defined and scale_prepare_restrict_ssh_address|bool
+      when: scale_prepare_restrict_ssh_address | bool
 
   when: scale_prepare_enable_ssh_login | bool
 
