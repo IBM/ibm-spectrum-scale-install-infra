@@ -1,13 +1,7 @@
 ---
-# Install or update packages
-
 #
 # Install or update packages
 #
-- name: install | Disable gpg check (prior to version 5.0.4.0)
-  set_fact:
-    scale_install_disable_gpgcheck: "{{ true if scale_version is version_compare('5.0.4', '<') else false }}"
-
 - block:  ## when: not scale_daemon_running
     - block:  ## ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
         - name: install | List installed GPFS packages
