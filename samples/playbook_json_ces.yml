@@ -19,20 +19,20 @@
      - core/precheck
      - core/node
      - core/cluster
-     - gui/precheck
-     - gui/node
-     - gui/cluster
-     - gui/postcheck
+       #- gui/precheck
+       #- gui/node
+       #- gui/cluster
+       #- gui/postcheck
      - zimon/precheck
      - zimon/node
      - zimon/cluster
      - zimon/postcheck
-     - callhome/precheck
-     - callhome/cluster
+       #- callhome/precheck
+       #- callhome/cluster
      - nfs/precheck
      - nfs/node
      - nfs/cluster
      - smb/node
      - smb/cluster
-     - scale_fileauditlogging/node
-     - scale_fileauditlogging/cluster
+       #- scale_fileauditlogging/node
+       #- scale_fileauditlogging/cluster

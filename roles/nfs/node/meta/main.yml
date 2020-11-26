@@ -22,4 +22,4 @@ galaxy_info:
 dependencies: 
     - core/common
     - nfs/precheck
-
+    - smb/node
