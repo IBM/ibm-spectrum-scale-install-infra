@@ -4,9 +4,9 @@
   },
   "node_details": [
     {
-      "fqdn" : slitherfang-vm5,
+      "fqdn" : host-vm1,
       "ip_address" : 127.0.0.1,
-      "is_protocol_node" :true,
+      "is_protocol_node" :false,
       "is_nsd_server" : false,
       "is_quorum_node" : false,
       "is_manager_node" : false,
@@ -15,10 +15,21 @@
       "scale_zimon_collector" : false
     },
     {
-      "fqdn" : slitherfang-vm7,
+      "fqdn" : host-vm2,
       "ip_address" : 127.0.0.1,
-      "is_protocol_node" : true,
-      "is_nsd_server" : true,
+      "is_protocol_node" : false,
+      "is_nsd_server" : false,
+      "is_quorum_node" : false,
+      "is_manager_node" : false,
+      "is_gui_server" : false,
+      "is_callhome_node" : false,
+      "scale_zimon_collector" : false
+    },
+    {
+      "fqdn" : host-vm3,
+      "ip_address" : 127.0.0.1,
+      "is_protocol_node" : false,
+      "is_nsd_server" : false,
       "is_quorum_node" : false,
       "is_manager_node" : false,
       "is_gui_server" : false,
@@ -38,7 +49,7 @@
        {
         "device": "/dev/sdb",
         "nsd": "nsd1",
-        "servers": "slitherfang-vm7",
+        "servers": "host-vm3",
         "usage": dataAndMetadata,
         "pool": system
        }
@@ -61,10 +72,10 @@
       "callhome_schedule": [daily,weekly]
   },
   "scale_protocols":{
-      "smb": true,
-      "nfs": true,
+      "smb": false,
+      "nfs": false,
       "interface": [],
-      "export_ip_pool": [9.11.84.136,9.11.84.135,9.11.84.134,9.11.84.131],
+      "export_ip_pool": [192.168.100.102,192.168.100.103],
       "filesystem": cesSharedRoot,
       "mountpoint": /gpfs/cesSharedRoot
   }
