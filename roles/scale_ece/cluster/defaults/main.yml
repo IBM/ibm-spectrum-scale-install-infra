@@ -1,0 +1,69 @@
+---
+# Default variables for the IBM Spectrum Scale (ECE) (Erasure Code Edition) role -
+# either edit this file or define your own variables to override the defaults
+
+## Default rg parameters -
+## can be overridden for each rg individually
+scale_ece_rg_defaults:
+  ## for an existing RG header (dangerous!)
+  overwriteRGs: false
+
+## Default ECE parameters for mmvdisk-
+## can be overridden for each filesystem individually
+## To Enabled output from Ansible task in stdout and stderr for some tasks.
+## Run the playbook with -vv
+
+# Example to define json inventory for Erasure Code Edition
+# recovery group, vdisk sets and filesystem
+# "scale_ece_rg":[
+#     {
+#       "rg": [
+#        {
+#         "rg": "rg_1",
+#         "nodeclass": "nc_1",
+#         "servers": "scale_out_vm1,scale_out_vm2,scale_out_vm3,scale_out_vm4"
+#        },
+#        {
+#         "rg": "rg_2",
+#         "nodeclass": "nc_2",
+#         "servers": "scale_out_vm5,scale_out_vm6,scale_out_vm7,scale_out_vm8"
+#        }
+#       ]
+#     }
+# ],
+# "scale_ece_vdisk":[
+#  {
+#       "vs": [
+#        {
+#         "rg": "rg_1",
+#         "vdisk": "vs_1",
+#         "ec": "4+3P",
+#         "blocksize": "4M",
+#         "Size": "50"
+#        },
+#        {
+#         "rg": "rg_2",
+#         "vdisk": "vs_2",
+#         "ec": "4+3P",
+#         "blocksize": "4M",
+#         "Size": "50"
+#        }
+#       ]
+#     }
+# ],
+# "scale_ece_filesystem":[
+#  {
+#       "fs": [
+#        {
+#         "filesystem": "fs_1",
+#         "vs": "vs_1",
+#         "mount_point": "/gpfs"
+#        },
+#        {
+#         "filesystem": "fs_2",
+#         "vs": "vs_2",
+#         "mount_point": "/gpfs"
+#        }
+#       ]
+#     }
+# ]

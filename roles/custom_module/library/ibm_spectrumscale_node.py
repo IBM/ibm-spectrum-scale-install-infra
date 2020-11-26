@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Copyright 2020 IBM Corporation
@@ -114,13 +114,15 @@ try:
                                                   parse_aggregate_cmd_output, \
                                                   SpectrumScaleLogger, \
                                                   SpectrumScaleException
-except:
+except Exception as e:
+    print(e)
     from ibm_spectrumscale_utils import runCmd, RC_SUCCESS, parse_aggregate_cmd_output, \
                              SpectrumScaleLogger, SpectrumScaleException
 
 try:
     from ansible.module_utils.ibm_spectrumscale_disk_utils import SpectrumScaleDisk
-except:
+except Exception as e:
+    print(e)
     from ibm_spectrumscale_disk_utils import SpectrumScaleDisk
 
 try:
@@ -234,14 +236,14 @@ def get_node_nsd_info(logger):
             # Populate the node_nsd_map data structure
             nsd_list = []
             for node_name in nsd.get_server_list():
-                if node_name in node_nsd_map.keys():
+                if node_name in list(node_nsd_map.keys()):
                     nsd_list = node_nsd_map[node_name]
                 nsd_list.append(nsd.get_name())
                 node_nsd_map[node_name] = nsd_list
             
             # Populate the nsd_node_map data structure
             host_list = []
-            if nsd.get_name() in nsd_node_map.keys():
+            if nsd.get_name() in list(nsd_node_map.keys()):
                 host_list = nsd_node_map[nsd.get_name()]
             for server in nsd.get_server_list():
                 host_list.append(server)
@@ -285,7 +287,7 @@ def get_filesystem_to_nsd_mapping(logger):
 
             # If an entry already exists for the File system, then
             # simply add the new NSD to the list
-            if fs.get_device_name() in fs_to_nsd_map.keys():
+            if fs.get_device_name() in list(fs_to_nsd_map.keys()):
                 nsd_list = fs_to_nsd_map[fs.get_device_name()]
 
             nsd_list.append(nsd)
@@ -303,7 +305,7 @@ def check_cluster_health(logger):
     unhealthy_nodes = []
     all_nodes_state = SpectrumScaleNode.get_state()
    
-    for node_name, state in all_nodes_state.iteritems():
+    for node_name, state in list(all_nodes_state.items()):
         if ("down" in state or
             "arbitrating" in state or
             "unknown" in state):
@@ -376,7 +378,7 @@ def check_disk_health(logger, fs_nsd_map):
                  "Args fs_nsd_map={0}".format(fs_nsd_map))
 
     unhealthy_disks = []
-    for fs_name, disk_list in fs_nsd_map.iteritems():
+    for fs_name, disk_list in list(fs_nsd_map.items()):
         for disk in disk_list:
             if "down" in disk.get_availability():
                 unhealthy_disks.append(disk.get_nsd_name())
@@ -407,7 +409,7 @@ def remove_multi_attach_nsd(logger, nodes_to_be_deleted):
 
         # Check if the node to be deleted has access to any NSDs
         #if node_to_delete in node_map.keys():
-        if node_to_delete.get_admin_node_name() in node_map.keys():
+        if node_to_delete.get_admin_node_name() in list(node_map.keys()):
             nsds_to_delete_list = node_map[node_to_delete.get_admin_node_name()]
 
             # For each Node, check all the NSDS it has access to. If the 
@@ -460,8 +462,13 @@ def remove_nodes(logger, node_names_to_delete):
     logger.info("Attempting to remove node(s) {0} from the "
                 "cluster".format(' '.join(map(str, node_names_to_delete))))
 
+    # TODO: The cluster health check should only fail if we are attempting
+    #       to remove NSD servers while other NSD servers are down. The
+    #       removal of compute nodes should be permitted even if NSD
+    #       servers are down. For now disable check until correct algorithm
+    #       can be implemented
     # Ensure all nodes in the cluster are healthy
-    check_cluster_health(logger)
+    #check_cluster_health(logger)
 
     # Check that the list of nodes to delete already exist. If not, 
     # simply ignore
@@ -481,7 +488,11 @@ def remove_nodes(logger, node_names_to_delete):
     # For each Filesystem, Get the Filesystem to NSD (disk) mapping
     fs_nsd_map = get_filesystem_to_nsd_mapping(logger)
 
-    check_disk_health(logger, fs_nsd_map)
+    # TODO: The disk health check should only fail if we are attempting
+    #       to remove NSD servers when any disks are down. The removal
+    #       of compute nodes should be permitted even if disks are down.
+    #       For now disable check until correct algorithm can be implemented
+    #check_disk_health(logger, fs_nsd_map)
 
     # An NSD node can have access to a multi attach NSD (shared NSD) or
     # dedicated access to the NSD (FPO model) or a combination of both.
@@ -529,7 +540,7 @@ def remove_nodes(logger, node_names_to_delete):
         # fs_disk_map{} contains the following:
         #    Filesystem Name -> NSDs on the host to be deleted
         fs_disk_map = {}
-        for fs_name, disks in fs_nsd_map.iteritems():
+        for fs_name, disks in list(fs_nsd_map.items()):
             node_specific_disks = []
             for disk_instance in disks:
                 if disk_instance.get_nsd_name() in all_node_disks:

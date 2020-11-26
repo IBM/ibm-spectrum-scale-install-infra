@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # Copyright 2020 IBM Corporation
 # and other contributors as indicated by the @author tags.
@@ -19,9 +19,15 @@
 import os
 import json
 import time
-from ibm_spectrumscale_utils import runCmd, parse_aggregate_cmd_output, \
-                         parse_unique_records, GPFS_CMD_PATH, \
-                         RC_SUCCESS, SpectrumScaleException
+
+try:
+    from ansible.module_utils.ibm_spectrumscale_utils import runCmd, \
+            parse_aggregate_cmd_output, parse_unique_records, GPFS_CMD_PATH, \
+            RC_SUCCESS, SpectrumScaleException
+except:
+    from ibm_spectrumscale_utils import runCmd, parse_aggregate_cmd_output, \
+            parse_unique_records, GPFS_CMD_PATH, RC_SUCCESS, SpectrumScaleException
+
 
 class SpectrumScaleNode:
 
@@ -162,25 +168,25 @@ class SpectrumScaleNode:
         return self.node
 
     def print_node(self):
-        print("Node Number            : {0}".format(self.get_node_number()))
-        print("Daemon Node Name       : {0}".format(self.get_daemon_node_name()))
-        print("IP Address             : {0}".format(self.get_ip_address()))
-        print("Admin Node Name        : {0}".format(self.get_admin_node_name()))
-        print("Designation            : {0}".format(self.get_designation()))
-        print("Other Node Roles       : {0}".format(self.get_other_node_roles()))
-        print("Admin Login Name       : {0}".format(self.get_admin_login_name()))
-        print("Other Node Roles Alias : {0}".format(self.get_other_node_roles_alias()))
-        print("Is Quorum Node         : {0}".format(self.is_quorum_node()))
-        print("Is Manager Node        : {0}".format(self.is_manager_node()))
-        print("Is TCT Node            : {0}".format(self.is_tct_node()))
-        print("Is Gateway Node        : {0}".format(self.is_gateway_node()))
-        print("Is CTDB Node           : {0}".format(self.is_ctdb_node()))
-        print("Is IO Node             : {0}".format(self.is_io_node()))
-        print("Is SNMP Node           : {0}".format(self.is_snmp_node()))
-        print("Is Teal Node           : {0}".format(self.is_teal_node()))
-        print("Is Perfmon Node        : {0}".format(self.is_perfmon_node()))
-        print("Is CES Node            : {0}".format(self.is_ces_node()))
-        print("Is CNFS Node           : {0}".format(self.is_cnfs_node()))
+        print(("Node Number            : {0}".format(self.get_node_number())))
+        print(("Daemon Node Name       : {0}".format(self.get_daemon_node_name())))
+        print(("IP Address             : {0}".format(self.get_ip_address())))
+        print(("Admin Node Name        : {0}".format(self.get_admin_node_name())))
+        print(("Designation            : {0}".format(self.get_designation())))
+        print(("Other Node Roles       : {0}".format(self.get_other_node_roles())))
+        print(("Admin Login Name       : {0}".format(self.get_admin_login_name())))
+        print(("Other Node Roles Alias : {0}".format(self.get_other_node_roles_alias())))
+        print(("Is Quorum Node         : {0}".format(self.is_quorum_node())))
+        print(("Is Manager Node        : {0}".format(self.is_manager_node())))
+        print(("Is TCT Node            : {0}".format(self.is_tct_node())))
+        print(("Is Gateway Node        : {0}".format(self.is_gateway_node())))
+        print(("Is CTDB Node           : {0}".format(self.is_ctdb_node())))
+        print(("Is IO Node             : {0}".format(self.is_io_node())))
+        print(("Is SNMP Node           : {0}".format(self.is_snmp_node())))
+        print(("Is Teal Node           : {0}".format(self.is_teal_node())))
+        print(("Is Perfmon Node        : {0}".format(self.is_perfmon_node())))
+        print(("Is CES Node            : {0}".format(self.is_ces_node())))
+        print(("Is CNFS Node           : {0}".format(self.is_cnfs_node())))
 
 
     def __str__(self):
@@ -225,17 +231,23 @@ class SpectrumScaleNode:
 
 
     @staticmethod
-    def get_state(node_names=[]):
+    def get_state(node_names=[], admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
+        cmd = []
+        mmcmd_idx = 1
 
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmgetstate")]
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmgetstate")])
 
         if len(node_names) == 0:
             cmd.append("-a")
         else:
             # If a set of node names have ben provided, use that instead
-            node_name_str = ' '.join(node_names)
+            node_name_str = ','.join(node_names)
             cmd.append("-N")
             cmd.append(node_name_str)
            
@@ -244,12 +256,12 @@ class SpectrumScaleNode:
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Retrieving the node state failed",
-                                         cmd[0], cmd[1:],
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          rc, stdout, stderr)
 
         node_state_dict = parse_unique_records(stdout)
@@ -263,27 +275,33 @@ class SpectrumScaleNode:
 
 
     @staticmethod
-    def shutdown_node(node_name, wait=True):
+    def shutdown_node(node_name, wait=True, admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
+        cmd = []
+        mmcmd_idx = 1
 
-        if isinstance(node_name, basestring):
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        if isinstance(node_name, str):
             node_name_str = node_name
             node_name_list = [node_name]
         else:
             node_name_str = ' '.join(node_name)
             node_name_list = node_name
  
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmshutdown"), "-N", node_name_str]
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmshutdown"), "-N", node_name_str])
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Shutting down node failed",
-                                         cmd[0], cmd[1:],
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          rc, stdout, stderr)
 
         if wait:
@@ -293,39 +311,46 @@ class SpectrumScaleNode:
             done = False
             while(not done and retry < MAX_RETRY):
                 time.sleep(5)
-                node_state = SpectrumScaleNode.get_state(node_name_list)
-                done = all("down" in state for state in node_state.values())
+                node_state = SpectrumScaleNode.get_state(node_name_list, admin_ip)
+                done = all("down" in state for state in list(node_state.values()))
                 retry = retry + 1
 
             if not done:
                 raise SpectrumScaleException("Shutting down node(s) timed out",
-                                             cmd[0], cmd[1:], -1, "",
+                                             cmd[0:mmcmd_idx], cmd[mmcmd_idx:], -1, "",
                                              "Node state is not \"down\" after retries")
         return rc, stdout
 
 
     @staticmethod
-    def start_node(node_name, wait=True):
+    def start_node(node_name, wait=True, admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
+        cmd = []
+        mmcmd_idx = 1
 
-        if isinstance(node_name, basestring):
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        if isinstance(node_name, str):
             node_name_str = node_name
             node_name_list = [node_name]
         else:
             node_name_str = ' '.join(node_name)
             node_name_list = node_name
  
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmstartup"), "-N", node_name_str]
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmstartup"), "-N", node_name_str])
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:], 
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
-            raise SpectrumScaleException("Starting node failed", cmd[0], 
-                                         cmd[1:], rc, stdout, stderr)
+            raise SpectrumScaleException("Starting node failed",
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
+                                         rc, stdout, stderr)
 
         if wait:
             # Wait for a maximum of 36 * 5 = 180 seconds (3 minutes)
@@ -334,39 +359,46 @@ class SpectrumScaleNode:
             done = False
             while(not done and retry < MAX_RETRY):
                 time.sleep(5)
-                node_state = SpectrumScaleNode.get_state(node_name_list)
-                done = all("active" in state for state in node_state.values())
+                node_state = SpectrumScaleNode.get_state(node_name_list, admin_ip)
+                done = all("active" in state for state in list(node_state.values()))
                 retry = retry + 1
 
             if not done:
                 raise SpectrumScaleException("Starting node(s) timed out",
-                                             cmd[0], cmd[1:], -1, ""
+                                             cmd[0:mmcmd_idx], cmd[mmcmd_idx:], -1, "",
                                              "Node state is not \"active\" after retries")
         return rc, stdout
 
 
 class SpectrumScaleCluster:
 
-    def __retrieve_cluster_info(self):
+    def __retrieve_cluster_info(self, admin_ip):
         stdout = stderr = ""
         rc = RC_SUCCESS
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmlscluster"), "-Y"]
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+          
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmlscluster"), "-Y"])
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Retrieving the cluster information failed",
-                                         cmd[0], cmd[1:], rc, stdout, stderr)
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:], rc, 
+                                         stdout, stderr)
 
         return  parse_aggregate_cmd_output(stdout, 
                                            ["clusterSummary",
                                             "cnfsSummary",
                                             "cesSummary"])
 
-    def __init__(self):
-        self.cluster_dict = self.__retrieve_cluster_info()
+    def __init__(self, admin_ip=None):
+        self.cluster_dict = self.__retrieve_cluster_info(admin_ip)
         self.name = self.cluster_dict["clusterSummary"]["clusterName"]
         self.c_id = self.cluster_dict["clusterSummary"]["clusterId"]
         self.uid_domain = self.cluster_dict["clusterSummary"]["uidDomain"]
@@ -446,130 +478,159 @@ class SpectrumScaleCluster:
         return node_list
 
     @staticmethod
-    def delete_node(node_name):
+    def delete_node(node_name, admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
 
-        if isinstance(node_name, basestring):
+        if isinstance(node_name, str):
             node_name_str = node_name
         else:
             node_name_str = ' '.join(node_name)
- 
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmdelnode"), "-N", node_name_str]
+
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmdelnode"), "-N", node_name_str])
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
-
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Deleting node from cluster failed",
-                                         cmd[0], cmd[1:], rc, stdout, stderr)
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:], rc, 
+                                         stdout, stderr)
 
         return rc, stdout
 
 
     @staticmethod
-    def add_node(node_name, stanza_path):
+    def add_node(node_name, stanza_path, admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
 
-        if isinstance(node_name, basestring):
+        if isinstance(node_name, str):
             node_name_str = node_name
         else:
             node_name_str = ' '.join(node_name)
 
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmaddnode"),
-               "-N", stanza_path, "--accept"]
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
 
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmaddnode"),
+                    "-N", stanza_path, "--accept"])
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:], 
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:], 
                                          -1, stdout, stderr)
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Adding node to cluster failed",
-                                         cmd[0], cmd[1:],
+                    cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          rc, stdout, stderr)
 
         return rc, stdout, stderr
 
 
     @staticmethod
-    def apply_license(node_name, license):
+    def apply_license(node_name, license, admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
 
-        if isinstance(node_name, basestring):
+        if isinstance(node_name, str):
             node_name_str = node_name
         else:
             node_name_str = ' '.join(node_name)
 
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmchlicense"), license, 
-               "--accept", "-N", node_name_str]
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmchlicense"), license, 
+                    "--accept", "-N", node_name_str])
 
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:], 
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:], 
                                          -1, stdout, stderr)
 
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Changing license on  node failed",
-                                         cmd[0], cmd[1:], 
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:], 
                                          rc, stdout, stderr)
 
         return rc, stdout
 
 
     @staticmethod
-    def create_cluster(name, stanza_path):
+    def create_cluster(name, stanza_path, admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
 
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmcrcluster"), "-N", stanza_path, 
-               "-C", name]
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmcrcluster"), "-N", stanza_path, 
+                    "-C", name])
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
 
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Creating cluster failed",
-                                         cmd[0], cmd[1:],
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          rc, stdout, stderr)
 
         return rc, stdout
 
 
     @staticmethod
-    def delete_cluster(name):
+    def delete_cluster(name, admin_ip=None):
         stdout = stderr = ""
         rc = RC_SUCCESS
 
-        cmd = [os.path.join(GPFS_CMD_PATH, "mmdelnode"), "-a"]
+        cmd = []
+        mmcmd_idx = 1
+        if admin_ip:
+            cmd.extend(["ssh", admin_ip])
+            mmcmd_idx = len(cmd) + 1
+
+        cmd.extend([os.path.join(GPFS_CMD_PATH, "mmdelnode"), "-a"])
+
         try:
             stdout, stderr, rc = runCmd(cmd, sh=False)
         except Exception as e:
-            raise SpectrumScaleException(str(e), cmd[0], cmd[1:],
+            raise SpectrumScaleException(str(e), cmd[0:mmcmd_idx], cmd[mmcmd_idx:],
                                          -1, stdout, stderr)
-
 
         if rc != RC_SUCCESS:
             raise SpectrumScaleException("Deleting cluster failed",
-                                         cmd[0], cmd[1:], 
+                                         cmd[0:mmcmd_idx], cmd[mmcmd_idx:], 
                                          rc, stdout, stderr)
         return rc, stdout
 
 
 def main():
     cluster = SpectrumScaleCluster()
-    print(cluster.to_json())
+    print((cluster.to_json()))
     print("\n")
 
     for node in cluster.get_nodes():

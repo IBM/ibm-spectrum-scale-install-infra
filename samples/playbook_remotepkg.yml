@@ -1,0 +1,24 @@
+---
+#
+# samples/playbook_remotepkg.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using remote
+# archive installation method. This means that the self-extracting archive
+# containing the Spectrum Scale code is accessible on each Ansible managed node.
+# Integrity of the archive will be validated by comparing checksums with a *.md5
+# reference file (if present), and subsequently the archive will be extracted.
+# Packages will then be installed from the local files on each node.
+
+# Note that specifying the variable 'scale_version' is mandatory for this
+# installation method.
+
+- hosts: cluster01
+  vars:
+    - scale_version: 5.0.4.0
+    - scale_install_remotepkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
+  roles:
+    - core/precheck
+    - core/node
+    - core/cluster
+    - core/postcheck

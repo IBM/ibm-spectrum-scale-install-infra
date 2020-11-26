@@ -1,0 +1,43 @@
+---
+- name: configure | Consolidate defined filesystems for file audit logging
+  set_fact:
+     scale_storage_fsdefs_audit:
+       "{{ scale_storage | map(attribute='filesystem') | list | unique }}"
+  when: scale_storage is defined
+  run_once: true
+
+- name: configure | Consolidate defined filesystem parameters for file audit logging
+  set_fact:
+     scale_storage_fsparams_audit:
+       "{{ scale_storage_fsparams_audit | default({}) | combine({ item.filesystem:item }, recursive=true) }}"
+  with_items: "{{ scale_storage | list }}"
+  when: scale_storage is defined
+  run_once: true
+
+
+- block: ## run_once: true
+    - name: configure | Find created filesystem(s)
+      shell:
+       cmd: "/usr/lpp/mmfs/bin/mmlsfs all -Y | grep -v HEADER | cut -d ':' -f 7 | uniq"
+      register: scale_storage_filesystem
+      changed_when: false
+      failed_when: false
+
+    - name: configure | configure file audit logging
+      vars:
+        scale_fal_localspace_force: "{{ '--skip-local-space-check' if scale_fal_skip_localspace is defined else '' }}"
+      command:
+        /usr/lpp/mmfs/bin/mmaudit {{ item }} enable
+        --log-fileset {{ scale_storage_fsparams_audit[item].logfileset | default(scale_storage_fal_defaults.logfileset) }}
+        --retention {{ scale_storage_fsparams_audit[item].retention | default(scale_storage_fal_defaults.retention) }}
+        {{ scale_fal_localspace_force }}
+      register: scale_audit_command
+      when:
+        - scale_storage_fsdefs_audit is defined and scale_storage_fsdefs_audit | length >= 1
+        - (scale_storage_fsparams_audit[item].scale_fal_enable is defined) and (scale_storage_fsparams_audit[item].scale_fal_enable | bool)
+      with_items: "{{ scale_storage_fsdefs_audit }}"
+
+    - debug:
+        msg: "{{ scale_audit_command.results }}"
+      when: scale_audit_command.results is defined
+  run_once: true

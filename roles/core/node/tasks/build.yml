@@ -5,12 +5,21 @@
 #
 # Install gplsrc prereqs
 #
+    - name: build | Set prereqs for building GPL from sourece
+      set_fact:
+         scale_build_gplsrc_prereqs: "{{ scale_build_gplsrc_prereqs_s390x }}"
+      when: ansible_architecture == "s390x"
+
     - name: build | Install prereqs for building GPL module from source
       yum:
         name: "{{ scale_build_gplsrc_prereqs }}"
         state: present
         disable_excludes: all
       when: ansible_pkg_mgr == 'yum'
+      register: scale_gpl_yum_result
+      retries: 10
+      until: scale_gpl_yum_result is success
+      delay: 20
 
     - name: build | Install prereqs for building GPL module from source
       dnf:
@@ -18,13 +27,29 @@
         state: present
         disable_excludes: all
       when: ansible_pkg_mgr == 'dnf'
+      register: scale_gpl_dnf_result
+      retries: 10
+      until: scale_gpl_dnf_result is success
+      delay: 20
+
+    - name: build | Install prereqs for building GPL module from source
+      apt:
+        name: "{{ scale_build_gplsrc_prereqs_deb }}"
+        state: present
+      when: ansible_pkg_mgr == 'apt'
+
+    - name: build | Install prereqs for building GPL module from source
+      zypper:
+        name: "{{ scale_build_gplsrc_prereqs_zypp }}"
+        state: present
+      when: ansible_pkg_mgr == 'zypper'
 
     - block:  ## when: rhel8 node
         - name: build | Install prereqs for building GPL from source
           dnf:
             name: "{{ scale_build_gplsrc_el8_prereqs }}"
             state: present
-      when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+      when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 #
 # Identify Linux Distribution
@@ -33,15 +58,16 @@
       set_fact:
         scale_build_distribution: REDHAT_AS_LINUX
       when:
-        ansible_distribution == 'CentOS' or
-        ansible_distribution == 'RedHat'
+        ansible_distribution in scale_rhel_distribution or
+        ansible_distribution in scale_sles_distribution
 
-    #- name: build | Identify Suse distribution
-    #  set_fact:
-    #    scale_build_distribution: SUSE_LINUX
-    #  when: ansible_distribution == 'Suse'
+    - name: build | Identify OS distribution
+      set_fact:
+        scale_build_distribution: UBUNTU_AS_LINUX
+      when:
+        - ansible_distribution in scale_ubuntu_distribution
 
-    - name: check | Check Linux distribution
+    - name: build | Check Linux distribution
       assert:
         that: scale_build_distribution is defined
         msg: >-

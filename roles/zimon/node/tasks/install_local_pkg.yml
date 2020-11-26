@@ -5,6 +5,7 @@
     - name: install | Stat local installation package
       stat:
         path: "{{ scale_install_localpkg_path }}"
+        checksum_algorithm: md5
       register: scale_install_localpkg
 
     - name: install | Check local installation package
@@ -28,7 +29,7 @@
 
         - name: install | Compare checksums
           assert:
-            that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.md5
+            that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.checksum
             msg: >-
               Checksums don't match. Please check integritiy of your local
               installation package!
@@ -41,10 +42,10 @@
 #
 - name: install | Stat extracted packages
   stat:
-    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
-  register: scale_install_gpfs_rpmdir
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs_packagedir
 
-- block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
+- block:  ## when: not scale_install_gpfs_packagedir.stat.exists
     - name: install | Stat temporary directory
       stat:
         path: "{{ scale_install_localpkg_tmpdir_path }}"
@@ -63,7 +64,7 @@
         src: "{{ scale_install_localpkg_path }}"
         dest: "{{ scale_install_localpkg_tmpdir_path }}"
         mode: a+x
-  when: not scale_install_gpfs_rpmdir.stat.exists
+  when: not scale_install_gpfs_packagedir.stat.exists
 
 #
 # Extract installation package
@@ -73,18 +74,18 @@
     localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
   command: "{{ localpkg + ' --silent' }}"
   args:
-    creates: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
+    creates: "{{ scale_gpfs_path_url }}"
 
 - name: install | Stat extracted packages
   stat:
-    path: /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms
-  register: scale_install_gpfs_rpmdir
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs_packagedir
 
 - name: install | Check extracted packages
   assert:
     that:
-      - scale_install_gpfs_rpmdir.stat.exists
-      - scale_install_gpfs_rpmdir.stat.isdir
+      - scale_install_gpfs_packagedir.stat.exists
+      - scale_install_gpfs_packagedir.stat.isdir
     msg: >-
       The variable 'scale_version' doesn't seem to match the contents of the
       local installation package!
@@ -96,18 +97,54 @@
     path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
     state: absent
 
+- name: install | Set package arch
+  set_fact:
+    package_arch: 'el'
+
+- name: install | Set package arch
+  set_fact:
+    package_arch: 'U'
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- name: install | Set package arch
+  set_fact:
+    package_arch: 'sles'
+  when: ansible_distribution in scale_sles_distribution
 
 - name: install | zimon path
   set_fact:
-    zimon_url: 'zimon_rpms/rhel7/'
-  when:
-    - ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
-    - ansible_distribution_major_version == '7'
+    scale_zimon_url: 'zimon_rpms/rhel7/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
 - name: install | zimon path
   set_fact:
-    zimon_url: 'zimon_rpms/rhel8/'
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+    scale_zimon_url: 'zimon_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: install | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu16/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
+
+- name: install | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu18/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
+
+- name: install | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+
+- name: install | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/sles12/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+
+- name: install | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/sles15/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
 
 #
 # Find Zimon collector
@@ -118,8 +155,8 @@
     #
     - name: install | Find gpfs.collector (gpfs.collector) RPM
       find:
-        paths: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}
-        patterns: gpfs.gss.pmcollector-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+        paths: "{{ scale_extracted_path }}/{{ scale_zimon_url }}"
+        patterns: gpfs.gss.pmcollector*{{ package_arch }}{{ ansible_distribution_major_version }}*
       register: scale_install_gpfs_collector
 
     - name: install | Check valid GPFS (gpfs.collector) RPM
@@ -127,25 +164,25 @@
         that: scale_install_gpfs_collector.matched > 0
         msg: >-
           No GPFS collector (gpfs.gss.collector) RPM found:
-          /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}gpfs.gss.pmcollector-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+          "{{ scale_extracted_path }}/{{ scale_zimon_url }}/gpfs.gss.pmcollector*{{ package_arch }}{{ ansible_distribution_major_version }}*"
 
-    - name: install | Add GPFS zimon collector RPMs to list
+    - name: install | Add GPFS zimon collector packages to list
       vars:
-        current_rpm: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}{{ item }}.rpm
+        current_package: "{{ scale_extracted_path }}/{{ scale_zimon_url }}/{{ item }}"
       set_fact:
-        scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+        scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
       with_items:
-        - "{{ scale_install_gpfs_collector.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+        - "{{ scale_install_gpfs_collector.files.0.path | basename }}"
 
-  when: (scale_zimon_collector | bool) or (scale_cluster_gui | bool) 
+  when: (scale_zimon_collector | bool) or (scale_cluster_gui | bool)
 
 #
 # Find GPFS gpfs.gss.pmsensors
 #
 - name: install | Find gpfs.gss.pmsensors (gpfs.gss.pmsensors) RPM
   find:
-    paths: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}
-    patterns: gpfs.gss.pmsensors-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+    paths: "{{ scale_extracted_path }}/{{ scale_zimon_url }}"
+    patterns: gpfs.gss.pmsensors*{{ package_arch }}{{ ansible_distribution_major_version }}*
   register: scale_install_gpfs_pmsensors
 
 - name: install | Check valid GPFS (gpfs.gss.pmsensors) RPM
@@ -153,12 +190,13 @@
     that: scale_install_gpfs_pmsensors.matched > 0
     msg: >-
       No GPFS pmsensors (gpfs.gss.pmsensors) RPM found:
-      /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}gpfs.gss.pmsensors-*.el{{ ansible_distribution_major_version }}.{{ scale_architecture }}.rpm
+      "{{ scale_extracted_path }}/{{ scale_zimon_url }}/gpfs.gss.pmsensors*{{ package_arch }}{{ ansible_distribution_major_version }}*"
 
-- name: install | Add GPFS zimon sensors RPMs to list
+
+- name: install | Add GPFS zimon sensors packages to list
   vars:
-    current_rpm: /usr/lpp/mmfs/{{ scale_version }}/{{ zimon_url }}{{ item }}.rpm
+    current_package: "{{ scale_extracted_path }}/{{ scale_zimon_url }}/{{ item }}"
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
   with_items:
-    - "{{ scale_install_gpfs_pmsensors.files.0.path | basename | regex_replace('\\.rpm$', '') }}"
+    - "{{ scale_install_gpfs_pmsensors.files.0.path | basename }}"
