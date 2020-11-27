@@ -1,11 +1,11 @@
 ---
-- name: Initialize
+- name: install | Initialize
   set_fact:
    scale_nfs_url: ""
    scale_smb_url: ""
    gpgcheck: "yes"
 
-- name: Disable gpg check
+- name: inatall | Disable gpg check
   set_fact:
    gpgcheck: "no"
   when: scale_version < '5.0.4.0'
@@ -212,7 +212,7 @@
     - ansible_pkg_mgr == 'zypper'
     - scale_install_repository_url != 'existing'
 
-- name: install | Add GPFS nfs packages to list
+- name: install | Add GPFS smb packages to list
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
@@ -220,7 +220,7 @@
   when: ansible_distribution in scale_rhel_distribution or
         ansible_distribution in scale_sles_distribution
 
-- name: install | Add GPFS nfs packages to list
+- name: install | Add GPFS smb packages to list
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
