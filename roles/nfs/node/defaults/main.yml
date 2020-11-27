@@ -12,6 +12,7 @@ scale_nfs_rpms:
 - gpfs.nfs-ganesha-gpfs
 - gpfs.nfs-ganesha
 - gpfs.nfs-ganesha-utils
+- gpfs.smb
 
 ## List of NFS debian package to install
 scale_nfs_debs:
