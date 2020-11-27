@@ -1,8 +1,6 @@
 ---
 - name: Initialize
   set_fact:
-   scale_nfs_url: ""
-   scale_smb_url: ""
    gpgcheck: "yes"
 
 - name: Disable gpg check
@@ -68,7 +66,7 @@
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version >= '20'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 - name: install | zimon path
   set_fact:
