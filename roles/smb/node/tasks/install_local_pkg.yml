@@ -194,27 +194,6 @@
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
 
 # Find nfs rpms
-- block:  ## when: host is defined as a protocol node
-
-  - name: install | Find gpfs.smb (gpfs.smb) package
-    find:
-     paths:  "{{ smb_extracted_path }}/{{ scale_smb_url }}"
-     patterns: gpfs.smb_*
-    register: scale_install_gpfs_smb
-
-  - name: install | Check valid GPFS (gpfs.smb) package
-    assert:
-     that: scale_install_gpfs_smb.matched > 0
-     msg: "No GPFS nfs ganesha(gpfs.nfs-ganesha) package found {{ smb_extracted_path }}/{{ scale_nfs_url }}gpfs.nfs-ganesha*"
-
-  - name: install | Add GPFS package to list
-    vars:
-     current_package: "{{ item.path }}"
-    set_fact:
-     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
-    with_items:
-    - "{{ scale_install_gpfs_smb.files }}"
-  when: ansible_distribution in scale_ubuntu_distribution
 
 - block:  ## when: host is defined as a protocol node
 
@@ -235,8 +214,7 @@
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
     with_items:
-    - "{{ scale_install_gpfs_smb.files }}"
-  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
+    - "{{ scale_install_gpfs_smb.files }}"  
 
 - block:  ## when: host is defined as a protocol node
 
