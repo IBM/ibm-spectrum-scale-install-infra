@@ -43,7 +43,7 @@
 
 - name: install | Stat extracted packages
   stat:
-   path:  "{{ smb_extracted_path }}"
+   path: "{{ smb_extracted_path }}"
   register: scale_install_gpfs_rpmdir
 
 - block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
@@ -75,11 +75,11 @@
    localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
   command: "{{ localpkg + ' --silent' }}"
   args:
-   creates:  "{{ smb_extracted_path }}"
+   creates: "{{ smb_extracted_path }}"
 
 - name: install | Stat extracted packages
   stat:
-   path:  "{{ smb_extracted_path }}"
+   path: "{{ smb_extracted_path }}"
   register: scale_install_gpfs_rpmdir
 
 - name: install | Check extracted packages
@@ -413,4 +413,4 @@
   when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
 
 - debug:
-        msg: "{{ scale_install_all_packages }}"
+      msg: "{{ scale_install_all_packages }}"
