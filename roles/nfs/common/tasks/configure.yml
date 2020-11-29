@@ -47,7 +47,7 @@
 
 - name: configure | Install arping
   package:
-   name: arping
+   name: iputils-arping
    state: present
   when: ansible_distribution in scale_ubuntu_distribution and ansible_fqdn in scale_protocol_node_list
 
