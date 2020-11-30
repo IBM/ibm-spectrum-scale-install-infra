@@ -1,0 +1,28 @@
+---
+#  Delete /scalemgmt/v2/remotemount/owningclusters
+#  Unregister a cluster that own filesystems that can be mounted remotely. This API must be executed on the cluster that mounts filesystems remotely.
+#  Only users with role 'Administrator' or 'CNSS Operator' have permission to for this REST endpoint. Read also the documentation of CLI command 'mmremotecluster delete'.
+- name: Client Cluster (access) | DELETE The remotecluster {{ owning_cluster_name }} ...
+  uri:
+    validate_certs: no
+    force_basic_auth: true
+    url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/owningclusters/{{ owning_cluster_name }}
+    method: DELETE
+    user: "{{ client_cluster_gui_username }}"
+    password: "{{ client_cluster_gui_password }}"
+    status_code:
+      - 202
+  register: delete_call
+
+- name: Client Cluster (access) | Check the results from the DELETE
+  uri:
+    validate_certs: no
+    force_basic_auth: true
+    url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+    method: GET
+    user: "{{ client_cluster_gui_username }}"
+    password: "{{ client_cluster_gui_password }}"
+  register: completed_check
+  until: completed_check.json.jobs[0].status == "COMPLETED"
+  retries: "{{ restapi_retries_count }}"
+  delay: "{{ restapi_retries_delay }}"

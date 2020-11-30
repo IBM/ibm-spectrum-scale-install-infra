@@ -1,0 +1,51 @@
+---
+- name: "fail if not defined: client_cluster_gui_username"
+  fail:
+    msg: "client_cluster_gui_username is not defined"
+  when:
+    - client_cluster_gui_username is undefined
+    - client_cluster_no_gui == false
+
+- name: "fail if not defined: client_cluster_gui_password"
+  fail:
+    msg: "client_cluster_gui_password is not defined"
+  when:
+    - client_cluster_gui_password is undefined
+    - client_cluster_no_gui == false
+
+- name: "fail if not defined: client_cluster_gui_hostname"
+  fail:
+    msg: "client_cluster_gui_hostname is not defined"
+  when:
+   - client_cluster_gui_hostname is undefined
+   - client_cluster_no_gui == false
+
+- name: "fail if not defined: client_cluster_filesystem_name"
+  fail:
+    msg: "client_cluster_filesystem_name is not defined"
+  when: client_cluster_filesystem_name is undefined
+
+- name: "fail if not defined: client_cluster_remotemount_path"
+  fail:
+    msg: "client_cluster_remotemount_path is not defined"
+  when: client_cluster_remotemount_path is undefined
+
+- name: "fail if not defined: storage_cluster_gui_username"
+  fail:
+    msg: "storage_cluster_gui_username is not defined"
+  when: storage_cluster_gui_username is undefined
+
+- name: "fail if not defined: storage_cluster_gui_password"
+  fail:
+    msg: "storage_cluster_gui_password is not defined"
+  when: storage_cluster_gui_password is undefined
+
+- name: "fail if not defined: storage_cluster_gui_hostname"
+  fail:
+    msg: "storage_cluster_gui_hostname is not defined"
+  when: storage_cluster_gui_hostname is undefined
+
+- name: "fail if not defined: storage_cluster_filesystem_name"
+  fail:
+    msg: "storage_cluster_filesystem_name is not defined"
+  when: storage_cluster_filesystem_name is undefined

@@ -1,0 +1,6 @@
+---
+#scale_cluster_quorum: true
+#scale_cluster_manager: true
+is_protocol_node: true
+scale_nodeclass:
+  - class1

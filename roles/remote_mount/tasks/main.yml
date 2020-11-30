@@ -1,0 +1,113 @@
+---
+#
+# Main file for Remote_Mount file.
+#
+
+#
+# Checks that mandatory variables are set
+#
+- name: precheck
+  include_tasks: precheck.yml
+
+#
+# This Block Unmounts, remove the filesystem and connection between Accessing/Client cluster and Owner/Storage Cluster.
+# This only works if both clusters have GUI/RESTAPI interface
+#
+- block: #when: cleanup_remote_mount | bool
+    - name: Cleanup remote filesystem on Accessing/Client Cluster
+      include_tasks: cleanup_remote_mount.yml
+      when: cleanup_remote_mount | bool
+
+    - meta: end_play
+      when:
+        - cleanup_remote_mount | bool
+  when: cleanup_remote_mount | bool
+
+#
+# This block is for systems with Scale GUI/RESTAPI on both Accessing cluster and Remote Cluster.
+#
+- block: # RESTAPI - when: client_cluster_no_gui == false
+    - name: "Client Cluster (access) | Check if the '{{ client_cluster_filesystem_name }}' is already configured."
+      uri:
+        validate_certs: no
+        force_basic_auth: yes
+        url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ client_cluster_filesystem_name }}
+        method: GET
+        user: "{{ client_cluster_gui_username }}"
+        password: "{{ client_cluster_gui_password }}"
+        body_format: json
+        status_code:
+          - 400
+      register: remote_filesystem_results
+      ignore_errors: true
+      when: client_cluster_no_gui == false
+
+    - name: "Unauthorized"
+      debug:
+        msg: "The user is not authorized to access the Client Cluster, http return code: {{ remote_filesystem_results.status }}"
+      when:
+        - remote_filesystem_results.status == 401
+
+    - meta: end_play
+      when:
+        - remote_filesystem_results.status == 401
+
+    - name: "If filesystem is already configured, nothing to do."
+      debug:
+        msg: "Filesystem '{{ client_cluster_filesystem_name }}' is already configured, nothing to do."
+      when:
+        - remote_filesystem_results.status == 200
+        - not forceRun | bool
+
+    - meta: end_play
+      when:
+        - remote_filesystem_results.status == 200
+        - not forceRun | bool
+
+    - name: msg
+      debug:
+        msg: "Force Run was passed in, attempting to run remote_mount role regardless of whether the filesystem is configured."
+      when: forceRun | bool
+
+    - name: Remote mount the filesystem when it's not already mounted
+      include_tasks: mount_filesystem.yml
+      when:
+        - (remote_filesystem_results.status == 400) or (forceRun | bool)
+  when:
+    - client_cluster_no_gui == false
+
+#
+# This block is for systems with Scale GUI/RESTAPI only on Storage/Owning Cluster.
+#
+- block: # RESTAPI-CLI when: client_cluster_no_gui == true
+
+  - name: "Client Cluster (access) | Check if the '{{ client_cluster_filesystem_name }}' is already configured with CLI."
+    shell: "/usr/lpp/mmfs/bin/mmlsfs {{ client_cluster_filesystem_name }} -Y"
+    register: remote_filesystem_results_cli
+    changed_when: false
+    failed_when: false
+
+  - name: "If filesystem is already configured, nothing to do."
+    debug:
+      msg: "Filesystem '{{ client_cluster_filesystem_name }}' is already configured, nothing to do."
+    when:
+      - remote_filesystem_results_cli.rc == 0
+      - not forceRun | bool
+
+  - name: "Something went wrong, no output from command."
+    debug:
+      msg: "Something went wrong, no output from command, error:'{{ remote_filesystem_results_cli.stderr }}'"
+    when:
+      - remote_filesystem_results_cli.rc == 116
+
+  - meta: end_play
+    when:
+      - remote_filesystem_results_cli.rc == 0 or remote_filesystem_results_cli.rc == 116
+      - not forceRun | bool
+
+  - name: Remote mount the filesystem using
+    include_tasks: mount_filesystem_api_cli.yml
+    when:
+      - (remote_filesystem_results_cli.rc != 0) or (forceRun | bool)
+  when:
+    - client_cluster_no_gui | bool
