@@ -18,11 +18,11 @@
    - scale_smb_node_list|length > 0
    fail_msg: "No smb nodes configured"
 
-- name: check | Check if smb is enabled
+- name: check | Check if nfs or smb is enabled
   assert:
    that:
-   - scale_protocols.smb|bool
-   fail_msg: "SMB is not enabled"
+   - scale_protocols.smb|bool or scale_protocols.nfs|bool
+   fail_msg: "SMB and NFS is not enabled"
   run_once: true
 
 - name: check | Check if service smb is running
