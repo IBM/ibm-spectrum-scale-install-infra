@@ -1,12 +1,2 @@
 ---
 # vars file for remote_mount
-#client_cluster_gui_username: admin
-#client_cluster_gui_password: Admin@GUI
-#client_cluster_gui_hostname: 10.33.3.145
-#client_cluster_filesystem_name: fs2
-#client_cluster_remotemount_path: "/mnt/{{ client_cluster_filesystem_name }}"
-#client_cluster_filesystem_automount: automount
-#storage_cluster_gui_username: "{{ client_cluster_gui_username }}"
-#storage_cluster_gui_password: "{{ client_cluster_gui_password }}"
-#storage_cluster_gui_hostname: 10.33.3.220
-#storage_cluster_filesystem_name: gpfs01
