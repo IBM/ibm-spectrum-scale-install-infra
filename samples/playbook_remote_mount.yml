@@ -1,0 +1,27 @@
+---
+#
+# samples/playbook_remote_mount.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster with Remote_Mount
+# enabled. Additional variables need to be defined for this, it is recommended
+# to use Ansible group variables for this purpose:
+# https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
+
+- hosts: localhost
+  vars:
+    - client_cluster_gui_username: admin
+    - client_cluster_gui_password: Admin@GUI
+    - client_cluster_gui_hostname: 10.10.10.10
+    - client_cluster_filesystem_name: fs1
+    - client_cluster_remotemount_path: "/mnt/{{ client_cluster_filesystem_name }}"
+    - storage_cluster_gui_username: "{{ client_cluster_gui_username }}"
+    - storage_cluster_gui_password: "{{ client_cluster_gui_password }}"
+    - storage_cluster_gui_hostname: 10.10.10.20
+    - storage_cluster_filesystem_name: gpfs01
+  pre_tasks:
+  roles:
+    - remote_mount
+
+# If Accessing/Client Cluster don't have GUI,
+# Then change wee need to add variable client_cluster_no_gui: true and ansible "hosts" need to point to Client Cluster
