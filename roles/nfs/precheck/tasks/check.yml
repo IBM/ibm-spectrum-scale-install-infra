@@ -3,11 +3,11 @@
   set_fact:
    scale_nfs_nodes_list: []
 
-- name: check | Check if nfs is enabled
+- name: check | Check if nfs or smb is enabled
   assert:
    that:
-   - scale_protocols.nfs|bool
-   fail_msg: "NFS is not enabled"
+   - scale_protocols.nfs|bool or scale_protocols.smb|bool
+   fail_msg: "NFS and SMB is not enabled"
 
 - name: check | Collect all nfs nodes
   set_fact:

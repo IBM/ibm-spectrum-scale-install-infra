@@ -1,5 +1,5 @@
 ---
 # tasks file for precheck
 - import_tasks: check.yml
-  when: scale_protocols is defined and scale_protocols.nfs|bool
+  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)
   tags: prepare
