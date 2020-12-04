@@ -101,12 +101,7 @@ The following IBM Spectrum Scale versions are tested:
 
 Specific OS requirements:
 
-- For CES (SMB/NFS) on SLES15, Python3 is required.
-=======
-- 5.0.5.0
-- 5.0.5.1
-- 5.0.5.2
-- 5.0.5.3
+- For CES (SMB/NFS) on SLES15, Python 3 is required.
 
 
 Prerequisites
