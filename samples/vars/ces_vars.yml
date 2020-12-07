@@ -9,6 +9,7 @@
 scale_protocols:
   smb: true
   nfs: true
+  object: true
   export_ip_pool: [192.168.100.100,192.168.100.101]
   filesystem: cesSharedRoot
   mountpoint: /gpfs/cesSharedRoot
@@ -18,7 +19,8 @@ scale_protocols:
 
 # scale_protocols:
 #   smb: true
-#   nfs: true,
+#   nfs: true
+#   object: true
 #   interface: [eth0]
 #   export_ip_pool: [2002:90b:e006:84:250:56ff:feb9:7787]
 #   filesystem: cesSharedRoot
