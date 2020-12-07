@@ -22,6 +22,6 @@ scale_protocols:
 #   nfs: true
 #   object: true
 #   interface: [eth0]
-#   export_ip_pool: [2002:90b:e006:84:250:56ff:feb9:7787]
+#   export_ip_pool: ["2002:90b:e006:84:250:56ff:feb9:7787"]
 #   filesystem: cesSharedRoot
 #   mountpoint: /gpfs/cesSharedRoot
