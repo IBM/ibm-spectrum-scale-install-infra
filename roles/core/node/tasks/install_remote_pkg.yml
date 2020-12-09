@@ -71,6 +71,21 @@
       The variable 'scale_version' doesn't seem to match the contents of the
       remote installation package!
 
+# Copy and import gpg key on RHEL and SLES if gpfs version >= 5.0.5.0
+- block:
+   - name: check | Copy key
+     copy:
+       src: "{{ scale_gpgKey_src }}"
+       dest: "{{ scale_gpgKey_dest }}"
+       remote_src: yes
+
+    - rpm_key:
+       state: present
+       key: "{{ scale_gpgKey_dest }}SpectrumScale_public_key.pgp"
+       
+  when: ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
+         and scale_enable_gpg_check and scale_version >= "5.0.5.0")
+
 #
 # Find GPFS BASE
 #
