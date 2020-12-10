@@ -3,11 +3,13 @@
 - include_tasks: check.yml
   when: "scale_protocols is defined and
           (scale_protocols.nfs is defined and scale_protocols.nfs|bool) or
-          (scale_protocols.smb is defined and scale_protocols.smb|bool)"
+          (scale_protocols.smb is defined and scale_protocols.smb|bool) or
+          (scale_protocols.object is defined and scale_protocols.object|bool)"
   tags: always
 
 - include_tasks: configure.yml
   when: "scale_protocols is defined and
           (scale_protocols.nfs is defined and scale_protocols.nfs|bool) or
-          (scale_protocols.smb is defined and scale_protocols.smb|bool)"
+          (scale_protocols.smb is defined and scale_protocols.smb|bool) or
+          (scale_protocols.object is defined and scale_protocols.object|bool)"
   tags: configure

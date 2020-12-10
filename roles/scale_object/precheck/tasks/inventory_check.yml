@@ -1,0 +1,85 @@
+---
+- name: check | Check dynamic_url is define
+  assert:
+    that:
+    - scale_ces_obj.dynamic_url is defined|bool
+    fail_msg: "scale_ces_obj.dynamic_url is not defined as True or False."
+  run_once: true
+
+- name: check | Check enable_s3 is define
+  assert:
+    that:
+    - scale_ces_obj.enable_s3 is defined|bool
+    fail_msg: "scale_ces_obj.enable_s3 is not defined as True or False."
+  run_once: true
+
+- name: check | Check local_keystone is define
+  assert:
+    that:
+    - scale_ces_obj.local_keystone is defined|bool
+    fail_msg: "scale_ces_obj.local_keystone is not defined as True or False."
+  run_once: true
+
+- name: check | Check enable_file_access is define
+  assert:
+    that:
+    - scale_ces_obj.enable_file_access is defined|bool
+    fail_msg: "scale_ces_obj.enable_file_access is not defined as True or False."
+  run_once: true
+
+- name: check | Check endpoint_hostname is define
+  assert:
+    that:
+    - scale_ces_obj.endpoint_hostname is defined
+    - scale_ces_obj.endpoint_hostname|length >0 
+    fail_msg: "scale_ces_obj.endpoint_hostname is not defined or empty."
+  run_once: true
+
+- name: check | Check object_fileset is define
+  assert:
+    that:
+    - scale_ces_obj.object_fileset is defined
+    - scale_ces_obj.object_fileset|length >0
+    fail_msg: "scale_ces_obj.object_fileset is not defined or empty."
+  run_once: true
+
+- name: check | Check admin_user is define
+  assert:
+    that:
+    - scale_ces_obj.admin_user is defined
+    - scale_ces_obj.admin_user|length >0
+    fail_msg: "scale_ces_obj.admin_user is not defined or empty."
+  run_once: true
+
+- name: check | Check admin_pwd is define
+  assert:
+    that:
+    - scale_ces_obj.admin_pwd is defined
+    - scale_ces_obj.admin_pwd|length >0
+    fail_msg: "scale_ces_obj.admin_pwd is not defined or empty."
+  run_once: true
+
+- name: check | Check database_pwd is define
+  assert:
+    that:
+    - scale_ces_obj.database_pwd is defined
+    - scale_ces_obj.database_pwd|length >0
+    fail_msg: "scale_ces_obj.database_pwd is not defined or empty."
+  run_once: true
+
+- name: check | Check filesystem is define
+  assert:
+    that:
+    - scale_protocols.filesystem is defined
+    - scale_protocols.filesystem|length >0
+    fail_msg: "scale_protocols.filesystem is not defined or empty."
+  run_once: true
+
+- name: check | Check mountpoint is define
+  assert:
+    that:
+    - scale_protocols.mountpoint is defined
+    - scale_protocols.mountpoint|length >0
+    fail_msg: "scale_protocols.mountpoint is not defined or empty."
+  run_once: true
+
