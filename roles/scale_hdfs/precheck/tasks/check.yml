@@ -1,0 +1,101 @@
+---
+- name: check | Initialize
+  set_fact:
+   scale_hdfs_nodes_list: []
+   scale_hdfs_namenodes_list: []
+   scale_hdfs_datanodes_list: []
+   scale_hdfs_cluster: []
+
+- debug:
+    var: item
+  loop: "{{ scale_hdfs_clusters }}"
+
+- name:
+  set_fact:
+    scale_hdfs_cluster: "{{ item }}"
+  loop: "{{ scale_hdfs_clusters }}"
+
+- debug:
+    msg: "scale_hdfs_cluster: {{scale_hdfs_cluster}}"
+
+- name: check | Check if hdfs is enabled
+  assert:
+   that:
+   - scale_protocols.hdfs|bool
+   fail_msg: "HDFS is not enabled"
+
+- name: check |  Check if HDFS required information has been supplied.
+  assert:
+   that:
+   - scale_hdfs_cluster.name is defined
+   - scale_hdfs_cluster.name| length > 0
+   - scale_hdfs_cluster.filesystem is defined
+   - scale_hdfs_cluster.filesystem| length > 0
+   - scale_hdfs_cluster.namenodes is defined
+   - scale_hdfs_cluster.namenodes| length > 0
+   - scale_hdfs_cluster.datanodes is defined
+   - scale_hdfs_cluster.datanodes| length > 0
+   - scale_hdfs_cluster.datadir is defined
+   - scale_hdfs_cluster.datadir| length > 0
+   #- scale_hdfs_cluster. is defined
+   #- scale_hdfs_cluster.| length > 0
+   fail_msg: "HDFS required parameter information is not defined."
+   success_msg: "HDFS required information is defined."
+  run_once: true
+  delegate_to: localhost
+
+- name: check | Collect all HDFS NameNodes
+  set_fact:
+   scale_hdfs_namenodes_list: "{{ scale_hdfs_cluster.namenodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- debug:
+    msg: "Collected all HDFS NameNodes: {{ scale_hdfs_namenodes_list }}"
+
+- name: check | Collect all HDFS DataNodes
+  set_fact:
+   scale_hdfs_datanodes_list: "{{ scale_hdfs_cluster.datanodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- debug:
+        msg: "Collect all HDFS DataNodes: {{ scale_hdfs_datanodes_list }}"
+
+- name: check | Get HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
+
+- debug:
+    msg: "Collect all HDFS nodes: {{ scale_hdfs_nodes_list }}"
+
+- name: check | make unique HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
+
+- debug:
+    msg: "Collect all HDFS nodes: {{ scale_hdfs_nodes_list }}"
+
+- name: check | Check if atleast one hdfs node is configured
+  assert:
+   that:
+   - scale_hdfs_nodes_list|length > 0
+   fail_msg: "No hdfs nodes configured"
+
+#- name: check | verify JAVA
+#  command: "/usr/bin/ls {{ scale_hdfs_cluster. }}/bin/java"
+#  register: jvm_list
+
+#- debug:
+#    var: jvm_list
+#  run_once: true
+#  delegate_to: localhost
+
+#- fail:
+#    msg: "JAVA_HOME not set properlly"
+#  when: jvm_list.rc != 0
+#  run_once: true
+#  delegate_to: localhost
+
+- debug:
+        msg: "HDFS Precheck ok"
