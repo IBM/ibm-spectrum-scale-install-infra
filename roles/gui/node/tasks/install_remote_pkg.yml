@@ -1,0 +1,116 @@
+---
+# Remote package installation method
+
+- name: install | Stat remote installation package
+  stat:
+    path: "{{ scale_install_remotepkg_path }}"
+    checksum_algorithm: md5
+  register: scale_install_remotepkg
+
+- name: install | Check remote installation package
+  assert:
+    that: scale_install_remotepkg.stat.exists
+    msg: >-
+      Please set the variable 'scale_install_remotepkg_path' to point to the
+      remote installation package (accessible on Ansible managed node)!
+
+#
+# Optionally, verify package checksum
+#
+- name: install | Stat checksum file
+  stat:
+    path: "{{ scale_install_remotepkg_path }}.md5"
+  register: scale_install_md5_file
+
+- block:  ## when: scale_install_md5_file.stat.exists
+    - name: install | Read checksum from file
+      slurp:
+        src: "{{ scale_install_remotepkg_path }}.md5"
+      register: scale_install_md5_sum
+
+    - name: install | Compare checksums
+      vars:
+        md5sum: "{{ scale_install_md5_sum.content | b64decode }}"
+      assert:
+        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.checksum
+        msg: >-
+          Checksums don't match. Please check integritiy of your remote
+          installation package!
+  when: scale_install_md5_file.stat.exists
+
+#
+# Extract installation package
+#
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Make installation package executable
+  file:
+    path: "{{ scale_install_remotepkg_path }}"
+    mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+- name: install | Extract installation package
+  command: "{{ scale_install_remotepkg_path + ' --silent' }}"
+  args:
+    creates: "{{ scale_gpfs_path_url }}"
+
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs__rpmdir
+
+- name: install | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs__rpmdir.stat.exists
+      - scale_install_gpfs_rpmdir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      remote installation package!
+  
+#
+# Find GPFS GUI
+#
+- block:  ## when: host is defined as a gui node
+    - name: install | Find GPFS GUI (gpfs.gui) packages
+      find:
+        paths: "{{ scale_gpfs_path_url }}"
+        patterns: gpfs.gui*
+      register: scale_install_gpfs_gui
+
+    - name: install | Check valid GPFS GUI (gpfs.gui) packages
+      assert:
+        that: scale_install_gpfs_gui.matched > 0
+        msg: >-
+          No GPFS GUI (gpfs.gui) packages found:
+          "{{ scale_gpfs_path_url }}/gpfs.gui*"
+    #
+    # Find GPFS gpfs.java
+    #
+    - name: install | Find GPFS java (gpfs.java) packages
+      find:
+        paths: "{{ scale_gpfs_path_url }}"
+        patterns: gpfs.java*{{ scale_architecture }}*
+      register: scale_install_gpfs_java
+
+    - name: install | Check valid GPFS java (gpfs.java) package
+      assert:
+        that: scale_install_gpfs_java.matched > 0
+        msg: >-
+          No GPFS java (gpfs.java) package found:
+          "{{ scale_gpfs_path_url }}/gpfs.java*{{ scale_architecture }}*"
+
+    - name: install | Add GPFS GUI packages to list
+      vars:
+        current_package: "{{ scale_gpfs_path_url }}/{{ item }}"
+      set_fact:
+        scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+      with_items:
+        - "{{ scale_install_gpfs_java.files.0.path | basename }}"
+        - "{{ scale_install_gpfs_gui.files.0.path | basename }}"
+
+  when: scale_cluster_gui | bool
+
