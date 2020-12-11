@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  role_name: nfs_node
+  role_name: scale_hdfs
   author: IBM Corporation
   description: Highly-customizable Ansible role for installing and configuring IBM Spectrum Scale (GPFS)
   company: IBM
