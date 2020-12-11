@@ -78,5 +78,14 @@
       "export_ip_pool": [192.168.100.102,192.168.100.103],
       "filesystem": cesSharedRoot,
       "mountpoint": /gpfs/cesSharedRoot
-  }
+  },
+  "scale_hdfs_clusters": [
+   {
+      "name": "mycluster",
+      "filesystem": "gpfs01",
+      "namenodes": ['host-vm1', 'host-vm2'],
+      "datanodes": ['host-vm1', 'host-vm2', 'host-vm3'],
+      "datadir": "dhersing",
+    }
+  ]
 }
