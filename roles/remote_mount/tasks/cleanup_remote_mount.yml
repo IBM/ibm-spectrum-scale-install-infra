@@ -5,46 +5,46 @@
   uri:
     validate_certs: no
     force_basic_auth: yes
-    url: https://{{ storage_cluster_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
     method: GET
-    user: "{{ storage_cluster_gui_username }}"
-    password: "{{ storage_cluster_gui_password }}"
+    user: "{{ scale_remotemount_storage_gui_username }}"
+    password: "{{ scale_remotemount_storage_gui_password }}"
     body_format: json
     status_code:
       - 200
   register: owning_cluster_info
 
-- name: Cleanup | DEBUG | Storage Cluster | Print the Cluster Information
+- name: Cleanup | scale_remotemount_debug | Storage Cluster | Print the Cluster Information
   debug:
     msg: "{{ owning_cluster_info }}"
-  when: debug is true
+  when: scale_remotemount_debug is true
 
 - name: Cleanup | Client Cluster (access) | GET the Cluster Information
   uri:
     validate_certs: no
     force_basic_auth: yes
-    url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
     method: GET
-    user: "{{ client_cluster_gui_username }}"
-    password: "{{ client_cluster_gui_password }}"
+    user: "{{ scale_remotemount_client_gui_username }}"
+    password: "{{ scale_remotemount_client_gui_password }}"
     body_format: json
     status_code:
       - 200
   register: access_cluster_info
 
-- name: Cleanup | DEBUG | Client Cluster | Print the Cluster Information
+- name: Cleanup | scale_remotemount_debug | Client Cluster | Print the Cluster Information
   debug:
     msg: "{{ access_cluster_info }}"
-  when: debug is true
+  when: scale_remotemount_debug is true
 
 - set_fact:
     access_cluster_name: "{{ access_cluster_info.json.cluster.clusterSummary.clusterName }}"
     owning_cluster_name: "{{ owning_cluster_info.json.cluster.clusterSummary.clusterName }}"
 
-- name: Cleanup | DEBUG | Print out the Storage and Client Cluster Names
+- name: Cleanup | scale_remotemount_debug | Print out the Storage and Client Cluster Names
   debug:
     msg: "Access: {{ access_cluster_name }} and Owning: {{ owning_cluster_name }}"
-  when: debug is true
+  when: scale_remotemount_debug is true
 
 #
 # Client cluster Cleanup.
@@ -54,10 +54,10 @@
   uri:
     validate_certs: no
     force_basic_auth: yes
-    url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ client_cluster_filesystem_name }}
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ scale_remotemount_client_filesystem_name }}
     method: GET
-    user: "{{ client_cluster_gui_username }}"
-    password: "{{ client_cluster_gui_password }}"
+    user: "{{ scale_remotemount_client_gui_username }}"
+    password: "{{ scale_remotemount_client_gui_password }}"
     body_format: json
     status_code:
       - 200
@@ -66,14 +66,14 @@
 
 - name: Cleanup | Client Cluster (access) | Remove defined filesystem
   block:
-    - name: "Cleanup | Client Cluster (access) | Unmount the filesystem | PUT {{ scalemgmt_endpoint }}/filesystems/{{ client_cluster_filesystem_name }}/unmount"
+    - name: "Cleanup | Client Cluster (access) | Unmount the filesystem | PUT {{ scalemgmt_endpoint }}/filesystems/{{ scale_remotemount_client_filesystem_name }}/unmount"
       uri:
         validate_certs: no
         force_basic_auth: true
-        url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/filesystems/{{ client_cluster_filesystem_name }}/unmount
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/filesystems/{{ scale_remotemount_client_filesystem_name }}/unmount
         method: PUT
-        user: "{{ client_cluster_gui_username }}"
-        password: "{{ client_cluster_gui_password }}"
+        user: "{{ scale_remotemount_client_gui_username }}"
+        password: "{{ scale_remotemount_client_gui_password }}"
         body_format: json
         body: |
           {
@@ -88,23 +88,23 @@
       uri:
         validate_certs: no
         force_basic_auth: true
-        url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ umount_call.json.jobs[0].jobId }}
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ umount_call.json.jobs[0].jobId }}
         method: GET
-        user: "{{ client_cluster_gui_username }}"
-        password: "{{ client_cluster_gui_password }}"
+        user: "{{ scale_remotemount_client_gui_username }}"
+        password: "{{ scale_remotemount_client_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
       retries: "{{ restapi_retries_count }}"
       delay: "{{ restapi_retries_delay }}"
 
-    - name: "Cleanup | Client Cluster (access) | Delete the filesystem | DELETE: {{ remote_mount_endpoint }}/remotefilesystems/{{ client_cluster_filesystem_name }}?force=yes"
+    - name: "Cleanup | Client Cluster (access) | Delete the filesystem | DELETE: {{ remote_mount_endpoint }}/remotefilesystems/{{ scale_remotemount_client_filesystem_name }}?force=yes"
       uri:
         validate_certs: no
         force_basic_auth: true
-        url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ client_cluster_filesystem_name }}?force=yes
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ scale_remotemount_client_filesystem_name }}?force=yes
         method: DELETE
-        user: "{{ client_cluster_gui_username }}"
-        password: "{{ client_cluster_gui_password }}"
+        user: "{{ scale_remotemount_client_gui_username }}"
+        password: "{{ scale_remotemount_client_gui_password }}"
         status_code:
           - 202
       register: delete_call
@@ -113,10 +113,10 @@
       uri:
         validate_certs: no
         force_basic_auth: true
-        url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
         method: GET
-        user: "{{ client_cluster_gui_username }}"
-        password: "{{ client_cluster_gui_password }}"
+        user: "{{ scale_remotemount_client_gui_username }}"
+        password: "{{ scale_remotemount_client_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
       retries: "{{ restapi_retries_count }}"
@@ -131,16 +131,16 @@
   uri:
     validate_certs: no
     force_basic_auth: true
-    url: https://{{ client_cluster_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/owningclusters
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/owningclusters
     method: GET
-    user: "{{ client_cluster_gui_username }}"
-    password: "{{ client_cluster_gui_password }}"
+    user: "{{ scale_remotemount_client_gui_username }}"
+    password: "{{ scale_remotemount_client_gui_password }}"
   register: remote_clusters_result
 
-- name: Cleanup | DEBUG | Print out the remote clusters
+- name: Cleanup | scale_remotemount_debug | Print out the remote clusters
   debug:
     msg: "{{ remote_clusters_result.json }}"
-  when: debug is true
+  when: scale_remotemount_debug is true
 
 # The remote_clusters_results is in an array, so looping here incase there are multiple remote clusters
 # We want to delete the one where the owningCluster name matches what we are trying to do a remote mount on
@@ -157,10 +157,10 @@
   uri:
     validate_certs: no
     force_basic_auth: yes
-    url: https://{{ storage_cluster_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
     method: GET
-    user: "{{ storage_cluster_gui_username }}"
-    password: "{{ storage_cluster_gui_password }}"
+    user: "{{ scale_remotemount_storage_gui_username }}"
+    password: "{{ scale_remotemount_storage_gui_password }}"
     body_format: json
     status_code:
       - 200
@@ -173,10 +173,10 @@
       uri:
         validate_certs: no
         force_basic_auth: true
-        url: https://{{ storage_cluster_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
         method: DELETE
-        user: "{{ storage_cluster_gui_username }}"
-        password: "{{ storage_cluster_gui_password }}"
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
         status_code:
           - 202
       register: delete_call
@@ -185,10 +185,10 @@
       uri:
         validate_certs: no
         force_basic_auth: true
-        url: https://{{ storage_cluster_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
         method: GET
-        user: "{{ storage_cluster_gui_username }}"
-        password: "{{ storage_cluster_gui_password }}"
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
       retries: "{{ restapi_retries_count }}"

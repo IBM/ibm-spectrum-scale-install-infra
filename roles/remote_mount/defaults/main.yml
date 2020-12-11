@@ -1,7 +1,7 @@
 ---
 # defaults file for remote_mount
-debug: false
-forceRun: false
+scale_remotemount_debug: false
+scale_remotemount_forceRun: false
 
 # retries - 3 minutes (36 x 5 seconds)
 restapi_retries_count: 36
@@ -14,14 +14,14 @@ scalemgmt_endpoint: "scalemgmt/v2"
 remote_mount_endpoint: "{{ scalemgmt_endpoint }}/remotemount"
 
 # Storage filesystem
-access_mount_attributes: "rw"
+scale_remotemount_access_mount_attributes: "rw"
 
 # If Accessing/Client Cluster dont have GUI, it will use CLI
-client_cluster_no_gui: False
+scale_remotemount_client_no_gui: False
 
 # Client Cluster (Access) is downloding the pubkey from Owning cluster and importing it.
-storage_cluster_pub_key_location: "/tmp/storage_cluster_public_key.pub"
+scale_remotemount_storage_pub_key_location: "/tmp/storage_cluster_public_key.pub"
 
 # Unmounts, remove the filesystem, and also the connection between Accessing/Client cluster and Owner/Storage Cluster.
 # This only works if both systems have GUI/RESTAPI interface
-cleanup_remote_mount: false
+scale_remotemount_cleanup_remote_mount: false

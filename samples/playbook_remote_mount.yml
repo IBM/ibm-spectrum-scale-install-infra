@@ -10,18 +10,18 @@
 
 - hosts: localhost
   vars:
-    - client_cluster_gui_username: admin
-    - client_cluster_gui_password: Admin@GUI
-    - client_cluster_gui_hostname: 10.10.10.10
-    - client_cluster_filesystem_name: fs1
-    - client_cluster_remotemount_path: "/mnt/{{ client_cluster_filesystem_name }}"
-    - storage_cluster_gui_username: "{{ client_cluster_gui_username }}"
-    - storage_cluster_gui_password: "{{ client_cluster_gui_password }}"
-    - storage_cluster_gui_hostname: 10.10.10.20
-    - storage_cluster_filesystem_name: gpfs01
+    - scale_remotemount_client_gui_username: admin
+    - scale_remotemount_client_gui_password: Admin@GUI
+    - scale_remotemount_client_gui_hostname: 10.10.10.10
+    - scale_remotemount_storage_gui_username: fs1
+    - scale_remotemount_client_remotemount_path: "/mnt/{{ scale_remotemount_client_filesystem_name }}"
+    - scale_remotemount_storage_gui_username: "{{ scale_remotemount_client_gui_username }}"
+    - scale_remotemount_storage_gui_password: "{{ scale_remotemount_client_gui_password }}"
+    - scale_remotemount_storage_gui_hostname: 10.10.10.20
+    - scale_remotemount_storage_filesystem_name: gpfs01
   pre_tasks:
   roles:
     - remote_mount
 
 # If Accessing/Client Cluster don't have GUI,
-# Then change wee need to add variable client_cluster_no_gui: true and ansible "hosts" need to point to Client Cluster
+# Then change wee need to add variable scale_remotemount_client_no_gui: true and ansible "hosts" need to point to one of the Scale client cluster node

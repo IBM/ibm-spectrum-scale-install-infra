@@ -1,51 +1,51 @@
 ---
-- name: "fail if not defined: client_cluster_gui_username"
+- name: "fail if not defined: scale_remotemount_client_gui_username"
   fail:
-    msg: "client_cluster_gui_username is not defined"
+    msg: "scale_remotemount_client_gui_username is not defined"
   when:
-    - client_cluster_gui_username is undefined
-    - client_cluster_no_gui == false
+    - scale_remotemount_client_gui_username is undefined
+    - scale_remotemount_client_no_gui == false
 
-- name: "fail if not defined: client_cluster_gui_password"
+- name: "fail if not defined: scale_remotemount_client_gui_password"
   fail:
-    msg: "client_cluster_gui_password is not defined"
+    msg: "scale_remotemount_client_gui_password is not defined"
   when:
-    - client_cluster_gui_password is undefined
-    - client_cluster_no_gui == false
+    - scale_remotemount_client_gui_password is undefined
+    - scale_remotemount_client_no_gui == false
 
-- name: "fail if not defined: client_cluster_gui_hostname"
+- name: "fail if not defined: scale_remotemount_client_gui_hostname"
   fail:
-    msg: "client_cluster_gui_hostname is not defined"
+    msg: "scale_remotemount_client_gui_hostname is not defined"
   when:
-   - client_cluster_gui_hostname is undefined
-   - client_cluster_no_gui == false
+   - scale_remotemount_client_gui_hostname is undefined
+   - scale_remotemount_client_no_gui == false
 
-- name: "fail if not defined: client_cluster_filesystem_name"
+- name: "fail if not defined: scale_remotemount_client_filesystem_name"
   fail:
-    msg: "client_cluster_filesystem_name is not defined"
-  when: client_cluster_filesystem_name is undefined
+    msg: "scale_remotemount_client_filesystem_name is not defined"
+  when: scale_remotemount_client_filesystem_name is undefined
 
-- name: "fail if not defined: client_cluster_remotemount_path"
+- name: "fail if not defined: scale_remotemount_client_remotemount_path"
   fail:
-    msg: "client_cluster_remotemount_path is not defined"
-  when: client_cluster_remotemount_path is undefined
+    msg: "scale_remotemount_client_remotemount_path is not defined"
+  when: scale_remotemount_client_remotemount_path is undefined
 
-- name: "fail if not defined: storage_cluster_gui_username"
+- name: "fail if not defined: scale_remotemount_storage_gui_username"
   fail:
-    msg: "storage_cluster_gui_username is not defined"
-  when: storage_cluster_gui_username is undefined
+    msg: "scale_remotemount_storage_gui_username is not defined"
+  when: scale_remotemount_storage_gui_username is undefined
 
-- name: "fail if not defined: storage_cluster_gui_password"
+- name: "fail if not defined: scale_remotemount_storage_gui_password"
   fail:
-    msg: "storage_cluster_gui_password is not defined"
-  when: storage_cluster_gui_password is undefined
+    msg: "scale_remotemount_storage_gui_password is not defined"
+  when: scale_remotemount_storage_gui_password is undefined
 
-- name: "fail if not defined: storage_cluster_gui_hostname"
+- name: "fail if not defined: scale_remotemount_storage_gui_hostname"
   fail:
-    msg: "storage_cluster_gui_hostname is not defined"
-  when: storage_cluster_gui_hostname is undefined
+    msg: "scale_remotemount_storage_gui_hostname is not defined"
+  when: scale_remotemount_storage_gui_hostname is undefined
 
-- name: "fail if not defined: storage_cluster_filesystem_name"
+- name: "fail if not defined: scale_remotemount_storage_filesystem_name"
   fail:
-    msg: "storage_cluster_filesystem_name is not defined"
-  when: storage_cluster_filesystem_name is undefined
+    msg: "scale_remotemount_storage_filesystem_name is not defined"
+  when: scale_remotemount_storage_filesystem_name is undefined

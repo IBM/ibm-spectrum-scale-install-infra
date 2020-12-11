@@ -37,21 +37,21 @@ The following variables would need to be defined by the user, either as vars to 
 
 
 
-- ``debug: false`` - (Default to False) **Outputs information after tasks**
-- ``forceRun: false`` (Default to False) **If ForceRun is passed in, then the playbook is attempting to run remote_mount role regardless of whether the filesystem is configured** 
-- ``access_mount_attributes: "rw"``  **Default RW** **Filesystem can be mounted in different access mount: RW or RO**
-- ``client_cluster_gui_username: admin`` **Scale User with Administrator Rights**
-- ``client_cluster_gui_password: passw0rd``
-- ``client_cluster_gui_hostname:`` **IP or Hostname to Client GUI Node**
-- ``client_cluster_filesystem_name: fs1``
-- ``client_cluster_remotemount_path: "/mnt/{{ client_cluster_filesystem_name }}"``
-- ``storage_cluster_gui_username: "{{ client_cluster_gui_username }}"``
-- ``storage_cluster_gui_password: "{{ client_cluster_gui_password }}"``
-- ``storage_cluster_gui_hostname:`` **IP or Hostname to Client GUI Node**
-- ``storage_cluster_filesystem_name: gpfs01``  **Storage Cluster filesystem you want to mount**
-- ``client_cluster_no_gui: False``(Default to False) - **If Accessing/Client Cluster don`t have GUI, it will use CLI against Client Cluster**
-- ``storage_cluster_pub_key_location:`` (Defaults to :"/tmp/storage_cluster_public_key.pub") - **Client Cluster (Access) is downloading the pubkey from Owning cluster and importing it**
-- ``cleanup_remote_mount: false``  (Default to False) **Unmounts, remove the filesystem, and the connection between Accessing/Client cluster and Owner/Storage Cluster. This only works if both Clusters have GUI/RESTAPI interface**
+- ``scale_remotemount_debug: false`` - (Default to False) **Outputs information after tasks**
+- ``scale_remotemount_forceRun: false`` (Default to False) **If scale_remotemount_forceRun is passed in, then the playbook is attempting to run remote_mount role regardless of whether the filesystem is configured** 
+- ``scale_remotemount_access_mount_attributes: "rw"``  **Default RW** **Filesystem can be mounted in different access mount: RW or RO**
+- ``scale_remotemount_client_gui_username: admin`` **Scale User with Administrator or ContainerOperator role/rights**
+- ``scale_remotemount_client_gui_password: passw0rd``
+- ``scale_remotemount_client_gui_hostname:`` **IP or Hostname to Client GUI Node**
+- ``scale_remotemount_client_filesystem_name: fs1``
+- ``scale_remotemount_client_remotemount_path: "/mnt/{{ scale_remotemount_client_filesystem_name }}"``
+- ``scale_remotemount_storage_gui_username: "{{ scale_remotemount_client_gui_username }}"``
+- ``scale_remotemount_storage_gui_password: "{{ scale_remotemount_client_gui_password }}"``
+- ``scale_remotemount_storage_gui_hostname:`` **IP or Hostname to Client GUI Node**
+- ``scale_remotemount_storage_filesystem_name: gpfs01``  **Storage Cluster filesystem you want to mount**
+- ``scale_remotemount_client_no_gui: False``(Default to False) - **If Accessing/Client Cluster don`t have GUI, it will use CLI against Client Cluster**
+- ``scale_remotemount_storage_pub_key_location:`` (Defaults to :"/tmp/storage_cluster_public_key.pub") - **Client Cluster (Access) is downloading the pubkey from Owning cluster and importing it**
+- ``scale_remotemount_cleanup_remote_mount: false``  (Default to False) **Unmounts, remove the filesystem, and the connection between Accessing/Client cluster and Owner/Storage Cluster. This only works if both Clusters have GUI/RESTAPI interface**
 
 
 
@@ -67,15 +67,15 @@ Normally you will use Localhost, then all RestAPI call will occur over https to 
 
     - hosts: localhost
       vars:
-        - client_cluster_gui_username: admin
-        - client_cluster_gui_password: Admin@GUI
-        - client_cluster_gui_hostname: 10.10.10.10
-        - client_cluster_filesystem_name: fs1
-        - client_cluster_remotemount_path: "/mnt/{{ client_cluster_filesystem_name }}"
-        - storage_cluster_gui_username: "{{ client_cluster_gui_username }}"
-        - storage_cluster_gui_password: "{{ client_cluster_gui_password }}"
-        - storage_cluster_gui_hostname: 10.10.10.20
-        - storage_cluster_filesystem_name: gpfs01
+        - scale_remotemount_client_gui_username: admin
+        - scale_remotemount_client_gui_password: Admin@GUI
+        - scale_remotemount_client_gui_hostname: 10.10.10.10
+        - scale_remotemount_client_filesystem_name: fs1
+        - scale_remotemount_client_remotemount_path: "/mnt/{{ scale_remotemount_client_filesystem_name }}"
+        - scale_remotemount_storage_gui_username: "{{ scale_remotemount_client_gui_username }}"
+        - scale_remotemount_storage_gui_password: "{{ scale_remotemount_client_gui_password }}"
+        - scale_remotemount_storage_gui_hostname: 10.10.10.20
+        - scale_remotemount_storage_filesystem_name: gpfs01
       roles:
         - remote_mount
     
@@ -91,15 +91,15 @@ So the Client Cluster Node needs access on https/443 to Storage Cluster GUI Node
     - hosts: scale-client-cluster-node-1
       gather_facts: false
       vars:
-        client_cluster_gui_username: admin
-        client_cluster_gui_password: Admin@GUI
-        client_cluster_filesystem_name: fs1
-        client_cluster_remotemount_path: "/mnt/{{ client_cluster_filesystem_name }}"
+        scale_remotemount_client_gui_username: admin
+        scale_remotemount_client_gui_password: Admin@GUI
+        scale_remotemount_client_filesystem_name: fs1
+        scale_remotemount_client_remotemount_path: "/mnt/{{ scale_remotemount_client_filesystem_name }}"
         client_cluster_filesystem_automount: automount
-        storage_cluster_gui_username: "{{ client_cluster_gui_username }}"
-        storage_cluster_gui_password: "{{ client_cluster_gui_password }}"
-        storage_cluster_gui_hostname: 10.10.10.20
-        storage_cluster_filesystem_name: gpfs01
-        client_cluster_no_gui: true
+        scale_remotemount_storage_gui_username: "{{ scale_remotemount_client_gui_username }}"
+        scale_remotemount_storage_gui_password: "{{ scale_remotemount_client_gui_password }}"
+        scale_remotemount_storage_gui_hostname: 10.10.10.20
+        scale_remotemount_storage_filesystem_name: gpfs01
+        scale_remotemount_client_no_gui: true
        roles:
          - remote_mount
