@@ -12,7 +12,7 @@ scale_protocols:
   filesystem: cesSharedRoot
   mountpoint: /gpfs/cesSharedRoot
 
-scale_hdfs_clusters:
+scale_hdfs_cluster:
     name: mycluster
     filesystem: cesSharedRoot
     namenodes: ['host-vm1', 'host-vm2'],

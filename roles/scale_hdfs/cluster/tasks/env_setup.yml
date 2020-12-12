@@ -14,7 +14,7 @@
     - debug: 
         var: javahome_path
         verbosity: 1
-  when: javahome_path is not define and javahome_path|length == 0
+  #when: javahome_path is not define and javahome_path|length == 0
 
 - name: "env_setup | Add JAVA_HOME bin to PATH"
   lineinfile:

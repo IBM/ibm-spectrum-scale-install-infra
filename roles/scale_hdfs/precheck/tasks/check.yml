@@ -7,16 +7,28 @@
    scale_hdfs_cluster: []
 
 - debug:
-    var: item
-  loop: "{{ scale_hdfs_clusters }}"
+    msg: "scale_hdfs_clusters: {{ scale_hdfs_clusters }}"
+  run_once: true
+  delegate_to: localhost
 
-- name:
+- name: check | Collect all hdfs list
   set_fact:
-    scale_hdfs_cluster: "{{ item }}"
-  loop: "{{ scale_hdfs_clusters }}"
+   scale_hdfs_cluster: "{{ item }}"
+  when: scale_hdfs_cluster|length == 0
+  with_items:
+   - "{{ scale_hdfs_clusters }}"
+  delegate_to: localhost
+  run_once: true
 
 - debug:
-    msg: "scale_hdfs_cluster: {{scale_hdfs_cluster}}"
+    msg: "scale_hdfs_cluster: {{ scale_hdfs_cluster }}"
+  run_once: true
+  delegate_to: localhost
+
+- debug:
+    msg: "scale_protocols: {{ scale_protocols }}"
+  run_once: true
+  delegate_to: localhost
 
 - name: check | Check if hdfs is enabled
   assert:
@@ -27,6 +39,8 @@
 - name: check |  Check if HDFS required information has been supplied.
   assert:
    that:
+   - scale_hdfs_cluster is defined
+   - scale_hdfs_cluster| length > 0
    - scale_hdfs_cluster.name is defined
    - scale_hdfs_cluster.name| length > 0
    - scale_hdfs_cluster.filesystem is defined
@@ -37,8 +51,6 @@
    - scale_hdfs_cluster.datanodes| length > 0
    - scale_hdfs_cluster.datadir is defined
    - scale_hdfs_cluster.datadir| length > 0
-   #- scale_hdfs_cluster. is defined
-   #- scale_hdfs_cluster.| length > 0
    fail_msg: "HDFS required parameter information is not defined."
    success_msg: "HDFS required information is defined."
   run_once: true

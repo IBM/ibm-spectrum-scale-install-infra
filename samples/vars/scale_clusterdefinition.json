@@ -79,7 +79,7 @@
       "filesystem": cesSharedRoot,
       "mountpoint": /gpfs/cesSharedRoot
   },
-  "scale_hdfs_clusters": [
+  "scale_hdfs_cluster": [
    {
       "name": "mycluster",
       "filesystem": "gpfs01",
