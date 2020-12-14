@@ -107,6 +107,7 @@
   with_items:
   - "{{ scale_ces_disabled_nodes }}"
   when: scale_ces_disabled_nodes|length > 0
+  run_once: true
 
 - name: configure | Enabling CES
   command: "{{ scale_command_path }}mmchnode -N {{ scale_ces_nodes[1:] }} --ces-enable"
@@ -188,17 +189,22 @@
      scale_export_ips: "{{ scale_export_ips + ',' + item|string }}"
     with_items:
     - "{{ scale_protocols.export_ip_pool }}"
+    delegate_to: "{{ scale_protocol_node_list.0 }}"
+    run_once: true
 
   - name: configure | Assign export ips as pool
     command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
-    when: ansible_fqdn in scale_protocol_node_list and scale_protocols.scale_ces_groups is not defined
+    when: scale_protocols.scale_ces_groups is not defined
     delegate_to: "{{ scale_protocol_node_list.0 }}"
+    run_once: true
+
   when: scale_protocols.scale_ces_groups is not defined
 
 - name: configure | Rebalance CES IPs
   command: "{{ scale_command_path }}mmces address move --rebalance"
-  when: ansible_fqdn in scale_protocol_node_list
+  #when: ansible_fqdn in scale_protocol_node_list
   delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
 
 - name: configure | Check if zimon sensor is configured
   shell: "/usr/lpp/mmfs/bin/mmperfmon config show"

@@ -10,6 +10,8 @@ scale_object_rpms:
 ## (local package installation method)
 scale_install_localpkg_tmpdir_path: /tmp
 
+## object perfmon 
+scale_perfmon: true
 
 ##---------------Object----------------#
 

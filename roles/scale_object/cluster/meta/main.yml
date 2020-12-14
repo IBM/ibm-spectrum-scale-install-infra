@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  role_name: obj_cluster
+  role_name: obj_protocol
   author: IBM Corporation
   description: Highly-customizable Ansible role for installing and configuring IBM Spectrum Scale (GPFS)
   company: IBM

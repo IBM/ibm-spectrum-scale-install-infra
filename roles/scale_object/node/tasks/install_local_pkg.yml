@@ -97,42 +97,45 @@
     path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
     state: absent
 
-- name: install | obj path
-  set_fact:
-    scale_obj_url: 'object_rpms/rhel8'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
-
 # Find object rpms
 
-- name: install | Find all packages 
-  find:
-    paths:  "{{ obj_extracted_path }}/{{ scale_obj_url }}"
-    patterns: "*.rpm"
-  register: object_package
+- block: ## when: ansible_fqdn in scale_obj_nodes_list 
+    - name: install | obj path
+      set_fact:
+        scale_obj_url: 'object_rpms/rhel8'
+      when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
-- set_fact:
-    scale_install_all_packages: "{{ object_package.files | map(attribute='path') | list}}"
+    - name: install | Find all packages 
+      find:
+        paths:  "{{ obj_extracted_path }}/{{ scale_obj_url }}"
+        patterns: "*.rpm"
+      register: object_package
 
-- name: install | List find OBJ packages 
-  debug:
-    var: scale_install_all_packages
-  run_once: true
+    - set_fact:
+        scale_install_all_packages: "{{ object_package.files | map(attribute='path') | list}}"
 
-- name: install | Check valid scale (openstack-swift) packages
-  assert:
-    that: scale_install_all_packages | select('match', '.*openstack-swift.*') | list
-    msg: "No Scale object (openstack-swift) package found {{ obj_extracted_path }}/{{ scale_obj_url }}/openstack-swift*"
-  run_once: true
+    - name: install | List find OBJ packages 
+      debug:
+        var: scale_install_all_packages
+      run_once: true
 
-- name: install | Check valid python3-swift package
-  assert:
-    that: scale_install_all_packages | select('match', '.*python3-swift.*') | list
-    msg: "No python3-swift package found {{ obj_extracted_path }}/{{ scale_obj_url }}/python3-swift*"
-  run_once: true
+    - name: install | Check valid scale openstack-swift packages
+      assert:
+        that: scale_install_all_packages | select('match', '.*openstack-swift.*') | list
+        msg: "No Scale object openstack-swift package found {{ obj_extracted_path }}/{{ scale_obj_url }}/openstack-swift*"
+      run_once: true
 
-- name: install | Check valid scale (spectrum-scale-object) package
-  assert:
-    that: scale_install_all_packages | select('match', '.*spectrum-scale-object.*') | list
-    msg: "No Scale object (spectrum-scale-object) package found {{ obj_extracted_path }}/{{ scale_obj_url }}/spectrum-scale-object*"
-  run_once: true
+    - name: install | Check valid python3-swift package
+      assert:
+        that: scale_install_all_packages | select('match', '.*python3-swift.*') | list
+        msg: "No python3-swift package found {{ obj_extracted_path }}/{{ scale_obj_url }}/python3-swift*"
+      run_once: true
+
+    - name: install | Check valid scale spectrum-scale-object package
+      assert:
+        that: scale_install_all_packages | select('match', '.*spectrum-scale-object.*') | list
+        msg: "No Scale object spectrum-scale-object package found {{ obj_extracted_path }}/{{ scale_obj_url }}/spectrum-scale-object*"
+      run_once: true
+
+  when: ansible_fqdn in scale_obj_nodes_list 
 
