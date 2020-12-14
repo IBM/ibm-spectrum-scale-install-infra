@@ -42,6 +42,7 @@
     scale_disks: []
     scale_storage_nsddefs: []
     scale_storage_nsdservers: []
+    scale_storage_fsdef: []
   when: scale_disks is undefined
 
 - name: storage | Find defined NSDs
