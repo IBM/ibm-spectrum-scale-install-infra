@@ -1,0 +1,14 @@
+{% for disk in scale_disks if disk.device is defined and disk.nsd | default('nsd_' + disk.servers.split(',')[0] | replace("-", "_") | replace(".", "_") | replace(",", "_") + '_' + disk.device | basename) in current_nsds %}
+
+{% set default_nsd = 'nsd_' + disk.servers.split(',')[0] | replace("-", "_") | replace(".", "_") + '_' + disk.device | basename %}
+{% set default_usage = 'dataAndMetadata' if disk.pool | default('system') == 'system' else 'dataOnly' -%}
+
+%nsd:
+  device={{ disk.device }}
+  nsd={{ disk.nsd | default(default_nsd) }}
+  servers={{ disk.servers }}
+  usage={{ disk.usage | default(default_usage) }}
+  failureGroup={{ disk.failureGroup | default(-1) }}
+  pool={{ disk.pool | default('system') }}
+  
+{% endfor %}
