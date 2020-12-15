@@ -30,20 +30,18 @@
   delegate_to: "{{ scale_protocol_node_list.0 }}"
 
 - name: configure | Collect status of ces nodes
-  shell:
-   cmd: "{{ scale_command_path }}mmces node list|grep {{ item }}"
+  command: "{{ scale_command_path }}mmces node list"
   register: scale_ces_enable_status
-  with_items:
-  - "{{ scale_protocol_node_list }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
   ignore_errors: true
 
 - name: configure | Collect all nodes on which ces is not enabled
   set_fact:
-   scale_ces_disabled_nodes: "{{ scale_ces_disabled_nodes + [ item.item ]}}"
-  when: item.rc > 0
+    scale_ces_disabled_nodes: "{{ scale_ces_disabled_nodes + [ item ]}}"
+  when: not scale_ces_enable_status.stdout_lines is search(item)
   with_items:
-  - "{{ scale_ces_enable_status.results }}"
+    - "{{ scale_protocol_node_list }}"
 
 - name: configure | Install arping
   package:
@@ -109,9 +107,12 @@
   when: scale_ces_disabled_nodes|length > 0
   run_once: true
 
+- debug:
+    var: scale_ces_nodes
+
 - name: configure | Enabling CES
   command: "{{ scale_command_path }}mmchnode -N {{ scale_ces_nodes[1:] }} --ces-enable"
-  async: 45
+  async: 60
   poll: 5
   when: scale_ces_disabled_nodes|length > 0
   delegate_to: "{{ scale_protocol_node_list.0 }}"

@@ -69,40 +69,31 @@
       when:
         - not scale_ces_obj.dynamic_url|bool
         - scale_ces_obj_configured.rc == 1
-      #delegate_to: "{{ scale_obj_nodes_list.0 }}"
-      #run_once: True
 
     # Enable Object on CES
     - name: configure | Enable OBJ Service
       command: /usr/lpp/mmfs/bin/mmces service enable OBJ
       register: scale_ces_enable_obj_service
-      delegate_to: "{{ scale_obj_nodes_list.0 }}"  
-      run_once: True
 
     - name: configure | Show OBJ Service is enabled
       debug: 
         var: scale_ces_enable_obj_service.stdout_lines 
-      #run_once: true
 
     # Start Object on CES
     - name: configure | Start OBJ Service
       command: /usr/lpp/mmfs/bin/mmces service start OBJ
       register: scale_ces_start_obj_service
-      delegate_to: "{{ scale_obj_nodes_list.0 }}"
-      run_once: true
 
     - name: configure | Show OBJ Service is started
       debug:
         var: scale_ces_start_obj_service.stdout_lines
-      run_once: true
 
     # Clean up password file
     - name: configure | auth ad | Clean up password file
       file:
         state: absent
         path: /var/mmfs/ssl/keyServ/tmp/{{ scale_ces_obj.pwd_file }}
-      delegate_to: "{{ scale_obj_nodes_list.0 }}"
-      run_once: True
 
-  when: not obj_enabled and ansible_fqdn == scale_obj_nodes_list.0
- 
+  when: not obj_enabled
+  delegate_to: "{{ scale_obj_nodes_list.0 }}"
+  run_once: true 
