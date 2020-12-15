@@ -70,4 +70,5 @@ scale_cluster_profile_name: None
 # System-defined profiles are located in /usr/lpp/mmfs/profiles/
 scale_cluster_profile_dir_path: /usr/lpp/mmfs/profiles/
 
+## Default node role change variable flag
 scale_node_role_change: true

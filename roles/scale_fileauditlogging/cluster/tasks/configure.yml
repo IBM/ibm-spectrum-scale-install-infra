@@ -38,6 +38,8 @@
       with_items: "{{ scale_storage_fsdefs_audit }}"
 
     - debug:
-        msg: "{{ scale_audit_command.results }}"
-      when: scale_audit_command.results is defined
+        msg: "{{scale_audit_command.results[0].invocation.module_args._raw_params}}"
+      when: scale_audit_command.results[0].invocation is defined
+      ignore_errors: yes
+
   run_once: true
