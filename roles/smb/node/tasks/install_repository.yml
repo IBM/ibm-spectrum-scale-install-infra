@@ -1,7 +1,6 @@
 ---
 - name: install | Initialize
   set_fact:
-   scale_smb_url: ""
    gpgcheck: "yes"
 
 - name: install | Disable gpg check

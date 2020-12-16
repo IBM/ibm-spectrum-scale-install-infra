@@ -41,6 +41,7 @@
      is_protocol_node: "{{ item.is_protocol_node | default(false) }}"
      scale_callhome_params: "{{ scale_callhome_params | default(omit) }}"
      scale_protocols: "{{ scale_protocols | default(omit) }}"
+     scale_hdfs_cluster: "{{ scale_hdfs_cluster | default(omit) }}"
     loop: "{{ node_details }}"
   tags:
   - scale_inventory

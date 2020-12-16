@@ -1,0 +1,16 @@
+---
+- name: install | Initialize
+  set_fact:
+    disable_gpgcheck: "no"
+
+- name: install | Disable gpg check
+  set_fact:
+    disable_gpgcheck: "yes"
+  when: scale_version < '5.0.4.0'
+
+- name: install | Install Scale object packages
+  yum:
+   name: "{{ scale_install_all_packages }}"
+   state: present
+   disable_gpg_check: "{{ disable_gpgcheck }}"
+  when: ansible_fqdn in scale_obj_nodes_list

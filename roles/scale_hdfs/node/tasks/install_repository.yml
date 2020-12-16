@@ -1,0 +1,88 @@
+---
+- name: install | Initialize
+  set_fact:
+   scale_hdfs_url: ""
+   gpgcheck: "yes"
+
+- name: install | Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
+
+- name: install | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: install | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: install | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+
+- name: install | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
+
+- name: install | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
+
+- name: install | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
+
+- name: install | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version >= '20'
+
+- name: install | Configure hdfs YUM repository
+  yum_repository:
+    name: spectrum-scale-hdfs
+    description: IBM Spectrum Scale (hdfs)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_hdfs_url }}"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure hdfs zypper repository
+  zypper_repository:
+    name: spectrum-scale-hdfs-rpms
+    repo: "{{ scale_install_repository_url }}{{ scale_hdfs_url }}"
+    runrefresh: yes
+    state: present
+    disable_gpg_check: yes
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure hdfs APT repository
+  apt_repository:
+    filename: spectrum-scale-hdfs-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ scale_hdfs_url }} ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (SMB debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Add GPFS hdfs packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_hdfs_packages }}"

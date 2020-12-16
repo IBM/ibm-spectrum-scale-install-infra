@@ -1,5 +1,5 @@
 ---
 # Install IBM Spectrum Scale (SMB)
 - import_tasks: install.yml
-  when: scale_protocols is defined and scale_protocols.smb|bool
+  when: scale_protocols is defined and (scale_protocols.smb|bool or scale_protocols.nfs|bool)
   tags: install
