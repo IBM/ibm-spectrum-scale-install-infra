@@ -2,6 +2,7 @@
 
 # Install or update RPMs
 # Ensure that installation method was chosen during previous role
+
 - block:
   - name: install | Check for repository installation method
     set_fact:

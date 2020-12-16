@@ -17,13 +17,13 @@
   run_once: True
 
 # Copy inn password file.
-- block:
-    - name: configure | Copy password file from local template folder
-      template:
-        src: "{{ scale_ces_obj.pwd_file }}"
-        dest: /var/mmfs/ssl/keyServ/tmp/{{ scale_ces_obj.pwd_file }}
-        mode: 0755
-      run_once: True
+- name: configure | Copy password file from local template folder
+  template:
+    src: "{{ scale_ces_obj.pwd_file }}"
+    dest: /var/mmfs/ssl/keyServ/tmp/{{ scale_ces_obj.pwd_file }}
+    mode: 0755
+  delegate_to: "{{ scale_obj_nodes_list.0 }}"
+  run_once: True
 
 # Verify if Object is Configured
 - name: configure | Verify if OBJ is configured
@@ -36,49 +36,44 @@
 - name: configure | Set configuration parameter to configure OBJ
   set_fact:
     obj_param: "-g {{ scale_protocols.mountpoint }} -o {{ scale_ces_obj.object_fileset }} --cluster-hostname {{ scale_obj_nodes_list.0 }} --pwd-file {{ scale_ces_obj.pwd_file }}"
+  delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: True
 
 - name: configure | Check local-keystone is defined 
   set_fact:
     obj_param: "{{ obj_param }} --local-keystone" 
   when: scale_ces_obj.local_keystone is defined and scale_ces_obj.local_keystone|bool
+  delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: True
  
 - name: configure | Check enable-s3 is defined
   set_fact:
     obj_param: "{{ obj_param }} --enable-s3"
   when: scale_ces_obj.enable_s3 is defined and scale_ces_obj.enable_s3|bool
+  delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: True
 
 - name: configure | Check enable-file-access is defined
   set_fact:
     obj_param: "{{ obj_param }} --enable-file-access"
   when: scale_ces_obj.enable_file_access is defined and scale_ces_obj.enable_file_access|bool
-  run_once: True
-
-#- debug: 
-#    var: obj_param 
-#  run_once: True
-
+  delegate_to: "{{ scale_obj_nodes_list.0 }}"
+  run_once: true
+ 
 #
 # Configure Object
 #
-- block:  ## when: not obj_enabled
+- block:  ## when: not obj_enabled and ansible_fqdn == scale_obj_nodes_list.0
     - name: configure | Configure object Configuration
       command: "/usr/lpp/mmfs/bin/mmobj swift base {{ obj_param }}"
       when:
         - not scale_ces_obj.dynamic_url|bool
         - scale_ces_obj_configured.rc == 1
-      run_once: True
 
     # Enable Object on CES
     - name: configure | Enable OBJ Service
       command: /usr/lpp/mmfs/bin/mmces service enable OBJ
       register: scale_ces_enable_obj_service
-      run_once: True
-      #notify: wait-obj-healthy
-
-    #- meta: flush_handlers
 
     - name: configure | Show OBJ Service is enabled
       debug: 
@@ -88,7 +83,6 @@
     - name: configure | Start OBJ Service
       command: /usr/lpp/mmfs/bin/mmces service start OBJ
       register: scale_ces_start_obj_service
-      run_once: True
 
     - name: configure | Show OBJ Service is started
       debug:
@@ -99,7 +93,7 @@
       file:
         state: absent
         path: /var/mmfs/ssl/keyServ/tmp/{{ scale_ces_obj.pwd_file }}
-      run_once: True
 
   when: not obj_enabled
-
+  delegate_to: "{{ scale_obj_nodes_list.0 }}"
+  run_once: true 
