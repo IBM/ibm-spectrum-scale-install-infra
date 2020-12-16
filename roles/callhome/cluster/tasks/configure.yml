@@ -59,7 +59,7 @@
 
   - debug:
      msg: "{{ scale_callhome_group.cmd }}"
-    when: scale_callhome_group|bool
+    when: scale_callhome_group.changed is defined and scale_callhome_group.changed|bool
 
   - name: configure | Setup the call home schedule configuration
     shell:

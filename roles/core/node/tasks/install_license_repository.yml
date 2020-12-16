@@ -36,7 +36,7 @@
 
 - name: install | Find GPFS License package
   vars:
-    gpfs_license_package: "{{ package_name_version.results|selectattr('yumstate','equalto','available')|map(attribute='name')|list }}"
+    gpfs_license_package: "{{ package_name_version.results|selectattr('yumstate','match','available')|map(attribute='name')|list }}"
   set_fact:
     scale_gpfs_license_package: "{{ gpfs_license_package }}"
   when:
