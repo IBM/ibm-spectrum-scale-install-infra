@@ -125,6 +125,7 @@
         src: /var/tmp/StanzaFile.new.{{ item.item }}
         dest: /usr/lpp/mmfs/
         mode: a+x
+        remote_src: yes
       ignore_errors: yes
       when:
         - item.size is defined and item.size > 1
@@ -163,6 +164,7 @@
         src: /var/tmp/StanzaFile.new.{{ item.item }}
         dest: /usr/lpp/mmfs/
         mode: a+x
+        remote_src: yes
       ignore_errors: yes
       when:
         - item.size is defined and item.size > 1

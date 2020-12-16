@@ -87,6 +87,7 @@
         src: /var/tmp/StanzaFile.new.nsd
         dest: /usr/lpp/mmfs/
         mode: a+x
+        remote_src: yes
       ignore_errors: yes
       when:
         - scale_storage_stanzafile_new.size > 1
