@@ -1,21 +1,3 @@
-- name: "env_setup | Install Java from OS repository"
-  block:
-    - name: "fatch java path"
-      find: 
-        paths: /usr/lib,/usr/lib64
-        file_type: file
-        patterns: "javac"
-        recurse: yes
-      register: java_out
-    - name: "set JAVA_HOME"
-      set_fact:
-        javahome_path: "{{ java_out.files[0].path | regex_replace('/bin/javac') }}"
-      when: java_out.matched > 0
-    - debug: 
-        var: javahome_path
-        verbosity: 1
-  #when: javahome_path is not define and javahome_path|length == 0
-
 - name: "env_setup | Add JAVA_HOME bin to PATH"
   lineinfile:
     path: /root/.bashrc

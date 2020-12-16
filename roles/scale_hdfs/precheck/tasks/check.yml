@@ -94,20 +94,43 @@
    - scale_hdfs_nodes_list|length > 0
    fail_msg: "No hdfs nodes configured"
 
-#- name: check | verify JAVA
-#  command: "/usr/bin/ls {{ scale_hdfs_cluster. }}/bin/java"
-#  register: jvm_list
+- name: "env_setup | Verify java"
+  block:
+    - name: "fetch JAVA_HOME path"
+      shell: /usr/bin/echo $JAVA_HOME
+      register: java_path
 
-#- debug:
-#    var: jvm_list
-#  run_once: true
-#  delegate_to: localhost
+    - name: "fatch java path"
+      find: 
+        paths: /usr/lib,/usr/lib64
+        file_type: file
+        patterns: "javac"
+        recurse: yes
+      register: java_out
+      when: java_path.stdout|length == 0
 
-#- fail:
-#    msg: "JAVA_HOME not set properlly"
-#  when: jvm_list.rc != 0
-#  run_once: true
-#  delegate_to: localhost
+    - name: "set JAVA_HOME"
+      set_fact:
+        javahome_path: "{{ java_out.files[0].path | regex_replace('/bin/javac') }}"
+      when: java_path.stdout|length == 0 and java_out.matched > 0
 
-- debug:
+    - name: "set JAVA_HOME"
+      set_fact:
+         javahome_path: "{{ java_path.stdout }}"
+      when: java_path.stdout|length > 0
+
+    - debug: 
+        var: javahome_path
+        verbosity: 1
+
+    - name: check | verify JAVA
+      command: "/usr/bin/ls {{ javahome_path }}"
+      register: jvm_list
+      when: javahome_path|length > 0
+
+    - fail:
+        msg: "JAVA_HOME not set properlly"
+      when: jvm_list.rc != 0
+
+    - debug:
         msg: "HDFS Precheck ok"
