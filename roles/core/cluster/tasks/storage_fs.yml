@@ -163,6 +163,7 @@
         src: /var/tmp/StanzaFile.new.{{ item.item }}
         dest: /usr/lpp/mmfs/
         mode: a+x
+      ignore_errors: yes
       when:
         - item.size is defined and item.size > 1
       with_items: "{{ scale_storage_stanzafile_new.results }}"
