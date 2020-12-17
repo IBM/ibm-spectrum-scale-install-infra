@@ -20,16 +20,6 @@
   delegate_to: localhost
   run_once: true
 
-- debug:
-    msg: "scale_hdfs_cluster: {{ scale_hdfs_cluster }}"
-  run_once: true
-  delegate_to: localhost
-
-- debug:
-    msg: "scale_protocols: {{ scale_protocols }}"
-  run_once: true
-  delegate_to: localhost
-
 - name: check | Check if hdfs is enabled
   assert:
    that:
@@ -62,17 +52,11 @@
   delegate_to: localhost
   run_once: true
 
-- debug:
-    msg: "Collected all HDFS NameNodes: {{ scale_hdfs_namenodes_list }}"
-
 - name: check | Collect all HDFS DataNodes
   set_fact:
    scale_hdfs_datanodes_list: "{{ scale_hdfs_cluster.datanodes | unique }}"
   delegate_to: localhost
   run_once: true
-
-- debug:
-        msg: "Collect all HDFS DataNodes: {{ scale_hdfs_datanodes_list }}"
 
 - name: check | Get HDFS nodes
   set_fact:
