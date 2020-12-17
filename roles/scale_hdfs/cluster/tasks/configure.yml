@@ -72,8 +72,6 @@
   delegate_to: "{{ scale_server }}"
   when: ces_hdfs_enabled|bool
 
-- debug: var=java_home.stdout
-
 - block:
    - name: configure | Configuare core-site.xml
      set_fact:
@@ -184,21 +182,19 @@
     - name: Enable HDFS
       command: /usr/lpp/mmfs/bin/mmces service enable HDFS
       register: enable_hdfs
-  
-    - debug: var=enable_hdfs.stdout
-    
+
     - name: Start Namenodes
       shell: /usr/lpp/mmfs/bin/mmces service start HDFS -a
       register: start_hdfs
-  
+
     - name: Start Datanodes
       shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn start
       register: start_dn
-  
+
     - name: Check Namenodes running status
       shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is'
       register: nn_status
-  
+
     - name: Check Datanodes running status
       shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn status | grep 'datanode pid is'
       register: dn_status

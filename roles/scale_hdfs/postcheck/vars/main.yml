@@ -2,5 +2,11 @@
 # Variables for the IBM Spectrum Scale (HDFS) role -
 # these variables are *not* meant to be overridden
 
-# default mm command exection path
+# default mm command execution path
 scale_command_path: /usr/lpp/mmfs/bin/
+
+# Default mmhdfs command excution path
+scale_mmhdfs_command_path: /usr/lpp/mmfs/hadoop/sbin/
+
+# Default hdfs command excution path
+scale_hdfs_command_path: /usr/lpp/mmfs/hadoop/bin/
