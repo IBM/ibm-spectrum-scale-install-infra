@@ -49,6 +49,11 @@
 #
 # Create new NSDs
 #
+    - name: storage | Cleanup existing NSD StanzaFile(s)
+      file:
+        path: /var/tmp/StanzaFile.new.nsd
+        state: absent
+
     - name: storage | Prepare StanzaFile(s) for NSD creation
       vars:
         current_nsds:
