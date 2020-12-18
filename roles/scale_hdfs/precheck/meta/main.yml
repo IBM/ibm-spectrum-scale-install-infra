@@ -19,5 +19,4 @@ galaxy_info:
     - scale
     - gpfs
 
-dependencies: 
-  - scale_hdfs/precheck
+dependencies: []
