@@ -10,12 +10,8 @@
 # reference file (if present), and subsequently the archive will be extracted.
 # Packages will then be installed from the local files on each node.
 
-# Note that specifying the variable 'scale_version' is mandatory for this
-# installation method.
-
 - hosts: cluster01
   vars:
-    - scale_version: 5.0.4.0
     - scale_install_remotepkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
   roles:
     - core/precheck
