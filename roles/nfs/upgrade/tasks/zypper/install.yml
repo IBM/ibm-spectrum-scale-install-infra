@@ -1,0 +1,6 @@
+---
+- name: upgrade | Upgrade GPFS NFS packages
+  zypper:
+   name: "{{ scale_install_all_packages }}"
+   state: latest
+   disable_gpg_check: no

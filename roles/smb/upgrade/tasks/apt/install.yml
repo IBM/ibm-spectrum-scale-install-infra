@@ -1,0 +1,15 @@
+---
+- name: Install GPFS smb packages
+  package:
+   name: "{{ scale_install_all_packages }}"
+   state: present
+  when: scale_install_repository_url is defined
+
+
+- name: upgrade | Upgrade GPFS SMB deb
+  apt:
+   deb: "{{ item }}"
+   state: latest
+  when: scale_install_repository_url is not defined
+  with_items:
+  - "{{ scale_install_all_packages }}"

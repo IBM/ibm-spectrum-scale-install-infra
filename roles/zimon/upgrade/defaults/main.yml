@@ -1,0 +1,47 @@
+---
+# Default variables for the IBM Spectrum Scale (GPFS) (Zimon) role -
+# either edit this file or define your own variables to override the defaults
+
+## Specify the URL of the (existing) Spectrum Scale ZIMon YUM repository
+## (copy the contents of /usr/lpp/mmfs/.../zimon_rpms/rhel7 to build your repository)
+# scale_install_repository_url: http://myrepo.com/
+
+## Note that if this is a URL then a new repository definition will be created.
+## If this variable is set to 'existing' then it is assumed that a repository
+## definition already exists and thus will *not* be created.
+
+## Specify the Spectrum Scale architecture that you want to install on your nodes
+scale_architecture: "{{ ansible_architecture }}"
+
+## List of packages to install on GUI collector nodes
+scale_zimon_collector_packages:
+  - gpfs.java*{{ scale_architecture }}
+  - gpfs.gss.pmcollector*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}
+
+scale_zimon_sensors_packages:
+ - gpfs.gss.pmsensors*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}
+
+scale_zimon_collector_packages_ubuntu:
+  - gpfs.java
+  - gpfs.gss.pmcollector
+
+scale_zimon_sensors_packages_ubuntu:
+ - gpfs.gss.pmsensors
+
+scale_zimon_collector_packages_suse:
+  - gpfs.java
+  - gpfs.gss.pmcollector
+
+scale_zimon_sensors_packages_suse:
+ - gpfs.gss.pmsensors
+
+## Node's default GUI collector role -
+## you'll likely want to define per-node roles in your inventory
+scale_zimon_collector: false
+
+## Node's default GUI collector role -
+## you'll likely want to define per-node roles in your inventory
+scale_cluster_gui: false
+
+## To Enabled output from Ansible task in stdout and stderr for some tasks.
+## Run the playbook with -vv

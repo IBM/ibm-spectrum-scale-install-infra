@@ -1,5 +1,5 @@
 ---
-# Handlers for the common role for IBM Spectrum Scale (GPFS) cluster role
+# Handlers for the IBM Spectrum Scale (GPFS) node role
 # handlers file for node
 - name: yum-clean-metadata
   command: yum clean metadata

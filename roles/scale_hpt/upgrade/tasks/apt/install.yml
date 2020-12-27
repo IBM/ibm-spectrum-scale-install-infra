@@ -1,0 +1,18 @@
+---
+#
+# Install or update packages
+#
+- block:
+    - name: upgrade | Upgrade GPFS HPT packages
+      package:
+        name: "{{ scale_install_all_packages }}"
+        state: present
+      when: scale_install_repository_url is defined
+
+    - name: upgrade | Upgrade GPFS HPT packages
+      apt:
+        deb: "{{ item }}"
+        state: latest
+      with_items:
+        - "{{ scale_install_all_packages }}"
+      when: scale_install_repository_url is not defined

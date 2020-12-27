@@ -1,0 +1,4 @@
+---
+# Install IBM Spectrum Scale (SMB)
+- import_tasks: install.yml
+  tags: install

@@ -1,0 +1,4 @@
+---
+# tasks file for install
+- import_tasks: install.yml
+  tags: install
