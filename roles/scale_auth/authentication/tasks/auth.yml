@@ -1,6 +1,6 @@
 ---
 - name: auth | Register value of FILE_AUTH_TYPE variable
-  command: "{{ scale_command_path }}mmccr vget FILE_AUTH_TYPE | grep ad"
+  command: "{{ scale_command_path }}mmccr vget FILE_AUTH_TYPE"
   register: scale_file_auth_type
   ignore_errors: true
   failed_when: false
@@ -14,31 +14,40 @@
        ignore_errors: true
        failed_when: false
        run_once: true
-
+ 
      - name: auth | Setting new variable LDAPMAP_DOMAINS for Authentication
        command: "{{ scale_command_path }}mmccrnv authccr put LDAPMAP_DOMAINS none"
        when: scale_temp is failed
 
-     - name: auth | Check if value of SERVERS is *
-       command: "{{ scale_command_path }}mmccrnv authccr get SERVERS | grep -w \"*\""
+     - name: auth | Check if value of SERVERS is set
+       command: "{{ scale_command_path }}mmccrnv authccr get SERVERS | grep -w '\"*\"'"
        register: scale_temp
        ignore_errors: true
        failed_when: false
        run_once: true
-
+    
      - name: auth | Setting new variable SERVERS for Authentication
-       command: "{{ scale_command_path }}mmccrnv authccr put SERVERS \"*\""
-       when: scale_temp is failed
+       command: "{{ scale_command_path }}mmccrnv authccr put SERVERS '\"*\"'"
+       when: scale_temp.rc != 0
+       run_once: true
+       delegate_to: localhost
+
+     - name: auth | Collect NETBIOS name
+       command: "{{ scale_command_path }}mmccrnv authccr get NETBIOS_NAME"
+       register: scale_auth_netbios
+       run_once: true
 
      - name: auth | Check if USER_NAME is already set
-       command: "{{ scale_command_path }}mmccrnv authccr get USER_NAME | sed 's/$$//' | egrep ^$(mmccrnv authccr get NETBIOS_NAME)$"
+       command: "{{ scale_command_path }}mmccrnv authccr get USER_NAME | sed 's/$$//' | egrep {{ scale_auth_netbios.stdout }}$"
        register: scale_temp
        ignore_errors: true
        failed_when: false
        run_once: true
-     
-     - name: auth | Setting new variable USER_NAME for Authentication
-       command: "{{ scale_command_path }}mmccrnv authccr put USER_NAME $(mmccrnv authccr get NETBIOS_NAME)'$'"
-       when: scale_temp is failed
 
-  when: scale_file_auth_type.rc == 0
+     - name: auth | Setting new variable USER_NAME for Authentication
+       command: "{{ scale_command_path }}mmccrnv authccr put USER_NAME {{ scale_auth_netbios.stdout }}'$'"
+       when: scale_temp.rc != 0
+       run_once: true
+       delegate_to: localhost
+
+  when: '"ad" in scale_file_auth_type.stdout'
