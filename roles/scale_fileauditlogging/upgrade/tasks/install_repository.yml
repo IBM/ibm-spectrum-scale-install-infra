@@ -33,7 +33,7 @@
    gpgcheck: "no"
   when: scale_version < '5.0.4.0'
 
-- name: install | Get license package
+- name: upgrade | Check if gpfs kafka installed
   yum:
     list: gpfs.kafka.*
   register: gpfskafka_installed
@@ -120,12 +120,29 @@
     - ansible_pkg_mgr == 'zypper'
 
 
-- name: update | Check if gpfs kafka installed
+- name: upgrade | Set if gpfs kafka installed
   set_fact:
     package_installed: true
   when:
      - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
      - "'installed' in gpfskafka_installed.results | map(attribute='yumstate') | list"
+
+- name: upgrade | Check if gpfs kafka installed
+  shell: dpkg -l | grep gpfs.kafka | awk "{print $1}" |  grep ii
+  register: scale_kafka_status
+  failed_when: no
+  changed_when: no
+  args:
+    warn: false
+  when:
+    - ansible_pkg_mgr == 'apt'
+
+- name: upgrade | Set if gpfs kafka installed
+  set_fact:
+    package_installed: true
+  when:
+     - ansible_pkg_mgr == 'apt'
+     - scale_kafka_status.rc == 0
 
 - name: upgrade | Add GPFS file audit logging packages to list
   set_fact:
