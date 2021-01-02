@@ -7,6 +7,7 @@
 - name: Initialize
   set_fact:
    scale_zimon_url: ""
+   is_scale_collector_pkg_installed: false
 
 - name: upgrade | zimon path
   set_fact:
@@ -78,9 +79,6 @@
     - ansible_pkg_mgr == 'apt'
     - scale_install_repository_url != 'existing'
 
-- debug:
-        msg: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
-
 - name: upgrade | Configure ZIMon repository
   zypper_repository:
     name: spectrum-scale-zimon
@@ -110,6 +108,37 @@
     scale_zimon_collector_packages: "{{ scale_zimon_collector_packages_suse }}"
   when: ansible_pkg_mgr == 'zypper'
 
+- name: upgrade | Check if gpfs collector package is installed
+  shell: rpm -q gpfs.gss.pmcollector
+  register: is_collector_package_installed
+  failed_when: no
+  changed_when: no
+  args:
+    warn: false
+  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
+
+- name: upgrade | Set if gpfs collector package is installed
+  set_fact:
+    is_scale_collector_pkg_installed: true
+  when:
+     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
+     - is_collector_package_installed.rc == 0
+
+- name: upgrade | Check if gpfs collector package is installed
+  shell: dpkg -l | grep gpfs.gss.pmcollector | awk "{print $1}" |  grep ii
+  register: is_collector_apt_package_installed
+  failed_when: no
+  changed_when: no
+  args:
+    warn: false
+  when: ansible_pkg_mgr == 'apt'
+
+- name: upgrade | Set if gpfs collector installed
+  set_fact:
+    is_scale_collector_pkg_installed: true
+  when:
+     - ansible_pkg_mgr == 'apt'
+     - is_collector_apt_package_installed.rc == 0
 #
 # Add GUI packages
 #
@@ -124,3 +153,4 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_zimon_collector_packages }}"
+  when: (is_scale_collector_pkg_installed | bool)
