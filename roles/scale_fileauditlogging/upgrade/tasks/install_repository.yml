@@ -7,6 +7,7 @@
 - name: upgrade | Initialize
   set_fact:
    scale_fal_url: ""
+   package_installed: false
 
 - name: upgrade | file audit logging path
   set_fact:
@@ -31,6 +32,14 @@
   set_fact:
    gpgcheck: "no"
   when: scale_version < '5.0.4.0'
+
+- name: install | Get license package
+  yum:
+    list: gpfs.kafka.*
+  register: gpfskafka_installed
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+
 
 - name: upgrade | Configure GPFS Java YUM repository
   yum_repository:
@@ -109,6 +118,21 @@
     state: present
   when:
     - ansible_pkg_mgr == 'zypper'
+
+
+- name: update | Check if gpfs kafka installed
+  set_fact:
+    package_installed: true
+  when:
+     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+     - "'installed' in gpfskafka_installed.results | map(attribute='yumstate') | list"
+
+- name: upgrade | Add GPFS file audit logging packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - gpfs.kafka*
+  when: (package_installed | bool)
 
 #
 # Add FAL packages
