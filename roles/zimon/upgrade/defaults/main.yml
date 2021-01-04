@@ -15,21 +15,18 @@ scale_architecture: "{{ ansible_architecture }}"
 
 ## List of packages to install on GUI collector nodes
 scale_zimon_collector_packages:
-  - gpfs.java*{{ scale_architecture }}
   - gpfs.gss.pmcollector*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}
 
 scale_zimon_sensors_packages:
  - gpfs.gss.pmsensors*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}
 
 scale_zimon_collector_packages_ubuntu:
-  - gpfs.java
   - gpfs.gss.pmcollector
 
 scale_zimon_sensors_packages_ubuntu:
  - gpfs.gss.pmsensors
 
 scale_zimon_collector_packages_suse:
-  - gpfs.java
   - gpfs.gss.pmcollector
 
 scale_zimon_sensors_packages_suse:
