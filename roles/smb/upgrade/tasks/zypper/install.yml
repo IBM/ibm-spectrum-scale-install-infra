@@ -2,5 +2,5 @@
 - name: upgrade | Upgrade GPFS SMB packages
   zypper:
    name: "{{ scale_install_all_packages }}"
-   state: present
+   state: latest
    disable_gpg_check: no

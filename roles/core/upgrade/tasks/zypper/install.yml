@@ -4,11 +4,6 @@
 #
 - block:  ## when: not scale_daemon_running
     - block:
-        - name: upgrade | dependencies package
-          zypper:
-            name: binutils
-            state: present
-
         - name: upgrade | Upgrade GPFS packages
           zypper:
             name: "{{ scale_install_all_packages }}"
