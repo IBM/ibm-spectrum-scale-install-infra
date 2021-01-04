@@ -6,7 +6,7 @@
     - name: upgrade | Upgrade GPFS HPT packages
       package:
         name: "{{ scale_install_all_packages }}"
-        state: present
+        state: latest
       when: scale_install_repository_url is defined
 
     - name: upgrade | Upgrade GPFS HPT packages

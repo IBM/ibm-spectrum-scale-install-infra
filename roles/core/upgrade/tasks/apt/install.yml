@@ -30,11 +30,11 @@
         - name: upgrade | Upgrade GPFS Core packages
           package:
            name: "{{ scale_install_all_packages }}"
-           state: present
+           state: latest
 
         - name: upgrade | Upgrade GPFS Core packages
           package:
            name: "{{ scale_install_license_packages }}"
-           state: present
+           state: latest
       when: scale_install_repository_url is defined
   when: not scale_daemon_running

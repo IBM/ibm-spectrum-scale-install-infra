@@ -2,7 +2,7 @@
 - name: Install GPFS smb packages
   package:
    name: "{{ scale_install_all_packages }}"
-   state: present
+   state: latest
   when: scale_install_repository_url is defined
 
 
