@@ -7,6 +7,7 @@
 - name: Initialize
   set_fact:
    gpgcheck: "yes"
+   is_scale_java_pkg_installed: false
 
 - name: Disable gpg check
   set_fact:
@@ -93,3 +94,42 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   when: scale_install_gplbin_package is undefined
   with_items: "{{ scale_install_gplsrc_packages }}"
+
+- name: upgrade | Check if gpfs java package is installed
+  shell: rpm -q gpfs.java
+  register: is_gpfsjava_package_installed
+  failed_when: no
+  changed_when: no
+  args:
+    warn: false
+  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
+
+- name: upgrade | Set if gpfs java package is installed
+  set_fact:
+    is_scale_java_pkg_installed: true
+  when:
+     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
+     - is_gpfsjava_package_installed.rc == 0
+
+- name: upgrade | Check if gpfs java package is installed
+  shell: dpkg -l | grep gpfs.java | awk "{print $1}" |  grep ii
+  register: is_gpfsjava_apt_package_installed
+  failed_when: no
+  changed_when: no
+  args:
+    warn: false
+  when: ansible_pkg_mgr == 'apt'
+
+- name: upgrade | Set if gpfs java package installed
+  set_fact:
+    is_scale_java_pkg_installed: true
+  when:
+     - ansible_pkg_mgr == 'apt'
+     - is_gpfsjava_apt_package_installed.rc == 0
+
+- name: upgrade | Add GPFS java packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - gpfs.java*
+  when: (is_scale_java_pkg_installed | bool)
