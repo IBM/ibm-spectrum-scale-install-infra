@@ -50,4 +50,96 @@
        run_once: true
        delegate_to: localhost
 
+     - name: auth | Check if UNIXMAP_DOMAINS contain none or domXX(10-20:unix) or domYY(30-40:win)
+       command: "{{ scale_command_path }}mmccrnv authccr get UNIXMAP_DOMAINS"
+       register: scale_temp
+       ignore_errors: true
+       failed_when: false
+       run_once: true
+
+     - block:
+          - name: auth | Collect UNIXMAP_DOMAINS name
+            command: "{{ scale_command_path }}mmccrnv authccr get UNIXMAP_DOMAINS | tr -d ')')':win)'"
+            register: scale_unixmap_domain
+            run_once: true
+
+          - name: auth | Set variable UNIXMAP_DOMAINS for Authentication
+            command: "{{ scale_command_path }}mmccrnv authccr put UNIXMAP_DOMAINS {{ scale_unixmap_domain.stdout }}')':win)"
+            run_once: true
+            delegate_to: localhost
+       when: '"none" not in scale_temp.stdout and ":win" not in scale_temp.stdout and ":unix" not in scale_temp.stdout'
+
   when: '"ad" in scale_file_auth_type.stdout'
+
+- name: auth | Update the TLS_CIPHER_SUITE with proper string which will ensure minimum TLS version(1-2) is enforced
+  set_fact:
+      ldaptmppath : "/var/mmfs/tmp/LDAP_CONF_TMP_1"
+      ldapnewpath : "/var/mmfs/tmp/LDAP_CONF_TMP_2"
+      isFileAuth : false
+      isTLSenabled : false
+      getLDAPfile : false
+      putLDAPfile : false
+      isCipherPresent : false
+      isProtoPresent : false
+      searchstring1 : "TLS_CIPHER_SUITE"
+      searchstring2 : "TLS_PROTOCOL_MIN"
+      newTLSstring : ""
+      newPROTstring : "TLS_PROTOCOL_MIN 3.3"
+  run_once: true
+  delegate_to: localhost
+
+- name: auth | Check current auth scheme
+  set_fact:
+      isFileAuth : true
+  when: '"ldap" in scale_file_auth_type.stdout'
+  run_once: true
+  delegate_to: localhost
+
+- block:
+     - name: auth | Check if TLS is enabled or not
+       command: "{{scale_command_path }}mmccrnv authccr get ENABLE_SERVER_TLS"
+       register: scale_temp
+       run_once: true
+       delegate_to: localhost
+
+     - name: auth | Set isTLSenabled flag
+       set_fact:
+           isTLSenabled : true
+       when: '"true" in scale_temp.stdout'
+
+- block:
+     - name: auth | If auth scheme = LDAP and TLS is enabled, get the ldap.conf file from mmccr
+       command: "{{ scale_command_path }}mmccr fget LDAP_CONF {{ ldaptmppath }}"
+       register: scale_temp
+       run_once: true
+       delegate_to: localhost
+
+     - name: auth | Set getLDAPfile flag
+       set_fact:
+           getLDAPfile : true
+       run_once: true
+       delegate_to: localhost
+  when: isFileAuth|bool and isTLSenabled|bool
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
