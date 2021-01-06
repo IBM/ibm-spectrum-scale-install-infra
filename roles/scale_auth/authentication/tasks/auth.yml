@@ -97,10 +97,11 @@
 
 - block:
      - name: auth | Check if TLS is enabled or not
-       command: "{{scale_command_path }}mmccrnv authccr get ENABLE_SERVER_TLS"
+       command: "{{ scale_command_path }}mmccrnv authccr get ENABLE_SERVER_TLS"
        register: scale_temp
        run_once: true
        delegate_to: localhost
+       ignore_errors: true
 
      - name: auth | Set isTLSenabled flag
        set_fact:
@@ -119,27 +120,69 @@
            getLDAPfile : true
        run_once: true
        delegate_to: localhost
+
+     - name: auth | Set newTLSstring variable
+       set_fact:
+           newTLSstring : "TLS_CIPHER_SUITE DEFAULT:!SSLv3:!TLSv1:!TLSv1.1:@STRENGTH"
+       when: (ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7') or (ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8') or (ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15')
+       run_once: true
+       delegate_to: localhost
+
+     - name: auth | Set newTLSstring variable
+       set_fact:
+           newTLSstring : "NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2:-AES-128-CBC:-AES-256-CBC"
+       when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+       run_once: true
+       delegate_to: localhost
+
+     - block:
+          - name: auth | Go through line by line and check if our search strings macthes ,if matches, replace it, if not, add the new string to the file
+            include_tasks: parseFile.yml
+            with_lines: cat "{{ ldaptmppath }}"
+            run_once: true
+
+          - name: auth | write newTLSstring to the file
+            lineinfile:
+                path: "{{ ldapnewpath }}"
+                create: true
+                line: "{{ newTLSstring }}"
+                state: present
+                insertafter: '\n'
+            when: not isCipherPresent|bool
+
+          - name: auth | write newTLSstring to the file
+            lineinfile:
+                path: "{{ ldapnewpath }}"
+                create: true
+                line: "{{ newPROTstring }}"
+                state: present
+                insertafter: '\n'
+            when: not isProtoPresent|bool
+
+          - name: auth | put back the new file to mmccr
+            command: "{{ scale_command_path }}mmccr fput LDAP_CONF {{ ldapnewpath }}"
+            register: scale_temp
+            run_once: true
+            delegate_to: localhost
+
+          - name: auth | Set putLDAPfile flag
+            set_fact:
+                putLDAPfile : true
+            when: scale_temp.rc == 0
+ 
+          - block:
+                - name: auth | Do callback for auth file change
+                  command: "{{ scale_command_path }}mmcesop cesauthfilechange ldap"
+
+                - name: auth | Delete the tmp files
+                  file:
+                     path: "{{ ldapnewpath }}"
+                     state: absent
+
+                - name: auth | Delete the tmp files
+                  file:
+                     path: "{{ ldaptmppath }}"
+                     state: absent
+            when: putLDAPfile|bool
+       when: getLDAPfile|bool
   when: isFileAuth|bool and isTLSenabled|bool
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
