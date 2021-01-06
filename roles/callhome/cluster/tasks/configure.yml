@@ -5,9 +5,7 @@
   register: scale_callhome_config_status
   ignore_errors: true
   failed_when: false
-
-- debug:
-    msg: "{{ scale_callhome_config_status.cmd }}"
+  run_once: true
 
 - block:
   - name: configure | Setup the call home proxy configuration if enabled
@@ -27,6 +25,7 @@
 
   - debug:
      msg: "{{ scale_callhome_customer_config.cmd }}"
+    when: scale_callhome_customer_config.changed is defined and scale_callhome_customer_config.changed|bool
 
   - name: configure| Enable callhome
     shell:
@@ -34,18 +33,22 @@
      stdin: accept
     register: scale_callhome_status
     changed_when: scale_callhome_customer_config|bool
+    when: scale_callhome_config_status.stdout==""
 
   - debug:
      msg: "{{ scale_callhome_status.cmd }}"
+    when: scale_callhome_config_status.stdout==""
 
   - debug:
      msg: "Callhome enabled"
     changed_when: scale_callhome_status|bool
+    when: scale_callhome_config_status.stdout==""
 
   - name: configure | Check if callhome group is already created
     shell:
      cmd: "{{ scale_command_path }}mmcallhome group list"
     ignore_errors: true
+    failed_when: false
     register: scale_callhome_group
 
   - debug:
@@ -53,8 +56,7 @@
 
   - name: configure | Create callhome group
     shell:
-     cmd: "{{ scale_command_path }}mmcallhome group auto --server {{ scale_callhome_params.callhome_server }}"
-    when: scale_callhome_group.stdout==""
+     cmd: "{{ scale_command_path }}mmcallhome group auto --server {{ scale_callhome_params.callhome_server }} --force --enable ACCEPT"
     register: scale_callhome_group
 
   - debug:
@@ -71,5 +73,4 @@
   - debug:
      msg: "{{ scale_callhome_schedule_status.cmd }}"
     when: scale_callhome_schedule_status|bool
-  when: scale_callhome_config_status.stdout==""
   run_once: true
