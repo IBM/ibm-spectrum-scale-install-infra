@@ -158,6 +158,7 @@
   shell:
    cmd: "mmces interface mode interface --force"
   when: scale_ces_ipv6_list|length > 0
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
 
 - name: configure | Add IPv6 interface
@@ -166,6 +167,7 @@
   when: scale_ces_ipv6_list|length > 0 and scale_protocols.interface|length > 0
   with_items:
   - "{{ scale_protocols.interface }}"
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
 
 - block:
