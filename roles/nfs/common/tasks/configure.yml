@@ -34,6 +34,7 @@
   register: scale_ces_enable_status
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  failed_when: false
   ignore_errors: true
 
 - name: configure | Collect all nodes on which ces is not enabled
