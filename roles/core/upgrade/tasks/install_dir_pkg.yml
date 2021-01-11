@@ -1,0 +1,203 @@
+---
+# directory package installation method
+
+- block:  ## run_once: true
+    - name: upgrade | Stat directory installation package
+      stat:
+        path: "{{ scale_install_directory_pkg_path }}"
+      register: scale_install_dirpkg
+
+    - name: upgrade | Check directory installation package
+      assert:
+        that: scale_install_dirpkg.stat.exists
+        msg: >-
+          Please set the variable 'scale_install_directory_pkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+  run_once: true
+  delegate_to: localhost
+
+
+- name: install| Creates default directory
+  file:
+    path: "{{ scale_extracted_path }}"
+    state: directory
+    mode: a+x
+    recurse: yes
+
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ scale_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+  register: scale_install_gpfs_packagedir
+
+#
+# Copy installation directory package
+#
+
+- block:
+    - name: upgrade | Copy installation package to node
+      copy:
+        src: "{{ scale_install_directory_pkg_path }}"
+        dest: "{{ scale_extracted_path }}"
+        mode: a+x
+
+- name: upgrade | Set installation package path
+  set_fact:
+    dir_path: "{{ scale_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+
+- name: upgrade | gpfs base path
+  set_fact:
+    scale_gpfs_path_url: "{{ dir_path }}"
+  when: scale_install_directory_pkg_path is defined
+
+#
+# Find GPFS BASE
+#
+- name: upgrade | Find GPFS BASE (gpfs.base) package
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.base*{{ scale_architecture }}*
+  register: scale_install_gpfs_base
+
+- name: upgrade | Check valid GPFS BASE (gpfs.base) package
+  assert:
+    that: scale_install_gpfs_base.matched > 0
+    msg: >-
+      No GPFS BASE (gpfs.base) package found:
+      {{ dir_path }}/gpfs.base*{{ scale_architecture }}*
+
+#
+# Find GPFS gpfs.docs
+#
+- name: upgrade | Find GPFS docs (gpfs.docs) package
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.docs*
+  register: scale_install_gpfs_doc
+
+- name: upgrade | Check valid GPFS docs (gpfs.docs) package
+  assert:
+    that: scale_install_gpfs_doc.matched > 0
+    msg: >-
+      No GPFS docs (gpfs.docs) package found:
+      {{ dir_path }}/gpfs.docs*
+
+#
+# Find GPFS gpfs.msg.en_US
+#
+- name: upgrade | Find gpfs.msg.en_US (gpfs.msg.en_US) package
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.msg.en*
+  register: scale_install_gpfs_msg
+
+- name: upgrade | Check valid GPFS (gpfs.msg.en_US) package
+  assert:
+    that: scale_install_gpfs_msg.matched > 0
+    msg: >-
+      No GPFS BASE (gpfs.base) package found:
+      {{ dir_path }}/gpfs.msg.en*
+
+#
+# Find GPFS gpfs.compression
+#
+- name: upgrade | Find GPFS Compression (gpfs.compression) package
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.compression*{{ scale_architecture }}*
+  register: scale_install_gpfs_compression
+
+- name: upgrade | Check valid GPFS Compression(gpfs.compression) package
+  debug:
+    msg: >-
+      No GPFS Compression (gpfs.compression) package found:
+      {{ dir_path }}/gpfs.compression*{{ scale_architecture }}*
+  when: scale_install_gpfs_compression.matched < 1
+
+#
+# Find GSKit
+#
+- name: upgrade | Find Global Security Kit (GSKit) package
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.gskit*{{ scale_architecture }}*
+  register: scale_install_gpfs_gskit
+
+- name: upgrade | Check valid Global Security Kit (GSKit) package
+  assert:
+    that: scale_install_gpfs_gskit.matched > 0
+    msg: >-
+      No Global Security Kit (GSKit) package found:
+      {{ dir_path }}/gpfs.gskit*{{ scale_architecture }}*
+
+#
+# Add GPFS Packages
+#
+- name: upgrade | Add GPFS packages to list
+  vars:
+    current_package: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
+    - "{{ scale_install_gpfs_base.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_doc.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_msg.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_gskit.files.0.path | basename }}"
+
+- name: upgrade | Add GPFS compression packages to list
+  vars:
+    current_package: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items: "{{ scale_install_gpfs_compression.files.0.path | basename }}"
+  when: scale_install_gpfs_compression.matched == 1
+
+- name: upgrade | Add GPFS packages to list (prior to version 5.0.2.0)
+  vars:
+    current_package: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
+    - "{{ scale_install_add_packages_pre502 }}"
+  when: scale_version is version_compare('5.0.2', '<=')
+
+#
+# Add GPFS Packages for building GPL module from source
+#
+
+- name: upgrade | Find GPFS gpl (gpfs.gpl) package
+  find:
+    paths: "{{ dir_path }}"
+    patterns: gpfs.gpl*
+  register: scale_install_gpfs_gpl
+
+- name: upgrade | Check valid GPFS GPL (gpfs.gpl) package
+  assert:
+    that: scale_install_gpfs_gpl.matched > 0
+    msg: >-
+      No GPFS GPL (gpfs.gpl) package found:
+      {{ dir_path }}/gpfs.gpl*
+
+- name: upgrade | Add GPFS packages for building GPL module from source to list
+  vars:
+    current_package: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  when: scale_install_gplbin_package is undefined
+  with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"
+
+#
+# Find ibm_cloud_workflows
+#
+- name: upgrade | Find workflows package
+  find:
+    paths: "{{ dir_path }}"
+    patterns: ibm_cloud_workflows*
+  register: scale_install_cloud_workflows
+
+- name: upgrade | Add workflows package from source to list
+  vars:
+    current_package: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items: "{{ scale_install_cloud_workflows.files.0.path | basename }}"
+  when: scale_install_cloud_workflows.matched == 1
