@@ -1,10 +1,4 @@
 ---
-- debug:
-        msg: "{{ item }}"
-- name: initiali
-  set_fact:
-      newTLSstring : "abc"
-      newPROTstring : "def"
 - block:
      - name: auth | Replace the line with newTLSstring
        lineinfile:
