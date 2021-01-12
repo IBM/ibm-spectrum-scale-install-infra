@@ -3,9 +3,6 @@
 # either edit this file or define your own variables to override the defaults
 
 ## Specify the URL of the (existing) Spectrum Scale YUM/apt/zypper repository
-#scale_install_smb_repository_rpms: http://<ip>/hdfs_rpms/
-#scale_install_smb_repository_debs: http://<ip>/hdfs_debs/
-#scale_install_smb_repository_rpms_sles: http://<ip>/hdfs_rpms/sles12/
 
 ## List of HDFS packages to install
 scale_hdfs_packages: gpfs.hdfs-protocol

@@ -107,6 +107,7 @@
        - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:8020" }
        - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:50070" }
        - { 'key': "dfs.namenode.shared.edits.dir", 'value': "file:///{{ scale_hdfs_mountpoint }}/HA-{{ scale_hdfs_cluster.name }}" }
+     when: ha_enabled|bool
 
    - name: configure | Configuare gpfs-site.xml
      set_fact:
@@ -158,7 +159,7 @@
    - name: configure | InitializeSharedEdits for Namenodes HA
      command: /usr/lpp/mmfs/hadoop/bin/hdfs namenode -initializeSharedEdits -force
      register: initializedSharedEdits
-     when: ces_hdfs_enabled|bool
+     when: ha_enabled|bool and ces_hdfs_enabled|bool
     
    - name:  configure | Enable CES
      command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ item }}"
@@ -184,7 +185,8 @@
       register: enable_hdfs
 
     - name: Start Namenodes
-      shell: /usr/lpp/mmfs/bin/mmces service start HDFS -a
+      shell: /usr/lpp/mmfs/bin/mmces service start HDFS -N "{{ item }}"
+      with_items: "{{ scale_hdfs_namenodes_list }}"
       register: start_hdfs
 
     - name: Start Datanodes

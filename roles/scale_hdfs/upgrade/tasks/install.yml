@@ -1,0 +1,69 @@
+---
+# Install or update RPMs
+# Ensure that installation method was chosen during previous role
+- block:
+  - name: upgrade | Check for repository installation method
+    set_fact:
+     scale_installmethod: repository
+    when:
+    - scale_install_repository_url is defined
+
+  - name: upgrade | Check for localpkg installation method
+    set_fact:
+     scale_installmethod: local_pkg
+    when:
+    - scale_install_repository_url is undefined
+    - scale_install_remotepkg_path is undefined
+    - scale_install_localpkg_path is defined
+
+  - name: upgrade | Check for remotepkg installation method
+    set_fact:
+     scale_installmethod: remote_pkg
+    when:
+    - scale_install_repository_url is undefined
+    - scale_install_remotepkg_path is defined
+
+  - name: upgrade | Check for directory package installation method
+    set_fact:
+      scale_installmethod: dir_pkg
+    when:
+      - scale_install_repository_url is undefined
+      - scale_install_remotepkg_path is undefined
+      - scale_install_localpkg_path is undefined
+      - scale_install_directory_pkg_path is defined
+
+  - name: upgrade | Check installation method
+    assert:
+     that: scale_installmethod is defined
+     msg: >-
+          Please set the appropriate variable 'scale_install_*' for your desired
+          installation method!
+  run_once: true
+  delegate_to: localhost
+
+# Run chosen installation method to get list of RPMs
+
+- name: upgrade | Initialize list of packages
+  set_fact:
+   scale_install_all_packages: []
+
+- name: upgrade | Set the extracted package directory path
+  set_fact:
+    hdfs_extracted_path: "{{ scale_extracted_path }}"
+
+- name: upgrade | Stat extracted packages directory
+  stat:
+    path: "{{ hdfs_extracted_path }}"
+  register: scale_extracted_gpfs_dir
+
+- include_tasks: install_{{ scale_installmethod }}.yml
+
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- import_tasks: yum/install.yml
+  when: ansible_distribution in scale_rhel_distribution
+
+- import_tasks: zypper/install.yml
+  when: ansible_distribution in scale_sles_distribution
+

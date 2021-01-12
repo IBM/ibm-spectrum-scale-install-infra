@@ -17,8 +17,8 @@
 scale_storage:
   - filesystem: gpfs01
     blockSize: 4M
-    defaultMetadataReplicas: 2
-    defaultDataReplicas: 2
+    defaultMetadataReplicas: 1
+    defaultDataReplicas: 1
     numNodes: 16
     automaticMountOption: true
     defaultMountPoint: /mnt/gpfs01

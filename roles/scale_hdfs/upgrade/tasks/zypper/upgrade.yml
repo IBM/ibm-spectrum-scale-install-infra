@@ -1,0 +1,7 @@
+---
+- name: upgrade | Upgrade GPFS HDFS packages
+  zypper:
+   name: "{{ scale_install_all_packages }}"
+   state: latest
+   disable_gpg_check: no
+  when: ansible_fqdn in scale_hdfs_node_list
