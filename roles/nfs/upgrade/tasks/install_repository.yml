@@ -1,0 +1,160 @@
+---
+- name: Initialize
+  set_fact:
+   gpgcheck: "yes"
+
+- name: Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
+
+- name: upgrade | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_rpms/rhel7/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: upgrade | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: upgrade | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- name: upgrade | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_rpms/sles12/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+
+- name: upgrade | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_rpms/sles15/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
+
+- name: upgrade | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/rhel7/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: upgrade | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: upgrade | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/sles12/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+
+- name: upgrade | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/sles15/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
+
+- name: upgrade | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_debs/ubuntu16/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
+
+- name: upgrade | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+
+- name: install|configure nfs YUM repository
+  yum_repository:
+    name: spectrum-scale-nfs-rpms
+    description: IBM Spectrum Scale (NFS RPMS)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_nfs_url }}"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+
+- name: upgrade | Configure nfs APT repository
+  apt_repository:
+    filename: spectrum-scale-nfs-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ scale_nfs_url }} ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (NFS debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: upgrade | Configure nfs zypper repository
+  zypper_repository:
+    name: spectrum-scale-nfs-rpms
+    repo: "{{ scale_install_repository_url }}{{ scale_nfs_url }}"
+    runrefresh: yes
+    state: present
+    disable_gpg_check: yes
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url != 'existing'
+
+- name: install|configure pm-ganesha YUM repository
+  yum_repository:
+    name: spectrum-scale-pm-ganesha-rpms
+    description: IBM Spectrum Scale (PM-ganesha RPMS)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+
+- name: upgrade | Configure pm-ganesha APT repository
+  apt_repository:
+    filename: spectrum-scale-pm-ganesha-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ scale_zimon_url }} ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (PM-ganesha debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: upgrade | Configure pm-ganesha zypper repository
+  zypper_repository:
+    name: spectrum-scale-pm-ganesha-rpms
+    repo: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
+    runrefresh: yes
+    state: present
+    disable_gpg_check: yes
+    overwrite_multiple: yes
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url != 'existing'
+
+- name: upgrade | Add GPFS nfs packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_rpms }}"
+  when: ansible_distribution in scale_rhel_distribution or
+        ansible_distribution in scale_sles_distribution
+
+- name: upgrade | Add GPFS nfs packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_debs }}"
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- name: upgrade | Add GPFS pm-ganesha packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_pm_package }}"

@@ -1,0 +1,174 @@
+---
+# Remote package installation method
+
+- name: upgrade | Stat remote installation package
+  stat:
+    path: "{{ scale_install_remotepkg_path }}"
+    checksum_algorithm: md5
+  register: scale_install_remotepkg
+
+- name: upgrade | Check remote installation package
+  assert:
+    that: scale_install_remotepkg.stat.exists
+    msg: >-
+      Please set the variable 'scale_install_remotepkg_path' to point to the
+      remote installation package (accessible on Ansible managed node)!
+
+#
+# Optionally, verify package checksum
+#
+- name: upgrade | Stat checksum file
+  stat:
+    path: "{{ scale_install_remotepkg_path }}.md5"
+  register: scale_install_md5_file
+
+- block:  ## when: scale_install_md5_file.stat.exists
+    - name: upgrade | Read checksum from file
+      slurp:
+        src: "{{ scale_install_remotepkg_path }}.md5"
+      register: scale_install_md5_sum
+
+    - name: upgrade | Compare checksums
+      vars:
+        md5sum: "{{ scale_install_md5_sum.content | b64decode }}"
+      assert:
+        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.checksum
+        msg: >-
+          Checksums don't match. Please check integritiy of your remote
+          installation package!
+  when: scale_install_md5_file.stat.exists
+
+#
+# Extract installation package
+#
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: upgrade | Make installation package executable
+  file:
+    path: "{{ scale_install_remotepkg_path }}"
+    mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+- name: upgrade | Extract installation package
+  command: "{{ scale_install_remotepkg_path + ' --silent' }}"
+  args:
+    creates: "{{ scale_gpfs_path_url }}"
+
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs__rpmdir
+
+- name: upgrade | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs__rpmdir.stat.exists
+      - scale_install_gpfs_rpmdir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      remote installation package!
+
+- name: upgrade | Set package arch
+  set_fact:
+    package_arch: 'el'
+
+- name: upgrade | Set package arch
+  set_fact:
+    package_arch: 'U'
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- name: upgrade | Set package arch
+  set_fact:
+    package_arch: 'sles'
+  when: ansible_distribution in scale_sles_distribution
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/rhel7/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu16/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu18/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/sles12/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/sles15/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
+
+#
+# Find Zimon collector
+#
+- block:  ## when: host is defined as a gui node
+    #
+    # Find GPFS gpfs.collector
+    #
+    - name: upgrade | Find gpfs.collector (gpfs.collector) RPM
+      find:
+        paths: "{{ scale_extracted_path }}/{{ scale_zimon_url }}"
+        patterns: gpfs.gss.pmcollector*{{ package_arch }}{{ ansible_distribution_major_version }}*
+      register: scale_install_gpfs_collector
+
+    - name: upgrade | Check valid GPFS (gpfs.collector) RPM
+      assert:
+        that: scale_install_gpfs_collector.matched > 0
+        msg: >-
+          No GPFS collector (gpfs.gss.collector) RPM found:
+          "{{ scale_extracted_path }}/{{ scale_zimon_url }}/gpfs.gss.pmcollector*{{ package_arch }}{{ ansible_distribution_major_version }}*"
+
+    - name: upgrade | Add GPFS zimon collector packages to list
+      vars:
+        current_package: "{{ scale_extracted_path }}/{{ scale_zimon_url }}/{{ item }}"
+      set_fact:
+        scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+      with_items:
+        - "{{ scale_install_gpfs_collector.files.0.path | basename }}"
+
+#
+# Find GPFS gpfs.gss.pmsensors
+#
+- name: upgrade | Find gpfs.gss.pmsensors (gpfs.gss.pmsensors) RPM
+  find:
+    paths: "{{ scale_extracted_path }}/{{ scale_zimon_url }}"
+    patterns: gpfs.gss.pmsensors*{{ package_arch }}{{ ansible_distribution_major_version }}*
+  register: scale_install_gpfs_pmsensors
+
+- name: upgrade | Check valid GPFS (gpfs.gss.pmsensors) RPM
+  assert:
+    that: scale_install_gpfs_pmsensors.matched > 0
+    msg: >-
+      No GPFS pmsensors (gpfs.gss.pmsensors) RPM found:
+      "{{ scale_extracted_path }}/{{ scale_zimon_url }}/gpfs.gss.pmsensors*{{ package_arch }}{{ ansible_distribution_major_version }}*"
+
+
+- name: upgrade | Add GPFS zimon sensors packages to list
+  vars:
+    current_package: "{{ scale_extracted_path }}/{{ scale_zimon_url }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
+    - "{{ scale_install_gpfs_pmsensors.files.0.path | basename }}"

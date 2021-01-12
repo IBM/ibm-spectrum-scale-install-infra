@@ -34,6 +34,7 @@
   register: scale_ces_enable_status
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  failed_when: false
   ignore_errors: true
 
 - name: configure | Collect all nodes on which ces is not enabled
@@ -154,17 +155,21 @@
   delegate_to: scale_protocol_node_list.0
   run_once: true
 
+- name: configure | Enable interface mode
+  shell:
+   cmd: "mmces interface mode interface --force"
+  when: scale_ces_ipv6_list|length > 0
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
+
 - name: configure | Add IPv6 interface
   shell:
    cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
   when: scale_ces_ipv6_list|length > 0 and scale_protocols.interface|length > 0
   with_items:
   - "{{ scale_protocols.interface }}"
-
-- name: configure | Enable interface mode
-  shell:
-   cmd: "mmces interface mode interface --force"
-  when: scale_ces_ipv6_list|length > 0
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
 
 - block:
   - name: configure | Create CES groups
