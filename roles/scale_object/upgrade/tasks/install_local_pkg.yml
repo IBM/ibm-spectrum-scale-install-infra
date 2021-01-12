@@ -1,0 +1,136 @@
+---
+# Local package installation method
+
+- block:  ## run_once: true
+    - name: upgrade | Stat local installation package
+      stat:
+        path: "{{ scale_install_localpkg_path }}"
+        checksum_algorithm: md5
+      register: scale_install_localpkg
+
+    - name: upgrade | Check local installation package
+      assert:
+        that: scale_install_localpkg.stat.exists
+        msg: >-
+          Please set the variable 'scale_install_localpkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+#
+# Optionally, verify package checksum
+#
+    - name: upgrade | Stat checksum file
+      stat:
+        path: "{{ scale_install_localpkg_path }}.md5"
+      register: scale_install_md5_file
+
+    - block:  ## when: scale_install_md5_file.stat.exists
+        - name: upgrade | Read checksum from file
+          set_fact:
+            scale_install_md5_sum: "{{ lookup('file', scale_install_localpkg_path + '.md5') }}"
+
+        - name: upgrade | Compare checksums
+          assert:
+            that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.checksum
+            msg: >-
+              Checksums don't match. Please check integritiy of your local
+              installation package!
+      when: scale_install_md5_file.stat.exists
+  run_once: true
+  delegate_to: localhost
+
+#
+# Copy installation package
+#
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ obj_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
+    - name: upgrade | Stat temporary directory
+      stat:
+        path: "{{ scale_install_localpkg_tmpdir_path }}"
+      register: scale_install_localpkg_tmpdir
+
+    - name: upgrade | Check temporary directory
+      assert:
+        that:
+          - scale_install_localpkg_tmpdir.stat.exists
+          - scale_install_localpkg_tmpdir.stat.isdir
+        msg: >-
+          Please set the variable 'scale_install_localpkg_tmpdir_path' to point
+          to a temporary directory on the remote system!
+    - name: upgrade | Copy installation package to node
+      copy:
+        src: "{{ scale_install_localpkg_path }}"
+        dest: "{{ scale_install_localpkg_tmpdir_path }}"
+        mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+#
+# Extract installation package
+#
+- name: upgrade | Extract installation package
+  vars:
+    localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+  command: "{{ localpkg + ' --silent' }}"
+  args:
+    creates: "{{ obj_extracted_path }}"
+
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ obj_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: upgrade | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs_rpmdir.stat.exists
+      - scale_install_gpfs_rpmdir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      local installation package!
+#
+# Delete installation package
+#
+- name: upgrade | Delete installation package from node
+  file:
+    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+    state: absent
+
+# Find object rpms
+
+- block: ## when: ansible_fqdn in scale_obj_nodes_list 
+    - name: upgrade | obj path
+      set_fact:
+        scale_obj_url: 'object_rpms/rhel8'
+      when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+    - name: upgrade | Find all packages 
+      find:
+        paths:  "{{ obj_extracted_path }}/{{ scale_obj_url }}"
+        patterns: "*.rpm"
+      register: object_package
+
+    - set_fact:
+        scale_install_all_packages: "{{ object_package.files | map(attribute='path') | list}}"
+
+    - name: upgrade | Check valid scale openstack-swift packages
+      assert:
+        that: scale_install_all_packages | select('match', '.*openstack-swift.*') | list
+        msg: "No Scale object openstack-swift package found {{ obj_extracted_path }}/{{ scale_obj_url }}/openstack-swift*"
+      run_once: true
+
+    - name: upgrade | Check valid python3-swift package
+      assert:
+        that: scale_install_all_packages | select('match', '.*python3-swift.*') | list
+        msg: "No python3-swift package found {{ obj_extracted_path }}/{{ scale_obj_url }}/python3-swift*"
+      run_once: true
+
+    - name: upgrade | Check valid scale spectrum-scale-object package
+      assert:
+        that: scale_install_all_packages | select('match', '.*spectrum-scale-object.*') | list
+        msg: "No Scale object spectrum-scale-object package found {{ obj_extracted_path }}/{{ scale_obj_url }}/spectrum-scale-object*"
+      run_once: true
+
+  when: ansible_fqdn in scale_obj_nodes_list 
+
