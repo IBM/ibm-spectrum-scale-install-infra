@@ -21,6 +21,8 @@
 - name: install | Get license package
   shell:
    cmd: zypper info gpfs.license.* | grep Name | cut -d ':' -f 2 | tr -d '[:space:]'
+  args:
+   warn: false
   register: package_name_version_zypp
   when:
     - ansible_pkg_mgr == 'zypper'
