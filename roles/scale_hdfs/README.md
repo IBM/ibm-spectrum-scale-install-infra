@@ -14,9 +14,9 @@ Prerequisite
 - Native hdfs service should be stopped, before usinf this role.
 - Atleast one dedicated cesip required for hdfs role.
 - Make sure, JAVA 1.8.0 version(java-<1.8.0>-openjdk-devel) should be installed on all the hdfs host nodes and JAVA_HOME exported.
-  1:
+  -1:
      # yum installjava-1.8.0-openjdk-devel
-  2:
+  -2:
      # vi ~/.bashrc
      # export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk
      # export PATH=$PATH:$JAVA_HOME/bin

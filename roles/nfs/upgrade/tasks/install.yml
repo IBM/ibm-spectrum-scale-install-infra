@@ -49,11 +49,11 @@
 
 - name: upgrade | Set the extracted package directory path
   set_fact:
-    nfs_extracted_path: "{{ scale_extracted_path }}"
+    hdfs_extracted_path: "{{ scale_extracted_path }}"
 
 - name: upgrade | Stat extracted packages directory
   stat:
-    path: "{{ nfs_extracted_path }}"
+    path: "{{ hdfs_extracted_path }}"
   register: scale_extracted_gpfs_dir
 
 - include_tasks: install_{{ scale_installmethod }}.yml

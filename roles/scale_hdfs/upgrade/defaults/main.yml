@@ -5,13 +5,8 @@
 ## Specify the URL of the (existing) Spectrum Scale YUM/apt/zypper repository
 
 ## List of HDFS RPMs to install
-scale_hdfs_rpms: gpfs.hdfs-protocol
- 
-## List of HDFS debian package to install
-scale_hdfs_debs: gpfs.hdfs-protocol
-
-## List of HDFS packages to install
-scale_hdfs_packages: gpfs.hdfs-protocol
+scale_hdfs_packages:
+- gpfs.hdfs-protocol
 
 ## Temporary directory to copy installation package to
 ## (local package installation method)

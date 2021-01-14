@@ -1,4 +1,5 @@
 ---
+
 # Install or update RPMs
 # Ensure that installation method was chosen during previous role
 - block:
@@ -36,7 +37,7 @@
     assert:
      that: scale_installmethod is defined
      msg: >-
-          Please set the appropriate variable 'scale_install_*' for your desired
+          Please set the appropriate variable 'scale_upgrade_*' for your desired
           installation method!
   run_once: true
   delegate_to: localhost
@@ -45,7 +46,7 @@
 
 - name: upgrade | Initialize list of packages
   set_fact:
-   scale_install_all_packages: []
+   scale_upgrade_all_packages: []
 
 - name: upgrade | Set the extracted package directory path
   set_fact:
@@ -56,14 +57,13 @@
     path: "{{ hdfs_extracted_path }}"
   register: scale_extracted_gpfs_dir
 
-- include_tasks: install_{{ scale_installmethod }}.yml
+- include_tasks: upgrade_{{ scale_installmethod }}.yml
 
-- import_tasks: apt/install.yml
+- import_tasks: apt/upgrade.yml
   when: ansible_distribution in scale_ubuntu_distribution
 
-- import_tasks: yum/install.yml
+- import_tasks: yum/upgrade.yml
   when: ansible_distribution in scale_rhel_distribution
 
-- import_tasks: zypper/install.yml
+- import_tasks: zypper/upgrade.yml
   when: ansible_distribution in scale_sles_distribution
-

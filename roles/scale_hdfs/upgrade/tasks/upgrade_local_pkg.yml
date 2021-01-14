@@ -1,13 +1,13 @@
 ---
 # Local package installation method
 - block:  ## run_once: true
-  - name: install | Stat local installation package
+  - name: upgrade | Stat local installation package
     stat:
      path: "{{ scale_install_localpkg_path }}"
      checksum_algorithm: md5
     register: scale_install_localpkg
 
-  - name: install | Check local installation package
+  - name: upgrade | Check local installation package
     assert:
      that: scale_install_localpkg.stat.exists
      msg: >-
@@ -19,17 +19,17 @@
 # Optionally, verify package checksum
 
 #
-  - name: install | Stat checksum file
+  - name: upgrade | Stat checksum file
     stat:
      path: "{{ scale_install_localpkg_path }}.md5"
     register: scale_install_md5_file
 
   - block:  ## when: scale_install_md5_file.stat.exists
-    - name: install | Read checksum from file
+    - name: upgrade | Read checksum from file
       set_fact:
        scale_install_md5_sum: "{{ lookup('file', scale_install_localpkg_path + '.md5') }}"
 
-    - name: install | Compare checksums
+    - name: upgrade | Compare checksums
       assert:
        that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.checksum
        msg: >-
@@ -45,18 +45,18 @@
 
 #
 
-- name: install | Stat extracted packages
+- name: upgrade | Stat extracted packages
   stat:
    path: "{{ hdfs_extracted_path }}"
   register: scale_install_gpfs_rpmdir
 
 - block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
-  - name: install | Stat temporary directory
+  - name: upgrade | Stat temporary directory
     stat:
      path: "{{ scale_install_localpkg_tmpdir_path }}"
     register: scale_install_localpkg_tmpdir
 
-  - name: install | Check temporary directory
+  - name: upgrade | Check temporary directory
     assert:
      that:
      - scale_install_localpkg_tmpdir.stat.exists
@@ -65,7 +65,7 @@
           Please set the variable 'scale_install_localpkg_tmpdir_path' to point
           to a temporary directory on the remote system!
 
-  - name: install | Copy installation package to node
+  - name: upgrade | Copy installation package to node
     copy:
      src: "{{ scale_install_localpkg_path }}"
      dest: "{{ scale_install_localpkg_tmpdir_path }}"
@@ -76,19 +76,19 @@
 # Extract installation package
 
 #
-- name: install | Extract installation package
+- name: upgrade | Extract installation package
   vars:
    localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
   command: "{{ localpkg + ' --silent' }}"
   args:
    creates: "{{ hdfs_extracted_path }}"
 
-- name: install | Stat extracted packages
+- name: upgrade | Stat extracted packages
   stat:
    path: "{{ hdfs_extracted_path }}"
   register: scale_install_gpfs_rpmdir
 
-- name: install | Check extracted packages
+- name: upgrade | Check extracted packages
   assert:
    that:
    - scale_install_gpfs_rpmdir.stat.exists
@@ -101,27 +101,27 @@
 # Delete installation package
 
 #
-- name: install | Delete installation package from node
+- name: upgrade | Delete installation package from node
   file:
    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
    state: absent
 
-- name: install | hdfs path on rhel7
+- name: upgrade | hdfs path on rhel7
   set_fact:
    scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
-- name: install | hdfs path on rhel8
+- name: upgrade | hdfs path on rhel8
   set_fact:
    scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
-- name: install | hdfs path on sles15
+- name: upgrade | hdfs path on sles15
   set_fact:
    scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
 
-- name: install | hdfs path on ubuntu20
+- name: upgrade | hdfs path on ubuntu20
   set_fact:
    scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
@@ -132,7 +132,7 @@
 
 - block:  ## when: host is defined as a protocol node
 
-  - name: install | Find gpfs.hdfs-protocol package
+  - name: upgrade | Find gpfs.hdfs-protocol package
     find:
      paths:  "{{ hdfs_extracted_path }}/{{ scale_hdfs_url }}"
      patterns: gpfs.hdfs-protocol*
@@ -141,16 +141,16 @@
   - debug:
       msg: "scale_install_gpfs_hdfs: {{scale_install_gpfs_hdfs}}"
 
-  - name: install | Check valid GPFS hdfs(gpfs.hdfs-protocol) package
+  - name: upgrade | Check valid GPFS hdfs(gpfs.hdfs-protocol) package
     assert:
      that: scale_install_gpfs_hdfs.matched > 0
      msg: "No GPFS hdfs(gpfs.hdfs-protocol) package found {{ hdfs_extracted_path }}/{{ scale_hdfs_url }}"
 
-  - name: install | Add GPFS hdfs package to list
+  - name: upgrade | Add GPFS hdfs package to list
     vars:
      current_package:  "{{ item.path }}"
     set_fact:
-     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+     scale_upgrade_all_packages: "{{ scale_upgrade_all_packages + [ current_package ] }}"
     with_items:
     - "{{ scale_install_gpfs_hdfs.files }}"
 
@@ -159,7 +159,7 @@
     set_fact:
      debuginfo_package: []
 
-  - name: install | Add GPFS package to list
+  - name: upgrade | Add GPFS package to list
     set_fact:
      debuginfo_package: "{{ debuginfo_package + [ item.path ] }}"
     with_items:
@@ -167,8 +167,8 @@
 
   - name: remove debuginfo from packages
     set_fact:
-     scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
+     scale_upgrade_all_packages: "{{ scale_upgrade_all_packages | difference(debuginfo_package)}}"
   when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
 
 - debug:
-   msg: "{{ scale_install_all_packages }}"
+   msg: "{{ scale_upgrade_all_packages }}"

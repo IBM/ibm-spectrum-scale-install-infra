@@ -1,23 +1,21 @@
 ---
-- name: Initialize
+- name: upgrade | Initialize
   set_fact:
     disable_gpgcheck: "no"
 
-- name: Disable gpg check
+- name: upgrade | Disable gpg check
   set_fact:
     disable_gpgcheck: "yes"
-  when: scale_version < '5.0.4.4'
+  when: scale_version < '5.0.4.0'
 
 - debug:
-   var: scale_install_all_packages
-- debug:
-   msg: scale_hdfs_nodes_list "{{ scale_hdfs_nodes_list }}"
-- debug:
-   var: ansible_fqdn
+    var: scale_upgrade_all_packages
 
-- name: upgrade | Upgrade GPFS HDFS packages
+- debug:
+    var: disable_gpgcheck
+
+- name: upgrade | Upgrade GPFS hdfs packages
   yum:
-   name: "{{ scale_install_all_packages }}"
+   name: "{{ scale_upgrade_all_packages }}"
    state: latest
    disable_gpg_check: "{{ disable_gpgcheck }}"
-  when: ansible_hostname in scale_hdfs_nodes_list or ansible_fqdn in scale_hdfs_nodes_list

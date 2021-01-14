@@ -1,7 +1,7 @@
 ---
 - name: Upgrade GPFS hdfs packages
   package:
-   name: "{{ scale_install_all_packages }}"
+   name: "{{ scale_upgrade_all_packages }}"
    state: latest
   when: scale_install_repository_url is defined and ansible_fqdn in scale_hdfs_node_list
 
@@ -12,5 +12,5 @@
    state: latest
   when: scale_install_repository_url is not defined and ansible_fqdn in scale_hdfs_node_list
   with_items:
-  - "{{ scale_install_all_packages }}"
+  - "{{ scale_upgrade_all_packages }}"
 
