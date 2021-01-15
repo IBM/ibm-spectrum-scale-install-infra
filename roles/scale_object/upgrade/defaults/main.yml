@@ -1,0 +1,19 @@
+---
+# Default variables for the IBM Spectrum Scale (OBJ) role -
+# either edit this file or define your own variables to override the defaults
+
+## List of RPMs to install on protocol nodes
+scale_object_rpms:
+- spectrum-scale-object
+
+## Temporary directory to copy installation package to
+## (local package installation method)
+scale_install_localpkg_tmpdir_path: /tmp
+
+## object perfmon 
+scale_perfmon: true
+
+##---------------Object----------------#
+
+## Enabling the OBJ
+scale_object_enable: true
