@@ -162,12 +162,13 @@
      when: ha_enabled|bool and ces_hdfs_enabled|bool
     
    - name:  configure | Enable CES
-     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ scale_server }}"
+     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ item }}"
      register: enable_ces
+     loop: "{{ scale_hdfs_cluster.namenodes }}"
      when: ces_hdfs_enabled|bool
 
    - name: configure | Configure CES IP 
-     command: "/usr/lpp/mmfs/bin/mmces address add --ces-node  {{ scale_server }} --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip }}"
+     command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip }}"
      register: add_cesip
      when: ces_hdfs_enabled|bool and check_hdfs_ces_group.rc != 0
 
