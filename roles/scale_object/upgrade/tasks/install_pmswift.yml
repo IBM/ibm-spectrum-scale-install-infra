@@ -1,6 +1,6 @@
 ---
 #
-# Upgrade of performance monitior swift package
+# Installation of performance monitior swift package
 #
 
 # Add pmswift rpm
@@ -13,7 +13,7 @@
 
     - name: upgrade | Find pmswift packages
       find:
-        paths: "{{ obj_extracted_path }}/{{ scale_obj_url }}"
+        paths:  "{{ obj_extracted_path }}/{{ scale_obj_url }}"
         patterns: "pmswift*.rpm"
       register: object_package
 
@@ -22,6 +22,3 @@
         pmswift_package: "{{ object_package.files | map(attribute='path') | list}}"
       set_fact:
         scale_install_all_packages: "{{ scale_install_all_packages + pmswift_package }}"
-
-  when: ansible_fqdn in scale_obj_nodes_list
-
