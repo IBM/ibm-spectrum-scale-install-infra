@@ -2,7 +2,6 @@ Role Definition
 -------------------------------
 - Role name: HDFS
 - Definition:
-  - Stands for "Server Message Block."
   - HDFS is a network protocol used by Windows-based computers that allows systems within the same network to share files.
   - It allows computers connected to the same network or domain to access files from other local computers as easily as if they 
   were on the computer's local hard drive.
