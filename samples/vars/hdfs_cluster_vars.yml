@@ -17,4 +17,4 @@ scale_hdfs_clusters:
   filesystem: gpfs1
   namenodes: ['host-vm1', 'host-vm2']
   datanodes: ['host-vm1', 'host-vm2', 'host-vm3']
-  datadir: dhersing
+  datadir: datadir
