@@ -117,5 +117,3 @@
     with_items:
     - "{{ scale_install_gpfs_hdfs.files }}"
 
-- debug:
-   msg: "{{ scale_install_all_packages }}"

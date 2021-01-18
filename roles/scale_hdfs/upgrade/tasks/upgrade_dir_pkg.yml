@@ -89,5 +89,3 @@
      scale_upgrade_all_packages: "{{ scale_upgrade_all_packages | difference(debuginfo_package)}}"
   when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
 
-- debug:
-   msg: "{{ scale_upgrade_all_packages }}"

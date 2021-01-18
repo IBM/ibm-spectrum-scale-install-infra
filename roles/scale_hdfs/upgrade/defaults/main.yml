@@ -12,5 +12,5 @@ scale_hdfs_packages:
 ## (local package installation method)
 scale_install_localpkg_tmpdir_path: /tmp
 
-## Flag to install ganesha debug package
+## Flag to install hdfs debug package
 install_debuginfo: true

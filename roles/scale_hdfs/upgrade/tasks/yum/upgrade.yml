@@ -8,12 +8,6 @@
     disable_gpgcheck: "yes"
   when: scale_version < '5.0.4.0'
 
-- debug:
-    var: scale_upgrade_all_packages
-
-- debug:
-    var: disable_gpgcheck
-
 - name: upgrade | Upgrade GPFS hdfs packages
   yum:
    name: "{{ scale_upgrade_all_packages }}"

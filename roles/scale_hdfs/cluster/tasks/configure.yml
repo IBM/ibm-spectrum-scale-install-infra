@@ -36,9 +36,6 @@
   run_once: true
   delegate_to: "{{ scale_server }}"
 
-- debug:
-    msg: "Collected hdfs mountpoint: {{ scale_hdfs_mountpoint }}"
-
 - fail:
     msg: "Failed to fetch mountpoint. "
   when: hdfs_mountpoint.changed|bool and hdfs_mountpoint.rc != 0 and scale_hdfs_mountpoint|length == 0
@@ -61,9 +58,6 @@
   set_fact:
       ha_enabled: "{{ true if scale_hdfs_cluster.namenodes|length > 1 else false }}"
       ces_hdfs_enabled: "{{ false if check_hdfs.rc == 0 else true }}"
-
-- debug:
-    msg: "HDFS enabled: {{ ces_hdfs_enabled }}"
 
 - name: Configure | Set JAVA_HOME
   command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k JAVA_HOME="{{ javahome_path }}"
@@ -160,7 +154,7 @@
      command: /usr/lpp/mmfs/hadoop/bin/hdfs namenode -initializeSharedEdits -force
      register: initializedSharedEdits
      when: ha_enabled|bool and ces_hdfs_enabled|bool
-    
+
    - name:  configure | Enable CES
      command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ item }}"
      with_items: "{{ scale_hdfs_cluster.namenodes }}"

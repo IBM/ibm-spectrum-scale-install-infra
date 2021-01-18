@@ -81,9 +81,6 @@
     - ansible_pkg_mgr == 'apt'
     - scale_install_repository_url != 'existing'
 
-- debug:
-    var: scale_upgrade_all_packages
-
 - name: upgrade | Add GPFS hdfs packages to list
   set_fact:
     scale_upgrade_all_packages: "{{ scale_hdfs_packages }}"

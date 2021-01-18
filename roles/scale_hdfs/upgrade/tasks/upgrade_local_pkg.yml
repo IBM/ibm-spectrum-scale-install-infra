@@ -138,9 +138,6 @@
      patterns: gpfs.hdfs-protocol*
     register: scale_install_gpfs_hdfs
 
-  - debug:
-      msg: "scale_install_gpfs_hdfs: {{scale_install_gpfs_hdfs}}"
-
   - name: upgrade | Check valid GPFS hdfs(gpfs.hdfs-protocol) package
     assert:
      that: scale_install_gpfs_hdfs.matched > 0
@@ -170,5 +167,3 @@
      scale_upgrade_all_packages: "{{ scale_upgrade_all_packages | difference(debuginfo_package)}}"
   when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
 
-- debug:
-   msg: "{{ scale_upgrade_all_packages }}"
