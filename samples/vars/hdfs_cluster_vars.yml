@@ -1,6 +1,6 @@
 ---
 #
-# saples/vars/hdfs_cluster_var.yml
+# samples/vars/hdfs_cluster_var.yml
 #
 
 #
@@ -13,8 +13,8 @@ scale_protocols:
   mountpoint: /gpfs/cesSharedRoot
 
 scale_hdfs_clusters:
-    name: mycluster
-    filesystem: cesSharedRoot
-    namenodes: ['host-vm1', 'host-vm2'],
-    datanodes: ['host-vm1', 'host-vm2', 'host-vm3'],
-    datadir: dhersing
+  name: mycluster
+  filesystem: gpfs1
+  namenodes: ['host-vm1', 'host-vm2']
+  datanodes: ['host-vm1', 'host-vm2', 'host-vm3']
+  datadir: datadir

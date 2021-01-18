@@ -5,9 +5,6 @@
   delegate_to: localhost
   run_once: true
 
-- debug:
-    msg: "scale_server: {{ scale_server }}"
-
 - name: configure | Check HA
   set_fact:
       ha_enabled: "{{ true if scale_hdfs_cluster.namenodes|length > 1 else false }}"

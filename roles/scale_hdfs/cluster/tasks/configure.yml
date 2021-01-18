@@ -36,9 +36,6 @@
   run_once: true
   delegate_to: "{{ scale_server }}"
 
-- debug:
-    msg: "Collected hdfs mountpoint: {{ scale_hdfs_mountpoint }}"
-
 - fail:
     msg: "Failed to fetch mountpoint. "
   when: hdfs_mountpoint.changed|bool and hdfs_mountpoint.rc != 0 and scale_hdfs_mountpoint|length == 0
@@ -61,9 +58,6 @@
   set_fact:
       ha_enabled: "{{ true if scale_hdfs_cluster.namenodes|length > 1 else false }}"
       ces_hdfs_enabled: "{{ false if check_hdfs.rc == 0 else true }}"
-
-- debug:
-    msg: "HDFS enabled: {{ ces_hdfs_enabled }}"
 
 - name: Configure | Set JAVA_HOME
   command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k JAVA_HOME="{{ javahome_path }}"
@@ -107,6 +101,7 @@
        - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:8020" }
        - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:50070" }
        - { 'key': "dfs.namenode.shared.edits.dir", 'value': "file:///{{ scale_hdfs_mountpoint }}/HA-{{ scale_hdfs_cluster.name }}" }
+     when: ha_enabled|bool
 
    - name: configure | Configuare gpfs-site.xml
      set_fact:
@@ -158,8 +153,8 @@
    - name: configure | InitializeSharedEdits for Namenodes HA
      command: /usr/lpp/mmfs/hadoop/bin/hdfs namenode -initializeSharedEdits -force
      register: initializedSharedEdits
-     when: ces_hdfs_enabled|bool
-    
+     when: ha_enabled|bool and ces_hdfs_enabled|bool
+
    - name:  configure | Enable CES
      command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ item }}"
      with_items: "{{ scale_hdfs_cluster.namenodes }}"
@@ -167,7 +162,7 @@
      when: ces_hdfs_enabled|bool
 
    - name: configure | Configure CES IP 
-     command: "/usr/lpp/mmfs/bin/mmces address add --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip }}"
+     command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip }}"
      register: add_cesip
      when: ces_hdfs_enabled|bool and check_hdfs_ces_group.rc != 0
 
@@ -184,7 +179,8 @@
       register: enable_hdfs
 
     - name: Start Namenodes
-      shell: /usr/lpp/mmfs/bin/mmces service start HDFS -a
+      shell: /usr/lpp/mmfs/bin/mmces service start HDFS -N "{{ item }}"
+      with_items: "{{ scale_hdfs_namenodes_list }}"
       register: start_hdfs
 
     - name: Start Datanodes

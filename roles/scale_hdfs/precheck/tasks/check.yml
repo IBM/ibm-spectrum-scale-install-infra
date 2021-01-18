@@ -6,11 +6,6 @@
    scale_hdfs_datanodes_list: []
    scale_hdfs_cluster: []
 
-- debug:
-    msg: "scale_hdfs_clusters: {{ scale_hdfs_clusters }}"
-  run_once: true
-  delegate_to: localhost
-
 - name: check | Collect all hdfs list
   set_fact:
    scale_hdfs_cluster: "{{ item }}"
@@ -62,15 +57,9 @@
   set_fact:
     scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
 
-- debug:
-    msg: "Collect all HDFS nodes: {{ scale_hdfs_nodes_list }}"
-
 - name: check | make unique HDFS nodes
   set_fact:
     scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
-
-- debug:
-    msg: "Collect all HDFS nodes: {{ scale_hdfs_nodes_list }}"
 
 - name: check | Check if atleast one hdfs node is configured
   assert:
@@ -102,10 +91,6 @@
       set_fact:
          javahome_path: "{{ java_path.stdout }}"
       when: java_path.stdout|length > 0
-
-    - debug: 
-        var: javahome_path
-        verbosity: 1
 
     - name: check | verify JAVA
       command: "/usr/bin/ls {{ javahome_path }}"
