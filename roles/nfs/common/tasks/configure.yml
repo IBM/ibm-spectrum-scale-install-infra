@@ -110,7 +110,7 @@
 
 - name: configure | Enabling CES
   command: "{{ scale_command_path }}mmchnode -N {{ scale_ces_nodes[1:] }} --ces-enable"
-  async: 45
+  async: 120
   poll: 5
   when: scale_ces_disabled_nodes|length > 0
   delegate_to: "{{ scale_protocol_node_list.0 }}"
