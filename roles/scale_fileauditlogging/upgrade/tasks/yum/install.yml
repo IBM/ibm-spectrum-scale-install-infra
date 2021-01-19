@@ -14,5 +14,5 @@
 - name: upgrade | Upgrade GPFS file audit logging packages
   package:
     name: "{{ scale_install_all_packages }}"
-    state: present
+    state: latest
     disable_gpg_check: "{{ disable_gpgcheck }}"
