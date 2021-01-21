@@ -117,38 +117,35 @@
    - name: configure | Set comfiguration for core-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set core-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ core_site_conf_dict | dict2items }}"
-     when: ces_hdfs_enabled|bool
 
    - name: configure | Set comfiguration for gpfs-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set gpfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ gpfs_site_conf_dict | dict2items }}"
-     when: ces_hdfs_enabled|bool
 
    - name: configure | Set comfiguration for hdfs-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ hdfs_site_conf_dict | dict2items }}"
-     when: ces_hdfs_enabled|bool
 
    - name: configure | Set configuration for HA
      command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{item.value}}"
      loop:  "{{ hdfs_site_conf_dict_ha | dict2items }}"
-     when: ha_enabled|bool and ces_hdfs_enabled|bool
+     when: ha_enabled|bool
 
    - name: configure | Remove localhost
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker remove localhost
-     register: woker_remove
-     when: ces_hdfs_enabled|bool
+     register: worker_remove
 
    - name: configure | Add Datanodes
      command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker add "{{ item }}"
-     register: worker_add
      loop: "{{ scale_hdfs_cluster.datanodes }}"
-     when: ces_hdfs_enabled|bool
+
+   - name: configure | cleanup blank in worker file
+     command: /usr/bin/sed -i '/^$/d' /var/mmfs/hadoop/etc/hadoop/workers
+     register: worker_clean
 
    - name: configure | Upload config
      command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config upload
      register: config_upload
-     when: ces_hdfs_enabled|bool
 
    - name: configure | InitializeSharedEdits for Namenodes HA
      command: /usr/lpp/mmfs/hadoop/bin/hdfs namenode -initializeSharedEdits -force
@@ -164,7 +161,7 @@
    - name: configure | Configure CES IP 
      command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip }}"
      register: add_cesip
-     when: ces_hdfs_enabled|bool and check_hdfs_ces_group.rc != 0
+     when: check_hdfs_ces_group.rc != 0
 
   run_once: true
   delegate_to: "{{ scale_server }}"
@@ -172,6 +169,10 @@
 - fail:
     msg: "mmces address add failed. "
   when: add_cesip.changed|bool and add_cesip.rc > 0 and not ces_hdfs_enabled|bool
+
+- fail:
+    msg: "Failed to upload config hdfs"
+  when: config_upload.rc > 0
 
 - block:
     - name: Enable HDFS
