@@ -21,9 +21,8 @@
 
 
 - name: upgrade | Upgrade GPFS Zimon packages
-  dnf:
+  package:
     name: "{{ scale_install_all_packages }}"
     state: latest
-    update_only: yes
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: ansible_pkg_mgr == 'dnf'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version >= '8'
