@@ -12,6 +12,11 @@
     scale_cluster_manager: "{{ scale_cluster_manager }}"
   when: hostvars[inventory_hostname].scale_cluster_manager is undefined
 
+- name: cluster | Set default daemon state
+  set_fact:
+    scale_state: "{{ scale_state }}"
+  when: hostvars[inventory_hostname].scale_state is undefined
+
 # Cleanup groups from previous play
 #- meta: refresh_inventory
 
@@ -40,6 +45,7 @@
   when:
     - not hostvars[item].scale_cluster_clusterId.stdout
     - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
