@@ -61,7 +61,9 @@
           notify: accept-licenses
 
       when: scale_cluster_changefile is changed
-  when: groups['scale_cluster_members'] is defined
+  when:
+     - groups['scale_cluster_members'] is defined
+     - scale_node_role_change | bool
   run_once: true
   delegate_to: "{{ groups['scale_cluster_members'].0 }}"
 

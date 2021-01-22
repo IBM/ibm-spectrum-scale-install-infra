@@ -168,8 +168,15 @@
         dest: /var/tmp/NodeFile
 
     - name: cluster | Add new nodes to cluster
-      command: /usr/lpp/mmfs/bin/mmaddnode -N /var/tmp/NodeFile
-      notify: accept-licenses
+      command: /usr/lpp/mmfs/bin/mmaddnode -N /var/tmp/NodeFile --accept
+
+    - name: cluster | Copy Add node NodeFile
+      copy:
+        src: /var/tmp/NodeFile
+        dest: /usr/lpp/mmfs/
+        mode: a+x
+        remote_src: yes
+      ignore_errors: yes
 
     - name: cluster | Cleanup existing cluster NodeFile
       file:

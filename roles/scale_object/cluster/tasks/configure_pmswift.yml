@@ -1,0 +1,10 @@
+---
+#
+# Configure pmswift zimon sensors
+#
+
+- name: configure | Configure pmswift zimon sensors
+  command: /usr/local/pmswift/bin/pmswift-config-zimon set
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
+

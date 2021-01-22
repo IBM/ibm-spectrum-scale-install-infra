@@ -1,0 +1,39 @@
+---
+# Print messages collected during play
+
+- block:  ## run_once: true
+    - name: finalize | Check if GPFS RPMs were updated
+      vars:
+        msg: |-
+          ######################################################################
+          Spectrum Scale packages were updated. Once all nodes in the cluster
+          run the new version, consider updating configuration information to
+          the latest format that is supported by the currently installed level:
+
+            mmchconfig release=LATEST
+
+          Furthermore, consider updating file systems to the latest format that
+          is supported by the currently installed level:
+
+            mmchfs fs1 -V full
+
+          Remember that nodes in remote clusters running an older version will
+          no longer be able to mount the file system!
+          ######################################################################
+      debug:
+        msg: "{{ msg.split('\n') }}"
+      when: true in ansible_play_hosts | map('extract', hostvars, 'scale_install_updated') | list
+      # TODO: print all hosts with scale_install_updated set: hostvars | selectattr('scale_install_updated')
+
+    - name: finalize | Check if configuration parameters were changed
+      vars:
+        msg: |-
+          ######################################################################
+          Configuration parameters were changed. Please restart Spectrum Scale
+          on all nodes for the new settings to take effect!
+          ######################################################################
+      debug:
+        msg: "{{ msg.split('\n') }}"
+      when: true in ansible_play_hosts | map('extract', hostvars, 'scale_config_changed') | list
+      # TODO: print all hosts with scale_daemon_running set: hostvars | selectattr('scale_daemon_running')
+  run_once: true

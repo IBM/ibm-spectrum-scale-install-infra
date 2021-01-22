@@ -1,0 +1,51 @@
+---
+- name: "fail if not defined: scale_remotemount_client_gui_username"
+  fail:
+    msg: "scale_remotemount_client_gui_username is not defined"
+  when:
+    - scale_remotemount_client_gui_username is undefined
+    - scale_remotemount_client_no_gui == false
+
+- name: "fail if not defined: scale_remotemount_client_gui_password"
+  fail:
+    msg: "scale_remotemount_client_gui_password is not defined"
+  when:
+    - scale_remotemount_client_gui_password is undefined
+    - scale_remotemount_client_no_gui == false
+
+- name: "fail if not defined: scale_remotemount_client_gui_hostname"
+  fail:
+    msg: "scale_remotemount_client_gui_hostname is not defined"
+  when:
+   - scale_remotemount_client_gui_hostname is undefined
+   - scale_remotemount_client_no_gui == false
+
+- name: "fail if not defined: scale_remotemount_client_filesystem_name"
+  fail:
+    msg: "scale_remotemount_client_filesystem_name is not defined"
+  when: scale_remotemount_client_filesystem_name is undefined
+
+- name: "fail if not defined: scale_remotemount_client_remotemount_path"
+  fail:
+    msg: "scale_remotemount_client_remotemount_path is not defined"
+  when: scale_remotemount_client_remotemount_path is undefined
+
+- name: "fail if not defined: scale_remotemount_storage_gui_username"
+  fail:
+    msg: "scale_remotemount_storage_gui_username is not defined"
+  when: scale_remotemount_storage_gui_username is undefined
+
+- name: "fail if not defined: scale_remotemount_storage_gui_password"
+  fail:
+    msg: "scale_remotemount_storage_gui_password is not defined"
+  when: scale_remotemount_storage_gui_password is undefined
+
+- name: "fail if not defined: scale_remotemount_storage_gui_hostname"
+  fail:
+    msg: "scale_remotemount_storage_gui_hostname is not defined"
+  when: scale_remotemount_storage_gui_hostname is undefined
+
+- name: "fail if not defined: scale_remotemount_storage_filesystem_name"
+  fail:
+    msg: "scale_remotemount_storage_filesystem_name is not defined"
+  when: scale_remotemount_storage_filesystem_name is undefined

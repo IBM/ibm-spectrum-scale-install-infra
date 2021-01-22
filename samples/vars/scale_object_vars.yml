@@ -1,0 +1,20 @@
+---
+#
+# saples/vars/scale_object_vars.yml
+#
+
+# Default variables for the IBM Spectrum Scale (Object) cluster role
+# Configuration of Swift
+
+scale_ces_obj:
+ dynamic_url: False
+ enable_s3:  False
+ local_keystone: True
+ enable_file_access: False
+ endpoint_hostname: scale-11
+ object_fileset: Object_Fileset
+ pwd_file: obj_passwd.j2
+ admin_user: admin
+ admin_pwd: admin001
+ database_pwd: admin001
+

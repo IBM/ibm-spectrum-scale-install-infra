@@ -96,3 +96,9 @@ scale_build_gplsrc_prereqs_zypp:
   - gcc
   - gcc-c++
   - glibc
+
+## List of RPMs to install when building Linux kernel extension from source on s390x
+scale_build_gplsrc_prereqs_s390x:
+  - kernel-devel-{{ ansible_kernel }}
+  - kernel-headers-{{ ansible_kernel }}
+  - make

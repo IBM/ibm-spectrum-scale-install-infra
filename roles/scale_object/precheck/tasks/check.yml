@@ -1,0 +1,35 @@
+---
+- name: check | Initialize
+  set_fact:
+    scale_obj_nodes_list: []
+
+- name: check | Check if object is enabled
+  assert:
+    that:
+    - scale_protocols.object|bool
+    fail_msg: "OBJECT is not enabled"
+  run_once: true
+
+- name: check | Collect all object nodes
+  set_fact:
+    scale_obj_nodes_list: "{{ scale_obj_nodes_list + [hostvars[item]['ansible_fqdn']] }}"
+  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+  with_items:
+   - "{{ ansible_play_hosts }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: check | Check if at least one obj node is configured
+  assert:
+   that:
+   - scale_obj_nodes_list|length > 0
+   fail_msg: "No object nodes configured"
+
+- name: check | Check for supported operating system
+  assert:
+    that:
+      - ansible_distribution in scale_rhel_distribution 
+      - ansible_distribution_major_version == '8'
+    msg: >-
+      Object is only supported for Rhel 8 and higher!
+

@@ -21,6 +21,8 @@
 - name: install | Get license package
   shell:
    cmd: zypper info gpfs.license.* | grep Name | cut -d ':' -f 2 | tr -d '[:space:]'
+  args:
+   warn: false
   register: package_name_version_zypp
   when:
     - ansible_pkg_mgr == 'zypper'
@@ -36,7 +38,7 @@
 
 - name: install | Find GPFS License package
   vars:
-    gpfs_license_package: "{{ package_name_version.results|selectattr('yumstate','equalto','available')|map(attribute='name')|list }}"
+    gpfs_license_package: "{{ package_name_version.results|selectattr('yumstate','match','available')|map(attribute='name')|list }}"
   set_fact:
     scale_gpfs_license_package: "{{ gpfs_license_package }}"
   when:
