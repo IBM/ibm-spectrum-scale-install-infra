@@ -1,0 +1,6 @@
+---
+# Variables for the IBM Spectrum Scale (scale_auth) role -
+# these variables are *not* meant to be overridden
+
+# default mm command exection path
+scale_command_path: /usr/lpp/mmfs/bin/
