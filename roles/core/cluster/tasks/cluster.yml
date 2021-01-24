@@ -143,6 +143,14 @@
     - debug:
          msg: "{{ mmcrcluster_results.cmd }}"
 
+    - name: cluster | Copy cluster create NodeFile
+      copy:
+        src: /var/tmp/NodeFile
+        dest: /usr/lpp/mmfs/
+        mode: a+x
+        remote_src: yes
+      ignore_errors: yes
+
     - name: cluster | Cleanup new cluster NodeFile
       file:
         path: /var/tmp/NodeFile
