@@ -31,7 +31,7 @@
 - block:  ## when: delegate_node is defined
     - name: cluster | Start daemons
       command: /usr/lpp/mmfs/bin/mmstartup -N "{{ scale_daemon_node_list | join(',') }}"
-      when: scale_daemon_node_list | length > 0
+      when: scale_daemon_node_list is defined and scale_daemon_node_list | length > 0
       notify: wait-daemon-active
   when:
     - delegate_node is defined
