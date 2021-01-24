@@ -78,9 +78,6 @@
     - ansible_pkg_mgr == 'apt'
     - scale_install_repository_url != 'existing'
 
-- debug:
-        msg: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
-
 - name: install | Configure ZIMon repository
   zypper_repository:
     name: spectrum-scale-zimon
