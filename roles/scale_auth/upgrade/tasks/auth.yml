@@ -194,4 +194,5 @@
                 when: putLDAPfile|bool
             when: getLDAPfile|bool
        when: isFileAuth|bool and isTLSenabled|bool
+       ignore_errors: true
   when: scale_auth_status.rc == 0
