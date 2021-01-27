@@ -1,0 +1,4 @@
+---
+# Enable inventory check
+scale_object_inventory_check : true
+

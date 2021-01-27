@@ -1,7 +1,9 @@
 ---
 # tasks file for inventory precheck
 - import_tasks: inventory_check.yml
-  when: scale_protocols is defined and scale_protocols.object|bool
+  when: 
+    - scale_protocols is defined and scale_protocols.object|bool
+    - scale_object_inventory_check is defined and scale_object_inventory_check|bool
   tags: prepare
 
 # tasks file for precheck
