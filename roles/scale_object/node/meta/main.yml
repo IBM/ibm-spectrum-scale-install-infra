@@ -19,5 +19,6 @@ galaxy_info:
     - gpfs
 
 dependencies: 
-    - core/common
+    - scale_object/precheck
     - nfs/common
+
