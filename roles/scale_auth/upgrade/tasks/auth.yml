@@ -146,7 +146,7 @@
           - block:
               - name: auth | Go through line by line and check if our search strings macthes ,if matches, replace it, if not, add the new string to the file
                 include_tasks: parseFile.yml
-                with_lines: cat "{{ ldaptmppath }}"
+                loop: "{{ lookup('file', ldaptmppath, errors='ignore').splitline() }}"
                 run_once: true
 
               - name: auth | write newTLSstring to the file
