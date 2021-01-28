@@ -8,11 +8,39 @@
 - name: configure | Check HA
   set_fact:
       ha_enabled: "{{ true if scale_hdfs_cluster.namenodes|length > 1 else false }}"
+      acl_change_required: true
 
 - name: postcheck | Check if HDFS is running
   shell:
    cmd: "{{ scale_command_path }}/mmces service list|grep HDFS"
   register: scale_hdfs_status
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  ignore_errors: true
+  failed_when: false
+
+- name: postcheck | Check if NFS is running
+  shell:
+   cmd: "{{ scale_command_path }}/mmces service list|grep NFS"
+  register: scale_nfs_status
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  ignore_errors: true
+  failed_when: false
+
+- name: postcheck | Check if SMB is running
+  shell:
+   cmd: "{{ scale_command_path }}/mmces service list|grep SMB"
+  register: scale_smb_status
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  ignore_errors: true
+  failed_when: false
+
+- name: postcheck | Check if OBJ is running
+  shell:
+   cmd: "{{ scale_command_path }}/mmces service list|grep OBJ"
+  register: scale_obj_status
   delegate_to: "{{ scale_server }}"
   run_once: true
   ignore_errors: true
@@ -30,7 +58,7 @@
 
 - fail:
     msg: "Not all datanode are running, check datanode log"
-  when: "{{ dn_status.stdout_lines|length < datanodes|length }}"
+  when: 'dn_status.stdout_lines|length < datanodes|length'
 
 
 - name: postcheck | Check Namenodes active status
@@ -39,6 +67,7 @@
   when: ha_enabled|bool
   ignore_errors: yes
   delegate_to: "{{ scale_server }}"
+  failed_when: false
   run_once: true
 
 - name: postcheck | Force active
@@ -62,3 +91,16 @@
   when: 
     - ha_enabled|bool
     - active_status_again.stdout_lines | length == 0
+
+- name: postcheck | Check ACL change required
+  set_fact:
+      acl_change_required: false
+  when: scale_nfs_status|bool or scale_smb_status|bool or scale_obj_status|bool
+
+- name: postcheck | Check ACL status
+  shell: "{{ scale_command_path }}mmchfs  {{ scale_hdfs_cluster.filesystem }} -k all"
+  register: active_status_again
+  when: scale_hdfs_status|bool and acl_change_required|bool
+
+  delegate_to: "{{ scale_server }}"
+  run_once: true
