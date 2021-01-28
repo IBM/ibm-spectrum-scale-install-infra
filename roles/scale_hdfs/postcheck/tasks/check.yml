@@ -92,15 +92,10 @@
     - ha_enabled|bool
     - active_status_again.stdout_lines | length == 0
 
-- name: postcheck | Check ACL change required
-  set_fact:
-      acl_change_required: false
-  when: scale_nfs_status|bool or scale_smb_status|bool or scale_obj_status|bool
-
 - name: postcheck | Check ACL status
   shell: "{{ scale_command_path }}mmchfs  {{ scale_hdfs_cluster.filesystem }} -k all"
-  register: active_status_again
-  when: scale_hdfs_status|bool and acl_change_required|bool
+  register: acl_change
+  when: scale_nfs_status.rc != 0 or scale_smb_status.rc != 0 or scale_obj_status.rc != 0
 
   delegate_to: "{{ scale_server }}"
   run_once: true
