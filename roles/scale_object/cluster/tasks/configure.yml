@@ -37,26 +37,34 @@
   set_fact:
     obj_param: "-g {{ scale_protocols.mountpoint }} -o {{ scale_ces_obj.object_fileset }} --cluster-hostname {{ scale_obj_nodes_list.0 }} --pwd-file {{ scale_ces_obj.pwd_file }}"
   delegate_to: "{{ scale_obj_nodes_list.0 }}"
+  when:
+     - not scale_ces_dynamic_obj|bool
   run_once: True
 
 - name: configure | Check local-keystone is defined 
   set_fact:
     obj_param: "{{ obj_param }} --local-keystone" 
-  when: scale_ces_obj.local_keystone is defined and scale_ces_obj.local_keystone|bool
+  when: 
+     - scale_ces_obj.local_keystone is defined and scale_ces_obj.local_keystone|bool
+     - not scale_ces_dynamic_obj|bool
   delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: True
  
 - name: configure | Check enable-s3 is defined
   set_fact:
     obj_param: "{{ obj_param }} --enable-s3"
-  when: scale_ces_obj.enable_s3 is defined and scale_ces_obj.enable_s3|bool
+  when:
+     - scale_ces_obj.enable_s3 is defined and scale_ces_obj.enable_s3|bool
+     - not scale_ces_dynamic_obj|bool
   delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: True
 
 - name: configure | Check enable-file-access is defined
   set_fact:
     obj_param: "{{ obj_param }} --enable-file-access"
-  when: scale_ces_obj.enable_file_access is defined and scale_ces_obj.enable_file_access|bool
+  when:
+     - scale_ces_obj.enable_file_access is defined and scale_ces_obj.enable_file_access|bool
+     - not scale_ces_dynamic_obj|bool
   delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: true
  
@@ -67,7 +75,14 @@
     - name: configure | Configure object Configuration
       command: "/usr/lpp/mmfs/bin/mmobj swift base {{ obj_param }}"
       when:
-        - not scale_ces_obj.dynamic_url|bool
+        - not scale_ces_dynamic_obj|bool
+        - scale_ces_obj_configured.rc == 1
+
+    - name: configure | Configure object Configuration
+      command: "/usr/lpp/mmfs/bin/mmobj swift base {{ scale_ces_obj_dynamic_val }} --pwd-file {{ scale_ces_obj.pwd_file }}"
+      when:
+        - scale_ces_dynamic_obj|bool
+        - scale_ces_obj_dynamic_val is defined
         - scale_ces_obj_configured.rc == 1
 
     # Enable Object on CES
