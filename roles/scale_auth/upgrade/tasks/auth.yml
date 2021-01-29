@@ -110,6 +110,7 @@
             run_once: true
             delegate_to: localhost
             ignore_errors: true
+            failed_when: false
 
           - name: auth | Set isTLSenabled flag
             set_fact:
