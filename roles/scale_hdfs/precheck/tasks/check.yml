@@ -101,5 +101,5 @@
         msg: "JAVA_HOME not set properlly"
       when: jvm_list.rc != 0
 
-    - debug:
-        msg: "HDFS Precheck ok"
+- debug:
+   msg: "HDFS Precheck ok"

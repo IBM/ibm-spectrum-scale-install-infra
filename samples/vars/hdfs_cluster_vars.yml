@@ -15,6 +15,6 @@ scale_protocols:
 scale_hdfs_clusters:
   name: mycluster
   filesystem: gpfs1
-  namenodes: ['host-vm1', 'host-vm2']
-  datanodes: ['host-vm1', 'host-vm2', 'host-vm3']
+  namenodes: ['host-vm1.test.net', 'host-vm2.test.net']
+  datanodes: ['host-vm1.test.net', 'host-vm2.test.net', 'host-vm3.test.net']
   datadir: datadir

@@ -23,7 +23,7 @@
 
 - block:
    - name: check | fetch mountpoint
-     shell: /usr/lpp/mmfs/bin/mmlsfs all -Y|grep "{{ scale_hdfs_filesystem }}"|grep defaultMountPoint|awk -F':' '{print $9}'
+     shell: /usr/lpp/mmfs/bin/mmlsfs "{{ scale_hdfs_filesystem }}" -T -Y | grep defaultMountPoint | awk -F':' '{print $9}'
      register: hdfs_mountpoint
    - name: check| decode mountpoint
      command: /usr/lpp/mmfs/bin/mmclidecode "{{ hdfs_mountpoint.stdout }}"
@@ -45,6 +45,7 @@
   register: check_hdfs_ces_group
   run_once: true
   delegate_to: "{{ scale_server }}"
+  failed_when: false
   ignore_errors: yes
 
 - name: configure | Check HDFS service
@@ -52,6 +53,7 @@
   register: check_hdfs
   run_once: true
   delegate_to: "{{ scale_server }}"
+  failed_when: false
   ignore_errors: yes
 
 - name: configure | Check HA
@@ -84,7 +86,7 @@
          hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
      with_items:
         - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': 'nn1' }
-        - { 'key': "dfs.client.failover.proxy.provider.{{ scale_hdfs_cluster.name }}", 'value': 'org.apache.hadoop.hdfs.scale_server.namenode.ha.ConfiguredFailoverProxyProvider' }
+        - { 'key': "dfs.client.failover.proxy.provider.{{ scale_hdfs_cluster.name }}", 'value': 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider' }
         - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.nn1", 'value': "{{ scale_hdfs_cluster.namenodes[0] }}:8020" }
         - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.nn1", 'value': "{{ scale_hdfs_cluster.namenodes[0] }}:50070" }
         - { 'key': "dfs.nameservices", 'value': "{{ scale_hdfs_cluster.name }}" }
@@ -139,9 +141,10 @@
      command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker add "{{ item }}"
      loop: "{{ scale_hdfs_cluster.datanodes }}"
 
-   - name: configure | cleanup blank in worker file
-     command: /usr/bin/sed -i '/^$/d' /var/mmfs/hadoop/etc/hadoop/workers
-     register: worker_clean
+   - lineinfile: 
+       dest: /var/mmfs/hadoop/etc/hadoop/workers 
+       state: absent 
+       regexp: '(^\n)'
 
    - name: configure | Upload config
      command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config upload
@@ -153,8 +156,7 @@
      when: ha_enabled|bool and ces_hdfs_enabled|bool
 
    - name:  configure | Enable CES
-     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ item }}"
-     with_items: "{{ scale_hdfs_cluster.namenodes }}"
+     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
      register: enable_ces
      when: ces_hdfs_enabled|bool
 
