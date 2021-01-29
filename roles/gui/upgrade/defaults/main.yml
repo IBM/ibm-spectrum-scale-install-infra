@@ -16,7 +16,6 @@ scale_architecture: "{{ ansible_architecture }}"
 ## List of RPMs to install on GUI nodes
 scale_gui_packages:
   - gpfs.gui
-  - gpfs.java
 
 ## Node's default GUI collector role -
 ## you'll likely want to define per-node roles in your inventory
