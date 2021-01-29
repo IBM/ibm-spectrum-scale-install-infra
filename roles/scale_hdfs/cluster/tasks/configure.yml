@@ -156,8 +156,7 @@
      when: ha_enabled|bool and ces_hdfs_enabled|bool
 
    - name:  configure | Enable CES
-     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ item }}"
-     with_items: "{{ scale_hdfs_cluster.namenodes }}"
+     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
      register: enable_ces
      when: ces_hdfs_enabled|bool
 
