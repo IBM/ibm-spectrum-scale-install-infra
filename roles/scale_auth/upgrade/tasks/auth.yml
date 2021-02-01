@@ -109,6 +109,7 @@
             register: scale_temp
             run_once: true
             delegate_to: localhost
+            failed_when: false
             ignore_errors: true
 
           - name: auth | Set isTLSenabled flag

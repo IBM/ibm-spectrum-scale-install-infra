@@ -31,6 +31,7 @@
   changed_when: false
   register: scale_ces_obj_configured
   run_once: True
+  failed_when: false
   ignore_errors: true
 
 - name: configure | Set configuration parameter to configure OBJ
