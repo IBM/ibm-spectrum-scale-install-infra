@@ -15,9 +15,7 @@
           local installation package (accessible on Ansible control machine)!
 
 #
-
 # Optionally, verify package checksum
-
 #
   - name: install | Stat checksum file
     stat:
@@ -39,12 +37,10 @@
     when: scale_install_md5_file.stat.exists
   run_once: true
   delegate_to: localhost
-#
 
+#
 # Copy installation package
-
 #
-
 - name: install | Stat extracted packages
   stat:
    path: "{{ smb_extracted_path }}"
@@ -71,10 +67,9 @@
      dest: "{{ scale_install_localpkg_tmpdir_path }}"
      mode: a+x
   when: not scale_install_gpfs_rpmdir.stat.exists
+
 #
-
 # Extract installation package
-
 #
 - name: install | Extract installation package
   vars:
@@ -96,11 +91,8 @@
    msg: >-
       The variable 'scale_version' doesn't seem to match the contents of the
       local installation package!
-#
 
 # Delete installation package
-
-#
 - name: install | Delete installation package from node
   file:
    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
@@ -141,14 +133,12 @@
    scale_smb_url: 'smb_debs/ubuntu/'
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
-
 # Find smb rpms
-
-- block:  ## when: host is defined as a protocol node
+- block:  ## when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
 
   - name: install | Find gpfs.smb (gpfs.smb) package
     find:
-     paths:  "{{ smb_extracted_path }}/{{ scale_smb_url }}"
+     paths: "{{ smb_extracted_path }}/{{ scale_smb_url }}"
      patterns: gpfs.smb*
     register: scale_install_gpfs_smb
 
@@ -159,18 +149,19 @@
 
   - name: install | Add GPFS smb package to list
     vars:
-     current_package:  "{{ item.path }}"
+     current_package: "{{ item.path }}"
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
     with_items:
     - "{{ scale_install_gpfs_smb.files }}"
+
   when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
 
-- block:  ## when: host is defined as a protocol node
+- block:  ## when: ansible_distribution in scale_ubuntu_distribution
 
   - name: install | Find gpfs.smb (gpfs.smb) package
     find:
-     paths:  "{{ smb_extracted_path }}/{{ scale_smb_url }}"
+     paths: "{{ smb_extracted_path }}/{{ scale_smb_url }}"
      patterns: gpfs.smb_*
     register: scale_install_gpfs_smb
 
@@ -181,19 +172,19 @@
 
   - name: install | Add GPFS smb package to list
     vars:
-     current_package:  "{{ item.path }}"
+     current_package: "{{ item.path }}"
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
     with_items:
     - "{{ scale_install_gpfs_smb.files }}"
+
   when: ansible_distribution in scale_ubuntu_distribution
 
-
-- block:  ## when: host is defined as a protocol node
+- block:  ## when: ansible_distribution in scale_rhel_distribution
 
   - name: install | Find gpfs.smb-debuginfo (gpfs.smb-debuginfo) package
     find:
-     paths:  "{{ smb_extracted_path }}/{{ scale_smb_url }}"
+     paths: "{{ smb_extracted_path }}/{{ scale_smb_url }}"
      patterns: gpfs.smb-debuginfo*
     register: scale_install_gpfs_smb_debuginfo
 
@@ -201,6 +192,7 @@
     assert:
      that: scale_install_gpfs_smb_debuginfo.matched > 0
      msg: "No GPFS smb (gpfs.smb-debuginfo) package found {{ smb_extracted_path }}/{{ scale_smb_url }}gpfs.smb-debuginfo*"
+
   when: ansible_distribution in scale_rhel_distribution
 
 - block:
