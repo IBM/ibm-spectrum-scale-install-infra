@@ -41,10 +41,18 @@
       register: object_package
 
     - name: install | Add pmswift package name
+      set_fact:
+         scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+      with_items:
+         - "{{ scale_obj_sensors_packages }}"
+      when: scale_install_repository_url is defined
+
+    - name: install | Add pmswift package name
       vars:
         pmswift_package: "{{ object_package.files | map(attribute='path') | list}}"
       set_fact:
         scale_install_all_packages: "{{ scale_install_all_packages + pmswift_package }}"
+      when: scale_install_repository_url is undefined
 
   when: ansible_fqdn in scale_obj_nodes_list
 

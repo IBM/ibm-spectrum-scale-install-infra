@@ -75,3 +75,6 @@ scale_cluster_profile_dir_path: /usr/lpp/mmfs/profiles/
 
 ## Default node role change variable flag
 scale_node_role_change: true
+
+## Upgrade check
+scale_node_update_check: true
