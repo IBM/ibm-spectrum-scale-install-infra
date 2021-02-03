@@ -6,6 +6,8 @@
 scale_object_rpms:
 - spectrum-scale-object
 
+scale_obj_sensors_packages:
+   - pmswift
 ## Temporary directory to copy installation package to
 ## (local package installation method)
 scale_install_localpkg_tmpdir_path: /tmp
