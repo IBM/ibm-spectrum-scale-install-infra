@@ -50,6 +50,7 @@
     baseurl: "{{ scale_install_repository_url }}{{ scale_smb_url }}"
     gpgcheck: "{{ gpgcheck }}"
     repo_gpgcheck: no
+    sslverify: no
     state: present
   notify: yum-clean-metadata
   when:

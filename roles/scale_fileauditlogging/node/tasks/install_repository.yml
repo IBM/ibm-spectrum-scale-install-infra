@@ -39,6 +39,7 @@
     baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
     gpgcheck: "{{ gpgcheck }}"
     repo_gpgcheck: no
+    sslverify: no
     state: present
   notify: yum-clean-metadata
   when:
@@ -81,6 +82,7 @@
     baseurl: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
     gpgcheck: "{{ gpgcheck }}"
     repo_gpgcheck: no
+    sslverify: no
     state: present
   notify: yum-clean-metadata
   when:
