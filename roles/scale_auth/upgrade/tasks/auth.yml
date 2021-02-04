@@ -99,7 +99,7 @@
      - name: auth | Check current auth scheme
        set_fact:
            isFileAuth : true
-       when: '"ldap" in scale_file_auth_type.stdout'
+       when: 'scale_file_auth_type.stdout is defined and "ldap" in scale_file_auth_type.stdout'
        run_once: true
        delegate_to: localhost
 
@@ -115,7 +115,7 @@
           - name: auth | Set isTLSenabled flag
             set_fact:
                 isTLSenabled : true
-            when: '"true" in scale_temp.stdout'
+            when: 'scale_temp.stdout is defined and "true" in scale_temp.stdout'
 
      - block:
           - name: auth | If auth scheme = LDAP and TLS is enabled, get the ldap.conf file from mmccr
@@ -129,6 +129,8 @@
                 getLDAPfile : true
             run_once: true
             delegate_to: localhost
+            when: scale_temp.rc is defined and scale_temp.rc == 0 
+            #need to change this condition while testing for ldap depending on what is the output for scale_temp of the previous task
 
           - name: auth | Set newTLSstring variable
             set_fact:
