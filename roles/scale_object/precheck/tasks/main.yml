@@ -1,5 +1,11 @@
 ---
 # tasks file for inventory precheck
+
+- name: check | Set default
+  set_fact:
+    scale_ces_dynamic_obj: false
+  when: scale_ces_dynamic_obj is undefined
+
 - import_tasks: inventory_check.yml
   when: 
     - scale_protocols is defined and scale_protocols.object|bool

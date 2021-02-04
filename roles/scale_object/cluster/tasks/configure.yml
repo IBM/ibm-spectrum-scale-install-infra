@@ -3,17 +3,19 @@
 #  Scale Object Configuration
 #
 
-- name: configure | Check if OBJ protocol is enabled
-  shell: "/usr/lpp/mmfs/bin/mmces service list | head -1 | grep OBJ"
-  changed_when: false
-  register: scale_ces_obj_enabled
-  run_once: True
-  ignore_errors: true
+- block:
+    - name: configure | Check if OBJ protocol is enabled
+      shell: "/usr/lpp/mmfs/bin/mmces service list | head -1 | grep OBJ"
+      changed_when: false
+      register: scale_ces_obj_enabled
+      ignore_errors: true
 
-#  Set fact if OBJ is enabled.
-- name: configure | Set fact if OBJ is enabled
-  set_fact:
-    obj_enabled: "{{ true if scale_ces_obj_enabled.rc == 0 else false }}"
+    # Set fact if OBJ is enabled.
+    - name: configure | Set fact if OBJ is enabled
+      set_fact:
+        obj_enabled: "{{ true if scale_ces_obj_enabled.rc == 0 else false }}"
+
+  delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: True
 
 # Copy inn password file.
