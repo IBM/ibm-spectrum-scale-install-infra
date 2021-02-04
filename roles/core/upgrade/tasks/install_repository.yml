@@ -20,6 +20,7 @@
       get_url:
         url: "{{ scale_gpgKey_repository_src }}"
         dest: "{{ scale_gpgKey_dest }}"
+        validate_certs: no 
 
     - rpm_key:
         state: present
@@ -34,6 +35,7 @@
     baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
     gpgcheck: "{{ gpgcheck }}"
     repo_gpgcheck: no
+    sslverify: no
     state: present
   notify: yum-clean-metadata
   when:
