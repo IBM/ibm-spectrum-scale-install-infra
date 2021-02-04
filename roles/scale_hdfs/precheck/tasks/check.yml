@@ -72,34 +72,45 @@
     - name: "fetch JAVA_HOME path"
       shell: /usr/bin/echo $JAVA_HOME
       register: java_path
+      when: ansible_fqdn in scale_hdfs_nodes_list
 
-    - name: "fatch java path"
+    - name: "fetch java path"
       find: 
         paths: /usr/lib,/usr/lib64
         file_type: file
         patterns: "javac"
         recurse: yes
       register: java_out
-      when: java_path.stdout|length == 0
+      when: 
+         - ansible_fqdn in scale_hdfs_nodes_list
+         - java_path.stdout|length == 0
 
     - name: "set JAVA_HOME"
       set_fact:
         javahome_path: "{{ java_out.files[0].path | regex_replace('/bin/javac') }}"
-      when: java_path.stdout|length == 0 and java_out.matched > 0
+      when:
+        - ansible_fqdn in scale_hdfs_nodes_list 
+        - java_path.stdout|length == 0
+        - java_out.matched > 0
 
     - name: "set JAVA_HOME"
       set_fact:
          javahome_path: "{{ java_path.stdout }}"
-      when: java_path.stdout|length > 0
+      when: 
+        - ansible_fqdn in scale_hdfs_nodes_list
+        - java_path.stdout|length > 0
 
     - name: check | verify JAVA
-      command: "/usr/bin/ls {{ javahome_path }}"
+      command: "/usr/bin/ls {{ javahome_path }}/bin/javac"
       register: jvm_list
-      when: javahome_path|length > 0
+      when: 
+        - ansible_fqdn in scale_hdfs_nodes_list
+        - javahome_path|length > 0
 
     - fail:
-        msg: "JAVA_HOME not set properlly"
-      when: jvm_list.rc != 0
-
+        msg: "JAVA_HOME not set properly"
+      when: 
+        - ansible_fqdn in scale_hdfs_nodes_list
+        - jvm_list.rc != 0
 - debug:
    msg: "HDFS Precheck ok"

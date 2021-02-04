@@ -184,19 +184,21 @@
     - name: Start Namenodes
       shell: /usr/lpp/mmfs/bin/mmces service start HDFS -N "{{ item }}"
       with_items: "{{ scale_hdfs_namenodes_list }}"
-      register: start_hdfs
-
-    - name: Start Datanodes
-      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn start
-      register: start_dn
 
     - name: Check Namenodes running status
       shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is'
-      register: nn_status
-
-    - name: Check Datanodes running status
-      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn status | grep 'datanode pid is'
-      register: dn_status
-
+      when: enable_hdfs.rc == 0
   run_once: true
   delegate_to: "{{ scale_server }}"
+
+- name: Start Datanodes
+  shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs datanode restart
+  register: start_dn
+  when: 
+    - ansible_fqdn in scale_hdfs_datanodes_list
+
+- name: Check Datanodes running status
+  shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs datanode status | grep 'datanode pid is'
+  when:
+   - ansible_fqdn in scale_hdfs_datanodes_list
+   - start_dn.rc == 0
