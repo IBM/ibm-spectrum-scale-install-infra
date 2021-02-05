@@ -84,7 +84,12 @@
 - name: install | smb path
   set_fact:
    scale_smb_url: 'smb_rpms/sles12/'
-  when: ansible_distribution in scale_sles_distribution
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_rpms/sles15/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
 
 - name: install | smb path
   set_fact:
