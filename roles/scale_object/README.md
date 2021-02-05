@@ -19,7 +19,6 @@ Prerequisite
 
   scale_ces_obj:
    pwd_file: obj_passwd.j2
-   dynamic_url: True/False
    enable_s3: True/False
    local_keystone: True/False
    enable_file_access: True/False
