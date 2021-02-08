@@ -28,6 +28,9 @@
 - name: configure | Setting server licenses on protocol nodes
   command: "{{ scale_command_path }}mmchlicense server --accept -N {{ scale_server_nodes[1:] }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
+  async: 120
+  poll: 5
+  run_once: true
 
 - name: configure | Collect status of ces nodes
   command: "{{ scale_command_path }}mmces node list"
@@ -214,5 +217,6 @@
 - name: configure | Check if zimon sensor is configured
   shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
   register: scale_zimon_conf_sensors
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
   failed_when: false
   changed_when: false
