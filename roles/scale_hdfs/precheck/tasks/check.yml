@@ -74,25 +74,6 @@
       register: java_path
       when: ansible_fqdn in scale_hdfs_nodes_list
 
-    - name: "fetch java path"
-      find: 
-        paths: /usr/lib,/usr/lib64
-        file_type: file
-        patterns: "javac"
-        recurse: yes
-      register: java_out
-      when: 
-         - ansible_fqdn in scale_hdfs_nodes_list
-         - java_path.stdout|length == 0
-
-    - name: "set JAVA_HOME"
-      set_fact:
-        javahome_path: "{{ java_out.files[0].path | regex_replace('/bin/javac') }}"
-      when:
-        - ansible_fqdn in scale_hdfs_nodes_list 
-        - java_path.stdout|length == 0
-        - java_out.matched > 0
-
     - name: "set JAVA_HOME"
       set_fact:
          javahome_path: "{{ java_path.stdout }}"
