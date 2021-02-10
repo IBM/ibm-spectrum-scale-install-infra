@@ -70,6 +70,5 @@
 - name: install | Add GPFS license packages to list
   set_fact:
     scale_install_license_packages: "{{ scale_gpfs_license_package }}"
-  when: 
-     - '"gpfs.license.std" in scale_gpfs_license_package'
-     - '"gpfs.license.da" in scale_gpfs_license_package'
+  when: "'gpfs.license.std' in scale_gpfs_license_package or  
+         'gpfs.license.da' in scale_gpfs_license_package"
