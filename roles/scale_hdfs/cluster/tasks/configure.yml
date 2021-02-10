@@ -11,15 +11,37 @@
       scale_hdfs_cluster_name: "{{ scale_hdfs_cluster.name }}"
    - name: check | Collect ces hdfs group
      set_fact:
-      scale_hdfs_ces_group_name: "hdfs{{scale_hdfs_cluster.name}}"
-   - name: check | Collect hdfs cesip
-     set_fact:
-      scale_hdfs_ces_ip: "{{scale_protocols.export_ip_pool[0]}}"
+      scale_hdfs_ces_group_name: "hdfs{{ scale_hdfs_cluster.name }}"
    - name: configure | scale_server node
      set_fact:
        scale_server: "{{ scale_hdfs_cluster.namenodes[0] }}"
+   - name: configure |  initialise ces
+     set_fact:
+       scale_free_ces: []
   delegate_to: localhost
   run_once: true
+
+- name: check | Verify existing ces ip
+  shell:
+    cmd: "mmces address list -Y|grep -w hdfs{{ scale_hdfs_ces_group_name }}|awk -F: '{print $7}'"
+  register: scale_existing_ces_ip
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+
+- name: check | Check free ces ip
+  shell:
+   cmd: "mmces address list -Y|grep -v -e hdfs -e object|awk -F: '{print $7}'|grep -v cesAddress"
+  register: scale_free_ces
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  when: scale_existing_ces_ip.stdout | length == 0
+
+- name: check | Collect hdfs cesip
+  set_fact:
+    scale_hdfs_ces_ip: "{{ scale_free_ces.stdout_lines }}"
+  when:
+    - scale_existing_ces_ip.stdout | length == 0
+    - scale_free_ces.stdout_lines | length > 0
 
 - block:
    - name: check | fetch mountpoint
@@ -61,12 +83,17 @@
       ha_enabled: "{{ true if scale_hdfs_cluster.namenodes|length > 1 else false }}"
       ces_hdfs_enabled: "{{ false if check_hdfs.rc == 0 else true }}"
 
+- name: "fetch JAVA_HOME path"
+  shell: /usr/bin/echo $JAVA_HOME
+  register: javahome_path
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
 - name: Configure | Set JAVA_HOME
-  command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k JAVA_HOME="{{ javahome_path }}"
+  command: "/usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k JAVA_HOME={{ javahome_path.stdout }}"
   register: javahome
   run_once: true
   delegate_to: "{{ scale_server }}"
-  when: ces_hdfs_enabled|bool
 
 - block:
    - name: configure | Configuare core-site.xml
@@ -116,15 +143,15 @@
   delegate_to: localhost
 
 - block:
-   - name: configure | Set comfiguration for core-site.xml
+   - name: configure | Set configuration for core-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set core-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ core_site_conf_dict | dict2items }}"
 
-   - name: configure | Set comfiguration for gpfs-site.xml
+   - name: configure | Set configuration for gpfs-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set gpfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ gpfs_site_conf_dict | dict2items }}"
 
-   - name: configure | Set comfiguration for hdfs-site.xml
+   - name: configure | Set configuration for hdfs-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ hdfs_site_conf_dict | dict2items }}"
 
@@ -160,21 +187,27 @@
      register: enable_ces
      when: ces_hdfs_enabled|bool
 
-   - name: configure | Configure CES IP 
-     command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip }}"
+   - name: configure | Configure CES IP
+     command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip[0] }}"
      register: add_cesip
-     when: check_hdfs_ces_group.rc != 0
-
+     when:
+       - scale_hdfs_ces_ip is defined
+       - scale_hdfs_ces_ip|length > 0
+       - check_hdfs_ces_group.rc != 0
   run_once: true
   delegate_to: "{{ scale_server }}"
 
 - fail:
     msg: "mmces address add failed. "
   when: add_cesip.changed|bool and add_cesip.rc > 0 and not ces_hdfs_enabled|bool
+  run_once: true
+  delegate_to: "{{ scale_server }}"
 
 - fail:
     msg: "Failed to upload config hdfs"
   when: config_upload.rc > 0
+  run_once: true
+  delegate_to: "{{ scale_server }}"
 
 - block:
     - name: Enable HDFS
