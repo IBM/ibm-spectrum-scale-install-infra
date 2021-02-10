@@ -21,17 +21,27 @@
   delegate_to: localhost
   run_once: true
 
+- name: check | Verify existing ces ip
+  shell:
+    cmd: "mmces address list -Y|grep -w hdfs{{ scale_hdfs_ces_group_name }}|awk -F: '{print $7}'"
+  register: scale_existing_ces_ip
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+
 - name: check | Check free ces ip
   shell:
    cmd: "mmces address list -Y|grep -v -e hdfs -e object|awk -F: '{print $7}'|grep -v cesAddress"
   register: scale_free_ces
   delegate_to: "{{ scale_server }}"
   run_once: true
+  when: scale_existing_ces_ip.stdout | length == 0
 
 - name: check | Collect hdfs cesip
   set_fact:
     scale_hdfs_ces_ip: "{{ scale_free_ces.stdout_lines }}"
-  when: scale_free_ces.rc == 0
+  when:
+    - scale_existing_ces_ip.stdout | length == 0
+    - scale_free_ces.stdout_lines | length > 0
 
 - block:
    - name: check | fetch mountpoint
@@ -133,15 +143,15 @@
   delegate_to: localhost
 
 - block:
-   - name: configure | Set comfiguration for core-site.xml
+   - name: configure | Set configuration for core-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set core-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ core_site_conf_dict | dict2items }}"
 
-   - name: configure | Set comfiguration for gpfs-site.xml
+   - name: configure | Set configuration for gpfs-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set gpfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ gpfs_site_conf_dict | dict2items }}"
 
-   - name: configure | Set comfiguration for hdfs-site.xml
+   - name: configure | Set configuration for hdfs-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ hdfs_site_conf_dict | dict2items }}"
 
@@ -180,17 +190,24 @@
    - name: configure | Configure CES IP
      command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip[0] }}"
      register: add_cesip
-     when: check_hdfs_ces_group.rc != 0
+     when:
+       - scale_hdfs_ces_ip is defined
+       - scale_hdfs_ces_ip|length > 0
+       - check_hdfs_ces_group.rc != 0
   run_once: true
   delegate_to: "{{ scale_server }}"
 
 - fail:
     msg: "mmces address add failed. "
   when: add_cesip.changed|bool and add_cesip.rc > 0 and not ces_hdfs_enabled|bool
+  run_once: true
+  delegate_to: "{{ scale_server }}"
 
 - fail:
     msg: "Failed to upload config hdfs"
   when: config_upload.rc > 0
+  run_once: true
+  delegate_to: "{{ scale_server }}"
 
 - block:
     - name: Enable HDFS
