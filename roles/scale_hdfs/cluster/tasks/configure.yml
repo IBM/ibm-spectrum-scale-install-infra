@@ -177,7 +177,7 @@
      register: enable_ces
      when: ces_hdfs_enabled|bool
 
-   - name: configure | Configure CES IP 
+   - name: configure | Configure CES IP
      command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip[0] }}"
      register: add_cesip
      when: check_hdfs_ces_group.rc != 0
