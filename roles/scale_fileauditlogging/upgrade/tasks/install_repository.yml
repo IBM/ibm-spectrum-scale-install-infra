@@ -38,6 +38,7 @@
   register: gpfskafka_installed
   when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
   ignore_errors: true
+  failed_when: false
   args:
     warn: false
 
