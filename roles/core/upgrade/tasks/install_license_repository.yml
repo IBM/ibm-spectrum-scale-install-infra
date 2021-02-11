@@ -32,6 +32,14 @@
      jsonquery: "results[?yumstate=='available'].name"
   when:
      - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+     - scale_gpfs_license_pkg is not defined
+
+- name: upgrade | Extract license package name
+  set_fact:
+     scale_gpfs_license_package:  "{{ scale_gpfs_license_pkg }}"
+  when:
+     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+     - scale_gpfs_license_pkg is defined
 
 - name: upgrade | Find GPFS License package
   set_fact:
