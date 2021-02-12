@@ -1,0 +1,24 @@
+---
+#
+# Installation of performance monitior swift package
+#
+
+# Add pmswift rpm
+
+- block: ## when: ansible_fqdn in scale_obj_nodes_list
+    - name: upgrade | pmswift path
+      set_fact:
+        scale_obj_url: 'zimon_rpms/rhel8'
+      when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+    - name: upgrade | Find pmswift packages
+      find:
+        paths:  "{{ obj_extracted_path }}/{{ scale_obj_url }}"
+        patterns: "pmswift*.rpm"
+      register: object_package
+
+    - name: upgrade | Add pmswift package name 
+      vars:
+        pmswift_package: "{{ object_package.files | map(attribute='path') | list}}"
+      set_fact:
+        scale_install_all_packages: "{{ scale_install_all_packages + pmswift_package }}"

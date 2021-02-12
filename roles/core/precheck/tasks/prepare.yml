@@ -11,6 +11,9 @@
     path: /root/.bashrc
     line: PATH=$PATH:/usr/lpp/mmfs/bin
     state: present
+  when: 
+    - ansible_pkg_mgr != 'zypper'
+    - scale_prepare_disable_selinux | bool
 
 #
 # Configure SSH server
@@ -31,6 +34,17 @@
         line: PubkeyAuthentication yes
         state: present
       notify: reload-sshd
+
+    # prepare | Update ListenAddress at sshd_config for daemon network
+    - name: prepare | Restrict SSH access to admin nodename
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        regexp: '#ListenAddress 0.'
+        line: 'ListenAddress {{ scale_admin_nodename }}'
+      notify: reload-sshd
+      when: scale_prepare_restrict_ssh_address is defined and scale_prepare_restrict_ssh_address|bool
+
   when: scale_prepare_enable_ssh_login | bool
 
 - meta: flush_handlers

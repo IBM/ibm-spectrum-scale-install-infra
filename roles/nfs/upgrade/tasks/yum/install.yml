@@ -1,0 +1,15 @@
+---
+- name: upgrade | Initialize
+  set_fact:
+    disable_gpgcheck: "no"
+
+- name: upgrade | Disable gpg check
+  set_fact:
+    disable_gpgcheck: "yes"
+  when: scale_version < '5.0.4.0'
+
+- name: upgrade | Upgrade GPFS nfs packages
+  yum:
+   name: "{{ scale_install_all_packages }}"
+   state: latest
+   disable_gpg_check: "{{ disable_gpgcheck }}"

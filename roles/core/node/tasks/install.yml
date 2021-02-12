@@ -1,5 +1,5 @@
 ---
-# Install or update RPMs
+# Install or update packages
 
 #
 # Choose installation method from configuration variables
@@ -45,25 +45,17 @@
   delegate_to: localhost
 
 #
-# Run chosen installation method to get list of RPMs
+# Run chosen installation method to get list of packages
 #
-- name: install | gpfs base path
+- name: install | Initialize list of packages
   set_fact:
-    gpfs_path_url: '{{ gpfs_extracted_path }}/gpfs_rpms'
-  when: scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
-
-- name: install | Initialize list of RPMs
-  set_fact:
-    scale_install_all_rpms: []
-
-- name: install | Initialize license list of RPMs
-  set_fact:
-    scale_install_license_rpms: []
+    scale_install_all_packages: []
+    scale_install_license_packages: []
 
 - include_tasks: install_{{ scale_installmethod }}.yml
 
 - include_tasks: install_gplbin.yml
-  when: scale_install_gplbin_rpm is defined
+  when: scale_install_gplbin_package is defined
 
 - include_tasks: install_license_pkg.yml
   when: scale_install_remotepkg_path is defined or scale_install_localpkg_path is defined or scale_install_directory_pkg_path is defined
@@ -78,72 +70,18 @@
 #
 # - include_tasks: update.yml
 - include_tasks: upgrade.yml
-  when: scale_daemon_running | bool
+  when:
+    - scale_daemon_running | bool
+    - ansible_distribution in scale_rhel_distribution
 
 #
-# Install or update RPMs
+# Install or update packages
 #
-- block:  ## when: not scale_daemon_running
-    - name: install | List installed GPFS RPMs
-      yum:
-        list: gpfs.base
-        disablerepo: spectrum-scale-gpfs
-      register: scale_install_rpmlist
-      when: ansible_pkg_mgr == 'yum'
-      
-    - name: install | Install GPFS RPMs
-      yum:
-        name: "{{ scale_install_all_rpms }}"
-        state: present
-      register: scale_install_rpmresult
-      when: ansible_pkg_mgr == 'yum'
-      retries: 10
-      until: scale_install_rpmresult is success
-      delay: 20
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
 
-    - name: install | Install GPFS License RPMs
-      yum:
-        name: "{{ scale_install_license_rpms }}"
-        state: present
-      register: scale_install_license_rpmresult
-      when: ansible_pkg_mgr == 'yum'
-      retries: 10
-      until: scale_install_license_rpmresult is success
-      delay: 20
+- import_tasks: yum/install.yml
+  when: ansible_distribution in scale_rhel_distribution
 
-    - name: install | List installed GPFS RPMs
-      dnf:
-        list: gpfs.base
-        disablerepo: spectrum-scale-gpfs
-      register: scale_install_dnfrpmlist
-      when: ansible_pkg_mgr == 'dnf'
-
-    - name: install | Install GPFS RPMs
-      dnf:
-        name: "{{ scale_install_all_rpms }}"
-        state: present
-      register: scale_install_dnfrpmresult
-      when: ansible_pkg_mgr == 'dnf'
-      retries: 10
-      until: scale_install_dnfrpmresult is success
-      delay: 20
-
-    - name: install | Install GPFS License RPMs
-      dnf:
-        name: "{{ scale_install_license_rpms }}"
-        state: present
-      register: scale_install_license_dnfrpmresult
-      when: ansible_pkg_mgr == 'dnf'
-      retries: 10
-      until: scale_install_license_dnfrpmresult is success
-      delay: 20
-
-    - name: install | Check if GPFS RPMs were updated
-      set_fact:
-        scale_install_updated: true
-      when:
-        - ("'installed' in scale_install_rpmlist.results | map(attribute='yumstate') | list") or
-          ("'installed' in scale_install_dnfrpmlist.results | map(attribute='yumstate' | list")
-        - (scale_install_rpmresult.changed) or (scale_install_dnfrpmresult.changed)
-        #- (scale_install_license_rpmresult.changed) or (scale_install_license_dnfrpmresult.changed)
-  when: not scale_daemon_running
+- import_tasks: zypper/install.yml
+  when: ansible_distribution in scale_sles_distribution

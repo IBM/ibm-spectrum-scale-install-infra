@@ -1,0 +1,110 @@
+---
+# Remote package installation method
+
+- name: install | Stat remote installation package
+  stat:
+    path: "{{ scale_install_remotepkg_path }}"
+    checksum_algorithm: md5
+  register: scale_install_remotepkg
+
+- name: install | Check remote installation package
+  assert:
+    that: scale_install_remotepkg.stat.exists
+    msg: >-
+      Please set the variable 'scale_install_remotepkg_path' to point to the
+      remote installation package (accessible on Ansible managed node)!
+
+#
+# Optionally, verify package checksum
+#
+- name: install | Stat checksum file
+  stat:
+    path: "{{ scale_install_remotepkg_path }}.md5"
+  register: scale_install_md5_file
+
+- block:  ## when: scale_install_md5_file.stat.exists
+    - name: install | Read checksum from file
+      slurp:
+        src: "{{ scale_install_remotepkg_path }}.md5"
+      register: scale_install_md5_sum
+
+    - name: install | Compare checksums
+      vars:
+        md5sum: "{{ scale_install_md5_sum.content | b64decode }}"
+      assert:
+        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.checksum
+        msg: >-
+          Checksums don't match. Please check integritiy of your remote
+          installation package!
+  when: scale_install_md5_file.stat.exists
+
+#
+# Extract installation package
+#
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ obj_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Make installation package executable
+  file:
+    path: "{{ scale_install_remotepkg_path }}"
+    mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+- name: install | Extract installation package
+  command: "{{ scale_install_remotepkg_path + ' --silent' }}"
+  args:
+    creates: "{{ obj_extracted_path }}"
+
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ obj_extracted_path }}"
+  register: scale_install_gpfs__rpmdir
+
+- name: install | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs__rpmdir.stat.exists
+      - scale_install_gpfs_rpmdir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      remote installation package!
+
+# Find object rpms
+
+- block: ## when: ansible_fqdn in scale_obj_nodes_list
+    - name: install | obj path
+      set_fact:
+        scale_obj_url: 'object_rpms/rhel8'
+      when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+    - name: install | Find all packages
+      find:
+        paths:  "{{ obj_extracted_path }}/{{ scale_obj_url }}"
+        patterns: "*.rpm"
+      register: object_package
+
+    - set_fact:
+        scale_install_all_packages: "{{ object_package.files | map(attribute='path') | list}}"
+
+    - name: install | Check valid scale openstack-swift packages
+      assert:
+        that: scale_install_all_packages | select('match', '.*openstack-swift.*') | list
+        msg: "No Scale object openstack-swift package found {{ obj_extracted_path }}/{{ scale_obj_url }}/openstack-swift*"
+      run_once: true
+
+    - name: install | Check valid python3-swift package
+      assert:
+        that: scale_install_all_packages | select('match', '.*python3-swift.*') | list
+        msg: "No python3-swift package found {{ obj_extracted_path }}/{{ scale_obj_url }}/python3-swift*"
+      run_once: true
+
+    - name: install | Check valid scale spectrum-scale-object package
+      assert:
+        that: scale_install_all_packages | select('match', '.*spectrum-scale-object.*') | list
+        msg: "No Scale object spectrum-scale-object package found {{ obj_extracted_path }}/{{ scale_obj_url }}/spectrum-scale-object*"
+      run_once: true
+
+  when: ansible_fqdn in scale_obj_nodes_list
+

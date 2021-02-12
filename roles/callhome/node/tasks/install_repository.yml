@@ -4,24 +4,58 @@
 #
 # Configure YUM repository
 #
+- name: install | Initialize
+  set_fact:
+   gpgcheck: "yes"
+
+- name: install | Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
+
 - name: install | Configure Callhome YUM repository
   yum_repository:
-    name: spectrum-scale-callhome
-    description: IBM Spectrum Scale (ZIMon)
-    baseurl: "{{ scale_install_callhome_repository_url }}"
-    gpgcheck: false
+    name: spectrum-scale-callhome-rpms
+    description: IBM Spectrum Scale (Callhome RPMS)
+    baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    sslverify: no
     state: present
   notify: yum-clean-metadata
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-    - scale_install_callhome_repository_url != 'existing'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure Callhome APT repository
+  apt_repository:
+    filename: spectrum-scale-callhome-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}gpfs_debs/ ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (Callhome debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure Callhome zypper repository
+  zypper_repository:
+    name: spectrum-scale-callhome-rpms
+    repo: "{{ scale_install_repository_url }}gpfs_rpms/"
+    runrefresh: yes
+    state: present
+    disable_gpg_check: yes
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url != 'existing'
 
 #
-# Add GUI RPMs
+# Add callhome RPMs
 #
-- name: install | Add GPFS callhome RPMs to list
+- name: install | Add GPFS callhome packages to list
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
-    - "{{ scale_callhome_rpms }}"
-
+    - "{{ scale_callhome_packages }}"

@@ -1,37 +1,37 @@
 ---
-- name: delete | initialize delete node
+- name: delete | Initialize delete nodes
   add_host:
     name: "{{ hostvars[item]['ansible_fqdn'] }}"
     groups: scale_remove_nodes
   when:
-     - hostvars[item].state is defined and hostvars[item].state == 'absent'
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
   run_once: true
 
-- block:
-    - name: cluster | Find existing cluster
+- block:  ## when: groups['scale_remove_nodes'] is defined and groups['scale_remove_nodes'] | length > 0
+    - name: delete | Find existing cluster
       shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterSummary | cut -d ':' -f 8
       register: scale_cluster_clusterId
       changed_when: false
       failed_when: false
 
-    - name: cluster | Find existing cluster members
+    - name: delete | Find existing cluster members
       add_host:
         name: "{{ item }}"
         groups: scale_cluster_members
       when:
-        - hostvars[item].state is defined and hostvars[item].state == 'present'
+        - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'present'
         - hostvars[item].is_admin_node is defined and hostvars[item].is_admin_node|bool
         - hostvars[item].scale_cluster_clusterId.stdout
       with_items: "{{ ansible_play_hosts }}"
       changed_when: false
 
-    - name: set | delete node
+    - name: delete | Set delete node
       set_fact:
-          delete_nodes: "{{ groups['scale_remove_nodes'] | list }}"
+        delete_nodes: "{{ groups['scale_remove_nodes'] | list }}"
 
-    - name: Delete an IBM Spectrum Scale Node from Cluster
+    - name: delete | Delete an IBM Spectrum Scale Node from Cluster
       ibm_spectrumscale_node:
         state: absent
         name: "{{ delete_nodes | join(',') }}"

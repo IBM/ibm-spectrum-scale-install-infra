@@ -1,0 +1,46 @@
+---
+# Build Linux kernel extension from source
+
+- block:  ## when: scale_install_gplbin_rpm is undefined
+#
+# Identify Linux Distribution
+#
+    - name: build | Identify RedHat distribution
+      set_fact:
+        scale_build_distribution: REDHAT_AS_LINUX
+      when:
+        ansible_distribution in scale_rhel_distribution or
+        ansible_distribution in scale_sles_distribution
+
+    - name: build | Identify OS distribution
+      set_fact:
+        scale_build_distribution: UBUNTU_AS_LINUX
+      when:
+        - ansible_distribution in scale_ubuntu_distribution
+
+    - name: build | Check Linux distribution
+      assert:
+        that: scale_build_distribution is defined
+        msg: >-
+          Unsupported Linux distribution {{ ansible_distribution }}!
+
+#
+# Build kernel extension
+#
+    - name: build | Compile GPL module
+      shell: export LINUX_DISTRIBUTION={{ scale_build_distribution }} ; /usr/lpp/mmfs/bin/mmbuildgpl --quiet
+      args:
+        creates: /lib/modules/{{ ansible_kernel }}/extra/mmfs26.ko
+
+    - name: build | Stat GPL module
+      stat:
+        path: /lib/modules/{{ ansible_kernel }}/extra/mmfs26.ko
+      register: scale_build_kmod
+
+    - name: build | Check GPL module
+      assert:
+        that: scale_build_kmod.stat.exists
+        msg: >-
+          Unable to build Linux kernel extension for running kernel
+          {{ ansible_kernel }}!
+  when: scale_install_gplbin_rpm is undefined

@@ -1,0 +1,15 @@
+---
+# Default variables for the IBM Spectrum Scale (HDFS) role -
+# either edit this file or define your own variables to override the defaults
+
+## Specify the URL of the (existing) Spectrum Scale YUM/apt/zypper repository
+
+## List of HDFS packages to install
+scale_hdfs_packages: gpfs.hdfs-protocol
+
+## Temporary directory to copy installation package to
+## (local package installation method)
+scale_install_localpkg_tmpdir_path: /tmp
+
+## Flag to install hdfs debug package
+install_debuginfo: true

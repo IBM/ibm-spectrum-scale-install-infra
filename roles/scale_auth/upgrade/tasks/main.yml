@@ -1,0 +1,4 @@
+---
+# tasks file for authentication
+- import_tasks: auth.yml
+  tags: auth

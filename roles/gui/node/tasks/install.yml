@@ -1,5 +1,5 @@
 ---
-# Install or update RPMs
+# Install or update packages
 
 #
 # Ensure that installation method was chosen during previous role
@@ -10,7 +10,7 @@
       set_fact:
         scale_installmethod: repository
       when:
-        - scale_install_gui_repository_url is defined
+        - scale_install_repository_url is defined
 
     - name: install | Check for localpkg installation method
       set_fact:
@@ -19,6 +19,13 @@
         - scale_install_repository_url is undefined
         - scale_install_remotepkg_path is undefined
         - scale_install_localpkg_path is defined
+
+    - name: install | Check for remotepkg installation method
+      set_fact:
+        scale_installmethod: remote_pkg
+      when:
+        - scale_install_repository_url is undefined
+        - scale_install_remotepkg_path is defined
 
     - name: install | Check for directory package installation method
       set_fact:
@@ -39,41 +46,24 @@
   delegate_to: localhost
 
 #
-# Run chosen installation method to get list of RPMs
+# Run chosen installation method to get list of packages
 #
-- name: install | gpfs base path
+- name: install | Initialize list of packages
   set_fact:
-    gpfs_path_url: '{{ gpfs_extracted_path }}/gpfs_rpms'
-  when: scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
-
-- name: install | Initialize list of RPMs
-  set_fact:
-    scale_install_all_rpms: []
+    scale_install_all_packages: []
 
 - include_tasks: install_{{ scale_installmethod }}.yml
 
 - meta: flush_handlers
 
-- block:  ## when: rhel8 node
-    - name: build | Install prereqs for GUI from source
-      dnf:
-        name: "{{ scale_gui_el8_prereqs }}"
-        state: present
-      register: scale_gui_dnf_result
-      retries: 10
-      until: scale_gui_dnf_result is success
-      delay: 20
-  when: ansible_distribution == 'RedHat' and ansible_distribution_major_version == '8'
+#
+# Install or update packages
+#
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
 
-#
-# Install or update RPMs
-#
-- name: install | Install GPFS GUI RPMs
-  package:
-    name: "{{ scale_install_all_rpms }}"
-    state: present
-  register: scale_gui_result
-  retries: 10
-  until: scale_gui_result is success
-  delay: 20
-  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+- import_tasks: yum/install.yml
+  when: ansible_distribution in scale_rhel_distribution
+
+- import_tasks: zypper/install.yml
+  when: ansible_distribution in scale_sles_distribution

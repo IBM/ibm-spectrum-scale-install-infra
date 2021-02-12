@@ -1,0 +1,13 @@
+---
+- block:
+   - name: check | File Audit Logging Status
+     shell:
+      cmd: "/usr/lpp/mmfs/bin/mmaudit all list -Y"
+     register: scale_auditlogging_status
+     ignore_errors: true
+
+   - name: check | File Audit Logging Running Status
+     debug:
+       msg: "{{ scale_auditlogging_status.stdout }}"
+
+  run_once: true

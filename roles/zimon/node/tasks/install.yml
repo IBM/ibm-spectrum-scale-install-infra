@@ -10,7 +10,7 @@
       set_fact:
         scale_installmethod: repository
       when:
-        - scale_install_zimon_repository_url is defined
+        - scale_install_repository_url is defined
         - scale_install_localpkg_path is undefined
         - scale_install_remotepkg_path is undefined
         - scale_install_directory_pkg_path is undefined
@@ -23,6 +23,13 @@
         - scale_install_remotepkg_path is undefined
         - scale_install_directory_pkg_path is undefined
         - scale_install_localpkg_path is defined
+
+    - name: install | Check for remotepkg installation method
+      set_fact:
+        scale_installmethod: remote_pkg
+      when:
+        - scale_install_repository_url is undefined
+        - scale_install_remotepkg_path is defined
 
     - name: install | Check for directory package installation method
       set_fact:
@@ -45,9 +52,9 @@
 #
 # Run chosen installation method to get list of RPMs
 #
-- name: install | Initialize list of RPMs
+- name: install | Initialize list of packages
   set_fact:
-    scale_install_all_rpms: []
+    scale_install_all_packages: []
 
 - include_tasks: install_{{ scale_installmethod }}.yml
 
@@ -56,12 +63,11 @@
 #
 # Install or update RPMs
 #
-- name: install | Install GPFS Zimon RPMs
-  package:
-    name: "{{ scale_install_all_rpms }}"
-    state: present
-  register: scale_zimon_result
-  retries: 10
-  until: scale_zimon_result is success
-  delay: 20
-  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- import_tasks: yum/install.yml
+  when: ansible_distribution in scale_rhel_distribution
+
+- import_tasks: zypper/install.yml
+  when: ansible_distribution in scale_sles_distribution

@@ -1,0 +1,6 @@
+---
+# Enable inventory check
+scale_object_inventory_check : true
+
+## object args dynamic
+scale_ces_dynamic_obj: false

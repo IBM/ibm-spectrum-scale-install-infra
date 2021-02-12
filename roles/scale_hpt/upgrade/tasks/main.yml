@@ -1,0 +1,6 @@
+---
+# Install IBM Spectrum Scale (GPFS) AFM COS (HPT) role
+
+- import_tasks: install.yml
+  tags: install
+  when: (scale_install_package | bool)

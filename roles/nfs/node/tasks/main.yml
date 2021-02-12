@@ -1,0 +1,4 @@
+---
+- import_tasks: install.yml
+  tags: install
+  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)

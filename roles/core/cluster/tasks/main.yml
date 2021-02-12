@@ -15,9 +15,26 @@
 
 - import_tasks: storage.yml
   tags: storage
+  when:
+    - scale_disks is undefined
+    - scale_filesystem is undefined
+    - scale_storage is defined
+
+- import_tasks: storage_disk.yml
+  tags: storage
+  when:
+    - scale_storage is undefined
+    - scale_disks is defined
+
+- import_tasks: storage_fs.yml
+  tags: storage
+  when:
+    - scale_storage is undefined
+    - scale_filesystem is defined
 
 - import_tasks: finalize.yml
   tags: always
+  when: scale_node_update_check | bool
 
 # cluster node remover playbook
 - import_tasks: removenode.yml

@@ -1,0 +1,216 @@
+---
+# Remote package installation method
+
+- name: upgrade | Stat remote installation package
+  stat:
+    path: "{{ scale_install_remotepkg_path }}"
+    checksum_algorithm: md5
+  register: scale_install_remotepkg
+
+- name: upgrade | Check remote installation package
+  assert:
+    that: scale_install_remotepkg.stat.exists
+    msg: >-
+      Please set the variable 'scale_install_remotepkg_path' to point to the
+      remote installation package (accessible on Ansible managed node)!
+
+#
+# Optionally, verify package checksum
+#
+- name: upgrade | Stat checksum file
+  stat:
+    path: "{{ scale_install_remotepkg_path }}.md5"
+  register: scale_install_md5_file
+
+- block:  ## when: scale_install_md5_file.stat.exists
+    - name: upgrade | Read checksum from file
+      slurp:
+        src: "{{ scale_install_remotepkg_path }}.md5"
+      register: scale_install_md5_sum
+
+    - name: upgrade | Compare checksums
+      vars:
+        md5sum: "{{ scale_install_md5_sum.content | b64decode }}"
+      assert:
+        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.checksum
+        msg: >-
+          Checksums don't match. Please check integritiy of your remote
+          installation package!
+  when: scale_install_md5_file.stat.exists
+
+#
+# Extract installation package
+#
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs_packagedir
+
+- name: upgrade | Make installation package executable
+  file:
+    path: "{{ scale_install_remotepkg_path }}"
+    mode: a+x
+  when: not scale_install_gpfs_packagedir.stat.exists
+
+- name: upgrade | Extract installation package
+  command: "{{ scale_install_remotepkg_path + ' --silent' }}"
+  args:
+    creates: "{{ scale_gpfs_path_url }}"
+
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs_packagedir
+
+- name: upgrade | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs_packagedir.stat.exists
+      - scale_install_gpfs_packagedir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      remote installation package!
+
+# Copy and import gpg key on RHEL and SLES if gpfs version >= 5.0.5.0
+- block:
+    - name: check | Copy key
+      copy:
+        src: "{{ scale_gpgKey_src }}"
+        dest: "{{ scale_gpgKey_dest }}"
+        remote_src: yes
+
+    - rpm_key:
+       state: present
+       key: "{{ scale_gpgKey_dest }}SpectrumScale_public_key.pgp"
+       
+  when: ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
+         and scale_enable_gpg_check and scale_version >= "5.0.5.0")
+
+#
+# Find GPFS BASE
+#
+- name: upgrade | Find GPFS BASE (gpfs.base) package
+  find:
+    paths: "{{ scale_gpfs_path_url }}"
+    patterns: gpfs.base*{{ scale_architecture }}*
+  register: scale_install_gpfs_base
+
+- name: upgrade | Check valid GPFS BASE (gpfs.base) package
+  assert:
+    that: scale_install_gpfs_base.matched > 0
+    msg: >-
+      No GPFS BASE (gpfs.base) package found:
+      {{ scale_gpfs_path_url }}/gpfs.base*{{ scale_architecture }}*
+
+#
+# Find GPFS gpfs.docs
+#
+- name: upgrade | Find GPFS docs (gpfs.docs) package
+  find:
+    paths: "{{ scale_gpfs_path_url }}"
+    patterns: gpfs.docs*
+  register: scale_install_gpfs_doc
+
+- name: upgrade | Check valid GPFS docs (gpfs.docs) package
+  assert:
+    that: scale_install_gpfs_doc.matched > 0
+    msg: >-
+      No GPFS docs (gpfs.docs) package found:
+      {{ scale_gpfs_path_url }}/gpfs.docs*
+
+#
+# Find GPFS gpfs.msg.en_US
+#
+- name: upgrade | Find gpfs.msg.en_US (gpfs.msg.en_US) package
+  find:
+    paths: "{{ scale_gpfs_path_url }}"
+    patterns: gpfs.msg.en*
+  register: scale_install_gpfs_msg
+
+- name: upgrade | Check valid GPFS (gpfs.msg.en_US) package
+  assert:
+    that: scale_install_gpfs_msg.matched > 0
+    msg: >-
+      No GPFS BASE (gpfs.base) package found:
+      {{ scale_gpfs_path_url }}/gpfs.msg.en*
+
+#
+# Find GPFS gpfs.compression
+#
+- name: upgrade | Find GPFS Compression (gpfs.compression) package
+  find:
+    paths: "{{ scale_gpfs_path_url }}"
+    patterns: gpfs.compression*{{ scale_architecture }}*
+  register: scale_install_gpfs_compression
+
+- name: upgrade | Check valid GPFS Compression(gpfs.compression) package
+  assert:
+    that: scale_install_gpfs_compression.matched > 0
+    msg: >-
+      No GPFS Compression (gpfs.compression) package found:
+      {{ scale_gpfs_path_url }}/gpfs.compression*{{ scale_architecture }}*
+
+#
+# Find GSKit
+#
+- name: upgrade | Find Global Security Kit (GSKit) package
+  find:
+    paths: "{{ scale_gpfs_path_url }}"
+    patterns: gpfs.gskit*{{ scale_architecture }}*
+  register: scale_install_gpfs_gskit
+
+- name: upgrade | Check valid Global Security Kit (GSKit) package
+  assert:
+    that: scale_install_gpfs_gskit.matched > 0
+    msg: >-
+      No Global Security Kit (GSKit) package found:
+      {{ scale_gpfs_path_url }}/gpfs.gskit*{{ scale_architecture }}*
+
+#
+# Add GPFS packages
+#
+- name: upgrade | Add GPFS packages to list
+  vars:
+    current_package: "{{ scale_gpfs_path_url }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
+    - "{{ scale_install_gpfs_base.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_doc.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_msg.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_gskit.files.0.path | basename }}"
+    - "{{ scale_install_gpfs_compression.files.0.path | basename }}"
+
+- name: upgrade | Add GPFS packages to list (prior to version 5.0.2.0)
+  vars:
+    current_package: "{{ scale_gpfs_path_url }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
+    - "{{ scale_install_add_packages_pre502 }}"
+  when: scale_version is version_compare('5.0.2', '<=')
+
+#
+# Add GPFS packages for building GPL module from source
+#
+
+- name: upgrade | Find GPFS gpl (gpfs.gpl) package
+  find:
+    paths: "{{ scale_gpfs_path_url }}"
+    patterns: gpfs.gpl*
+  register: scale_install_gpfs_gpl
+
+- name: upgrade | Check valid GPFS GPL (gpfs.gpl) package
+  assert:
+    that: scale_install_gpfs_gpl.matched > 0
+    msg: >-
+      No GPFS GPL (gpfs.gpl) package found:
+      {{ scale_gpfs_path_url }}/gpfs.gpl*
+
+- name: upgrade | Add GPFS packages for building GPL module from source to list
+  vars:
+    current_package: "{{ scale_gpfs_path_url }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  when: scale_install_gplbin_package is undefined
+  with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"

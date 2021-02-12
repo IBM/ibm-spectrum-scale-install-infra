@@ -1,0 +1,81 @@
+---
+- name: check | Initialize
+  set_fact:
+   scale_nfs_nodes_list: []
+
+- name: check | Check if nfs or smb is enabled
+  assert:
+   that:
+   - scale_protocols.nfs|bool or scale_protocols.smb|bool
+   fail_msg: "NFS and SMB is not enabled"
+
+- name: check | Collect all nfs nodes
+  set_fact:
+   scale_nfs_nodes_list: "{{ scale_nfs_nodes_list + [hostvars[item]['ansible_fqdn']] }}"
+  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+  with_items:
+   - "{{ ansible_play_hosts }}"
+  delegate_to: localhost
+  run_once: true
+
+- debug:
+        msg: "{{ scale_nfs_nodes_list }}"
+
+- name: check | Check if atleast one nfs node is configured
+  assert:
+   that:
+   - scale_nfs_nodes_list|length > 0
+   fail_msg: "No nfs nodes configured"
+
+- name: check | Collect status of native nfs
+  shell:
+   cmd: systemctl status nfs-server
+  register: scale_nfs_status
+  when: ansible_fqdn in scale_nfs_nodes_list
+  ignore_errors: true
+  failed_when: false
+
+- name: check | Check if native nfs is running
+  assert:
+   that:
+   - scale_nfs_status.rc > 0
+   fail_msg: "Service nfs found running on {{ ansible_hostname }}. Which conflicts with the installation of NFS.
+SUGGESTTED ACTION- Run commands to stop (systemctl stop nfs) and disable (systemctl disable nfs) this service on node {{ ansible_hostname }}"
+  when: ansible_fqdn in scale_nfs_nodes_list
+  any_errors_fatal: true
+
+- name: check | Collect status of service nfs-kernel-server
+  shell:
+   cmd: systemctl status nfs-kernel-server
+  register: scale_nfs_status
+  when: ansible_fqdn in scale_nfs_nodes_list
+  ignore_errors: true
+  failed_when: false
+
+- name: check | Check if native nfs-kernel-server is running
+  assert:
+   that:
+   - scale_nfs_status.rc > 0
+   fail_msg: "Service nfs-kernel-server found running on {{ ansible_hostname }}. Which conflicts with the installation of NFS.
+SUGGESTTED ACTION Run commands to stop (systemctl stop nfs-kernel-server) and disable (systemctl disable nfs-kernel-server)
+this service on node {{ ansible_hostname }}"
+  when: ansible_fqdn in scale_nfs_nodes_list
+  any_errors_fatal: true
+
+- name: check | Collect status of service knfs-server
+  shell:
+   cmd: systemctl status knfs-server
+  register: scale_nfs_status
+  when: ansible_fqdn in scale_nfs_nodes_list
+  ignore_errors: true
+  failed_when: false
+
+- name: check | Check if native knfs-server is running
+  assert:
+   that:
+   - scale_nfs_status.rc > 0
+   fail_msg: "Service knfs-kernel-server found running on {{ ansible_hostname }}. Which conflicts with the installation of NFS.
+SUGGESTTED ACTION Run commands to stop (systemctl stop knfs-server) and disable (systemctl disable knfs-server)
+this service on node {{ ansible_hostname }}"
+  when: ansible_fqdn in scale_nfs_nodes_list
+  any_errors_fatal: true

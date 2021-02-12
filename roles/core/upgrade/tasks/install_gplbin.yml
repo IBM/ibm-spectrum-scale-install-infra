@@ -1,0 +1,53 @@
+---
+# Install Linux kernel extension from pre-built package
+
+#
+# Configure YUM repository
+#
+- name: upgrade | Configure GPL module YUM repository
+  yum_repository:
+    name: spectrum-scale-gplbin
+    description: IBM Spectrum Scale (GPFS) GPL module
+    baseurl: "{{ scale_install_gplbin_repository_url }}"
+    gpgcheck: false
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_gplbin_repository_url is defined
+
+- name: upgrade | Configure GPL module repository
+  apt_repository:
+    name: spectrum-scale-gplbin
+    description: IBM Spectrum Scale (GPFS) GPL module
+    baseurl: "{{ scale_install_gplbin_repository_url }}"
+    gpgcheck: false
+    state: present
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_gplbin_repository_url is defined
+
+- name: upgrade | Configure GPL module repository
+  zypper_repository:
+    name: spectrum-scale-gplbin
+    description: IBM Spectrum Scale (GPFS) GPL module
+    baseurl: "{{ scale_install_gplbin_repository_url }}"
+    gpgcheck: false
+    state: present
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_gplbin_repository_url is defined
+#
+# Add kernel extension prereqs
+#
+- name: upgrade | Add dependencies for pre-built GPL module to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items: "{{ scale_install_gplbin_prereqs }}"
+
+#
+# Add kernel extension package
+#
+- name: upgrade | Add GPL module package to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ scale_install_gplbin_package ] }}"

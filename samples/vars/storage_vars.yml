@@ -1,0 +1,37 @@
+---
+#
+# saples/vars/storage_vars.yml
+#
+
+# Refer to `man mmchfs` and `man mmchnsd` man pages for a description of these
+# storage parameters. The `filesystem` parameter is mandatory, `servers`, and
+# the `device` parameter is mandatory for each of the file system's `disks`. All
+# other file system and disk parameters are optional.
+
+# Important:
+# `scale_storage` *must* be define using group variables. Do *not* define disk
+# parameters using host variables or inline variables in your playbook. Doing so
+# would apply them to all hosts in the group/play, thus defining the same disk
+# multiple times...
+
+scale_storage:
+  - filesystem: gpfs01
+    blockSize: 4M
+    defaultMetadataReplicas: 2
+    defaultDataReplicas: 2
+    numNodes: 16
+    automaticMountOption: true
+    defaultMountPoint: /mnt/gpfs01
+    disks:
+      - device: /dev/sdb
+        nsd: nsd_1
+        servers: scale01
+        failureGroup: 10
+        usage: metadataOnly
+        pool: system
+      - device: /dev/sdc
+        nsd: nsd_2
+        servers: scale01
+        failureGroup: 10
+        usage: dataOnly
+        pool: data

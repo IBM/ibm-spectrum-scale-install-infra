@@ -9,7 +9,7 @@
 
 ## Specify the URL of the (existing) Spectrum Scale YUM repository
 ## (copy the contents of /usr/lpp/mmfs/.../gpfs_rpms to build your repository)
-#scale_install_repository_url: http://infraserv/gpfs_rpms/
+#scale_install_repository_url: http://infraserv/
 ## Note that if this is a URL then a new repository definition will be created.
 ## If this variable is set to 'existing' then it is assumed that a repository
 ## definition already exists and thus will *not* be created.
@@ -24,6 +24,12 @@
 
 ## Spectrum Scale daemon nodename (defaults to node's hostname)
 scale_daemon_nodename: "{{ ansible_hostname }}"
+
+## Spectrum Scale admin nodename (defaults to node's hostname)
+scale_admin_nodename: "{{ scale_daemon_nodename }}"
+
+## Desired state of the Spectrum Scale daemon
+scale_state: present
 
 ## Default cluster name
 scale_cluster_clustername: gpfs1.local
@@ -48,7 +54,7 @@ scale_storage_filesystem_defaults:
   defaultMetadataReplicas: 1
   defaultDataReplicas: 1
   numNodes: 32
-  automaticMountOption: false
+  automaticMountOption: true
   ## defaultMountPoint will be this prefix, followed by the filesystem name
   defaultMountPoint_prefix: /mnt/
   ## Overwrite existing NSDs - if set to 'true' then disks will *not* be checked
@@ -57,17 +63,18 @@ scale_storage_filesystem_defaults:
 # defaults file for node
 
 # Specifies a predefined profile of attributes to be applied.
-# System-defined profiles are located in /usr/lpp/mmfs/profiles/. 
-# The following system-defined profile names are accepted: 
+# System-defined profiles are located in /usr/lpp/mmfs/profiles/.
+# The following system-defined profile names are accepted:
 # gpfsprotocoldefaults and gpfsprotocolrandomio
 # eg: If you want to apply gpfsprotocoldefaults then specify scale_cluster_profile_name: gpfsprotocoldefaults
 scale_cluster_profile_name: None
 
+# Fixed variable related to mmcrcluster profile
 # System-defined profiles are located in /usr/lpp/mmfs/profiles/
 scale_cluster_profile_dir_path: /usr/lpp/mmfs/profiles/
 
-gpfs_cluster_system_profile:
-   - gpfsprotocoldefaults
-   - gpfsprotocolrandomio
+## Default node role change variable flag
+scale_node_role_change: true
 
-scale_cluster_profile_system_path: /var/mmfs/etc/
+## Upgrade check
+scale_node_update_check: true

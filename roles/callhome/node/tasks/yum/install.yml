@@ -1,0 +1,15 @@
+---
+- name: install | Initialize
+  set_fact:
+    scale_disable_gpgcheck: "no"
+
+- name: install | Disable gpg check
+  set_fact:
+    scale_disable_gpgcheck: "yes"
+  when: scale_version < '5.0.4.0'
+
+- name: install | Install GPFS Callhome packages
+  yum:
+   name: "{{ scale_install_all_packages }}"
+   state: present
+   disable_gpg_check: "{{ scale_disable_gpgcheck }}"

@@ -1,0 +1,157 @@
+---
+# YUM repository installation method
+
+#
+# Configure YUM repository
+#
+- name: Initialize
+  set_fact:
+   scale_zimon_url: ""
+   is_scale_collector_pkg_installed: false
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/rhel7/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu16/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu18/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/sles12/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+
+- name: upgrade | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_rpms/sles15/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
+
+- name: Initialize
+  set_fact:
+   gpgcheck: "yes"
+
+- name: Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
+
+- name: upgrade | Configure ZIMon YUM repository
+  yum_repository:
+    name: spectrum-scale-zimon
+    description: IBM Spectrum Scale (ZIMon)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
+    gpgcheck: "{{ gpgcheck }}"
+    repo_gpgcheck: no
+    sslverify: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+
+- name: upgrade | Configure zimon APT repository
+  apt_repository:
+    filename: spectrum-scale-zimon-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ scale_zimon_url }} ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (Zimon debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url != 'existing'
+
+- name: upgrade | Configure ZIMon repository
+  zypper_repository:
+    name: spectrum-scale-zimon
+    description: IBM Spectrum Scale (ZIMon)
+    repo: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
+    disable_gpg_check: no
+    state: present
+    overwrite_multiple: yes
+  when:
+    - ansible_pkg_mgr == 'zypper'
+
+- name: upgrade | package methods
+  set_fact:
+    scale_zimon_sensors_packages: "{{ scale_zimon_sensors_packages }}"
+    scale_zimon_collector_packages: "{{ scale_zimon_collector_packages }}"
+  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+
+- name: upgrade | package methods
+  set_fact:
+    scale_zimon_sensors_packages: "{{ scale_zimon_sensors_packages_ubuntu }}"
+    scale_zimon_collector_packages: "{{ scale_zimon_collector_packages_ubuntu }}"
+  when: ansible_pkg_mgr == 'apt'
+
+- name: upgrade | package methods
+  set_fact:
+    scale_zimon_sensors_packages: "{{ scale_zimon_sensors_packages_suse }}"
+    scale_zimon_collector_packages: "{{ scale_zimon_collector_packages_suse }}"
+  when: ansible_pkg_mgr == 'zypper'
+
+- name: upgrade | Check if gpfs collector package is installed
+  shell: rpm -q gpfs.gss.pmcollector
+  register: is_collector_package_installed
+  failed_when: no
+  changed_when: no
+  args:
+    warn: false
+  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
+
+- name: upgrade | Set if gpfs collector package is installed
+  set_fact:
+    is_scale_collector_pkg_installed: true
+  when:
+     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
+     - is_collector_package_installed.rc == 0
+
+- name: upgrade | Check if gpfs collector package is installed
+  shell: dpkg -l | grep gpfs.gss.pmcollector | awk "{print $1}" |  grep ii
+  register: is_collector_apt_package_installed
+  failed_when: no
+  changed_when: no
+  args:
+    warn: false
+  when: ansible_pkg_mgr == 'apt'
+
+- name: upgrade | Set if gpfs collector installed
+  set_fact:
+    is_scale_collector_pkg_installed: true
+  when:
+     - ansible_pkg_mgr == 'apt'
+     - is_collector_apt_package_installed.rc == 0
+#
+# Add GUI packages
+#
+- name: upgrade | Add GPFS sensors packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_zimon_sensors_packages }}"
+
+- name: upgrade | Add GPFS collector packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_zimon_collector_packages }}"
+  when: (is_scale_collector_pkg_installed | bool)

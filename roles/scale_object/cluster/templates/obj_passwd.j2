@@ -1,0 +1,14 @@
+%objectauth:
+ ksDatabasePwd={{ scale_ces_obj.database_pwd }}
+ ksAdminPwd={{ scale_ces_obj.admin_pwd }}
+ ksSwiftPwd={{ scale_ces_obj.swift_pwd | default(omit) }}
+
+# where:
+# objectauth
+#      Stanza name for object protocol
+# password
+#      Specifies the password of --user-name.
+# ksAdminPwd
+#      Specifies the Keystone Administrator's password.
+# ksSwiftPwd
+#      Specifies the Swift service user's password.

@@ -1,0 +1,10 @@
+---
+# tasks file for cluster
+- import_tasks: configure.yml
+  when: scale_protocols is defined and scale_protocols.object|bool
+  tags: config
+
+- import_tasks: configure_pmswift.yml
+  when: scale_protocols is defined and scale_protocols.object|bool
+  tags: config
+

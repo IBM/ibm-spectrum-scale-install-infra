@@ -20,5 +20,14 @@ scale_install_updated: false
 ## Remember if config params were changed or not
 scale_config_changed: false
 
-scale_state:
+# GPFS daemon state
+scale_active_states:
   - active
+
+# scale supported profile
+gpfs_cluster_system_profile:
+   - gpfsprotocoldefaults
+   - gpfsprotocolrandomio
+
+# user defined profile needs to be installed inside this directory
+scale_cluster_profile_system_path: /var/mmfs/etc/

@@ -18,15 +18,15 @@
 
 - name: install| Creates default directory
   file:
-    path: "{{ gpfs_extracted_path }}"
+    path: "{{ scale_extracted_path }}"
     state: directory
     mode: a+x
     recurse: yes
 
 - name: install | Stat extracted packages
   stat:
-    path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
-  register: scale_install_gpfs_rpmdir
+    path: "{{ scale_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+  register: scale_install_gpfs_packagedir
 
 #
 # Copy installation directory package to default
@@ -35,55 +35,55 @@
     - name: install | Copy installation package to node
       copy:
         src: "{{ scale_install_directory_pkg_path }}"
-        dest: "{{ gpfs_extracted_path }}"
+        dest: "{{ scale_extracted_path }}"
         mode: a+x
 
 - name: install | Set installation package path
   set_fact:
-    dir_path: "{{ gpfs_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+    dir_path: "{{ scale_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
 
 - name: install | gpfs base path
   set_fact:
-    gpfs_path_url: "{{ dir_path }}"
+    scale_gpfs_path_url: "{{ dir_path }}"
   when: scale_install_directory_pkg_path is defined
 
 #
 # Find GPFS GUI
 #
 - block:  ## when: host is defined as a gui node
-    - name: install | Find GPFS GUI (gpfs.gui) RPM
+    - name: install | Find GPFS GUI (gpfs.gui) package
       find:
-        paths: "{{ gpfs_path_url }}"
+        paths: "{{ scale_gpfs_path_url }}"
         patterns: gpfs.gui*
       register: scale_install_gpfs_gui
 
-    - name: install | Check valid GPFS GUI (gpfs.gui) RPM
+    - name: install | Check valid GPFS GUI (gpfs.gui) package
       assert:
         that: scale_install_gpfs_gui.matched > 0
         msg: >-
           No GPFS GUI (gpfs.gui) package found:
-          "{{ gpfs_path_url }}/gpfs_rpms/gpfs.gui*"
+          "{{ scale_gpfs_path_url }}/gpfs_packages/gpfs.gui*"
     #
     # Find GPFS gpfs.java
     #
-    - name: install | Find GPFS java (gpfs.java) RPM
+    - name: install | Find GPFS java (gpfs.java) package
       find:
-        paths: "{{ gpfs_path_url }}"
+        paths: "{{ scale_gpfs_path_url }}"
         patterns: gpfs.java*{{ scale_architecture }}*
       register: scale_install_gpfs_java
 
-    - name: install | Check valid GPFS java (gpfs.java) RPM
+    - name: install | Check valid GPFS java (gpfs.java) package
       assert:
         that: scale_install_gpfs_java.matched > 0
         msg: >-
           No GPFS java (gpfs.java) package found:
-          "{{ gpfs_path_url }}/gpfs.java*{{ scale_architecture }}*"
+          "{{ scale_gpfs_path_url }}/gpfs.java*{{ scale_architecture }}*"
 
-    - name: install | Add GPFS GUI RPMs to list
+    - name: install | Add GPFS GUI packages to list
       vars:
-        current_rpm: "{{ gpfs_path_url }}/{{ item }}"
+        current_package: "{{ scale_gpfs_path_url }}/{{ item }}"
       set_fact:
-        scale_install_all_rpms: "{{ scale_install_all_rpms + [ current_rpm ] }}"
+        scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
       with_items:
         - "{{ scale_install_gpfs_gui.files.0.path | basename }}"
         - "{{ scale_install_gpfs_java.files.0.path | basename }}"

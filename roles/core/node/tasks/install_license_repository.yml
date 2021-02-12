@@ -8,33 +8,67 @@
   yum:
     list: gpfs.license.*
   register: package_name_version
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
 
-- debug:
-    msg: "{{ package_name_version.results }}"
+- name: Find license package
+  shell:
+   cmd: apt-cache show gpfs.license.*
+  register: package_name
+  when:
+  - ansible_pkg_mgr == 'apt'
+
+- name: install | Get license package
+  shell:
+   cmd: zypper info gpfs.license.* | grep Name | cut -d ':' -f 2 | tr -d '[:space:]'
+  args:
+   warn: false
+  register: package_name_version_zypp
+  when:
+    - ansible_pkg_mgr == 'zypper'
 
 - name: install | Check valid only one GPFS License (gpfs.license) RPM
   assert:
-    that: package_name_version.results | selectattr("yumstate", "match", "available") | list | length == 1
+    that: package_name_version.results | selectattr("yumstate", "match", "available") | list | length >= 1
     msg: >-
       More than one GPFS License (gpfs.license) RPM found:
-      /usr/lpp/mmfs/{{ scale_version }}/gpfs_rpms/gpfs.license.*.{{ scale_architecture }}.rpm
+      "gpfs.license*{{ scale_architecture }}*"
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
 
-- name: install | Find GPFS License rpm
+- name: install | Find GPFS License package
   vars:
-    gpfs_license_rpm: "{{ package_name_version.results|selectattr('yumstate','equalto','available')|map(attribute='name')|list }}"
+    gpfs_license_package: "{{ package_name_version.results|selectattr('yumstate','match','available')|map(attribute='name')|list }}"
   set_fact:
-    scale_gpfs_license_rpm: "{{ gpfs_license_rpm }}"
+    scale_gpfs_license_package: "{{ gpfs_license_package }}"
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
 
-- name: install | Add GPFS license RPMs to list
+- name: install | Find GPFS License package
   set_fact:
-    scale_install_license_rpms: "{{ scale_install_license_rpms + [ item ] }}"
+   scale_gpfs_license_package: "{{ package_name.stdout_lines.0[9:] }}"
+  when:
+  - ansible_pkg_mgr == 'apt'
+
+- name: install | Find GPFS License package
+  set_fact:
+   scale_gpfs_license_package: "{{ package_name_version_zypp.stdout }}" 
+  when:
+  - ansible_pkg_mgr == 'zypper'
+
+- name: install | Add GPFS license packages to list
+  set_fact:
+    scale_install_license_packages: "{{ scale_install_license_packages + [ item ] }}"
   with_items:
-    - "{{ scale_gpfs_license_rpm }}"
+    - "{{ scale_gpfs_license_package }}"
     - gpfs.adv
     - gpfs.crypto
-  when: '"gpfs.license.std" not in scale_gpfs_license_rpm'
+  when: 
+    - '"gpfs.license.std" not in scale_gpfs_license_package'
+    - '"gpfs.license.da" not in scale_gpfs_license_package'
 
-- name: install | Add GPFS license RPMs to list
+- name: install | Add GPFS license packages to list
   set_fact:
-    scale_install_license_rpms: "{{ scale_gpfs_license_rpm }}"
-  when: '"gpfs.license.std" in scale_gpfs_license_rpm'
+    scale_install_license_packages: "{{ scale_gpfs_license_package }}"
+  when: "'gpfs.license.std' in scale_gpfs_license_package or  
+         'gpfs.license.da' in scale_gpfs_license_package"
