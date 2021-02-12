@@ -9,6 +9,7 @@
       changed_when: false
       register: scale_ces_obj_enabled
       ignore_errors: true
+      failed_when: false
 
     # Set fact if OBJ is enabled.
     - name: configure | Set fact if OBJ is enabled
