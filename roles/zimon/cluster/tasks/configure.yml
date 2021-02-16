@@ -67,6 +67,10 @@
         - " 'mmperfmon: There is no performance monitoring configuration data.' in scale_zimon_conf_pmcollector_check.stderr"
     #- " ( collector_nodes | join(',') ) not in scale_zimon_conf_pmcollector_check.stdout"
 
+    - debug:
+         msg: "{{scale_zimon_conf_pmcollector.cmd}}"
+      when: scale_zimon_conf_pmcollector.cmd is defined
+
     - name: configure | update performance collection for new node
       vars:
         collector_nodes_new: "{{ groups['scale_zimon_collectors'] | list }}"
