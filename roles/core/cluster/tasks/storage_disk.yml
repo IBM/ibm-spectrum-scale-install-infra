@@ -75,10 +75,16 @@
       vars:
         verify: "{{ 'no' if overwriteNSDs | default(scale_storage_filesystem_defaults.overwriteNSDs) else 'yes' }}"
       command: /usr/lpp/mmfs/bin/mmcrnsd -F /var/tmp/StanzaFile.new.nsd -v {{ verify }}
+      register: scale_nsd_create
       when:
         - scale_storage_stanzafile_new.size > 1
         #- item.item not in scale_storage_existing_nsds.stdout_lines
         - scale_storage_stanzafile_new is changed
+
+    - debug:
+        msg: "{{ scale_nsd_create.cmd }}"
+      when: scale_nsd_create.cmd is defined
+      ignore_errors: yes
 
     - name: storage | Wait for NSD configuration to be synced across cluster
       wait_for:
