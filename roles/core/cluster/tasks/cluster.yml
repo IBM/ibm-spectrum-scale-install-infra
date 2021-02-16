@@ -177,6 +177,10 @@
 
     - name: cluster | Add new nodes to cluster
       command: /usr/lpp/mmfs/bin/mmaddnode -N /var/tmp/NodeFile --accept
+      register: mmadd_results
+
+    - debug:
+         msg: "{{ mmadd_results.cmd }}"
 
     - name: cluster | Copy Add node NodeFile
       copy:
