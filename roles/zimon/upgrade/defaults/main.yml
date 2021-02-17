@@ -32,6 +32,8 @@ scale_zimon_collector_packages_suse:
 scale_zimon_sensors_packages_suse:
  - gpfs.gss.pmsensors
 
+scale_obj_sensors_packages:
+ - pmswift
 ## Node's default GUI collector role -
 ## you'll likely want to define per-node roles in your inventory
 scale_zimon_collector: false
@@ -40,5 +42,6 @@ scale_zimon_collector: false
 ## you'll likely want to define per-node roles in your inventory
 scale_cluster_gui: false
 
+scale_obj_perfmon: false
 ## To Enabled output from Ansible task in stdout and stderr for some tasks.
 ## Run the playbook with -vv

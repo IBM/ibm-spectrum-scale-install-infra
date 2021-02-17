@@ -8,6 +8,7 @@
   set_fact:
    scale_zimon_url: ""
    is_scale_collector_pkg_installed: false
+   is_scale_pmswift_pkg_installed: false
 
 - name: upgrade | zimon path
   set_fact:
@@ -155,3 +156,36 @@
   with_items:
     - "{{ scale_zimon_collector_packages }}"
   when: (is_scale_collector_pkg_installed | bool)
+
+- block:
+    - name: upgrade | Check if pmswift package is installed
+      shell: rpm -q pmswift
+      register: is_pmwift_package_installed
+      failed_when: no
+      changed_when: no
+      args:
+          warn: false
+      when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+
+    - name: upgrade | Set if pmswift installed
+      set_fact:
+          is_scale_pmswift_pkg_installed: true
+      when:
+         - is_pmwift_package_installed.rc == 0
+
+    - name: upgrade | Stop pmswiftd service
+      systemd:
+         name: "{{ item }}"
+         state: stopped
+      with_items:
+         - pmswiftd
+      when: (is_scale_pmswift_pkg_installed | bool)
+
+    - name: upgrade | pmswift packages to list
+      set_fact:
+         scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+      with_items:
+          - "{{ scale_obj_sensors_packages }}"
+      when: (is_scale_pmswift_pkg_installed | bool)
+  when:
+     - ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
