@@ -84,7 +84,7 @@
       ces_hdfs_enabled: "{{ false if check_hdfs.rc == 0 else true }}"
 
 - name: "fetch JAVA_HOME path"
-  shell: /usr/bin/echo $JAVA_HOME
+  shell: echo $JAVA_HOME
   register: javahome_path
   run_once: true
   delegate_to: "{{ scale_server }}"
