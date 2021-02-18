@@ -69,7 +69,7 @@
 
 - block:
    - name: check | Fetch JAVA_HOME path
-     shell: /usr/bin/echo $JAVA_HOME
+     shell: echo $JAVA_HOME
      register: java_path
      when: ansible_fqdn in scale_hdfs_nodes_list
 
@@ -93,7 +93,7 @@
        - ansible_fqdn in scale_hdfs_nodes_list
 
    - name: check | verify JAVA
-     command: "/usr/bin/ls {{ javahome_path }}/bin/java"
+     command: "ls {{ javahome_path }}/bin/java"
      register: jvm_list
      when: 
        - ansible_fqdn in scale_hdfs_nodes_list
