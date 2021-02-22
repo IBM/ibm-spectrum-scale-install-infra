@@ -15,13 +15,9 @@
 
 - block:  ## when: not scale_daemon_running
     - block:
-        - name: upgrade | List installed GPFS packages
-          yum:
-            list: gpfs.base
-            disablerepo: spectrum-scale-gpfs
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-          register: scale_install_packagelist
-          when: ansible_pkg_mgr == 'yum'
+        - name: upgrade | Get GPFS packages list
+          set_fact:
+             scale_install_all_packages: "{{ scale_install_all_packages + scale_install_license_packages }}"
 
         - name: upgrade | Upgrade GPFS packages
           yum:
@@ -31,21 +27,6 @@
           register: scale_install_packageresult
           when: ansible_pkg_mgr == 'yum'
 
-        - name: upgrade | Upgrade GPFS License packages
-          yum:
-            name: "{{ scale_install_license_packages }}"
-            state: latest
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-          register: scale_install_license_packageresult
-          when: ansible_pkg_mgr == 'yum'
-
-        - name: upgrade | List installed GPFS packages
-          dnf:
-            list: gpfs.base
-            disablerepo: spectrum-scale-gpfs
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-          register: scale_install_dnfpackagelist
-          when: ansible_pkg_mgr == 'dnf'
 
         - name: upgrade | Upgrade GPFS packages
           dnf:
@@ -55,20 +36,7 @@
           register: scale_install_dnfpackageresult
           when: ansible_pkg_mgr == 'dnf'
 
-        - name: upgrade | Upgrade GPFS License packages
-          dnf:
-            name: "{{ scale_install_license_packages }}"
-            state: latest
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-          register: scale_install_license_dnfpackageresult
-          when: ansible_pkg_mgr == 'dnf'
-
         - name: upgrade | Check if GPFS packages were updated
           set_fact:
             scale_install_updated: true
-          when:
-            - ("'installed' in scale_install_packagelist.results | map(attribute='yumstate') | list") or
-              ("'installed' in scale_install_dnfpackagelist.results | map(attribute='yumstate' | list")
-            - (scale_install_packageresult.changed) or (scale_install_dnfpackageresult.changed)
       when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-  when: not scale_daemon_running
