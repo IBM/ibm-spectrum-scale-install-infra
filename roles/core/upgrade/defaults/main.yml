@@ -53,6 +53,8 @@ scale_install_add_packages_pre502:
 scale_install_gplsrc_packages:
   - gpfs.gpl*
 
+scale_hpt_packages:
+  - gpfs.afm.cos
 
 ## Define this variable to install Linux kernel extension from pre-built RPM
 ## (instead of building it from source)
