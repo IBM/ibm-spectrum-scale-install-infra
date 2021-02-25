@@ -19,6 +19,15 @@
   delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: True
 
+- name: configure | Set fact password
+  set_fact:
+     database_pwd: "{{ scale_ces_obj.database_pwd }}"
+     admin_pwd: "{{ scale_ces_obj.admin_pwd }}"
+     swift_pwd: "{{ scale_ces_obj.swift_pwd | default(omit) }}"
+  when:
+    - not scale_ces_dynamic_obj|bool
+  run_once: True
+
 # Copy inn password file.
 - name: configure | Copy password file from local template folder
   template:
