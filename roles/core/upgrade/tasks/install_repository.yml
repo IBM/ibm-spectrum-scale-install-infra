@@ -97,6 +97,12 @@
   when: scale_install_gplbin_package is undefined
   with_items: "{{ scale_install_gplsrc_packages }}"
 
+- name: upgrade | Add GPFS AFM COS package to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_hpt_packages }}"
+
 - name: upgrade | Check if gpfs java package is installed
   shell: rpm -q gpfs.java
   register: is_gpfsjava_package_installed
