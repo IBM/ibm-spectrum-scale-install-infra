@@ -84,7 +84,6 @@ The simplest possible playbook to install Spectrum Scale on a node with GUI:
 ---
 - hosts: scale01.example.com
   vars:
-    - scale_version: 5.0.4.0
     - scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
   roles:
     - core/precheck

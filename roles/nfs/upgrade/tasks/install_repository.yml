@@ -6,7 +6,7 @@
 - name: Disable gpg check
   set_fact:
    gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
+  when: scale_version < '5.0.5.0'
 
 - name: upgrade | nfs path
   set_fact:

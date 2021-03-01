@@ -30,7 +30,7 @@
 - name: install | Disable gpg check
   set_fact:
    gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
+  when: scale_version < '5.0.5.0'
 
 - name: install | Configure GPFS Java YUM repository
   yum_repository:

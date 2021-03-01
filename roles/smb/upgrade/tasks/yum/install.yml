@@ -6,7 +6,7 @@
 - name: Disable gpg check
   set_fact:
     disable_gpgcheck: "yes"
-  when: scale_version < '5.0.4.0'
+  when: scale_version < '5.0.5.0'
 
 - name: upgrade | Upgrade GPFS SMB packages
   yum:

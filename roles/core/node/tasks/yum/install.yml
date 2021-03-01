@@ -11,7 +11,7 @@
 - name: install | Disable gpg check
   set_fact:
     scale_disable_gpgcheck: "yes"
-  when: scale_version < '5.0.4.0'
+  when: scale_version < '5.0.5.0'
 
 - block:  ## when: not scale_daemon_running
     - block:
