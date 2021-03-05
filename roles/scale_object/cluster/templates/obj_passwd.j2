@@ -1,0 +1,14 @@
+%objectauth:
+ ksDatabasePwd={{ database_pwd }}
+ ksAdminPwd={{ admin_pwd }}
+ ksSwiftPwd={{ swift_pwd | default(omit) }}
+
+# where:
+# objectauth
+#      Stanza name for object protocol
+# password
+#      Specifies the password of --user-name.
+# ksAdminPwd
+#      Specifies the Keystone Administrator's password.
+# ksSwiftPwd
+#      Specifies the Swift service user's password.

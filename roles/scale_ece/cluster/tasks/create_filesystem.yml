@@ -7,7 +7,7 @@
       failed_when: false
 
     - name: create | Create filesystem
-      command: "{{ scale_command_path }}mmvdisk fs create --fs {{ item.filesystem }} --vs {{ item.vs }} --mmcrfs -T {{ item.mount_point }}/{{ item.filesystem }}"
+      command: "{{ scale_command_path }}mmvdisk fs create --fs {{ item.filesystem }} --vs {{ item.vs }} --mmcrfs -T {{ item.mount_point }}"
       register: scale_fs_create
       failed_when: scale_fs_create.rc != 0
       when:

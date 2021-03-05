@@ -28,6 +28,9 @@ scale_daemon_nodename: "{{ ansible_hostname }}"
 ## Spectrum Scale admin nodename (defaults to node's hostname)
 scale_admin_nodename: "{{ scale_daemon_nodename }}"
 
+## Desired state of the Spectrum Scale daemon
+scale_state: present
+
 ## Default cluster name
 scale_cluster_clustername: gpfs1.local
 
@@ -69,3 +72,9 @@ scale_cluster_profile_name: None
 # Fixed variable related to mmcrcluster profile
 # System-defined profiles are located in /usr/lpp/mmfs/profiles/
 scale_cluster_profile_dir_path: /usr/lpp/mmfs/profiles/
+
+## Default node role change variable flag
+scale_node_role_change: true
+
+## Upgrade check
+scale_node_update_check: true

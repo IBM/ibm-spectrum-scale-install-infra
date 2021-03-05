@@ -1,0 +1,101 @@
+---
+- name: configure | scale_server node
+  set_fact:
+    scale_server: "{{ scale_hdfs_cluster.namenodes[0] }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: configure | Check HA
+  set_fact:
+      ha_enabled: "{{ true if scale_hdfs_cluster.namenodes|length > 1 else false }}"
+      acl_change_required: true
+
+- name: postcheck | Check if HDFS is running
+  shell:
+   cmd: "{{ scale_command_path }}/mmces service list|grep HDFS"
+  register: scale_hdfs_status
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  ignore_errors: true
+  failed_when: false
+
+- name: postcheck | Check if NFS is running
+  shell:
+   cmd: "{{ scale_command_path }}/mmces service list|grep NFS"
+  register: scale_nfs_status
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  ignore_errors: true
+  failed_when: false
+
+- name: postcheck | Check if SMB is running
+  shell:
+   cmd: "{{ scale_command_path }}/mmces service list|grep SMB"
+  register: scale_smb_status
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  ignore_errors: true
+  failed_when: false
+
+- name: postcheck | Check if OBJ is running
+  shell:
+   cmd: "{{ scale_command_path }}/mmces service list|grep OBJ"
+  register: scale_obj_status
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  ignore_errors: true
+  failed_when: false
+
+- name: postcheck | Check DataNode running status
+  shell: "{{ scale_mmhdfs_command_path }}mmhdfs hdfs-dn status | grep 'datanode pid is'"
+  register: dn_status
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+
+- name: postcheck | Get datanodes
+  set_fact:
+       datanodes: "{{ scale_hdfs_datanodes_list }}"
+
+- fail:
+    msg: "Not all datanode are running, check datanode log"
+  when: 'dn_status.stdout_lines|length < datanodes|length'
+
+
+- name: postcheck | Check Namenodes active status
+  shell: "{{ scale_hdfs_command_path }}hdfs haadmin -getAllServiceState | grep -i 'active'"
+  register: active_status
+  when: ha_enabled|bool
+  ignore_errors: yes
+  delegate_to: "{{ scale_server }}"
+  failed_when: false
+  run_once: true
+
+- name: postcheck | Force active
+  shell: "{{ scale_hdfs_command_path }}hdfs haadmin -transitionToActive --forceactive -scale"
+  register: force_active
+  when: 
+    - ha_enabled|bool 
+    - active_status.stdout_lines | length == 0
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+
+- name: postcheck | Check Namenodes active status again
+  shell: "{{ scale_hdfs_command_path }}hdfs haadmin -getAllServiceState | grep -i 'active'"
+  register: active_status_again
+  when: ha_enabled|bool
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+
+- fail:
+    msg: "Namenodes cannot be active"
+  when: 
+    - ha_enabled|bool
+    - active_status_again.stdout_lines | length == 0
+
+- name: postcheck | Check ACL status
+  shell: "{{ scale_command_path }}mmchfs  {{ scale_hdfs_cluster.filesystem }} -k all"
+  register: acl_change
+  when: scale_nfs_status.rc != 0 and scale_smb_status.rc != 0 and scale_obj_status.rc != 0
+
+  delegate_to: "{{ scale_server }}"
+  run_once: true

@@ -1,0 +1,13 @@
+---
+# Variables for the IBM Spectrum Scale (GUI) role -
+# these variables are *not* meant to be overridden
+
+## Compute RPM version from Spectrum Scale version
+scale_rpmversion: "{{ scale_version | regex_replace('^([0-9.]+)\\.([0-9])$', '\\1-\\2') }}"
+
+## Specify package extraction path
+scale_extracted_default_path: "/usr/lpp/mmfs"
+scale_extracted_path: "{{ scale_extracted_default_path }}/{{ scale_version }}"
+
+scale_gui_el8_prereqs:
+  - iptables

@@ -1,0 +1,75 @@
+---
+# Dir package installation method
+
+- block:  ## run_once: true
+    - name: upgrade | Stat directory installation package
+      stat:
+        path: "{{ scale_install_directory_pkg_path }}"
+      register: scale_install_dirpkg
+
+    - name: upgrade | Check directory installation package
+      assert:
+        that: scale_install_dirpkg.stat.exists
+        msg: >-
+          Please set the variable 'scale_install_directory_pkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+  run_once: true
+  delegate_to: localhost
+
+- name: install| Creates default directory
+  file:
+    path: "{{ scale_extracted_path }}"
+    state: directory
+    mode: a+x
+    recurse: yes
+
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ scale_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+  register: scale_install_gpfs_packagedir
+
+#
+# Copy installation directory package to default
+#
+- block:
+    - name: upgrade | Copy installation package to node
+      copy:
+        src: "{{ scale_install_directory_pkg_path }}"
+        dest: "{{ scale_extracted_path }}"
+        mode: a+x
+
+- name: upgrade | Set installation package path
+  set_fact:
+    dir_path: "{{ scale_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+
+- name: upgrade | gpfs base path
+  set_fact:
+    scale_gpfs_path_url: "{{ dir_path }}"
+  when: scale_install_directory_pkg_path is defined
+
+#
+# Find GPFS afm cos
+#
+- block:
+    - name: upgrade | Find GPFS HPT (gpfs.afm.cos) package
+      find:
+        paths: "{{ scale_gpfs_path_url }}"
+        patterns: gpfs.afm.cos*
+      register: scale_install_gpfs_hpt
+
+    - name: upgrade | Check valid GPFS HPT (gpfs.afm.cos) package
+      assert:
+        that: scale_install_gpfs_hpt.matched > 0
+        msg: >-
+          No GPFS HPT (gpfs.afm.cos) package found:
+          "{{ scale_gpfs_path_url }}/gpfs_packages/gpfs.afm.cos*"
+
+    - name: upgrade | Add GPFS HPT packages to list
+      vars:
+        current_package: "{{ scale_gpfs_path_url }}/{{ item }}"
+      set_fact:
+        scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+      with_items:
+        - "{{ scale_install_gpfs_hpt.files.0.path | basename }}"
+
+  when: scale_install_package | bool

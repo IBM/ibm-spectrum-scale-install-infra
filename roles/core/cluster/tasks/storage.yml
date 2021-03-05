@@ -228,7 +228,7 @@
         - item.size > 1
       with_items: "{{ scale_storage_stanzafile_existing.results }}"
 
-    - meta: flush_handlers
+    #- meta: flush_handlers
 
 #
 # Cleanup

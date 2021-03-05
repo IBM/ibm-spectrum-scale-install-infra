@@ -106,7 +106,7 @@
      that: scale_install_gpfs_callhome.matched > 0
      msg: "No GPFS callhome (gpfs.callhome) package found: {{ scale_callhome_extracted_path }}/{{ callhome_url }}gpfs.callhome-ecc-client*"
 
-- name: install | Add GPFS callhome package to list
+  - name: install | Add GPFS callhome package to list
     vars:
      current_package: "{{ item }}"
     set_fact:

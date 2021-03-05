@@ -1,0 +1,6 @@
+---
+# handlers file for node
+- name: yum-clean-metadata
+  command: yum clean metadata
+  args:
+    warn: false

@@ -1,0 +1,237 @@
+---
+- block:
+   - name: check | Collect hdfs datadir
+     set_fact:
+      scale_hdfs_datadir: "{{ scale_hdfs_cluster.datadir }}"
+   - name: check | Collect hdfs filesystem
+     set_fact:
+      scale_hdfs_filesystem: "{{ scale_hdfs_cluster.filesystem }}"
+   - name: check | Collect hdfs cluster name
+     set_fact:
+      scale_hdfs_cluster_name: "{{ scale_hdfs_cluster.name }}"
+   - name: check | Collect ces hdfs group
+     set_fact:
+      scale_hdfs_ces_group_name: "hdfs{{ scale_hdfs_cluster.name }}"
+   - name: configure | scale_server node
+     set_fact:
+       scale_server: "{{ scale_hdfs_cluster.namenodes[0] }}"
+   - name: configure |  initialise ces
+     set_fact:
+       scale_free_ces: []
+  delegate_to: localhost
+  run_once: true
+
+- name: check | Verify existing ces ip
+  shell:
+    cmd: "mmces address list -Y|grep -w hdfs{{ scale_hdfs_ces_group_name }}|awk -F: '{print $7}'"
+  register: scale_existing_ces_ip
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+
+- name: check | Check free ces ip
+  shell:
+   cmd: "mmces address list -Y|grep -v -e hdfs -e object|awk -F: '{print $7}'|grep -v cesAddress"
+  register: scale_free_ces
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  when: scale_existing_ces_ip.stdout | length == 0
+
+- name: check | Collect hdfs cesip
+  set_fact:
+    scale_hdfs_ces_ip: "{{ scale_free_ces.stdout_lines }}"
+  when:
+    - scale_existing_ces_ip.stdout | length == 0
+    - scale_free_ces.stdout_lines | length > 0
+
+- block:
+   - name: check | fetch mountpoint
+     shell: /usr/lpp/mmfs/bin/mmlsfs "{{ scale_hdfs_filesystem }}" -T -Y | grep defaultMountPoint | awk -F':' '{print $9}'
+     register: hdfs_mountpoint
+   - name: check| decode mountpoint
+     command: /usr/lpp/mmfs/bin/mmclidecode "{{ hdfs_mountpoint.stdout }}"
+     register: hdfs_mountpoint_decode
+     when: hdfs_mountpoint.rc == 0
+   - name: check| get mountpoint
+     set_fact:
+       scale_hdfs_mountpoint: "{{ hdfs_mountpoint_decode.stdout }}"
+     when: hdfs_mountpoint_decode.rc == 0
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- fail:
+    msg: "Failed to fetch mountpoint. "
+  when: hdfs_mountpoint.changed|bool and hdfs_mountpoint.rc != 0 and scale_hdfs_mountpoint|length == 0
+
+- name: configure | Check HDFS ces_group
+  shell: /usr/lpp/mmfs/bin/mmces address list|grep "{{ scale_hdfs_ces_group_name }}"
+  register: check_hdfs_ces_group
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+  failed_when: false
+  ignore_errors: yes
+
+- name: configure | Check HDFS service
+  shell: "/usr/lpp/mmfs/bin/mmces service list|grep HDFS"
+  register: check_hdfs
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+  failed_when: false
+  ignore_errors: yes
+
+- name: configure | Check HA
+  set_fact:
+      ha_enabled: "{{ true if scale_hdfs_cluster.namenodes|length > 1 else false }}"
+      ces_hdfs_enabled: "{{ false if check_hdfs.rc == 0 else true }}"
+
+- name: "fetch JAVA_HOME path"
+  shell: echo $JAVA_HOME
+  register: javahome_path
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- name: Configure | Set JAVA_HOME
+  command: "/usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k JAVA_HOME={{ javahome_path.stdout }}"
+  register: javahome
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- block:
+   - name: configure | Configuare core-site.xml
+     set_fact:
+         core_site_conf_dict: "{{ core_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
+     with_items:
+        - { 'key': "fs.defaultFS", 'value': "hdfs://{{scale_hdfs_cluster.name}}" }
+        - { 'key': "hadoop.proxyuser.livy.hosts", 'value': "*" }
+        - { 'key': "hadoop.proxyuser.livy.groups", 'value': "*" }
+        - { 'key': "hadoop.proxyuser.hive.hosts", 'value': "*" }
+        - { 'key': "hadoop.proxyuser.hive.groups", 'value': "*" }
+        - { 'key': "hadoop.proxyuser.oozie.hosts", 'value': "*" }
+        - { 'key': "hadoop.proxyuser.oozie.groups", 'value': "*" }
+
+   - name: configure | Configuare hdfs-site.xml
+     set_fact:
+         hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
+     with_items:
+        - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': 'nn1' }
+        - { 'key': "dfs.client.failover.proxy.provider.{{ scale_hdfs_cluster.name }}", 'value': 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider' }
+        - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.nn1", 'value': "{{ scale_hdfs_cluster.namenodes[0] }}:8020" }
+        - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.nn1", 'value': "{{ scale_hdfs_cluster.namenodes[0] }}:50070" }
+        - { 'key': "dfs.nameservices", 'value': "{{ scale_hdfs_cluster.name }}" }
+        - { 'key': "dfs.namenode.rpc-bind-host", 'value': "0.0.0.0" }
+        - { 'key': "dfs.namenode.servicerpc-bind-host", 'value': "0.0.0.0" }
+        - { 'key': "dfs.namenode.lifeline.rpc-bind-host", 'value': "0.0.0.0" }
+        - { 'key': "dfs.namenode.http-bind-host", 'value': "0.0.0.0" }
+
+   - name: configure | Configuare hdfs-site.xml for HA
+     set_fact:
+        hdfs_site_conf_dict_ha: "{{ hdfs_site_conf_dict_ha | default({}) | combine ({ item.key : item.value }) }}"
+     with_items:
+       - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': 'nn1,nn2' }
+       - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:8020" }
+       - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:50070" }
+       - { 'key': "dfs.namenode.shared.edits.dir", 'value': "file:///{{ scale_hdfs_mountpoint }}/HA-{{ scale_hdfs_cluster.name }}" }
+     when: ha_enabled|bool
+
+   - name: configure | Configuare gpfs-site.xml
+     set_fact:
+         gpfs_site_conf_dict: "{{ gpfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
+     with_items:
+       - { 'key': "gpfs.mnt.dir", 'value': "{{ scale_hdfs_mountpoint }}" }
+       - { 'key': "gpfs.data.dir", 'value': "{{ scale_hdfs_datadir }}" }
+
+  run_once: true
+  delegate_to: localhost
+
+- block:
+   - name: configure | Set configuration for core-site.xml
+     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set core-site.xml -k "{{ item.key }}"="{{ item.value }}"
+     loop:  "{{ core_site_conf_dict | dict2items }}"
+
+   - name: configure | Set configuration for gpfs-site.xml
+     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set gpfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
+     loop:  "{{ gpfs_site_conf_dict | dict2items }}"
+
+   - name: configure | Set configuration for hdfs-site.xml
+     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
+     loop:  "{{ hdfs_site_conf_dict | dict2items }}"
+
+   - name: configure | Set configuration for HA
+     command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{item.value}}"
+     loop:  "{{ hdfs_site_conf_dict_ha | dict2items }}"
+     when: ha_enabled|bool
+
+   - name: configure | Remove localhost
+     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker remove localhost
+     register: worker_remove
+
+   - name: configure | Add Datanodes
+     command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker add "{{ item }}"
+     loop: "{{ scale_hdfs_cluster.datanodes }}"
+
+   - lineinfile: 
+       dest: /var/mmfs/hadoop/etc/hadoop/workers 
+       state: absent 
+       regexp: '(^\n)'
+
+   - name: configure | Upload config
+     command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config upload
+     register: config_upload
+
+   - name: configure | InitializeSharedEdits for Namenodes HA
+     command: /usr/lpp/mmfs/hadoop/bin/hdfs namenode -initializeSharedEdits -force
+     register: initializedSharedEdits
+     when: ha_enabled|bool and ces_hdfs_enabled|bool
+
+   - name:  configure | Enable CES
+     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+     register: enable_ces
+     when: ces_hdfs_enabled|bool
+
+   - name: configure | Configure CES IP
+     command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip[0] }}"
+     register: add_cesip
+     when:
+       - scale_hdfs_ces_ip is defined
+       - scale_hdfs_ces_ip|length > 0
+       - check_hdfs_ces_group.rc != 0
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- fail:
+    msg: "mmces address add failed. "
+  when: add_cesip.changed|bool and add_cesip.rc > 0 and not ces_hdfs_enabled|bool
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- fail:
+    msg: "Failed to upload config hdfs"
+  when: config_upload.rc > 0
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- block:
+    - name: Enable HDFS
+      command: /usr/lpp/mmfs/bin/mmces service enable HDFS
+      register: enable_hdfs
+
+    - name: Start Namenodes
+      shell: /usr/lpp/mmfs/bin/mmces service start HDFS -N "{{ item }}"
+      with_items: "{{ scale_hdfs_namenodes_list }}"
+
+    - name: Check Namenodes running status
+      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is'
+      when: enable_hdfs.rc == 0
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- name: Start Datanodes
+  shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs datanode restart
+  register: start_dn
+  when: 
+    - ansible_fqdn in scale_hdfs_datanodes_list
+
+- name: Check Datanodes running status
+  shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs datanode status | grep 'datanode pid is'
+  when:
+   - ansible_fqdn in scale_hdfs_datanodes_list
+   - start_dn.rc == 0

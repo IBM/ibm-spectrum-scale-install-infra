@@ -37,8 +37,8 @@
 
 - name: update | Set package version
   set_fact:
-    package_name_version: "{{ package_name_version.results|selectattr('yumstate','equalto','available')|map(attribute='version')|list|first }}"
-    package_name_release: "{{ package_name_version.results|selectattr('yumstate','equalto','available')|map(attribute='release')|list|first }}"
+    package_name_version: "{{ package_name_version.results|selectattr('yumstate','match','available')|map(attribute='version')|list|first }}"
+    package_name_release: "{{ package_name_version.results|selectattr('yumstate','match','available')|map(attribute='release')|list|first }}"
   when:
      - "'available' in package_name_version.results | map(attribute='yumstate') | list"
 

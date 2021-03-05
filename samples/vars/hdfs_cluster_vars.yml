@@ -1,0 +1,20 @@
+---
+#
+# samples/vars/hdfs_cluster_var.yml
+#
+
+#
+scale_protocols:
+  smb: false
+  nfs: false
+  hdfs: true
+  export_ip_pool: [172.16.12.51, 172.16.12.53]
+  filesystem: cesSharedRoot
+  mountpoint: /gpfs/cesSharedRoot
+
+scale_hdfs_clusters:
+  name: mycluster
+  filesystem: gpfs1
+  namenodes: ['host-vm1.test.net', 'host-vm2.test.net']
+  datanodes: ['host-vm1.test.net', 'host-vm2.test.net', 'host-vm3.test.net']
+  datadir: datadir

@@ -12,6 +12,11 @@
     scale_cluster_manager: "{{ scale_cluster_manager }}"
   when: hostvars[inventory_hostname].scale_cluster_manager is undefined
 
+- name: cluster | Set default daemon state
+  set_fact:
+    scale_state: "{{ scale_state }}"
+  when: hostvars[inventory_hostname].scale_state is undefined
+
 # Cleanup groups from previous play
 #- meta: refresh_inventory
 
@@ -40,6 +45,7 @@
   when:
     - not hostvars[item].scale_cluster_clusterId.stdout
     - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -137,6 +143,14 @@
     - debug:
          msg: "{{ mmcrcluster_results.cmd }}"
 
+    - name: cluster | Copy cluster create NodeFile
+      copy:
+        src: /var/tmp/NodeFile
+        dest: /usr/lpp/mmfs/
+        mode: a+x
+        remote_src: yes
+      ignore_errors: yes
+
     - name: cluster | Cleanup new cluster NodeFile
       file:
         path: /var/tmp/NodeFile
@@ -162,8 +176,19 @@
         dest: /var/tmp/NodeFile
 
     - name: cluster | Add new nodes to cluster
-      command: /usr/lpp/mmfs/bin/mmaddnode -N /var/tmp/NodeFile
-      notify: accept-licenses
+      command: /usr/lpp/mmfs/bin/mmaddnode -N /var/tmp/NodeFile --accept
+      register: mmadd_results
+
+    - debug:
+         msg: "{{ mmadd_results.cmd }}"
+
+    - name: cluster | Copy Add node NodeFile
+      copy:
+        src: /var/tmp/NodeFile
+        dest: /usr/lpp/mmfs/
+        mode: a+x
+        remote_src: yes
+      ignore_errors: yes
 
     - name: cluster | Cleanup existing cluster NodeFile
       file:

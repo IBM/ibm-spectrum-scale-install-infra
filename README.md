@@ -62,7 +62,7 @@ Features
 - [x] Configure node classes
 - [x] Define configuration parameters based on node classes
 - [x] Configure NSDs and file system
-- [ ]  Configure NSDs without file system
+- [ ] Configure NSDs without file system
 - [x] Extend NSDs and file system
 - [x] Add disks to existing file systems
 
@@ -80,6 +80,7 @@ Features
 
 #### Spectrum Scale CES (SMB and NFS) Protocol supported features (5.0.5.2)
 - [x] Install Spectrum Scale SMB or NFS on selected cluster nodes
+- [x] Install Spectrum Scale OBJECT on selected cluster nodes (5.1.1.0)
 - [x] CES IPV4 or IPV6 support
 - [x] CES interface mode support
 
@@ -98,15 +99,13 @@ The following IBM Spectrum Scale versions are tested:
 - 5.0.4.2
 - 5.0.5.X
 - 5.0.5.2 For CES (SMB and NFS)  
+- 5.1.0.0
+- 5.1.1.0 with Object
 
 Specific OS requirements:
 
-- For CES (SMB/NFS) on SLES15, Python3 is required.
-=======
-- 5.0.5.0
-- 5.0.5.1
-- 5.0.5.2
-- 5.0.5.3
+- For CES (SMB/NFS) on SLES15, Python 3 is required.
+- For CES (OBJECT) RhedHat 8.x is required. 
 
 
 Prerequisites
@@ -198,7 +197,6 @@ Installation Instructions
   ---
   - hosts: cluster01
     vars:
-      - scale_version: 5.0.4.0
       - scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
     roles:
       - core/precheck
@@ -298,6 +296,8 @@ The following [roles](https://docs.ansible.com/ansible/latest/user_guide/playboo
 - [GPFS GUI](roles/gui)
 - [GPFS SMB](roles/smb)
 - [GPFS NFS](roles/nfs)
+- [GPFS OBJECT](roles/scale_object)
+- [GPFS HDFS](roles/scale_hdfs)
 - [GPFS Call Home](roles/callhome)
 - [GPFS File Audit Logging](roles/scale_fileauditlogging)
 
@@ -305,6 +305,8 @@ Note that [Core GPFS](roles/core) is the only mandatory role, all other roles ar
 
 - Configure Graphical User Interface (GUI) (see [samples/playbook_gui.yml](samples/playbook_gui.yml))
 - Configure Protocol Services (SMB & NFS) (see [samples/playbook_ces.yml](samples/playbook_ces.yml))
+- Configure Protocol Services (HDFS) (see [samples/playbook_ces_hdfs.yml](samples/playbook_ces_hdfs.yml))
+- Configure Protocol Services (OBJECT) (see [samples/playbook_ces_object.yml](samples/playbook_ces_object.yml))
 - Configure Call Home (see [samples/playbook_callhome.yml](samples/playbook_callhome.yml))
 - Configure File Audit Logging (see [samples/playbook_fileauditlogging.yml](samples/playbook_fileauditlogging.yml))
 - Configure cluster with daemon and admin network (see samples/daemon_admin_network)

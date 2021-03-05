@@ -7,17 +7,17 @@
    scale_service_list: []
    scale_ces_nodes: ""
 
-- name: configure | Collect status of ces shared root
-  shell:
-   cmd: "{{ scale_command_path }}mmlsconfig | grep 'cesSharedRoot '"
+- name: configure | Collect status of cesSharedRoot
+  command: "{{ scale_command_path }}mmlsconfig cesSharedRoot"
   register: scale_ces_status
-  ignore_errors: true
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
 
 - name: configure | Configuring cesSharedRoot
   command: "{{ scale_command_path }}mmchconfig cesSharedRoot={{ scale_protocols.mountpoint }}"
-  async: 45
-  poll: 5
-  when: scale_ces_status.rc > 0
+  when: "'undefined' in scale_ces_status.stdout"
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
 
 - name: configure | Prepare server nodes string
   set_fact:
@@ -28,26 +28,28 @@
 - name: configure | Setting server licenses on protocol nodes
   command: "{{ scale_command_path }}mmchlicense server --accept -N {{ scale_server_nodes[1:] }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
+  async: 120
+  poll: 5
+  run_once: true
 
 - name: configure | Collect status of ces nodes
-  shell:
-   cmd: "{{ scale_command_path }}mmces node list|grep {{ item }}"
+  command: "{{ scale_command_path }}mmces node list"
   register: scale_ces_enable_status
-  with_items:
-  - "{{ scale_protocol_node_list }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
+  failed_when: false
   ignore_errors: true
 
 - name: configure | Collect all nodes on which ces is not enabled
   set_fact:
-   scale_ces_disabled_nodes: "{{ scale_ces_disabled_nodes + [ item.item ]}}"
-  when: item.rc > 0
+    scale_ces_disabled_nodes: "{{ scale_ces_disabled_nodes + [ item ]}}"
+  when: not scale_ces_enable_status.stdout_lines is search(item)
   with_items:
-  - "{{ scale_ces_enable_status.results }}"
+    - "{{ scale_protocol_node_list }}"
 
 - name: configure | Install arping
   package:
-   name: arping
+   name: iputils-arping
    state: present
   when: ansible_distribution in scale_ubuntu_distribution and ansible_fqdn in scale_protocol_node_list
 
@@ -107,10 +109,11 @@
   with_items:
   - "{{ scale_ces_disabled_nodes }}"
   when: scale_ces_disabled_nodes|length > 0
+  run_once: true
 
 - name: configure | Enabling CES
   command: "{{ scale_command_path }}mmchnode -N {{ scale_ces_nodes[1:] }} --ces-enable"
-  async: 45
+  async: 120
   poll: 5
   when: scale_ces_disabled_nodes|length > 0
   delegate_to: "{{ scale_protocol_node_list.0 }}"
@@ -155,17 +158,23 @@
   delegate_to: scale_protocol_node_list.0
   run_once: true
 
+- name: configure | Enable interface mode
+  shell:
+   cmd: "{{ scale_command_path }}mmces interface mode interface --force"
+  when:
+   - scale_ces_ipv6_list|length > 0 or
+      scale_protocols.interface_mode is defined and scale_protocols.interface_mode | bool
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
+
 - name: configure | Add IPv6 interface
   shell:
    cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
   when: scale_ces_ipv6_list|length > 0 and scale_protocols.interface|length > 0
   with_items:
   - "{{ scale_protocols.interface }}"
-
-- name: configure | Enable interface mode
-  shell:
-   cmd: "mmces interface mode interface --force"
-  when: scale_ces_ipv6_list|length > 0
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
 
 - block:
   - name: configure | Create CES groups
@@ -188,20 +197,26 @@
      scale_export_ips: "{{ scale_export_ips + ',' + item|string }}"
     with_items:
     - "{{ scale_protocols.export_ip_pool }}"
+    delegate_to: "{{ scale_protocol_node_list.0 }}"
+    run_once: true
 
   - name: configure | Assign export ips as pool
     command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
-    when: ansible_fqdn in scale_protocol_node_list and scale_protocols.scale_ces_groups is not defined
+    when: scale_protocols.scale_ces_groups is not defined
     delegate_to: "{{ scale_protocol_node_list.0 }}"
+    run_once: true
+
   when: scale_protocols.scale_ces_groups is not defined
 
 - name: configure | Rebalance CES IPs
   command: "{{ scale_command_path }}mmces address move --rebalance"
-  when: ansible_fqdn in scale_protocol_node_list
+  #when: ansible_fqdn in scale_protocol_node_list
   delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
 
 - name: configure | Check if zimon sensor is configured
   shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
   register: scale_zimon_conf_sensors
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
   failed_when: false
   changed_when: false
