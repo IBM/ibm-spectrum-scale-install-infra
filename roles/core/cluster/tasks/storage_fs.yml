@@ -113,12 +113,12 @@
       ignore_errors: yes
 
     - name: storage | Mount new filesystem(s)
-      command: /usr/lpp/mmfs/bin/mmmount {{ item.item }} -a
+      command: /usr/lpp/mmfs/bin/mmmount {{ item }} -a
       when:
-        - item.item not in scale_storage_existing_fs.stdout_lines
-        - item.size > 1
-        - scale_storage_fsparams[item.item].automaticMountOption | default(scale_storage_filesystem_defaults.automaticMountOption)
-      with_items: "{{ scale_storage_stanzafile.results }}"
+        - scale_storage_fsparams[item].automaticMountOption | default(scale_storage_filesystem_defaults.automaticMountOption)
+      with_items: "{{ scale_storage_fsdef | unique }}"
+      changed_when: false
+      register: scale_mount_fs
 
     - name: cluster | Copy filesystem stanza for new filesystem(s)
       copy:
