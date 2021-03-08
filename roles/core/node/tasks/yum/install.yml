@@ -23,20 +23,16 @@
           register: scale_install_packagelist
           when: ansible_pkg_mgr == 'yum'
 
+        - name: install | Get GPFS packages list
+          set_fact:
+             scale_install_all_packages: "{{ scale_install_all_packages + scale_install_license_packages }}"
+
         - name: install | Install GPFS packages
           yum:
             name: "{{ scale_install_all_packages }}"
             state: present
             disable_gpg_check: "{{ scale_disable_gpgcheck }}"
           register: scale_install_packageresult
-          when: ansible_pkg_mgr == 'yum'
-
-        - name: install | Install GPFS License packages
-          yum:
-            name: "{{ scale_install_license_packages }}"
-            state: present
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-          register: scale_install_license_packageresult
           when: ansible_pkg_mgr == 'yum'
 
         - name: install | List installed GPFS packages
@@ -53,14 +49,6 @@
             state: present
             disable_gpg_check: "{{ scale_disable_gpgcheck }}"
           register: scale_install_dnfpackageresult
-          when: ansible_pkg_mgr == 'dnf'
-
-        - name: install | Install GPFS License packages
-          dnf:
-            name: "{{ scale_install_license_packages }}"
-            state: present
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-          register: scale_install_license_dnfpackageresult
           when: ansible_pkg_mgr == 'dnf'
 
         - name: install | Check if GPFS packages were updated
