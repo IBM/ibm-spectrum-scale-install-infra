@@ -51,10 +51,13 @@ scale_cluster_manager: false
 ## can be overridden for each filesystem individually
 scale_storage_filesystem_defaults:
   blockSize: 1M
+  maxMetadataReplicas: 2
   defaultMetadataReplicas: 1
+  maxDataReplicas: 2
   defaultDataReplicas: 1
   numNodes: 32
   automaticMountOption: true
+  
   ## defaultMountPoint will be this prefix, followed by the filesystem name
   defaultMountPoint_prefix: /mnt/
   ## Overwrite existing NSDs - if set to 'true' then disks will *not* be checked

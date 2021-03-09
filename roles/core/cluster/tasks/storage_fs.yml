@@ -96,7 +96,9 @@
         /usr/lpp/mmfs/bin/mmcrfs {{ item.item }}
         -F /var/tmp/StanzaFile.new.{{ item.item }}
         -B {{ scale_storage_fsparams[item.item].blockSize | default(scale_storage_filesystem_defaults.blockSize) }}
+        -M {{ scale_storage_fsparams[item.item].maxMetadataReplicas | default(scale_storage_filesystem_defaults.maxMetadataReplicas) }}
         -m {{ scale_storage_fsparams[item.item].defaultMetadataReplicas | default(scale_storage_filesystem_defaults.defaultMetadataReplicas) }}
+        -R {{ scale_storage_fsparams[item.item].maxDataReplicas | default(scale_storage_filesystem_defaults.maxDataReplicas) }}
         -r {{ scale_storage_fsparams[item.item].defaultDataReplicas | default(scale_storage_filesystem_defaults.defaultDataReplicas) }}
         -n {{ scale_storage_fsparams[item.item].numNodes | default(scale_storage_filesystem_defaults.numNodes) }}
         -A {{ 'yes' if scale_storage_fsparams[item.item].automaticMountOption | default(scale_storage_filesystem_defaults.automaticMountOption) else 'no' }}
