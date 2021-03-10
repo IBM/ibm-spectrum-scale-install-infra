@@ -106,6 +106,11 @@
          - "'undefined' in scale_portrange.stdout"
       register: scale_portrange_chnage
 
+    - debug:
+         msg: "{{ scale_portrange_chnage.cmd }}"
+      when: scale_portrange_chnage.cmd is defined
+      ignore_errors: yes
+
   when:
     - scale_cluster_config is defined and scale_cluster_config.ephemeral_port_range is defined
   run_once: true
