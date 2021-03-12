@@ -91,18 +91,6 @@
   failed_when: false
   ignore_errors: yes
 
-- name:  configure | suspend CES nodes
-  command: "/usr/lpp/mmfs/bin/mmces node suspend --stop -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
-  register: suspend_ces
-  when:
-    - check_hdfs_ces_group.rc == 0
-
-- name:  configure | current CES-GROUP cleanup
-  command: "/usr/lpp/mmfs/bin/mmchnode --noces-group {{ scale_hdfs_ces_group_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
-  register: clean_ces
-  when:
-    - check_hdfs_ces_group.rc == 0
-
 - name: configure | Check HDFS service
   shell: "/usr/lpp/mmfs/bin/mmces service list|grep HDFS"
   register: check_hdfs
@@ -213,6 +201,18 @@
      register: initializedSharedEdits
      when: ha_enabled|bool and ces_hdfs_enabled|bool
 
+   - name:  configure | suspend CES nodes
+     command: "/usr/lpp/mmfs/bin/mmces node suspend --stop -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+     register: suspend_ces
+     when:
+       - check_hdfs_ces_group.rc == 0
+
+   - name:  configure | current CES-GROUP cleanup
+     command: "/usr/lpp/mmfs/bin/mmchnode --noces-group {{ scale_hdfs_ces_group_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+     register: clean_ces
+     when:
+       - check_hdfs_ces_group.rc == 0
+
    - name:  configure | Enable CES
      command: "/usr/lpp/mmfs/bin/mmchnode --ces-group {{ scale_hdfs_ces_group_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
      register: enable_ces
@@ -244,12 +244,6 @@
   when: config_upload.rc > 0
   run_once: true
   delegate_to: "{{ scale_server }}"
-
-- name: configure | copy hdfs-site to all protocol nodes
-  synchronize:
-     src: /var/mmfs/hadoop/etc/hadoop/hdfs-site.xml
-     dest: /var/mmfs/hadoop/etc/hadoop/hdfs-site.xml
-  when: ansible_hostname in scale_protocol_nodes_list or ansible_fqdn in scale_protocol_nodes_list
 
 - block:
     - name: Enable HDFS
