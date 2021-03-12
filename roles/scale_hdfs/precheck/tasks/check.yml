@@ -5,6 +5,16 @@
    scale_hdfs_namenodes_list: []
    scale_hdfs_datanodes_list: []
    scale_hdfs_cluster: []
+   scale_protocol_nodes_list: []
+
+- name: check | Collect all protocol nodes
+  set_fact:
+   scale_protocol_nodes_list: "{{ scale_protocol_nodes_list + [hostvars[item]['ansible_fqdn']] }}"
+  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+  with_items:
+   - "{{ ansible_play_hosts }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: check | Collect all hdfs list
   set_fact:
