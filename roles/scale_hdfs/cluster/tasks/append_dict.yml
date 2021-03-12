@@ -1,0 +1,6 @@
+- name : configure | include task for nameservice
+  set_fact:
+    hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
+  with_items:
+     - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.{{ map_var.0 }}", 'value': "{{ map_var.1 }}:8020" }
+     - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.{{ map_var.0 }}", 'value': "{{ map_var.1 }}:50070" }

@@ -1,4 +1,8 @@
 ---
+- name: check | Initialize
+  set_fact:
+   namenodes_service: ""
+
 - block:
    - name: check | Collect hdfs datadir
      set_fact:
@@ -18,6 +22,23 @@
    - name: configure |  initialise ces
      set_fact:
        scale_free_ces: []
+
+- name: check | namenode length
+  set_fact:
+    namenodes_length: "{{ scale_hdfs_nodes_list|length }}"
+
+- name: check | calculate namenodes services 
+  set_fact:
+     namenodes_service: "{{ namenodes_service }}nn{{ item }},"
+  with_sequence: count={{ namenodes_length }}
+  when: scale_hdfs_namenodes_list|length > 1
+  delegate_to: localhost
+  run_once: true
+
+- name: check | calculate namenodes services
+  set_fact:
+     namenodes_service: 'nn1'
+  when: scale_hdfs_namenodes_list|length == 1
   delegate_to: localhost
   run_once: true
 
@@ -63,12 +84,24 @@
   when: hdfs_mountpoint.changed|bool and hdfs_mountpoint.rc != 0 and scale_hdfs_mountpoint|length == 0
 
 - name: configure | Check HDFS ces_group
-  shell: /usr/lpp/mmfs/bin/mmces address list|grep "{{ scale_hdfs_ces_group_name }}"
+  shell: "/usr/lpp/mmfs/bin/mmces address list|grep {{ scale_hdfs_ces_group_name }}"
   register: check_hdfs_ces_group
   run_once: true
   delegate_to: "{{ scale_server }}"
   failed_when: false
   ignore_errors: yes
+
+- name:  configure | suspend CES nodes
+  command: "/usr/lpp/mmfs/bin/mmces node suspend --stop -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+  register: suspend_ces
+  when:
+    - check_hdfs_ces_group.rc == 0
+
+- name:  configure | current CES-GROUP cleanup
+  command: "/usr/lpp/mmfs/bin/mmchnode --noces-group {{ scale_hdfs_ces_group_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+  register: clean_ces
+  when:
+    - check_hdfs_ces_group.rc == 0
 
 - name: configure | Check HDFS service
   shell: "/usr/lpp/mmfs/bin/mmces service list|grep HDFS"
@@ -112,23 +145,26 @@
      set_fact:
          hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
      with_items:
-        - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': 'nn1' }
+        - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': "{{ namenodes_service }}" }
         - { 'key': "dfs.client.failover.proxy.provider.{{ scale_hdfs_cluster.name }}", 'value': 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider' }
-        - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.nn1", 'value': "{{ scale_hdfs_cluster.namenodes[0] }}:8020" }
-        - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.nn1", 'value': "{{ scale_hdfs_cluster.namenodes[0] }}:50070" }
         - { 'key': "dfs.nameservices", 'value': "{{ scale_hdfs_cluster.name }}" }
         - { 'key': "dfs.namenode.rpc-bind-host", 'value': "0.0.0.0" }
         - { 'key': "dfs.namenode.servicerpc-bind-host", 'value': "0.0.0.0" }
         - { 'key': "dfs.namenode.lifeline.rpc-bind-host", 'value': "0.0.0.0" }
         - { 'key': "dfs.namenode.http-bind-host", 'value': "0.0.0.0" }
 
+   - name: configure | include append_dict.yml
+     include_tasks: append_dict.yml
+     vars:
+        map_var: "{{ namenodes_item }}" 
+     loop: "{{ namenodes_service.split(',')|zip(scale_hdfs_namenodes_list)|list }}"
+     loop_control:
+        loop_var: namenodes_item
+
    - name: configure | Configuare hdfs-site.xml for HA
      set_fact:
-        hdfs_site_conf_dict_ha: "{{ hdfs_site_conf_dict_ha | default({}) | combine ({ item.key : item.value }) }}"
+        hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
      with_items:
-       - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': 'nn1,nn2' }
-       - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:8020" }
-       - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:50070" }
        - { 'key': "dfs.namenode.shared.edits.dir", 'value': "file:///{{ scale_hdfs_mountpoint }}/HA-{{ scale_hdfs_cluster.name }}" }
      when: ha_enabled|bool
 
@@ -155,11 +191,6 @@
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ hdfs_site_conf_dict | dict2items }}"
 
-   - name: configure | Set configuration for HA
-     command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{item.value}}"
-     loop:  "{{ hdfs_site_conf_dict_ha | dict2items }}"
-     when: ha_enabled|bool
-
    - name: configure | Remove localhost
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker remove localhost
      register: worker_remove
@@ -183,9 +214,14 @@
      when: ha_enabled|bool and ces_hdfs_enabled|bool
 
    - name:  configure | Enable CES
-     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group {{ scale_hdfs_ces_group_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
      register: enable_ces
-     when: ces_hdfs_enabled|bool
+
+   - name:  configure | start CES nodes
+     command: "/usr/lpp/mmfs/bin/mmces node resume --start -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+     register: start_ces
+     when:
+       - check_hdfs_ces_group.rc == 0
 
    - name: configure | Configure CES IP
      command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip[0] }}"
@@ -208,6 +244,12 @@
   when: config_upload.rc > 0
   run_once: true
   delegate_to: "{{ scale_server }}"
+
+- name: configure | copy hdfs-site to all protocol nodes
+  synchronize:
+     src: /var/mmfs/hadoop/etc/hadoop/hdfs-site.xml
+     dest: /var/mmfs/hadoop/etc/hadoop/hdfs-site.xml
+  when: ansible_hostname in scale_protocol_nodes_list or ansible_fqdn in scale_protocol_nodes_list
 
 - block:
     - name: Enable HDFS
