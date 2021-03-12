@@ -127,6 +127,7 @@
     - name: cluster | Initialize gpfs profile
       set_fact:
          profile_type: ""
+         extra_option: ""
 
     - name: cluster | Set gpfs profile if it is defined
       set_fact:
@@ -135,8 +136,20 @@
         - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
         - (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
 
+    - name: cluster | Set gpfs remote shell command if it is defined
+      set_fact:
+         extra_option: "{{ extra_option }} -r {{ scale_cluster_config.remote_shell }}"
+      when:
+        - scale_cluster_config is defined and scale_cluster_config.remote_shell is defined
+
+    - name: cluster | Set gpfs remote file copy if it is defined
+      set_fact:
+         extra_option: "{{ extra_option }} -R {{ scale_cluster_config.remote_file_copy }}"
+      when:
+        - scale_cluster_config is defined and scale_cluster_config.remote_file_copy is defined
+
     - name: cluster | Create new cluster
-      command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }}
+      command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }} {{ extra_option }}
       notify: accept-licenses
       register: mmcrcluster_results
 
