@@ -25,12 +25,19 @@
 
 - name: check | namenode length
   set_fact:
-    namenodes_length: "{{ scale_hdfs_nodes_list|length }}"
+    namenodes_length: "{{ scale_hdfs_namenodes_list|length }}"
 
 - name: check | calculate namenodes services 
   set_fact:
      namenodes_service: "{{ namenodes_service }}nn{{ item }},"
   with_sequence: count={{ namenodes_length }}
+  when: scale_hdfs_namenodes_list|length > 1
+  delegate_to: localhost
+  run_once: true
+
+- name:
+  set_fact:
+     namenodes_service: "{{ namenodes_service | regex_replace('\\,$', '') }}"
   when: scale_hdfs_namenodes_list|length > 1
   delegate_to: localhost
   run_once: true
