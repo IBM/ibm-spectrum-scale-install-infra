@@ -8,7 +8,8 @@
   nsd={{ disk.nsd | default(default_nsd) }}
   servers={{ disk.servers }}
   usage={{ disk.usage | default(default_usage) }}
-  failureGroup={{ disk.failureGroup | default(-1) }}
+  {% if disk.usage | default(default_usage) != 'localCache' %}failureGroup={{ disk.failureGroup | default(-1) }}
   pool={{ disk.pool | default('system') }}
-  
+  {% endif %}
+
 {% endfor %}
