@@ -51,7 +51,7 @@
 
 - name: check | Verify existing ces ip
   shell:
-    cmd: "mmces address list -Y|grep -w hdfs{{ scale_hdfs_ces_group_name }}|awk -F: '{print $7}'"
+    cmd: "mmces address list -Y|grep -w {{ scale_hdfs_ces_group_name }}|awk -F: '{print $7}'"
   register: scale_existing_ces_ip
   delegate_to: "{{ scale_server }}"
   run_once: true
