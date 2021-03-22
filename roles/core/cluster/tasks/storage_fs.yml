@@ -109,11 +109,23 @@
       register: scale_storage_fs_create
       with_items: "{{ scale_storage_stanzafile.results }}"
 
-    - debug:
-        msg: "{{scale_storage_fs_create.results[0].invocation.module_args._raw_params}}"
-      when: scale_storage_fs_create.results[0].invocation is defined
+    - set_fact:
+         scale_mmcrfs: "{{scale_mmcrfs | default([]) + [ item.invocation.module_args._raw_params ]}}"
+      when:
+        - item.invocation is defined
+        - scale_storage_fs_create.results is defined
+      with_items: "{{ scale_storage_fs_create.results }}"
       ignore_errors: yes
-
+      no_log: true
+   
+    - debug:
+         msg: "{{ item }}"
+      when:
+        - scale_mmcrfs is defined
+        - item is defined
+      with_items: "{{ scale_mmcrfs }}"
+      ignore_errors: yes
+ 
     - name: storage | Mount new filesystem(s)
       command: /usr/lpp/mmfs/bin/mmmount {{ item }} -a
       when:
