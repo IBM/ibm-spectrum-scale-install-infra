@@ -96,6 +96,7 @@
   shell: "{{ scale_command_path }}mmchfs  {{ scale_hdfs_cluster.filesystem }} -k all"
   register: acl_change
   when: scale_nfs_status.rc != 0 and scale_smb_status.rc != 0 and scale_obj_status.rc != 0
-
   delegate_to: "{{ scale_server }}"
   run_once: true
+  failed_when: false
+  ignore_errors: yes
