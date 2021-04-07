@@ -1,6 +1,39 @@
 ---
 # Install or update RPMs
 # Ensure that installation method was chosen during previous role
+- name: global_var | Initialize
+  set_fact:
+   scale_hdfs_nodes_list: []
+   scale_hdfs_namenodes_list: []
+   scale_hdfs_datanodes_list: []
+   scale_hdfs_cluster: []
+
+- name: global_var | initializing scale_hdfs_cluster
+  set_fact:
+    scale_hdfs_cluster: "{{ item }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS NameNodes
+  set_fact:
+   scale_hdfs_namenodes_list: "{{ scale_hdfs_cluster.namenodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS DataNodes
+  set_fact:
+   scale_hdfs_datanodes_list: "{{ scale_hdfs_cluster.datanodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Get HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
+
+- name: global_var | make unique HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
+
 - block:
   - name: install | Check for repository installation method
     set_fact:
