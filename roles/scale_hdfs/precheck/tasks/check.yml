@@ -3,6 +3,7 @@
   set_fact:
    scale_hdfs_cluster: []
    scale_protocol_nodes_list: []
+   export_cesip_length: ''
 
 - name: check | Collect all protocol nodes
   set_fact:
@@ -28,6 +29,15 @@
 - name: check | verify cesip address
   set_fact:
      export_cesip_length: "{{ scale_protocols.export_ip_pool| length }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: check | calculate cesip when object is enabled
+  set_fact:
+     export_cesip_length: "{{ export_cesip_length|int - 1 }}"
+  when:
+    - scale_protocols.object is defined
+    - scale_protocols.object|bool
   delegate_to: localhost
   run_once: true
 
