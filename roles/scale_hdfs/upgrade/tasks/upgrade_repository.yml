@@ -2,12 +2,6 @@
 - name: upgrade | Initialize
   set_fact:
    scale_hdfs_url: ""
-   gpgcheck: "yes"
-
-- name: upgrade | Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
 
 - name: upgrade | hdfs path
   set_fact:
@@ -49,7 +43,7 @@
     name: spectrum-scale-hdfs
     description: IBM Spectrum Scale (hdfs)
     baseurl: "{{ scale_install_repository_url }}{{ scale_hdfs_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     state: present
   notify: yum-clean-metadata
