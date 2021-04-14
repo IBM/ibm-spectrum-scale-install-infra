@@ -20,8 +20,13 @@
 
 - name: install | nfs path
   set_fact:
+   scale_nfs_url: 'ganesha_debs/ubuntu16/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
+
+- name: install | nfs path
+  set_fact:
    scale_nfs_url: 'ganesha_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 - name: install | nfs path
   set_fact:
