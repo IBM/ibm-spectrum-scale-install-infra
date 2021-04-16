@@ -1,7 +1,43 @@
 ---
-- name: check | Initialize
+- name: global_var | Initialize
   set_fact:
-   namenodes_service: ""
+   scale_hdfs_nodes_list: []
+   scale_hdfs_namenodes_list: []
+   scale_hdfs_datanodes_list: []
+   scale_hdfs_cluster: []
+   hdfs_site_conf_dict: []
+   core_site_conf_dict: []
+   gpfs_site_conf_dict: []
+
+- name: global_var | initializing scale_hdfs_cluster
+  set_fact:
+    scale_hdfs_cluster: "{{ item }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS NameNodes
+  set_fact:
+   scale_hdfs_namenodes_list: "{{ scale_hdfs_cluster.namenodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS DataNodes
+  set_fact:
+   scale_hdfs_datanodes_list: "{{ scale_hdfs_cluster.datanodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Get HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
+
+- name: global_var | make unique HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
+
+- name: global_var | Initialize
+  set_fact:
+    namenodes_service: ""
 
 - block:
    - name: check | Collect hdfs datadir

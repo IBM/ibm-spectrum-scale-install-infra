@@ -1,11 +1,9 @@
 ---
-- name: check | Initialize
+- name: global_var | Initialize
   set_fact:
-   scale_hdfs_nodes_list: []
-   scale_hdfs_namenodes_list: []
-   scale_hdfs_datanodes_list: []
    scale_hdfs_cluster: []
    scale_protocol_nodes_list: []
+   export_cesip_length: ''
 
 - name: check | Collect all protocol nodes
   set_fact:
@@ -16,12 +14,37 @@
   delegate_to: localhost
   run_once: true
 
-- name: check | Collect all hdfs list
+- name: check | initializing scale_hdfs_cluster
   set_fact:
-   scale_hdfs_cluster: "{{ item }}"
-  when: scale_hdfs_cluster|length == 0
-  with_items:
-   - "{{ scale_hdfs_clusters }}"
+    scale_hdfs_cluster: "{{ item }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: check | verify hdfs cluster length
+  set_fact:
+     hdfs_cluster_length: "{{ scale_hdfs_clusters| length }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: check | verify cesip address
+  set_fact:
+     export_cesip_length: "{{ scale_protocols.export_ip_pool| length }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: check | calculate cesip when object is enabled
+  set_fact:
+     export_cesip_length: "{{ export_cesip_length|int - 1 }}"
+  when:
+    - scale_protocols.object is defined
+    - scale_protocols.object|bool
+  delegate_to: localhost
+  run_once: true
+
+- fail:
+    msg: "Not sufficient CESIPs are assigned in export_ip_pool for HDFS clusters, please add more CESIP and retry."
+  when: 
+    - hdfs_cluster_length|int > export_cesip_length|int
   delegate_to: localhost
   run_once: true
 
@@ -34,86 +57,29 @@
 - name: check |  Check if HDFS required information has been supplied.
   assert:
    that:
-   - scale_hdfs_cluster is defined
-   - scale_hdfs_cluster| length > 0
-   - scale_hdfs_cluster.name is defined
-   - scale_hdfs_cluster.name| length > 0
-   - scale_hdfs_cluster.filesystem is defined
-   - scale_hdfs_cluster.filesystem| length > 0
-   - scale_hdfs_cluster.namenodes is defined
-   - scale_hdfs_cluster.namenodes| length > 0
-   - scale_hdfs_cluster.datanodes is defined
-   - scale_hdfs_cluster.datanodes| length > 0
-   - scale_hdfs_cluster.datadir is defined
-   - scale_hdfs_cluster.datadir| length > 0
+   - item is defined
+   - item| length > 0
+   - item.name is defined
+   - item.name| length > 0
+   - item.filesystem is defined
+   - item.filesystem| length > 0
+   - item.namenodes is defined
+   - item.namenodes| length > 0
+   - item.datanodes is defined
+   - item.datanodes| length > 0
+   - item.datadir is defined
+   - item.datadir| length > 0
    fail_msg: "HDFS required parameter information is not defined."
    success_msg: "HDFS required information is defined."
+  with_items:
+   - "{{ scale_hdfs_cluster }}"
   run_once: true
   delegate_to: localhost
 
-- name: check | Collect all HDFS NameNodes
-  set_fact:
-   scale_hdfs_namenodes_list: "{{ scale_hdfs_cluster.namenodes | unique }}"
-  delegate_to: localhost
-  run_once: true
+- name: check | Verify JAVA_HOME
+  include_tasks: java_home.yml
+  loop: "{{ scale_hdfs_clusters }}"
 
-- name: check | Collect all HDFS DataNodes
-  set_fact:
-   scale_hdfs_datanodes_list: "{{ scale_hdfs_cluster.datanodes | unique }}"
-  delegate_to: localhost
-  run_once: true
-
-- name: check | Get HDFS nodes
-  set_fact:
-    scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
-
-- name: check | make unique HDFS nodes
-  set_fact:
-    scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
-
-- name: check | Check if atleast one hdfs node is configured
-  assert:
-   that:
-   - scale_hdfs_nodes_list|length > 0
-   fail_msg: "No hdfs nodes configured"
-
-- block:
-   - name: check | Fetch JAVA_HOME path
-     shell: echo $JAVA_HOME
-     register: java_path
-     when: ansible_fqdn in scale_hdfs_nodes_list
-
-   - name: check | Check JAVA_HOME path exist
-     stat:
-       path: "{{ java_path.stdout }}"
-     register: java_path_details
-     when: ansible_fqdn in scale_hdfs_nodes_list
-
-   - name: check | Assert JAVA_HOME path exist
-     assert:
-       that:
-       - java_path_details.stat.exists
-       fail_msg: The JAVA_HOME path does not exists !
-     when: ansible_fqdn in scale_hdfs_nodes_list
-
-   - name: check | Set path of JAVA_HOME
-     set_fact:
-       javahome_path: "{{ java_path.stdout }}"
-     when:
-       - ansible_fqdn in scale_hdfs_nodes_list
-
-   - name: check | verify JAVA
-     command: "ls {{ javahome_path }}/bin/java"
-     register: jvm_list
-     when: 
-       - ansible_fqdn in scale_hdfs_nodes_list
-       - javahome_path|length > 0
-
-   - fail:
-       msg: "JAVA_HOME not set properly"
-     when: 
-       - ansible_fqdn in scale_hdfs_nodes_list
-       - jvm_list.rc != 0
 - debug:
     msg: "HDFS Precheck ok"
   when: 
