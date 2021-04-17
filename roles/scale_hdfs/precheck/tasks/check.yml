@@ -26,6 +26,12 @@
   delegate_to: localhost
   run_once: true
 
+- name: check | get server node
+  set_fact:
+     server: "{{ scale_hdfs_cluster.namenodes[0] }}"
+  delegate_to: localhost
+  run_once: true
+ 
 - name: check | verify cesip address
   set_fact:
      export_cesip_length: "{{ scale_protocols.export_ip_pool| length }}"
@@ -39,6 +45,19 @@
     - scale_protocols.object is defined
     - scale_protocols.object|bool
   delegate_to: localhost
+  run_once: true
+
+- name: Check | Check Namenodes running status
+  shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is' | wc -l
+  register: verify_namenodes
+  delegate_to: "{{ server }}"
+  run_once: true
+
+- fail:
+    msg: "NameNode is already running, Make sure namenodes are stopped(/usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn stop) on {{ server }} node."
+  when: 
+    - verify_namenodes.stdout|int > 0
+  delegate_to: "{{ server }}"
   run_once: true
 
 - fail:
@@ -81,6 +100,10 @@
   loop: "{{ scale_hdfs_clusters }}"
 
 - debug:
+    msg: "HDFS Precheck ok on {{ scale_hdfs_cluster.name }} cluster."
+  when: scale_hdfs_clusters|length > 1
+
+- debug:
     msg: "HDFS Precheck ok"
-  when: 
-    - ansible_fqdn in scale_hdfs_nodes_list
+  when: scale_hdfs_clusters|length == 1
+
