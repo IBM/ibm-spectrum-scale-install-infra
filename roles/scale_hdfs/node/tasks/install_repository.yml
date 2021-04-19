@@ -69,6 +69,8 @@
 
 - name: install | Add GPFS hdfs packages to list
   set_fact:
-    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ hdfs_packages ] }}"
   with_items:
     - "{{ scale_hdfs_packages }}"
+  loop_control:
+     loop_var: hdfs_packages
