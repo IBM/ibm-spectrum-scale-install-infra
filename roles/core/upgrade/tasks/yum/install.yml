@@ -4,15 +4,6 @@
 #
 # Install or update packages
 #
-- name: upgrade | Initialize
-  set_fact:
-    scale_disable_gpgcheck: "no"
-
-- name: upgrade | Disable gpg check
-  set_fact:
-    scale_disable_gpgcheck: "yes"
-  when: scale_version < '5.0.4.0'
-
 - block:  ## when: not scale_daemon_running
     - block:
         - name: upgrade | Get GPFS packages list

@@ -8,5 +8,6 @@
 - name: set | gpg key check
   set_fact:
     scale_install_gpgcheck: "no"
+    scale_disable_gpgcheck: "yes"
   when: scale_version < '5.0.5.0'
 
