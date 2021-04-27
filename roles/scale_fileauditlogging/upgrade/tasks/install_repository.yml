@@ -24,15 +24,6 @@
     scale_fal_url: 'gpfs_rpms/rhel/'
   when: ansible_distribution in scale_sles_distribution
 
-- name: upgrade | Initialize
-  set_fact:
-   gpgcheck: "yes"
-
-- name: upgrade | Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: upgrade | Check if gpfs kafka installed
   shell: rpm -q gpfs.kafka
   register: gpfskafka_installed
@@ -47,7 +38,7 @@
     name: spectrum-scale-gpfs-java
     description: IBM Spectrum Scale (GPFS Java)
     baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present
@@ -90,7 +81,7 @@
     name: spectrum-scale-fal
     description: IBM Spectrum Scale (FAL)
     baseurl: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present

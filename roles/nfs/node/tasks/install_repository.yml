@@ -1,13 +1,4 @@
 ---
-- name: Initialize
-  set_fact:
-   gpgcheck: "yes"
-
-- name: Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/rhel7/'
@@ -88,7 +79,7 @@
     name: spectrum-scale-nfs-rpms
     description: IBM Spectrum Scale (NFS RPMS)
     baseurl: "{{ scale_install_repository_url }}{{ scale_nfs_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present
@@ -139,7 +130,7 @@
     name: spectrum-scale-pm-ganesha-rpms
     description: IBM Spectrum Scale (PM-ganesha RPMS)
     baseurl: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present

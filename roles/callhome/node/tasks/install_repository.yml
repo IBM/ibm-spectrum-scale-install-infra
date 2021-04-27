@@ -4,21 +4,12 @@
 #
 # Configure YUM repository
 #
-- name: install | Initialize
-  set_fact:
-   gpgcheck: "yes"
-
-- name: install | Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: install | Configure Callhome YUM repository
   yum_repository:
     name: spectrum-scale-callhome-rpms
     description: IBM Spectrum Scale (Callhome RPMS)
     baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present

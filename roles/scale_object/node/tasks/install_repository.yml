@@ -1,13 +1,4 @@
 ---
-- name: Initialize
-  set_fact:
-    gpgcheck: "yes"
-
-- name: Disable gpg check
-  set_fact:
-    gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: install | object path
   set_fact:
     scale_obj_url: 'object_rpms/rhel8/'
@@ -18,7 +9,7 @@
     name: spectrum-scale-object-rpms
     description: IBM Spectrum Scale (object RPMS)
     baseurl: "{{ scale_install_repository_url }}{{ scale_obj_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present
