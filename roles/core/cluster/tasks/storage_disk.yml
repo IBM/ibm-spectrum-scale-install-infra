@@ -51,7 +51,7 @@
 #
     - name: storage | Cleanup existing NSD StanzaFile(s)
       file:
-        path: /var/tmp/StanzaFile.new.nsd
+        path: /var/mmfs/tmp/StanzaFile.new.nsd
         state: absent
 
     - name: storage | Prepare StanzaFile(s) for NSD creation
@@ -61,7 +61,7 @@
           "{{ scale_storage_nsddefs | difference(scale_storage_existing_nsds.stdout_lines) }}"
       template:
         src: StanzaFile_nsd.j2
-        dest: /var/tmp/StanzaFile.new.nsd
+        dest: /var/mmfs/tmp/StanzaFile.new.nsd
       register: scale_storage_stanzafile_new
 
     - name: storage | Accept server license for NSD servers
@@ -74,7 +74,7 @@
     - name: storage | Create new NSDs
       vars:
         verify: "{{ 'no' if overwriteNSDs | default(scale_storage_filesystem_defaults.overwriteNSDs) else 'yes' }}"
-      command: /usr/lpp/mmfs/bin/mmcrnsd -F /var/tmp/StanzaFile.new.nsd -v {{ verify }}
+      command: /usr/lpp/mmfs/bin/mmcrnsd -F /var/mmfs/tmp/StanzaFile.new.nsd -v {{ verify }}
       register: scale_nsd_create
       when:
         - scale_storage_stanzafile_new.size > 1
@@ -102,7 +102,7 @@
     #
     - name: storage | Copy NSDs stanza file
       copy:
-        src: /var/tmp/StanzaFile.new.nsd
+        src: /var/mmfs/tmp/StanzaFile.new.nsd
         dest: /usr/lpp/mmfs/
         mode: a+x
         remote_src: yes
@@ -113,7 +113,7 @@
 
     - name: storage | Cleanup new NSD StanzaFile(s)
       file:
-        path: /var/tmp/StanzaFile.new.nsd
+        path: /var/mmfs/tmp/StanzaFile.new.nsd
         state: absent
   run_once: true
   delegate_to: "{{ groups['scale_cluster_admin_nodes'].0 }}"
