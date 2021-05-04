@@ -1,3 +1,37 @@
+---
+- name: global_var | Initialize
+  set_fact:
+   scale_hdfs_nodes_list: []
+   scale_hdfs_namenodes_list: []
+   scale_hdfs_datanodes_list: []
+   scale_hdfs_cluster: []
+
+- name: global_var | initializing scale_hdfs_cluster
+  set_fact:
+    scale_hdfs_cluster: "{{ item }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS NameNodes
+  set_fact:
+   scale_hdfs_namenodes_list: "{{ scale_hdfs_cluster.namenodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS DataNodes
+  set_fact:
+   scale_hdfs_datanodes_list: "{{ scale_hdfs_cluster.datanodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Get HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
+
+- name: global_var | make unique HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
+
 - name: "env_setup | Add JAVA_HOME bin to PATH"
   lineinfile:
     path: /root/.bashrc
@@ -17,12 +51,14 @@
 - name: "env_setup | ulimit tunning"
   lineinfile:
     path: /etc/security/limits.conf
-    line: "{{ item }}"
+    line: "{{ limit_items }}"
     state: present
   with_items:
     - '*       soft    nofile    65536'
     - '*       hard    nofile    65536'
     - '*       soft    nproc     65536'
     - '*       hard    nproc     65536'
+  loop_control:
+    loop_var: limit_items
   when:
     - ansible_fqdn in scale_hdfs_nodes_list

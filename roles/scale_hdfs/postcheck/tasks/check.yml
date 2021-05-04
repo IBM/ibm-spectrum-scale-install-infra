@@ -1,4 +1,14 @@
 ---
+- name: global_var | Initialize
+  set_fact:
+   scale_hdfs_cluster: []
+
+- name: global_var | initializing scale_hdfs_cluster
+  set_fact:
+    scale_hdfs_cluster: "{{ item }}"
+  delegate_to: localhost
+  run_once: true
+
 - name: configure | scale_server node
   set_fact:
     scale_server: "{{ scale_hdfs_cluster.namenodes[0] }}"
@@ -54,7 +64,7 @@
 
 - name: postcheck | Get datanodes
   set_fact:
-       datanodes: "{{ scale_hdfs_datanodes_list }}"
+       datanodes: "{{ scale_hdfs_cluster.datanodes }}"
 
 - fail:
     msg: "Not all datanode are running, check datanode log"

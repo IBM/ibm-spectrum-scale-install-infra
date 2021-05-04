@@ -7,15 +7,6 @@
 
 - block: ## when: ansible_fqdn in scale_obj_nodes_list
 
-    - name: Initialize
-      set_fact:
-        gpgcheck: "yes"
-
-    - name: Disable gpg check
-      set_fact:
-        gpgcheck: "no"
-      when: scale_version < '5.0.4.0'
-
     - name: install | pmswift path
       set_fact:
         scale_zimon_url: 'zimon_rpms/rhel8'
@@ -26,7 +17,7 @@
         name: spectrum-scale-zimon
         description: IBM Spectrum Scale (ZIMon)
         baseurl: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
-        gpgcheck: yes
+        gpgcheck: "{{ scale_install_gpgcheck }}"
         repo_gpgcheck: no
         state: present
       notify: yum-clean-metadata

@@ -1,13 +1,4 @@
 ---
-- name: upgrade | Initialize
-  set_fact:
-   gpgcheck: "yes"
-
-- name: upgrade | Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: upgrade | smb path
   set_fact:
    scale_smb_url: 'smb_rpms/rhel7/'
@@ -48,7 +39,7 @@
     name: spectrum-scale-smb
     description: IBM Spectrum Scale (smb)
     baseurl: "{{ scale_install_repository_url }}{{ scale_smb_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present

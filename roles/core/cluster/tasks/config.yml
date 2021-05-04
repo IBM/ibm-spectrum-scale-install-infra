@@ -38,7 +38,7 @@
         current_nodeclass: "{{ item | regex_replace('^scale_nodeclass_', '') }}"
       template:
         src: NodeClass.j2
-        dest: /var/tmp/NodeClass.{{ current_nodeclass }}
+        dest: /var/mmfs/tmp/NodeClass.{{ current_nodeclass }}
       register: scale_config_nodeclassfile
       with_items: "{{ scale_config_nodeclasses | default([]) }}"
 
@@ -48,7 +48,7 @@
     - name: config | Create new nodeclasses
       vars:
         current_nodeclass: "{{ item.item | regex_replace('^scale_nodeclass_', '') }}"
-      command: /usr/lpp/mmfs/bin/mmcrnodeclass {{ current_nodeclass }} -N /var/tmp/NodeClass.{{ current_nodeclass }}
+      command: /usr/lpp/mmfs/bin/mmcrnodeclass {{ current_nodeclass }} -N /var/mmfs/tmp/NodeClass.{{ current_nodeclass }}
       when:
         - not current_nodeclass in scale_config_existing_nodeclasses.stdout_lines
         - item is changed
@@ -61,7 +61,7 @@
     - name: config | Replace existing nodeclasses
       vars:
         current_nodeclass: "{{ item.item | regex_replace('^scale_nodeclass_', '') }}"
-      command: /usr/lpp/mmfs/bin/mmchnodeclass {{ current_nodeclass }} replace -N /var/tmp/NodeClass.{{ current_nodeclass }}
+      command: /usr/lpp/mmfs/bin/mmchnodeclass {{ current_nodeclass }} replace -N /var/mmfs/tmp/NodeClass.{{ current_nodeclass }}
       when:
         - current_nodeclass in scale_config_existing_nodeclasses.stdout_lines
         - item is changed

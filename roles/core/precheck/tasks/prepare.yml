@@ -22,7 +22,7 @@
     - name: prepare | Enable SSH root login
       lineinfile:
         path: /etc/ssh/sshd_config
-        regexp: PermitRootLogin
+        regexp: ^PermitRootLogin
         line: PermitRootLogin yes
         state: present
       notify: reload-sshd

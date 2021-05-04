@@ -45,21 +45,12 @@
     scale_zimon_url: 'zimon_rpms/sles15/'
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
 
-- name: Initialize
-  set_fact:
-   gpgcheck: "yes"
-
-- name: Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: upgrade | Configure ZIMon YUM repository
   yum_repository:
     name: spectrum-scale-zimon
     description: IBM Spectrum Scale (ZIMon)
     baseurl: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present

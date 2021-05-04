@@ -1,7 +1,43 @@
 ---
-- name: check | Initialize
+- name: global_var | Initialize
   set_fact:
-   namenodes_service: ""
+   scale_hdfs_nodes_list: []
+   scale_hdfs_namenodes_list: []
+   scale_hdfs_datanodes_list: []
+   scale_hdfs_cluster: []
+   hdfs_site_conf_dict: []
+   core_site_conf_dict: []
+   gpfs_site_conf_dict: []
+
+- name: global_var | initializing scale_hdfs_cluster
+  set_fact:
+    scale_hdfs_cluster: "{{ item }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS NameNodes
+  set_fact:
+   scale_hdfs_namenodes_list: "{{ scale_hdfs_cluster.namenodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS DataNodes
+  set_fact:
+   scale_hdfs_datanodes_list: "{{ scale_hdfs_cluster.datanodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Get HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
+
+- name: global_var | make unique HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
+
+- name: global_var | Initialize
+  set_fact:
+    namenodes_service: ""
 
 - block:
    - name: check | Collect hdfs datadir
@@ -98,18 +134,17 @@
   failed_when: false
   ignore_errors: yes
 
-- name: configure | Check HDFS service
-  shell: "/usr/lpp/mmfs/bin/mmces service list|grep HDFS"
+- name: configure | Check Namenodes running status
+  shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is' | wc -l
   register: check_hdfs
-  run_once: true
   delegate_to: "{{ scale_server }}"
-  failed_when: false
-  ignore_errors: yes
 
 - name: configure | Check HA
   set_fact:
       ha_enabled: "{{ true if scale_hdfs_cluster.namenodes|length > 1 else false }}"
-      ces_hdfs_enabled: "{{ false if check_hdfs.rc == 0 else true }}"
+      ces_hdfs_enabled: "{{ false if check_hdfs.stdout|int != 0 else true }}"
+  run_once: true
+  delegate_to: "{{ scale_server }}"
 
 - name: "fetch JAVA_HOME path"
   shell: echo $JAVA_HOME
@@ -191,8 +226,10 @@
      register: worker_remove
 
    - name: configure | Add Datanodes
-     command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker add "{{ item }}"
+     command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker add "{{ add_dn_item }}"
      loop: "{{ scale_hdfs_cluster.datanodes }}"
+     loop_control:
+        loop_var: add_dn_item
 
    - lineinfile: 
        dest: /var/mmfs/hadoop/etc/hadoop/workers 
@@ -255,26 +292,32 @@
 - block:
     - name: Enable HDFS
       command: /usr/lpp/mmfs/bin/mmces service enable HDFS
-      register: enable_hdfs
 
     - name: Start Namenodes
-      shell: /usr/lpp/mmfs/bin/mmces service start HDFS -N "{{ item }}"
-      with_items: "{{ scale_hdfs_namenodes_list }}"
+      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn restart
+      register: start_nn_status
 
     - name: Check Namenodes running status
-      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is'
-      when: enable_hdfs.rc == 0
+      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is' | wc -l
+      register: nn_status
+
+    - name: Start Datanodes
+      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn restart
+
+    - name: Check Datanodes running status
+      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn status | grep 'datanode pid is' | wc -l
+      register: dn_status
   run_once: true
   delegate_to: "{{ scale_server }}"
 
-- name: Start Datanodes
-  shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs datanode restart
-  register: start_dn
-  when: 
-    - ansible_fqdn in scale_hdfs_datanodes_list
+- fail:
+    msg: "Fail to start all NameNode. "
+  when: nn_status.stdout|int != scale_hdfs_namenodes_list|length
+  run_once: true
+  delegate_to: "{{ scale_server }}"
 
-- name: Check Datanodes running status
-  shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs datanode status | grep 'datanode pid is'
-  when:
-   - ansible_fqdn in scale_hdfs_datanodes_list
-   - start_dn.rc == 0
+- fail:
+    msg: "Fail to start all DataNode. "
+  when: dn_status.stdout|int != scale_hdfs_datanodes_list|length
+  run_once: true
+  delegate_to: "{{ scale_server }}"
