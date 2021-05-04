@@ -1,5 +1,7 @@
 ---
 # tasks file for precheck
-- import_tasks: check.yml
+- name: precheck
+  include_tasks: check.yml
   when: scale_protocols is defined and scale_protocols.hdfs|bool
   tags: prepare
+  loop: "{{ scale_hdfs_clusters }}"

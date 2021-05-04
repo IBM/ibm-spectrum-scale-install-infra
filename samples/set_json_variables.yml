@@ -9,6 +9,13 @@
     include_vars:
        file: vars/scale_clusterdefinition.json
     register: scale_json
+    when: scale_cluster_definition_path is not defined
+
+  - name: Read all intermediate output from defined Resource Details
+    include_vars:
+       file: "{{ scale_cluster_definition_path }}"
+    register: scale_json_defined
+    when: scale_cluster_definition_path is defined
 
   - name: Check valid json file
     assert:
@@ -18,6 +25,7 @@
         vars directory. Make sure that this file is present
         in the vars directory along with all required
         Ansible scale inventory.
+    when: scale_json.failed is defined
 
   - name: Pass all inputs related to creating Spectrum Scale cluster to all nodes
     add_host:

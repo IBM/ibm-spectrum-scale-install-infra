@@ -4,35 +4,13 @@
 #
 # Configure YUM repository
 #
-- name: Initialize
-  set_fact:
-   gpgcheck: "yes"
-
-- name: Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
-# Copy and import gpg key on RHEL and SLES if gpfs version >= 5.0.5.0
-- block:
-    - name: check | Copy key
-      get_url:
-        url: "{{ scale_gpgKey_repository_src }}"
-        dest: "{{ scale_gpgKey_dest }}"
-        validate_certs: no
-
-    - rpm_key:
-        state: present
-        key: "{{ scale_gpgKey_dest }}/SpectrumScale_public_key.pgp"
-  when: ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
-    and scale_enable_gpg_check and scale_version >= "5.0.5.0")
 
 - name: install | Configure GPFS YUM repository
   yum_repository:
     name: spectrum-scale-gpfs
     description: IBM Spectrum Scale (GPFS)
     baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present

@@ -55,7 +55,7 @@ Features
 - [x] Configure client and server license
 - [x] Assign default quorum (maximum 7 quorum nodes) if user has not defined in the inventory
 - [x] Assign default manager nodes(all nodes will act as manager node) if user has not defined in the inventory
-- [x] Create new cluster (mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }})
+- [x] Create new cluster (mmcrcluster -N /var/mmfs/tmp/NodeFile -C {{ scale_cluster_clustername }})
 - [x] Create cluster with profiles
 - [x] Create Cluster with daemon and admin network
 - [x] Add new node into existing cluster
@@ -330,7 +330,7 @@ Furthermore, upgrades are not currently in scope of this role. Spectrum Scale su
 Troubleshooting
 ---------------
 
-The roles in this project store configuration files in `/var/tmp` on the first host in the play. These configuration files are kept to determine if definitions have changed since the previous run, and to decide if it's necessary to run certain Spectrum Scale commands (again). When experiencing problems one can simply delete these configuration files from `/var/tmp` in order to clear the cache &mdash; doing so forces re-application of all definitions upon the next run. As a downside, the next run may take longer than expected as it might re-run unnecessary Spectrum Scale commands. This will automatically re-generate the cache.
+The roles in this project store configuration files in `/var/mmfs/tmp` on the first host in the play. These configuration files are kept to determine if definitions have changed since the previous run, and to decide if it's necessary to run certain Spectrum Scale commands (again). When experiencing problems one can simply delete these configuration files from `/var/mmfs/tmp` in order to clear the cache &mdash; doing so forces re-application of all definitions upon the next run. As a downside, the next run may take longer than expected as it might re-run unnecessary Spectrum Scale commands. This will automatically re-generate the cache.
 
 
 Reporting Issues and Feedback

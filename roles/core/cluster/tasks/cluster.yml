@@ -116,7 +116,7 @@
     - name: cluster | Prepare new cluster NodeFile
       template:
         src: NewNodeFile.j2
-        dest: /var/tmp/NodeFile
+        dest: /var/mmfs/tmp/NodeFile
 
     - name: cluster | Stat GPFS profile file
       find:
@@ -149,7 +149,7 @@
         - scale_cluster_config is defined and scale_cluster_config.remote_file_copy is defined
 
     - name: cluster | Create new cluster
-      command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }} {{ extra_option }}
+      command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/mmfs/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }} {{ extra_option }}
       notify: accept-licenses
       register: mmcrcluster_results
 
@@ -158,7 +158,7 @@
 
     - name: cluster | Copy cluster create NodeFile
       copy:
-        src: /var/tmp/NodeFile
+        src: /var/mmfs/tmp/NodeFile
         dest: /usr/lpp/mmfs/
         mode: a+x
         remote_src: yes
@@ -166,13 +166,13 @@
 
     - name: cluster | Cleanup new cluster NodeFile
       file:
-        path: /var/tmp/NodeFile
+        path: /var/mmfs/tmp/NodeFile
         state: absent
 
     - name: cluster | Prepare new cluster ChangeFile for next run
       template:
         src: ChangeFile.j2
-        dest: /var/tmp/ChangeFile
+        dest: /var/mmfs/tmp/ChangeFile
   when:
     - groups['scale_cluster_candidates'] is defined
     - groups['scale_cluster_members'] is undefined
@@ -186,10 +186,10 @@
     - name: cluster | Prepare existing cluster NodeFile
       template:
         src: AddNodeFile.j2
-        dest: /var/tmp/NodeFile
+        dest: /var/mmfs/tmp/NodeFile
 
     - name: cluster | Add new nodes to cluster
-      command: /usr/lpp/mmfs/bin/mmaddnode -N /var/tmp/NodeFile --accept
+      command: /usr/lpp/mmfs/bin/mmaddnode -N /var/mmfs/tmp/NodeFile --accept
       register: mmadd_results
 
     - debug:
@@ -197,7 +197,7 @@
 
     - name: cluster | Copy Add node NodeFile
       copy:
-        src: /var/tmp/NodeFile
+        src: /var/mmfs/tmp/NodeFile
         dest: /usr/lpp/mmfs/
         mode: a+x
         remote_src: yes
@@ -205,7 +205,7 @@
 
     - name: cluster | Cleanup existing cluster NodeFile
       file:
-        path: /var/tmp/NodeFile
+        path: /var/mmfs/tmp/NodeFile
         state: absent
   when:
     - groups['scale_cluster_candidates'] is defined

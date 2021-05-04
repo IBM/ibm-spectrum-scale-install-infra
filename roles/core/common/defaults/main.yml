@@ -31,3 +31,7 @@ scale_daemon_nodename: "{{ ansible_hostname }}"
 ## Temporary directory to copy installation package to
 ## (local package installation method)
 scale_install_localpkg_tmpdir_path: /tmp
+
+## Enable/disable gpg key flag
+scale_enable_gpg_check: true
+

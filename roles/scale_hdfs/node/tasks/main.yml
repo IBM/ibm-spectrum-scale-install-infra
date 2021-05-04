@@ -1,5 +1,7 @@
 ---
 # Install IBM Spectrum Scale (HDFS)
-- import_tasks: install.yml
+- name: install
+  include_tasks: install.yml
   when: scale_protocols is defined and scale_protocols.hdfs|bool
   tags: install
+  loop: "{{ scale_hdfs_clusters }}"
