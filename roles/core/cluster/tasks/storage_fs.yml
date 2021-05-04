@@ -83,7 +83,7 @@
           "{{ scale_storage_nsddefs }}"
       template:
         src: StanzaFile_fs.j2
-        dest: /var/tmp/StanzaFile.new.{{ current_fs }}
+        dest: /var/mmfs/tmp/StanzaFile.new.{{ current_fs }}
       register: scale_storage_stanzafile
       when:
         - current_fs not in scale_storage_existing_fs.stdout_lines
@@ -94,7 +94,7 @@
     - name: storage | Create new filesystem(s)
       command:
         /usr/lpp/mmfs/bin/mmcrfs {{ item.item }}
-        -F /var/tmp/StanzaFile.new.{{ item.item }}
+        -F /var/mmfs/tmp/StanzaFile.new.{{ item.item }}
         -B {{ scale_storage_fsparams[item.item].blockSize | default(scale_storage_filesystem_defaults.blockSize) }}
         -M {{ scale_storage_fsparams[item.item].maxMetadataReplicas | default(scale_storage_filesystem_defaults.maxMetadataReplicas) }}
         -m {{ scale_storage_fsparams[item.item].defaultMetadataReplicas | default(scale_storage_filesystem_defaults.defaultMetadataReplicas) }}
@@ -137,7 +137,7 @@
 
     - name: cluster | Copy filesystem stanza for new filesystem(s)
       copy:
-        src: /var/tmp/StanzaFile.new.{{ item.item }}
+        src: /var/mmfs/tmp/StanzaFile.new.{{ item.item }}
         dest: /usr/lpp/mmfs/
         mode: a+x
         remote_src: yes
@@ -157,7 +157,7 @@
           "{{ scale_storage_nsddefs | difference(scale_storage_existing_nsds.stdout_lines) | union(scale_storage_free_nsds.stdout_lines) }}"
       template:
         src: StanzaFile_fs.j2
-        dest: /var/tmp/StanzaFile.new.{{ current_fs }}
+        dest: /var/mmfs/tmp/StanzaFile.new.{{ current_fs }}
       register: scale_storage_stanzafile_new
       when:
         - current_fs in scale_storage_existing_fs.stdout_lines
@@ -165,7 +165,7 @@
       with_items: "{{ scale_storage_fsdef | unique }}"
 
     - name: storage | Extend existing filesystem(s)
-      command: /usr/lpp/mmfs/bin/mmadddisk {{ item.item }} -F /var/tmp/StanzaFile.new.{{ item.item }}
+      command: /usr/lpp/mmfs/bin/mmadddisk {{ item.item }} -F /var/mmfs/tmp/StanzaFile.new.{{ item.item }}
       when:
         - item.item in scale_storage_existing_fs.stdout_lines
         - item.size is defined and item.size > 1
@@ -176,7 +176,7 @@
     #
     - name: cluster | Copy filesystem stanza file
       copy:
-        src: /var/tmp/StanzaFile.new.{{ item.item }}
+        src: /var/mmfs/tmp/StanzaFile.new.{{ item.item }}
         dest: /usr/lpp/mmfs/
         mode: a+x
         remote_src: yes
@@ -187,7 +187,7 @@
 
     - name: storage | Cleanup new NSD StanzaFile(s)
       file:
-        path: /var/tmp/StanzaFile.new.{{ item }}
+        path: /var/mmfs/tmp/StanzaFile.new.{{ item }}
         state: absent
       with_items: "{{ scale_storage_fsdef }}"
       

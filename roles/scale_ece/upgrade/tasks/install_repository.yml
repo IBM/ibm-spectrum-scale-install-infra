@@ -2,12 +2,6 @@
 - name: Initialize
   set_fact:
    scale_gnr_url: ""
-   gpgcheck: "yes"
-
-- name: Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
 
 - name: upgrade | gnr path
   set_fact:
@@ -19,7 +13,7 @@
     name: spectrum-scale-gnr
     description: IBM Spectrum Scale (gnr)
     baseurl: "{{ scale_install_repository_url }}{{ scale_gnr_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present

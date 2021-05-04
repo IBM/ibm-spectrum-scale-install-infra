@@ -4,21 +4,12 @@
 #
 # Configure YUM repository
 #
-- name: upgrade | Initialize
-  set_fact:
-   gpgcheck: "yes"
-
-- name: upgrade | Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: upgrade | Configure GUI YUM repository
   yum_repository:
     name: spectrum-scale-gui
     description: IBM Spectrum Scale (GUI)
     baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present

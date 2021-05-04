@@ -47,7 +47,7 @@
     - name: cluster | Prepare existing cluster ChangeFile
       template:
         src: ChangeFile.j2
-        dest: /var/tmp/ChangeFile
+        dest: /var/mmfs/tmp/ChangeFile
       register: scale_cluster_changefile
 
     - block:  ## when: scale_cluster_changefile is changed
@@ -57,7 +57,7 @@
           command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N {{ quorum_nodes | join(',') }}
 
         - name: cluster | Change roles of existing nodes
-          command: /usr/lpp/mmfs/bin/mmchnode -S /var/tmp/ChangeFile
+          command: /usr/lpp/mmfs/bin/mmchnode -S /var/mmfs/tmp/ChangeFile
           notify: accept-licenses
 
       when: scale_cluster_changefile is changed

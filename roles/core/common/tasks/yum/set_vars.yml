@@ -4,3 +4,10 @@
     scale_gpfs_path_url: '{{ scale_extracted_path }}/gpfs_rpms'
   when:
     - scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
+
+- name: set | gpg key check
+  set_fact:
+    scale_install_gpgcheck: "no"
+    scale_disable_gpgcheck: "yes"
+  when: scale_version < '5.0.5.0'
+
