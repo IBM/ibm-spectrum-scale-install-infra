@@ -114,3 +114,28 @@
   when:
     - scale_cluster_config is defined and scale_cluster_config.ephemeral_port_range is defined
   run_once: true
+
+- block:
+    - name: config | Check if numaMemoryInterleave config for s390x is set to yes
+      command: "{{ scale_command_path }}mmlsconfig numaMemoryInterleave"
+      register: scale_numamemory
+      failed_when: false
+
+    - name: config | Setting numaMemoryInterleave config for s390x
+      command: "{{ scale_command_path }}mmchconfig numaMemoryInterleave=no"
+      when:
+         - scale_numamemory.stdout is defined
+         - "'yes' in scale_numamemory.stdout"
+      register: scale_numamemory_cmd
+      failed_when: false
+
+    - debug:
+         msg: "{{ scale_numamemory_cmd.cmd }}"
+      when: scale_numamemory_cmd.cmd is defined
+      ignore_errors: yes
+      failed_when: false
+
+  when:
+    - ansible_architecture == "s390x"
+  ignore_errors: yes
+  run_once: true
