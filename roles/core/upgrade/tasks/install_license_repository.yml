@@ -66,6 +66,8 @@
 
 - name: upgrade | Add GPFS license packages to list
   set_fact:
-    scale_install_license_packages: "{{ scale_install_license_packages + [ scale_gpfs_license_package ] }}"
+    scale_install_license_packages: "{{ scale_install_license_packages + [ item ] }}"
   when: "'gpfs.license.std' in scale_gpfs_license_package or  
          'gpfs.license.da' in scale_gpfs_license_package"
+  with_items:
+      - "{{ scale_gpfs_license_package }}"
