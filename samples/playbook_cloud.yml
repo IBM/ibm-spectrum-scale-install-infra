@@ -13,8 +13,6 @@
 # Setup Spectrum Scale on nodes and create cluster
 - hosts: scale_node
   any_errors_fatal: true
-  vars:
-    - scale_install_directory_pkg_path: /opt/IBM/gpfs_cloud_rpms
   roles:
      - core/precheck
      - core/node
