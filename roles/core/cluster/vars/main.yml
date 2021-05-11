@@ -31,3 +31,6 @@ gpfs_cluster_system_profile:
 
 # user defined profile needs to be installed inside this directory
 scale_cluster_profile_system_path: /var/mmfs/etc/
+
+# default mm command exection path
+scale_command_path: /usr/lpp/mmfs/bin/
