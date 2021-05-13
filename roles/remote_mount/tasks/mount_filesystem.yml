@@ -18,7 +18,7 @@
 - name: scale_remotemount_debug | Storage Cluster | Print the Cluster Information
   debug:
     msg: "{{ owning_cluster_info }}"
-  when: scale_remotemount_debug is true
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
 
 - name: Client Cluster (access) | GET the Cluster Information
   uri:
@@ -36,7 +36,7 @@
 - name: scale_remotemount_debug | Client Cluster | Print the Cluster Information
   debug:
     msg: "{{ access_cluster_info }}"
-  when: scale_remotemount_debug is true
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
 
 - set_fact:
     access_cluster_name: "{{ access_cluster_info.json.cluster.clusterSummary.clusterName }}"
@@ -45,7 +45,7 @@
 - name: scale_remotemount_debug | Print out the Storage and Client Cluster Names
   debug:
     msg: "Access: {{ access_cluster_name }} and Owning: {{ owning_cluster_name }}"
-  when: scale_remotemount_debug is true
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
 
 #
 # When scale_remotemount_forceRun, do some cleanup to properly unmount and remove things
@@ -119,7 +119,7 @@
 - name: scale_remotemount_debug | Print out the Client Cluster (access) Public Key results
   debug:
     var: accesskey_result
-  when: scale_remotemount_debug is true
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
 
 - name: Storage Cluster (owner) | Send the Public Key of the Client Cluster (access)
   uri:
@@ -172,7 +172,7 @@
 - name: scale_remotemount_debug | Print out the Storage Cluster (owing) Public Key results
   debug:
     var: owningkey_result
-  when: scale_remotemount_debug is true
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
 
 - name: Step 3
   debug:
@@ -191,7 +191,7 @@
 - name: scale_remotemount_debug | Print out the remote clusters
   debug:
     msg: "{{ remote_clusters_result.json }}"
-  when: scale_remotemount_debug is true
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
 
 # The remote_clusters_results is in an array, so looping here incase there are multiple remote clusters
 # We want to delete the one where the owningCluster name matches what we are trying to do a remote mount on
@@ -223,7 +223,7 @@
 - name: scale_remotemount_debug | Print out the array storing the nodes in the Storage Cluster (owning)
   debug:
     msg: "{{ owning_nodes_name }}"
-  when: scale_remotemount_debug is true
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
 
 - name: Client Cluster (access) | Add Storage Cluster as a Remote Cluster
   uri:
