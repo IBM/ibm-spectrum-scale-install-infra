@@ -53,7 +53,7 @@ scale_install_gplsrc_packages:
 
 ## Define this variable to install Linux kernel extension from pre-built RPM
 ## (instead of building it from source)
-#scale_install_gplbin_rpm: gpfs.gplbin-{{ ansible_kernel }}-{{ scale_rpmversion }}
+#scale_install_gplbin_package: gpfs.gplbin-{{ ansible_kernel }}-{{ scale_rpmversion }}
 
 ## Note that required RPM can be built with `mmbuildgpl --build-package`
 
