@@ -19,7 +19,5 @@
      - gui/node
      - gui/cluster
      - gui/postcheck
-     - zimon/precheck
-     - zimon/node
      - zimon/cluster
      - zimon/postcheck
