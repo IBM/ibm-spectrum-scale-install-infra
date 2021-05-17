@@ -14,14 +14,8 @@
 - hosts: scale_node
   any_errors_fatal: true
   roles:
-     - core/precheck
-     - core/node
      - core/cluster
-     - gui/precheck
-     - gui/node
      - gui/cluster
      - gui/postcheck
-     - zimon/precheck
-     - zimon/node
      - zimon/cluster
      - zimon/postcheck
