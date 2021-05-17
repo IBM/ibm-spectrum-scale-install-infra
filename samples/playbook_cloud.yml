@@ -15,8 +15,6 @@
   any_errors_fatal: true
   roles:
      - core/cluster
-     - gui/precheck
-     - gui/node
      - gui/cluster
      - gui/postcheck
      - zimon/cluster
