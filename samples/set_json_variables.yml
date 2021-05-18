@@ -41,6 +41,7 @@
      scale_nodeclass: "{{ item.scale_nodeclass | default(omit) }}"
      scale_config: "{{ scale_config | default(omit) }}"
      ansible_ssh_private_key_file: "{{ item.ansible_ssh_private_key_file | default(omit) }}"
+     ansible_user: "{{ item.ansible_user | default(omit) }}"
      scale_cluster_clustername: "{{ scale_cluster.scale_cluster_name | default('gpfs1.local') }}"
      scale_cluster_profile_name: "{{ scale_cluster.scale_cluster_profile_name | default(omit) }}"
      scale_cluster_profile_dir_path: "{{ scale_cluster.scale_cluster_profile_dir_path | default(omit) }}"
