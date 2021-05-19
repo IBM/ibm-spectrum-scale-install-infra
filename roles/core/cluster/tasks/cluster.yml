@@ -73,6 +73,7 @@
   find:
     paths: "{{ scale_cluster_profile_dir_path }}"
     patterns: "{{ scale_cluster_profile_name }}.profile"
+    hidden: yes
   register: stat_user_profile_result
   run_once: true
   delegate_to: localhost
