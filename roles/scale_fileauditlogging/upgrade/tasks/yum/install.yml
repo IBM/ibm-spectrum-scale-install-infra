@@ -2,17 +2,16 @@
 #
 # Install or update RPMs
 #
-- name: Initialize
-  set_fact:
-    disable_gpgcheck: "no"
-
-- name: Disable gpg check
-  set_fact:
-    disable_gpgcheck: "yes"
-  when: scale_version < '5.0.4.0'
-
 - name: upgrade | Upgrade GPFS file audit logging packages
-  package:
+  yum:
     name: "{{ scale_install_all_packages }}"
     state: latest
-    disable_gpg_check: "{{ disable_gpgcheck }}"
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when: ansible_pkg_mgr == 'yum'
+
+- name: upgrade | Upgrade GPFS file audit logging packages
+  dnf:
+    name: "{{ scale_install_all_packages }}"
+    state: latest
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when: ansible_pkg_mgr == 'dnf'

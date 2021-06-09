@@ -10,8 +10,13 @@
 
 - name: install | file audit logging path
   set_fact:
-    scale_fal_url: 'gpfs_rpms/rhel/'
-  when: ansible_distribution in scale_rhel_distribution
+    scale_fal_url: 'gpfs_rpms/rhel7/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: install | file audit logging path
   set_fact:
@@ -20,7 +25,7 @@
 
 - name: install | file audit logging path
   set_fact:
-    scale_fal_url: 'gpfs_rpms/rhel/'
+    scale_fal_url: 'gpfs_rpms/sles15/'
   when: ansible_distribution in scale_sles_distribution
 
 - name: install | Configure GPFS Java YUM repository

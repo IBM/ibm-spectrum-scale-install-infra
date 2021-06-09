@@ -7,12 +7,23 @@
 - name: upgrade | Initialize
   set_fact:
    scale_fal_url: ""
+   scale_kafaka_url: ""
    package_installed: false
 
 - name: upgrade | file audit logging path
   set_fact:
-    scale_fal_url: 'gpfs_rpms/rhel/'
+    scale_kafaka_url: 'gpfs_rpms/rhel/'
   when: ansible_distribution in scale_rhel_distribution
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel7/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: upgrade | file audit logging path
   set_fact:
@@ -21,7 +32,7 @@
 
 - name: upgrade | file audit logging path
   set_fact:
-    scale_fal_url: 'gpfs_rpms/rhel/'
+    scale_fal_url: 'gpfs_rpms/sles15/'
   when: ansible_distribution in scale_sles_distribution
 
 - name: upgrade | Check if gpfs kafka installed
@@ -76,6 +87,21 @@
     - ansible_pkg_mgr == 'zypper'
     - scale_install_repository_url != 'existing'
  
+- name: upgrade | Configure fal YUM repository
+  yum_repository:
+    name: spectrum-scale-kafkafal
+    description: IBM Spectrum Scale (KAFKAFAL)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_kafaka_url }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
+    repo_gpgcheck: no
+    sslverify: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url != 'existing'
+    - gpfskafka_installed.rc == 0
+
 - name: upgrade | Configure fal YUM repository
   yum_repository:
     name: spectrum-scale-fal
