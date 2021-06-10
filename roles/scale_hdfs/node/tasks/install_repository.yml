@@ -2,6 +2,12 @@
 - name: install | Initialize
   set_fact:
    scale_hdfs_url: ""
+   gpgcheck: "yes"
+
+- name: install | Disable gpg check
+  set_fact:
+   gpgcheck: "no"
+  when: scale_version < '5.0.4.0'
 
 - name: install | hdfs path on rhel7
   set_fact:
@@ -23,12 +29,16 @@
    scale_hdfs_url: "{{ hdfs_rpm_path_ubuntu }}"
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
+
+- debug:
+   var: scale_hdfs_url
+
 - name: install | Configure hdfs YUM repository
   yum_repository:
     name: spectrum-scale-hdfs
     description: IBM Spectrum Scale (hdfs)
     baseurl: "{{ scale_install_repository_url }}{{ scale_hdfs_url }}"
-    gpgcheck: "{{ scale_install_gpgcheck }}"
+    gpgcheck: "{{ gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present
