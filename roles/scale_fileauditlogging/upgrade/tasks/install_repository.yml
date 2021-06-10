@@ -35,15 +35,6 @@
     scale_fal_url: 'gpfs_rpms/sles15/'
   when: ansible_distribution in scale_sles_distribution
 
-- name: upgrade | Check if gpfs kafka installed
-  shell: rpm -q gpfs.kafka
-  register: gpfskafka_installed
-  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-  ignore_errors: true
-  failed_when: false
-  args:
-    warn: false
-
 - name: upgrade | Configure GPFS Java YUM repository
   yum_repository:
     name: spectrum-scale-gpfs-java
@@ -89,21 +80,6 @@
  
 - name: upgrade | Configure fal YUM repository
   yum_repository:
-    name: spectrum-scale-kafkafal
-    description: IBM Spectrum Scale (KAFKAFAL)
-    baseurl: "{{ scale_install_repository_url }}{{ scale_kafaka_url }}"
-    gpgcheck: "{{ scale_install_gpgcheck }}"
-    repo_gpgcheck: no
-    sslverify: no
-    state: present
-  notify: yum-clean-metadata
-  when:
-    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-    - scale_install_repository_url != 'existing'
-    - gpfskafka_installed.rc == 0
-
-- name: upgrade | Configure fal YUM repository
-  yum_repository:
     name: spectrum-scale-fal
     description: IBM Spectrum Scale (FAL)
     baseurl: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
@@ -138,38 +114,6 @@
     state: present
   when:
     - ansible_pkg_mgr == 'zypper'
-
-- name: upgrade | Set if gpfs kafka installed
-  set_fact:
-    package_installed: true
-  when:
-     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-     - gpfskafka_installed.rc == 0
-     
-
-- name: upgrade | Check if gpfs kafka installed
-  shell: dpkg -l | grep gpfs.kafka | awk "{print $1}" |  grep ii
-  register: scale_kafka_status
-  failed_when: no
-  changed_when: no
-  args:
-    warn: false
-  when:
-    - ansible_pkg_mgr == 'apt'
-
-- name: upgrade | Set if gpfs kafka installed
-  set_fact:
-    package_installed: true
-  when:
-     - ansible_pkg_mgr == 'apt'
-     - scale_kafka_status.rc == 0
-
-- name: upgrade | Add GPFS file audit logging packages to list
-  set_fact:
-    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
-  with_items:
-    - gpfs.kafka*
-  when: (package_installed | bool)
 
 #
 # Add FAL packages
