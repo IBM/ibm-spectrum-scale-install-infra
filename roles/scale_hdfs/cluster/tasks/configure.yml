@@ -126,6 +126,12 @@
     msg: "Failed to fetch mountpoint. "
   when: hdfs_mountpoint.changed|bool and hdfs_mountpoint.rc != 0 and scale_hdfs_mountpoint|length == 0
 
+- name: configure | ha_enable_dir
+  shell: "ls {{ scale_hdfs_mountpoint }}/HA-{{ scale_hdfs_cluster.name }}"
+  register: ha_enable_dir
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
 - name: configure | Check HDFS ces_group
   shell: "/usr/lpp/mmfs/bin/mmces address list|grep {{ scale_hdfs_ces_group_name }}"
   register: check_hdfs_ces_group
@@ -243,7 +249,7 @@
    - name: configure | InitializeSharedEdits for Namenodes HA
      command: /usr/lpp/mmfs/hadoop/bin/hdfs namenode -initializeSharedEdits -force
      register: initializedSharedEdits
-     when: ha_enabled|bool and ces_hdfs_enabled|bool
+     when: ha_enabled|bool and ces_hdfs_enabled|bool and ha_enable_dir.rc|length != 0
 
    - name:  configure | suspend CES nodes
      command: "/usr/lpp/mmfs/bin/mmces node suspend --stop -N {{ scale_hdfs_cluster.namenodes|join(',') }}"

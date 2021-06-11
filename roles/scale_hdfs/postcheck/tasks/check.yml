@@ -70,7 +70,6 @@
     msg: "Not all datanode are running, check datanode log"
   when: 'dn_status.stdout_lines|length < datanodes|length'
 
-
 - name: postcheck | Check Namenodes active status
   shell: "{{ scale_hdfs_command_path }}hdfs haadmin -getAllServiceState | grep -i 'active'"
   register: active_status
@@ -80,13 +79,20 @@
   failed_when: false
   run_once: true
 
+- name: postcheck | get ceshost
+  shell: "/usr/lpp/mmfs/bin/mmces address list -Y|grep hdfs{{ scale_hdfs_cluster.name }} |awk -F: '{print $8}'"
+  register: ceshost
+  when: ha_enabled|bool
+  ignore_errors: yes
+  delegate_to: "{{ scale_server }}"
+  failed_when: false
+  run_once: true
+
 - name: postcheck | Force active
   shell: "{{ scale_hdfs_command_path }}hdfs haadmin -transitionToActive --forceactive -scale"
   register: force_active
-  when: 
-    - ha_enabled|bool 
-    - active_status.stdout_lines | length == 0
-  delegate_to: "{{ scale_server }}"
+  when: ha_enabled|bool and active_status.stdout_lines | length == 0 and ceshost.stdout|length != 0
+  delegate_to: "{{ ceshost.stdout }}"
   run_once: true
 
 - name: postcheck | Check Namenodes active status again
