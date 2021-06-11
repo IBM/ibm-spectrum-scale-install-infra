@@ -1,4 +1,9 @@
 ---
+- include_tasks: prepare_env.yml
+  
+- debug:
+   msg: "transparency_33_enabled: {{ transparency_33_enabled|bool }}"
+
 - name: global_var | Initialize
   set_fact:
    scale_hdfs_cluster: []
@@ -50,13 +55,6 @@
 - name: Check | Check Namenodes running status
   shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is' | wc -l
   register: verify_namenodes
-  delegate_to: "{{ server }}"
-  run_once: true
-
-- fail:
-    msg: "NameNode is already running, Make sure namenodes are stopped(/usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn stop) on {{ server }} node."
-  when: 
-    - verify_namenodes.stdout|int > 0
   delegate_to: "{{ server }}"
   run_once: true
 
