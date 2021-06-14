@@ -129,6 +129,8 @@
 - name: configure | ha_enable_dir
   shell: "ls {{ scale_hdfs_mountpoint }}/HA-{{ scale_hdfs_cluster.name }}"
   register: ha_enable_dir
+  failed_when: false
+  ignore_errors: yes
   run_once: true
   delegate_to: "{{ scale_server }}"
 
