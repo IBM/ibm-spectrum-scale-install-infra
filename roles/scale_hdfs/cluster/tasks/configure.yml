@@ -251,7 +251,7 @@
    - name: configure | InitializeSharedEdits for Namenodes HA
      command: /usr/lpp/mmfs/hadoop/bin/hdfs namenode -initializeSharedEdits -force
      register: initializedSharedEdits
-     when: ha_enabled|bool and ces_hdfs_enabled|bool and ha_enable_dir.rc|length != 0
+     when: ha_enabled|bool and ces_hdfs_enabled|bool and ha_enable_dir.rc != 0
 
    - name:  configure | suspend CES nodes
      command: "/usr/lpp/mmfs/bin/mmces node suspend --stop -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
