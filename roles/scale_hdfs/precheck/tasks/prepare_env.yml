@@ -21,6 +21,3 @@
     - transparency_version.stdout|bool
   delegate_to: localhost
   run_once: true
-
-- debug:
-   var: transparency_33_enabled|bool
