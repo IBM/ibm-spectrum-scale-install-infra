@@ -160,6 +160,12 @@
   run_once: true
   delegate_to: "{{ scale_server }}"
 
+- fail:
+    msg: "Failed due to namenodes are running, please stop namenodes(/usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn stop) and retry deploy."
+  when: ha_enabled|bool and not ces_hdfs_enabled|bool and ha_enable_dir.rc != 0
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
 - name: Configure | Set JAVA_HOME
   command: "/usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k JAVA_HOME={{ javahome_path.stdout }}"
   register: javahome
