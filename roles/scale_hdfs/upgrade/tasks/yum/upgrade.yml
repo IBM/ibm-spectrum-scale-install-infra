@@ -12,4 +12,5 @@
   yum:
    name: "{{ scale_upgrade_all_packages }}"
    state: latest
+   update_only: yes
    disable_gpg_check: "{{ disable_gpgcheck }}"
