@@ -30,9 +30,6 @@
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 
-- debug:
-   var: scale_hdfs_url
-
 - name: install | Configure hdfs YUM repository
   yum_repository:
     name: spectrum-scale-hdfs

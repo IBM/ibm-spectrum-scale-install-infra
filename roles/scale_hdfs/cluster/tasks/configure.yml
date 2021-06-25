@@ -65,9 +65,11 @@
 
 - name: check | calculate namenodes services 
   set_fact:
-     namenodes_service: "{{ namenodes_service }}nn{{ item }},"
+     namenodes_service: "{{ namenodes_service }}nn{{ namenode_list }},"
   with_sequence: count={{ namenodes_length }}
   when: scale_hdfs_namenodes_list|length > 1
+  loop_control:
+    loop_var: namenode_list
   delegate_to: localhost
   run_once: true
 
@@ -111,14 +113,17 @@
    - name: check | fetch mountpoint
      shell: /usr/lpp/mmfs/bin/mmlsfs "{{ scale_hdfs_filesystem }}" -T -Y | grep defaultMountPoint | awk -F':' '{print $9}'
      register: hdfs_mountpoint
+
    - name: check| decode mountpoint
      command: /usr/lpp/mmfs/bin/mmclidecode "{{ hdfs_mountpoint.stdout }}"
      register: hdfs_mountpoint_decode
      when: hdfs_mountpoint.rc == 0
+
    - name: check| get mountpoint
      set_fact:
        scale_hdfs_mountpoint: "{{ hdfs_mountpoint_decode.stdout }}"
      when: hdfs_mountpoint_decode.rc == 0
+
   run_once: true
   delegate_to: "{{ scale_server }}"
 
@@ -175,7 +180,7 @@
 - block:
    - name: configure | Configuare core-site.xml
      set_fact:
-         core_site_conf_dict: "{{ core_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
+         core_site_conf_dict: "{{ core_site_conf_dict | default({}) | combine ({ core_list.key : core_list.value }) }}"
      with_items:
         - { 'key': "fs.defaultFS", 'value': "hdfs://{{scale_hdfs_cluster.name}}" }
         - { 'key': "hadoop.proxyuser.livy.hosts", 'value': "*" }
@@ -184,10 +189,12 @@
         - { 'key': "hadoop.proxyuser.hive.groups", 'value': "*" }
         - { 'key': "hadoop.proxyuser.oozie.hosts", 'value': "*" }
         - { 'key': "hadoop.proxyuser.oozie.groups", 'value': "*" }
+     loop_control:
+       loop_var: core_list
 
    - name: configure | Configuare hdfs-site.xml
      set_fact:
-         hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
+         hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ hdfs_list.key : hdfs_list.value }) }}"
      with_items:
         - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': "{{ namenodes_service }}" }
         - { 'key': "dfs.client.failover.proxy.provider.{{ scale_hdfs_cluster.name }}", 'value': 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider' }
@@ -196,6 +203,8 @@
         - { 'key': "dfs.namenode.servicerpc-bind-host", 'value': "0.0.0.0" }
         - { 'key': "dfs.namenode.lifeline.rpc-bind-host", 'value': "0.0.0.0" }
         - { 'key': "dfs.namenode.http-bind-host", 'value': "0.0.0.0" }
+     loop_control:
+       loop_var: hdfs_list
 
    - name: configure | include append_dict.yml
      include_tasks: append_dict.yml
@@ -207,33 +216,42 @@
 
    - name: configure | Configuare hdfs-site.xml for HA
      set_fact:
-        hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
+        hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ hdfs_site_ha_conf.key : hdfs_site_ha_conf.value }) }}"
      with_items:
        - { 'key': "dfs.namenode.shared.edits.dir", 'value': "file:///{{ scale_hdfs_mountpoint }}/HA-{{ scale_hdfs_cluster.name }}" }
      when: ha_enabled|bool
+     loop_control:
+        loop_var: hdfs_site_ha_conf
 
    - name: configure | Configuare gpfs-site.xml
      set_fact:
-         gpfs_site_conf_dict: "{{ gpfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
+         gpfs_site_conf_dict: "{{ gpfs_site_conf_dict | default({}) | combine ({ hdfs_site_list.key : hdfs_site_list.value }) }}"
      with_items:
        - { 'key': "gpfs.mnt.dir", 'value': "{{ scale_hdfs_mountpoint }}" }
        - { 'key': "gpfs.data.dir", 'value': "{{ scale_hdfs_datadir }}" }
-
+     loop_control:
+        loop_var: hdfs_site_list
   run_once: true
   delegate_to: localhost
 
 - block:
    - name: configure | Set configuration for core-site.xml
-     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set core-site.xml -k "{{ item.key }}"="{{ item.value }}"
+     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set core-site.xml -k "{{ core_site_conf.key }}"="{{ core_site_conf.value }}"
      loop:  "{{ core_site_conf_dict | dict2items }}"
+     loop_control:
+        loop_var: core_site_conf
 
    - name: configure | Set configuration for gpfs-site.xml
-     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set gpfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
+     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set gpfs-site.xml -k "{{ gpfs_site_conf.key }}"="{{ gpfs_site_conf.value }}"
      loop:  "{{ gpfs_site_conf_dict | dict2items }}"
+     loop_control:
+        loop_var: gpfs_site_conf
 
    - name: configure | Set configuration for hdfs-site.xml
-     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
+     shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ hdfs_site_conf.key }}"="{{ hdfs_site_conf.value }}"
      loop:  "{{ hdfs_site_conf_dict | dict2items }}"
+     loop_control:
+        loop_var: hdfs_site_conf
 
    - name: configure | Remove localhost
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker remove localhost

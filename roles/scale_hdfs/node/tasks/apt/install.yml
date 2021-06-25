@@ -8,8 +8,10 @@
 
 - name: install| Install GPFS HDFS deb
   apt:
-   deb: "{{ item }}"
+   deb: "{{ all_packages }}"
    state: present
   when: scale_install_repository_url is not defined and ansible_fqdn in scale_hdfs_nodes_list
   with_items:
   - "{{ scale_install_all_packages }}"
+  loop_control:
+     loop_var: all_packages
