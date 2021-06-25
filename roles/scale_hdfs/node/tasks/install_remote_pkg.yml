@@ -106,9 +106,11 @@
 
   - name: install | Add GPFS hdfs package to list
     vars:
-     current_package:  "{{ item.path }}"
+     current_package:  "{{ files.path }}"
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
     with_items:
     - "{{ scale_install_gpfs_hdfs.files }}"
+    loop_control:
+       loop_var: files
 
