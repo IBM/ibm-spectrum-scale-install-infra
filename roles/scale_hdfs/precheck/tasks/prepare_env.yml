@@ -10,9 +10,6 @@
   delegate_to: localhost
   run_once: true
 
-- debug:
-    var: transparency_version
-
 - name:
   set_fact:
     transparency_33_enabled: "{{ transparency_version.stdout|bool }}"
