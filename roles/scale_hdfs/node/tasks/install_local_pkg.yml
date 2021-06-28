@@ -106,9 +106,7 @@
    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
    state: absent
 
-- debug:
-    var: hdfs_rpm_path_rhel
-    
+
 - name: install | hdfs path on rhel7
   set_fact:
    scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
@@ -149,11 +147,13 @@
 
   - name: install | Add GPFS hdfs package to list
     vars:
-     current_package:  "{{ item.path }}"
+     current_package:  "{{ files.path }}"
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
     with_items:
     - "{{ scale_install_gpfs_hdfs.files }}"
+    loop_control:
+       loop_var: files
 
 - block:
   - name: initialize
@@ -162,9 +162,11 @@
 
   - name: install | Add GPFS package to list
     set_fact:
-     debuginfo_package: "{{ debuginfo_package + [ item.path ] }}"
+     debuginfo_package: "{{ debuginfo_package + [ files.path ] }}"
     with_items:
     - "{{ scale_install_gpfs_hdfs_debuginfo.files }}"
+    loop_control:
+       loop_var: files
 
   - name: remove debuginfo from packages
     set_fact:
