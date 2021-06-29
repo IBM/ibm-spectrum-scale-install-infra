@@ -93,6 +93,7 @@
   register: force_active
   when: ha_enabled|bool and active_status.stdout_lines | length == 0 and ceshost.stdout|length != 0
   delegate_to: "{{ ceshost.stdout }}"
+  ignore_errors: yes
   failed_when: false
   run_once: true
 
@@ -104,8 +105,9 @@
 - name: postcheck | Check Namenodes active status again
   shell: "{{ scale_hdfs_command_path }}hdfs haadmin -getAllServiceState | grep -i 'active'"
   register: active_status_again
-  when: ha_enabled|bool and force_active.rc == 0
+  when: ha_enabled|bool
   delegate_to: "{{ scale_server }}"
+  ignore_errors: yes
   failed_when: false
   run_once: true
 
