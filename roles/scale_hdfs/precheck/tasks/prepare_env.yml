@@ -5,7 +5,7 @@
      transparency_version: "False"
 
 - name:
-  shell: "echo $SS_HDFS_33_TRANSPERNCY_VERSION_ENABLE"
+  shell: "echo $SCALE_HDFS_TRANSPARENCY_VERSION_33_ENABLE"
   register: transparency_version
   delegate_to: localhost
   run_once: true
