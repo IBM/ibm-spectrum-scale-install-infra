@@ -1,0 +1,271 @@
+---
+#
+# Gather cluster information
+#
+- name: Step 1 - Remote Cluster Config - API-CLI
+  debug:
+    msg: Gather some information about cluster and state
+  run_once: True
+
+- name: Remote Cluster Config - API-CLI | Storage Cluster (owner) | GET the Cluster Information
+  uri:
+    validate_certs: "{{ validate_certs_uri }}"
+    force_basic_auth: yes
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+    method: GET
+    user: "{{ scale_remotemount_storage_gui_username }}"
+    password: "{{ scale_remotemount_storage_gui_password }}"
+    body_format: json
+    status_code:
+      - 200
+  register: owning_cluster_info
+  run_once: True
+
+- name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Storage Cluster (owner) | Print the Cluster Information
+  debug:
+    msg: "{{ owning_cluster_info }}"
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+  run_once: True
+
+- name: Remote Cluster Config - API-CLI | Client Cluster (access) | GET the Cluster Information
+  shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterSummary | cut -d ':' -f 9
+  register: access_cluster_info
+  changed_when: false
+  failed_when: false
+  run_once: True
+
+- name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Client Cluster (access) | Print the Cluster Information
+  debug:
+    msg: "{{ access_cluster_info }}"
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+  run_once: True
+
+- set_fact:
+    access_cluster_name: "{{ access_cluster_info.stdout }}"
+    owning_cluster_name: "{{ owning_cluster_info.json.cluster.clusterSummary.clusterName }}"
+  run_once: True
+
+#
+# When scale_remotemount_forceRun, do some cleanup to properly unmount and remove things
+#
+- import_tasks: cleanup_filesystem_api_cli.yml
+  when: scale_remotemount_forceRun | bool
+
+- name: Step 2 - Remote Cluster Config - API-CLI
+  debug:
+    msg: "Check if the Remote Cluster is allready configured"
+
+- name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | Check if the Client Cluster ('{{ access_cluster_name }}') is already defined"
+  uri:
+    validate_certs: "{{ validate_certs_uri }}"
+    force_basic_auth: yes
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
+    method: GET
+    user: "{{ scale_remotemount_storage_gui_username }}"
+    password: "{{ scale_remotemount_storage_gui_password }}"
+    body_format: json
+    status_code:
+      - 200
+  register: remote_clusters_results
+  ignore_errors: true
+  run_once: true
+
+- name: Remote Cluster Config - API-CLI | Client Cluster (access) | Check if the Storage Cluster ('{{ owning_cluster_name }}') is already defined on Client"
+  run_once: True
+  shell: |
+    /usr/lpp/mmfs/bin/mmremotecluster show {{ owning_cluster_name }}
+  register: remote_cluster_check_owning_cluster
+  ignore_errors: true
+  changed_when: false
+
+- name: Remote Cluster Config - API-CLI | Storage Cluster (owner) | Delete the Client Cluster, if it exists
+  block:
+    - name: "DELETE: {{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}"
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: true
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
+        method: DELETE
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+        status_code:
+          - 202
+      run_once: true
+      register: delete_call
+
+    - name: "Checking results from the job: {{ delete_call.json.jobs[0].jobId }}"
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: true
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+        method: GET
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+      register: completed_check
+      until: completed_check.json.jobs[0].status == "COMPLETED"
+      retries: "{{ restapi_retries_count }}"
+      delay: "{{ restapi_retries_delay }}"
+      run_once: True
+  when:
+    - not remote_clusters_results.failed and scale_remotemount_forceRun | bool
+
+- name: "Remote Cluster Config - API-CLI | If remote cluster (access) connection is already configured, nothing to do."
+  debug:
+    msg: "Remote Cluster connection ('{{ access_cluster_name }}') is already configured proceeding to filesystem mounting."
+  run_once: True
+  when:
+    - (remote_clusters_results.status == 200) or (scale_remotemount_forceRun | bool)
+
+
+- name: Remote Cluster Config - API-CLI | Exchange the keys between Storage and Client Clusters (access)
+  block:
+    - name: Step 3 - Remote Cluster Config - API-CLI
+      debug:
+        msg: "Configure remote Cluster connection between Storage Cluster (owner) and Client Cluster (access)"
+      run_once: True
+
+    - name: Remote Cluster Config - API-CLI | Remote Cluster connection status
+      debug:
+        msg: "Remote Cluster connection to ('{{ access_cluster_name }}') is not configured, procceding with configuration"
+      run_once: True
+
+    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Get the Public key from CLI and register
+      shell: "cat /var/mmfs/ssl/id_rsa_committed.pub"
+      register: accesskey_result
+      run_once: True
+
+    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the Client Cluster (access) Public Key results
+      debug:
+        msg: "{{ accesskey_result }}"
+      when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+      run_once: True
+
+    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the Client Cluster (access) Public Key results to file ("{{ scale_remote_mount_client_access_key }}")
+      copy:
+        dest: "{{ scale_remote_mount_client_access_key }}"
+        content: "{{ accesskey_result }}\n"
+      when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+      run_once: True
+
+#  Register the Client Cluster (Access) on the Storage Cluster (owner) with RestAPI
+#  Read also the documentation of CLI command 'mmauth'.
+
+    - name: Remote Cluster Config - API-CLI | Storage Cluster (owner) | Send the Public Key of the Client Cluster (access) to Storage Cluster (Owner)
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: true
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters
+        method: POST
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+        body_format: json
+        body: |
+          {
+            "remoteCluster": "{{ access_cluster_name }}",
+            "ciphers": ["{{ remotecluster_chipers }}"],
+            "key": {{ accesskey_result.stdout_lines }}
+          }
+        status_code:
+          - 202
+      register: send_key
+      run_once: True
+
+    - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | Check the result of adding the Client Cluster {{ send_key.json.jobs[0].jobId }}"
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: true
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ send_key.json.jobs[0].jobId }}
+        method: GET
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+      register: completed_check
+      until: completed_check.json.jobs[0].status != "FAILED"
+      retries: "{{ restapi_retries_count }}"
+      delay: "{{ restapi_retries_delay }}"
+      run_once: True
+
+    - name: Remote Cluster Config - API-CLI | Storage Cluster (owner) | Get the Public Key
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: yes
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/authenticationkey/
+        method: GET
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+        body_format: raw
+        status_code:
+          - 200
+      register: owningkey_result
+      run_once: True
+
+    - name: Remote Cluster Config - API-CLI | Remote Mount Handshake | Copy the Storage Cluster (owning) Public key content to local file on Client Cluster (access)
+      copy:
+        content: "{{ owningkey_result | json_query('json.key[]') }}"
+        dest: "{{ scale_remotemount_storage_pub_key_location_json }}"
+      run_once: true
+#
+# Trouble getting the JSON to be a proper pub_key in ansible, using SED and TR insted
+# sed replaces , with a linebreak
+# "tr -d"  delete  those characters (escaped with a backslash, so only dobbelfnutt, [ and ] is replaced)
+# SED: S for substitute. That is first after / and with that after second /.. and "g"  does is several time per line.
+#
+    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Remove json spesific information to a plain pub key file.
+      shell:
+        cmd: sed 's/,/\n/g' {{ scale_remotemount_storage_pub_key_location_json }} | tr -d '"\[\]' | sed 's/^ //' > {{ scale_remotemount_storage_pub_key_location }}
+        warn: false
+      run_once: true
+
+    - name: Step 3 - Remote Cluster Config - API-CLI
+      debug:
+        msg: "Add the storage cluster (mmremotecluster add)"
+      run_once: True
+
+    - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | GET Node Info - GET {{ scalemgmt_endpoint }}/nodes"
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: yes
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes
+        method: GET
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+        body_format: json
+        status_code:
+          - 200
+      register: owning_cluster_nodes
+      run_once: True
+
+    - set_fact:
+        owning_nodes_name: []
+      run_once: True
+
+    - set_fact:
+        owning_nodes_name: "{{ owning_nodes_name }} + [ '{{ item.adminNodeName }}' ]"
+      with_items: "{{ owning_cluster_nodes.json.nodes }}"
+      run_once: True
+
+    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the array storing the nodes in the Storage Cluster (owning)
+      debug:
+        msg: "{{ owning_nodes_name }}"
+      when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+      run_once: True
+
+    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Install storage cluster (owner) public key in remote cluster
+      run_once: True
+      shell: |
+        /usr/lpp/mmfs/bin/mmremotecluster add {{ owning_cluster_name }} -n {{ owning_nodes_name | list | join(',') }} -k {{ scale_remotemount_storage_pub_key_location }}
+      register: remote_cluster_add_ssh
+      failed_when:
+        - "remote_cluster_add_ssh.rc != 0 and 'is already defined' not in remote_cluster_add_ssh.stderr"
+
+    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Cleanup temporary Keys.
+      file:
+        path: "{{ item }}"
+        state: absent
+      when:
+        - scale_remotemount_storage_pub_key_delete | bool
+      with_items:
+       - "{{ scale_remotemount_storage_pub_key_location }}"
+       - "{{ scale_remotemount_storage_pub_key_location_json }}"
+
+  when:
+    - (remote_clusters_results.status == 400) or (remote_cluster_check_owning_cluster.rc != 0) or (scale_remotemount_forceRun | bool)
