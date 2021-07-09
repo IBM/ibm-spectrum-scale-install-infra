@@ -1,0 +1,20 @@
+---
+- name:
+  set_fact:
+     transparency_33_enabled: "False"
+     transparency_version: "False"
+
+- name:
+  shell: "echo $SCALE_HDFS_TRANSPARENCY_VERSION_33_ENABLE"
+  register: transparency_version
+  delegate_to: localhost
+  run_once: true
+
+- name:
+  set_fact:
+    transparency_33_enabled: "{{ transparency_version.stdout|bool }}"
+  when: 
+    - transparency_version.stdout is defined
+    - transparency_version.stdout|bool
+  delegate_to: localhost
+  run_once: true

@@ -98,16 +98,6 @@
   - name: install | Fetch hdfs rpm dir path for rhel
     set_fact:
         hdfs_rpm_path_rhel: "{{ hdfs_version_path_selection_rhel }}" 
- 
-  - name: install | Fetch hdfs rpm dir path for sles
-    set_fact:
-        hdfs_rpm_path_sles: "{{ hdfs_sles_version_path }}" 
-  
-  - name: install | Fetch hdfs rpm dir path for ubuntu
-    set_fact:
-        hdfs_rpm_path_ubuntu: "{{ hdfs_ubuntu_version_path }}" 
-
-  
   run_once: true
   delegate_to: localhost
 

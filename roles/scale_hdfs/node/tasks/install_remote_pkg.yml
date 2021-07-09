@@ -81,16 +81,6 @@
    scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
-- name: install | hdfs path on sles15
-  set_fact:
-   scale_hdfs_url: "{{ hdfs_rpm_path_sles }}"
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
-
-- name: install | hdfs path on ubuntu20
-  set_fact:
-   scale_hdfs_url: "{{ hdfs_rpm_path_ubuntu }}"
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
-
 - block:  ## when: host is defined as a protocol node
 
   - name: install | Find gpfs.hdfs (gpfs.hdfs-protocol) package
