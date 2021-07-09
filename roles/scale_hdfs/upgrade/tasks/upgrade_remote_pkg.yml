@@ -71,30 +71,15 @@
       The variable 'scale_version' doesn't seem to match the contents of the
       remote installation package!
 
-- name: upgrade | hdfs path
+- name: upgrade | hdfs path on rhel7
   set_fact:
-   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
+   scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
-- name: upgrade | hdfs path
+- name: upgrade | hdfs path on rhel8
   set_fact:
-   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
+   scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
-
-- name: upgrade | hdfs path
-  set_fact:
-   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
-  when: ansible_distribution in scale_sles_distribution
-
-- name: upgrade | hdfs path
-  set_fact:
-   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
-
-- name: upgrade | hdfs path
-  set_fact:
-   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
 
 - block:  ## when: host is defined as a protocol node
 
@@ -116,4 +101,3 @@
      scale_upgrade_all_packages: "{{ scale_upgrade_all_packages + [ current_package ] }}"
     with_items:
     - "{{ scale_install_gpfs_hdfs.files }}"
-
