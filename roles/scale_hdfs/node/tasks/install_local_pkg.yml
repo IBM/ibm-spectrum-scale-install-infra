@@ -117,28 +117,12 @@
    scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
-- name: install | hdfs path on sles15
-  set_fact:
-   scale_hdfs_url: "{{ hdfs_rpm_path_sles }}"
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
-
-- name: install | hdfs path on ubuntu20
-  set_fact:
-   scale_hdfs_url: "{{ hdfs_rpm_path_ubuntu }}"
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
-
-#
-
-# Find hdfs rpms
-
-- block:  ## when: host is defined as a protocol node
-
+- block:
   - name: install | Find gpfs.hdfs-protocol package
     find:
      paths:  "{{ hdfs_extracted_path }}/{{ scale_hdfs_url }}"
      patterns: gpfs.hdfs-protocol*
     register: scale_install_gpfs_hdfs
-
 
   - name: install | Check valid GPFS hdfs(gpfs.hdfs-protocol) package
     assert:
@@ -147,13 +131,13 @@
 
   - name: install | Add GPFS hdfs package to list
     vars:
-     current_package:  "{{ files.path }}"
+     current_package:  "{{ filelist.path }}"
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
     with_items:
     - "{{ scale_install_gpfs_hdfs.files }}"
     loop_control:
-       loop_var: files
+       loop_var: filelist
 
 - block:
   - name: initialize
@@ -162,14 +146,13 @@
 
   - name: install | Add GPFS package to list
     set_fact:
-     debuginfo_package: "{{ debuginfo_package + [ files.path ] }}"
+     debuginfo_package: "{{ debuginfo_package + [ filepacklist.path ] }}"
     with_items:
     - "{{ scale_install_gpfs_hdfs_debuginfo.files }}"
     loop_control:
-       loop_var: files
+       loop_var: filepacklist
 
   - name: remove debuginfo from packages
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
   when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
-
