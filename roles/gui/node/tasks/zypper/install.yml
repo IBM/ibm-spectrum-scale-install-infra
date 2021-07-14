@@ -1,4 +1,11 @@
 ---
+- block:  ## when: sles15 node
+    - name: install | Install prereqs for GUI from source
+      zypper:
+        name: "{{ scale_gui_el8_prereqs }}"
+        state: present
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
+
 - block:
     - name: install | Install GPFS GUI packages
       zypper:
