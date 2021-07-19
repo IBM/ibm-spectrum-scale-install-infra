@@ -1,14 +1,4 @@
 ---
-- name: install | Initialize
-  set_fact:
-   scale_hdfs_url: ""
-   gpgcheck: "yes"
-
-- name: install | Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: install | hdfs path on rhel7
   set_fact:
    scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
@@ -24,7 +14,7 @@
     name: spectrum-scale-hdfs
     description: IBM Spectrum Scale (hdfs)
     baseurl: "{{ scale_install_repository_url }}{{ scale_hdfs_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present
