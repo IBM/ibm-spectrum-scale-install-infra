@@ -6,6 +6,15 @@ Role Definition
   - It allows computers connected to the same network or domain to access files from other local computers as easily as if they 
   were on the computer's local hard drive.
 
+OS/Arch Support:
+---------------------------
+- Arch : 
+   -1: x86
+   -2: PowerLe
+- OS   :
+   -1: RHEL7
+   -2: RHEL8
+
 Prerequisite
 ----------------------------
 - CES should be enabled and configured.
@@ -61,11 +70,11 @@ Implementation
     -	If  ‘scale_install_repository_url’ is undefined and ‘scale_install_remotepkg_path’ is defined, then the installation method is remote.
     -	If  ‘scale_install_repository_url’ is undefined and ‘scale_install_remotepkg_path’ is undefined and ‘scale_install_localpkg_path’ is defined, then the installation method is local.
   - Depending on the installation method, appropriate playbook is called for collecting the rpms and rpms are installed on all the nodes on which hdfs is enabled. 
-  
+
 - `Cluster`
   - This role setup all hdfs required configurations.
   - To enable hdfs protocol, we run command `mmces service enable hdfs` on all the nodes where hdfs is enabled.
-  
+
 - `Postcheck`
   - This role verify namenodes and datanodes status.
   - This role uses command `mmces service list` to check if hdfs service is up and running.

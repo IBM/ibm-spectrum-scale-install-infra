@@ -38,7 +38,13 @@
      server: "{{ scale_hdfs_cluster.namenodes[0] }}"
   delegate_to: localhost
   run_once: true
- 
+
+- fail:
+    msg: "HDFS is not supported on {{ ansible_distribution }} OS."
+  when: ansible_distribution not in hdfs_os_distribution
+  delegate_to: "{{ server }}"
+  run_once: true
+
 - name: check | verify cesip address
   set_fact:
      export_cesip_length: "{{ scale_protocols.export_ip_pool| length }}"
