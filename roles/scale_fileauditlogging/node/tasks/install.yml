@@ -51,8 +51,6 @@
 
 - include_tasks: install_{{ scale_installmethod }}.yml
 
-- meta: flush_handlers
-
 #
 # Install or update RPMs
 #
