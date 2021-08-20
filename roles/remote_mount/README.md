@@ -33,7 +33,7 @@ Prerequisite
 - Spectrum Scale GUI should be enabled and configured on Storage Cluster.
 - Spectrum Scale GUI user with Administrator Role. (**Scale User with Administrator or ContainerOperator role/rights**)
 -   Only users with role 'Administrator' or 'CNSS Operator' have permission to for this REST endpoint. 
-    - Read also the documentation of CLI command 'mmremotecluster delete'.
+    - Read also the documentation of CLI command 'mmremotecluster delete'
     - ``/usr/lpp/mmfs/gui/cli/mkuser remotemount -g ContainerOperator -p password01``
 - Spectrum Scale Version 5.0.5.2 or later
 - Firewall opening between all Storage Cluster and Client Cluster. (Se list below)   
