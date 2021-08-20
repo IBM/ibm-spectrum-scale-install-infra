@@ -84,17 +84,12 @@
 - name: install | hdfs path
   set_fact:
    scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
-  when: ansible_distribution in scale_sles_distribution
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
 
 - name: install | hdfs path
   set_fact:
    scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
-
-- name: install | hdfs path
-  set_fact:
-   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version >= '20'
 
 - block:  ## when: host is defined as a protocol node
 
@@ -117,5 +112,3 @@
     with_items:
     - "{{ scale_install_gpfs_hdfs.files }}"
 
-- debug:
-   msg: "{{ scale_install_all_packages }}"

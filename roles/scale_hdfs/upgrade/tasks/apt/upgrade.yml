@@ -1,0 +1,16 @@
+---
+- name: Upgrade GPFS hdfs packages
+  package:
+   name: "{{ scale_upgrade_all_packages }}"
+   state: latest
+  when: scale_install_repository_url is defined
+
+
+- name: upgrade| Upgrade GPFS HDFS deb
+  apt:
+   deb: "{{ item }}"
+   state: latest
+  when: scale_install_repository_url is not defined
+  with_items:
+  - "{{ scale_upgrade_all_packages }}"
+

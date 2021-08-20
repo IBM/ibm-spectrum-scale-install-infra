@@ -1,0 +1,78 @@
+---
+# Install or update packages
+
+#
+# Choose installation method from configuration variables
+#
+- block:  ## run_once: true
+    - name: upgrade | Check for repository installation method
+      set_fact:
+        scale_installmethod: repository
+      when:
+        - scale_install_repository_url is defined
+
+    - name: upgrade | Check for remotepkg installation method
+      set_fact:
+        scale_installmethod: remote_pkg
+      when:
+        - scale_install_repository_url is undefined
+        - scale_install_remotepkg_path is defined
+
+    - name: upgrade | Check for localpkg installation method
+      set_fact:
+        scale_installmethod: local_pkg
+      when:
+        - scale_install_repository_url is undefined
+        - scale_install_remotepkg_path is undefined
+        - scale_install_localpkg_path is defined
+
+    - name: upgrade | Check for directory package installation method
+      set_fact:
+        scale_installmethod: dir_pkg
+      when:
+        - scale_install_repository_url is undefined
+        - scale_install_remotepkg_path is undefined
+        - scale_install_localpkg_path is undefined
+        - scale_install_directory_pkg_path is defined
+
+    - name: upgrade | Check installation method
+      assert:
+        that: scale_installmethod is defined
+        msg: >-
+          Please set the appropriate variable 'scale_install_*' for your desired
+          installation method!
+  run_once: true
+  delegate_to: localhost
+
+#
+# Run chosen installation method to get list of packages
+#
+- name: upgrade | Initialize list of packages
+  set_fact:
+    scale_install_all_packages: []
+    scale_install_license_packages: []
+
+- include_tasks: install_{{ scale_installmethod }}.yml
+
+- include_tasks: install_gplbin.yml
+  when: scale_install_gplbin_package is defined
+
+- include_tasks: install_license_pkg.yml
+  when: scale_install_remotepkg_path is defined or scale_install_localpkg_path is defined or scale_install_directory_pkg_path is defined
+
+- include_tasks: install_license_repository.yml
+  when: scale_install_repository_url is defined
+
+- meta: flush_handlers
+
+#
+# Install or update packages
+#
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- import_tasks: yum/install.yml
+  when: ansible_distribution in scale_rhel_distribution
+
+- import_tasks: zypper/install.yml
+  when: ansible_distribution in scale_sles_distribution

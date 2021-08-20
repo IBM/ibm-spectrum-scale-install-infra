@@ -1,9 +1,9 @@
 ---
-- name: Cleanup | Client Cluster (access) | Check if the remotefilesystem is already defined
+- name: "Cleanup | Client Cluster (access) | Check if the remotefilesystem is already defined {{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}"
   uri:
-    validate_certs: no
+    validate_certs: "{{ validate_certs_uri }}"
     force_basic_auth: yes
-    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ scale_remotemount_client_filesystem_name }}
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}
     method: GET
     user: "{{ scale_remotemount_client_gui_username }}"
     password: "{{ scale_remotemount_client_gui_password }}"
@@ -12,14 +12,15 @@
       - 200
   register: remote_filesystem_results
   ignore_errors: true
+  run_once: True
 
-- name: Cleanup | Client Cluster (access) | Remove defined filesystem
+- name: "Cleanup | Client Cluster (access) | Remove defined filesystem {{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}"
   block:
-    - name: "Client Cluster (access) | Unmount the filesystem | PUT {{ scalemgmt_endpoint }}/filesystems/{{ scale_remotemount_client_filesystem_name }}/unmount"
+    - name: "Client Cluster (access) | Unmount the filesystem | PUT {{ scalemgmt_endpoint }}/filesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}/unmount"
       uri:
-        validate_certs: no
+        validate_certs: "{{ validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/filesystems/{{ scale_remotemount_client_filesystem_name }}/unmount
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/filesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}/unmount
         method: PUT
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
@@ -35,7 +36,7 @@
 
     - name: "Checking results from the job: {{ umount_call.json.jobs[0].jobId }}"
       uri:
-        validate_certs: no
+        validate_certs: "{{ validate_certs_uri }}"
         force_basic_auth: true
         url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ umount_call.json.jobs[0].jobId }}
         method: GET
@@ -46,11 +47,11 @@
       retries: "{{ restapi_retries_count }}"
       delay: "{{ restapi_retries_delay }}"
 
-    - name: "Client Cluster (access) | Delete the filesystem | DELETE: {{ remote_mount_endpoint }}/remotefilesystems/{{ scale_remotemount_client_filesystem_name }}?force=yes"
+    - name: "Client Cluster (access) | Delete the filesystem | DELETE {{ remote_mount_endpoint }}/remotefilesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}?force=yes"
       uri:
-        validate_certs: no
+        validate_certs: "{{ validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ scale_remotemount_client_filesystem_name }}?force=yes
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}?force=yes
         method: DELETE
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
@@ -60,7 +61,7 @@
 
     - name: "Checking results from the job: {{ delete_call.json.jobs[0].jobId }}"
       uri:
-        validate_certs: no
+        validate_certs: "{{ validate_certs_uri }}"
         force_basic_auth: true
         url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
         method: GET
@@ -71,3 +72,4 @@
       retries: "{{ restapi_retries_count }}"
       delay: "{{ restapi_retries_delay }}"
   when: not remote_filesystem_results.failed
+  run_once: True

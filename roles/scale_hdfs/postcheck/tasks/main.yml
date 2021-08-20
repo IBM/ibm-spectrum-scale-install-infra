@@ -1,5 +1,7 @@
 ---
 # tasks file for postcheck
-- import_tasks: check.yml
-  when: protocols is defined and protocols.hdfs|bool
-  tags: always
+- name: postcheck
+  include_tasks: check.yml
+  when: scale_protocols is defined and scale_protocols.hdfs|bool
+  tags: prepare
+  loop: "{{ scale_hdfs_clusters }}"

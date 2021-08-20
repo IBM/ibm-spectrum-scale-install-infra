@@ -66,11 +66,6 @@
     - set_fact:
         scale_install_all_packages: "{{ object_package.files | map(attribute='path') | list}}"
 
-    - name: install | List find OBJ packages
-      debug:
-        var: scale_install_all_packages
-      run_once: true
-
     - name: install | Check valid scale (openstack-swift) packages
       assert:
         that: scale_install_all_packages | select('match', '.*openstack-swift.*') | list

@@ -19,6 +19,16 @@ Variables used by Spectrum Scale (GPFS) Ansible project
 
   Spectrum Scale admin nodename (defaults to node's hostname).
 
+
+- `scale_state`
+  - example: `maintenance`
+  - default: `present`
+
+  Desired state of the Spectrum Scale node. Can be `present`, `maintenance` or `absent`:
+  - `present` - node will be added to cluster, daemon will be started
+  - `maintenance` - node will be added to cluster, daemon will not be started
+  - `absent` - node will be removed from cluster
+
 - `scale_prepare_disable_selinux`
   - example: `true`
   - default: `false`

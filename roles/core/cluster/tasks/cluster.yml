@@ -12,6 +12,11 @@
     scale_cluster_manager: "{{ scale_cluster_manager }}"
   when: hostvars[inventory_hostname].scale_cluster_manager is undefined
 
+- name: cluster | Set default daemon state
+  set_fact:
+    scale_state: "{{ scale_state }}"
+  when: hostvars[inventory_hostname].scale_state is undefined
+
 # Cleanup groups from previous play
 #- meta: refresh_inventory
 
@@ -40,6 +45,7 @@
   when:
     - not hostvars[item].scale_cluster_clusterId.stdout
     - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -110,7 +116,7 @@
     - name: cluster | Prepare new cluster NodeFile
       template:
         src: NewNodeFile.j2
-        dest: /var/tmp/NodeFile
+        dest: /var/mmfs/tmp/NodeFile
 
     - name: cluster | Stat GPFS profile file
       find:
@@ -121,6 +127,7 @@
     - name: cluster | Initialize gpfs profile
       set_fact:
          profile_type: ""
+         extra_option: ""
 
     - name: cluster | Set gpfs profile if it is defined
       set_fact:
@@ -129,23 +136,43 @@
         - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
         - (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
 
+    - name: cluster | Set gpfs remote shell command if it is defined
+      set_fact:
+         extra_option: "{{ extra_option }} -r {{ scale_cluster_config.remote_shell }}"
+      when:
+        - scale_cluster_config is defined and scale_cluster_config.remote_shell is defined
+
+    - name: cluster | Set gpfs remote file copy if it is defined
+      set_fact:
+         extra_option: "{{ extra_option }} -R {{ scale_cluster_config.remote_file_copy }}"
+      when:
+        - scale_cluster_config is defined and scale_cluster_config.remote_file_copy is defined
+
     - name: cluster | Create new cluster
-      command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }}
+      command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/mmfs/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }} {{ extra_option }}
       notify: accept-licenses
       register: mmcrcluster_results
 
     - debug:
          msg: "{{ mmcrcluster_results.cmd }}"
 
+    - name: cluster | Copy cluster create NodeFile
+      copy:
+        src: /var/mmfs/tmp/NodeFile
+        dest: /usr/lpp/mmfs/
+        mode: a+x
+        remote_src: yes
+      ignore_errors: yes
+
     - name: cluster | Cleanup new cluster NodeFile
       file:
-        path: /var/tmp/NodeFile
+        path: /var/mmfs/tmp/NodeFile
         state: absent
 
     - name: cluster | Prepare new cluster ChangeFile for next run
       template:
         src: ChangeFile.j2
-        dest: /var/tmp/ChangeFile
+        dest: /var/mmfs/tmp/ChangeFile
   when:
     - groups['scale_cluster_candidates'] is defined
     - groups['scale_cluster_members'] is undefined
@@ -159,15 +186,26 @@
     - name: cluster | Prepare existing cluster NodeFile
       template:
         src: AddNodeFile.j2
-        dest: /var/tmp/NodeFile
+        dest: /var/mmfs/tmp/NodeFile
 
     - name: cluster | Add new nodes to cluster
-      command: /usr/lpp/mmfs/bin/mmaddnode -N /var/tmp/NodeFile
-      notify: accept-licenses
+      command: /usr/lpp/mmfs/bin/mmaddnode -N /var/mmfs/tmp/NodeFile --accept
+      register: mmadd_results
+
+    - debug:
+         msg: "{{ mmadd_results.cmd }}"
+
+    - name: cluster | Copy Add node NodeFile
+      copy:
+        src: /var/mmfs/tmp/NodeFile
+        dest: /usr/lpp/mmfs/
+        mode: a+x
+        remote_src: yes
+      ignore_errors: yes
 
     - name: cluster | Cleanup existing cluster NodeFile
       file:
-        path: /var/tmp/NodeFile
+        path: /var/mmfs/tmp/NodeFile
         state: absent
   when:
     - groups['scale_cluster_candidates'] is defined

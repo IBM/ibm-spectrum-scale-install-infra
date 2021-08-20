@@ -1,4 +1,4 @@
 {% for host in groups['scale_cluster_candidates'] | sort %}
-{{ hostvars[host].scale_daemon_nodename }}:nonquorum-client
+{{ hostvars[host].scale_daemon_nodename }}:nonquorum-client::client
 
 {% endfor %}

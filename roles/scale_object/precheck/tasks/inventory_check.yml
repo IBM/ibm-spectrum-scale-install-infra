@@ -1,29 +1,22 @@
 ---
-- name: check | Check dynamic_url is define
-  assert:
-    that:
-    - scale_ces_obj.dynamic_url is defined|bool
-    fail_msg: "scale_ces_obj.dynamic_url is not defined as True or False."
-  run_once: true
-
 - name: check | Check enable_s3 is define
   assert:
     that:
-    - scale_ces_obj.enable_s3 is defined|bool
+    - scale_ces_obj.enable_s3 is defined
     fail_msg: "scale_ces_obj.enable_s3 is not defined as True or False."
   run_once: true
 
 - name: check | Check local_keystone is define
   assert:
     that:
-    - scale_ces_obj.local_keystone is defined|bool
+    - scale_ces_obj.local_keystone is defined
     fail_msg: "scale_ces_obj.local_keystone is not defined as True or False."
   run_once: true
 
 - name: check | Check enable_file_access is define
   assert:
     that:
-    - scale_ces_obj.enable_file_access is defined|bool
+    - scale_ces_obj.enable_file_access is defined
     fail_msg: "scale_ces_obj.enable_file_access is not defined as True or False."
   run_once: true
 

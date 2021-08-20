@@ -1,6 +1,6 @@
 ---
 #
-# samples/playbook_ces.yml
+# samples/playbook_ces_hdfs.yml
 #
 
 # Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster with Cluster
@@ -8,9 +8,10 @@
 # recommended to use Ansible group variables for this purpose:
 # https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
 
-# Sample definitions can be found in samples/vars/ces_vars.yml
+# Sample definitions can be found in samples/vars/hdfs_cluster_vars.yml
 
 - hosts: cluster01
+  any_errors_fatal: true
   vars:
     - scale_version: 5.1.1.0
     - scale_install_localpkg_path: /root/Spectrum_Scale_Advanced-5.1.1.0-x86_64-Linux-install

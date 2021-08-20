@@ -28,12 +28,16 @@
 - name: configure | Setting server licenses on protocol nodes
   command: "{{ scale_command_path }}mmchlicense server --accept -N {{ scale_server_nodes[1:] }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
+  async: 120
+  poll: 5
+  run_once: true
 
 - name: configure | Collect status of ces nodes
   command: "{{ scale_command_path }}mmces node list"
   register: scale_ces_enable_status
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  failed_when: false
   ignore_errors: true
 
 - name: configure | Collect all nodes on which ces is not enabled
@@ -109,7 +113,7 @@
 
 - name: configure | Enabling CES
   command: "{{ scale_command_path }}mmchnode -N {{ scale_ces_nodes[1:] }} --ces-enable"
-  async: 45
+  async: 120
   poll: 5
   when: scale_ces_disabled_nodes|length > 0
   delegate_to: "{{ scale_protocol_node_list.0 }}"
@@ -154,17 +158,23 @@
   delegate_to: scale_protocol_node_list.0
   run_once: true
 
+- name: configure | Enable interface mode
+  shell:
+   cmd: "{{ scale_command_path }}mmces interface mode interface --force"
+  when:
+   - scale_ces_ipv6_list|length > 0 or
+      scale_protocols.interface_mode is defined and scale_protocols.interface_mode | bool
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
+
 - name: configure | Add IPv6 interface
   shell:
    cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
   when: scale_ces_ipv6_list|length > 0 and scale_protocols.interface|length > 0
   with_items:
   - "{{ scale_protocols.interface }}"
-
-- name: configure | Enable interface mode
-  shell:
-   cmd: "mmces interface mode interface --force"
-  when: scale_ces_ipv6_list|length > 0
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
 
 - block:
   - name: configure | Create CES groups
@@ -207,5 +217,6 @@
 - name: configure | Check if zimon sensor is configured
   shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
   register: scale_zimon_conf_sensors
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
   failed_when: false
   changed_when: false

@@ -5,20 +5,52 @@
   register: scale_callhome_config_status
   ignore_errors: true
   failed_when: false
-
-- debug:
-    msg: "{{ scale_callhome_config_status.cmd }}"
+  run_once: true
 
 - block:
+  - name: configure | initialize variable
+    set_fact:
+        auth_enabled: ""
+
+  - name: configure | get proxy password
+    set_fact:
+        scale_proxy_password: "{{ scale_callhome_params.proxy_password }}"
+    when: scale_callhome_params is defined and scale_callhome_params.proxy_password is defined
+
+  - name: configure | get proxy password
+    set_fact:
+        scale_proxy_password: "{{ proxy_password }}"
+    when: proxy_password is defined
+
   - name: configure | Setup the call home proxy configuration if enabled
     shell:
-     cmd: "{{ scale_command_path }}mmcallhome proxy change --proxy-location {{scale_callhome_params.proxy_location }} --proxy-port {{ scale_callhome_params.proxy_ip }} --proxy-username {{ scale_callhome_params.proxy_user }} --proxy-password {{ scale_callhome_params.proxy_password }}"
-    when: scale_callhome_proxy_status | bool
+     cmd: "{{ scale_command_path }}mmcallhome proxy change --proxy-location {{scale_callhome_params.proxy_ip }} --proxy-port {{ scale_callhome_params.proxy_port }} --proxy-username {{ scale_callhome_params.proxy_user }} --proxy-password {{ scale_proxy_password }}"
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.proxy_port is defined
+      - scale_callhome_params is defined and scale_callhome_params.proxy_ip is defined
+      - scale_callhome_params is defined and scale_callhome_params.proxy_user is defined
+      - scale_proxy_password is defined
     register: scale_callhome_proxy_config
 
+  - name: configure | set proxy auth value
+    set_fact:
+        auth_enabled: "--with-proxy-auth"
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.proxy_user is defined
+
+  - name: configure |  enable callhome proxy
+    shell:
+       cmd: "{{ scale_command_path }}mmcallhome proxy enable  {{ auth_enabled }}"
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.proxy_port is defined
+      - scale_callhome_params is defined and scale_callhome_params.proxy_ip is defined
+      - scale_callhome_params is defined and scale_callhome_params.proxy_user is defined
+      - scale_proxy_password is defined
+    register: scale_callhome_proxy_enable
+
   - debug:
-     msg: "{{ scale_callhome_proxy_config.cmd }}"
-    when: scale_callhome_proxy_status | bool
+     msg: "{{ scale_callhome_proxy_enable.cmd }}"
+    when: scale_callhome_proxy_enable.cmd is defined
 
   - name: configure| Setup the call home customer configuration
     shell:
@@ -27,6 +59,7 @@
 
   - debug:
      msg: "{{ scale_callhome_customer_config.cmd }}"
+    when: scale_callhome_customer_config.changed is defined and scale_callhome_customer_config.changed|bool
 
   - name: configure| Enable callhome
     shell:
@@ -34,18 +67,22 @@
      stdin: accept
     register: scale_callhome_status
     changed_when: scale_callhome_customer_config|bool
+    when: scale_callhome_config_status.stdout==""
 
   - debug:
      msg: "{{ scale_callhome_status.cmd }}"
+    when: scale_callhome_config_status.stdout==""
 
   - debug:
      msg: "Callhome enabled"
     changed_when: scale_callhome_status|bool
+    when: scale_callhome_config_status.stdout==""
 
   - name: configure | Check if callhome group is already created
     shell:
      cmd: "{{ scale_command_path }}mmcallhome group list"
     ignore_errors: true
+    failed_when: false
     register: scale_callhome_group
 
   - debug:
@@ -53,13 +90,12 @@
 
   - name: configure | Create callhome group
     shell:
-     cmd: "{{ scale_command_path }}mmcallhome group auto --server {{ scale_callhome_params.callhome_server }}"
-    when: scale_callhome_group.stdout==""
+     cmd: "{{ scale_command_path }}mmcallhome group auto --server {{ scale_callhome_params.callhome_server }} --force --enable ACCEPT"
     register: scale_callhome_group
 
   - debug:
      msg: "{{ scale_callhome_group.cmd }}"
-    when: scale_callhome_group|bool
+    when: scale_callhome_group.changed is defined and scale_callhome_group.changed|bool
 
   - name: configure | Setup the call home schedule configuration
     shell:
@@ -71,5 +107,4 @@
   - debug:
      msg: "{{ scale_callhome_schedule_status.cmd }}"
     when: scale_callhome_schedule_status|bool
-  when: scale_callhome_config_status.stdout==""
   run_once: true

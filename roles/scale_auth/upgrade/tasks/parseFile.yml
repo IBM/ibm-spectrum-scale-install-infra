@@ -1,0 +1,44 @@
+---
+- block:
+     - name: auth | Replace the line with newTLSstring
+       lineinfile:
+           path: "{{ ldapnewpath }}"
+           create: true
+           line: "{{ newTLSstring }}"
+           state: present
+           insertafter: '\n'
+    
+     - name: auth | Set isCipherPresent flag
+       set_fact:
+           isCipherPresent : true
+  when: searchstring1 in item
+  run_once: true
+  delegate_to: localhost
+
+- block:
+     - name: auth | Replace the line with newPROTstring
+       lineinfile:
+           path: "{{ ldapnewpath }}"
+           create: true
+           line: "{{ newPROTstring }}"
+           state: present
+           insertafter: '\n'
+
+     - name: auth | Set isProtoPresent flag
+       set_fact:
+           isProtoPresent : true
+
+  when: searchstring2 in item
+  run_once: true
+  delegate_to: localhost
+
+- name: auth | Copy the line as is in new file
+  lineinfile:
+      path: "{{ ldapnewpath }}"
+      create: true
+      line: "{{ item }}"
+      state: present
+  when: searchstring1 not in item and searchstring2 not in item
+  run_once: true
+  delegate_to: localhost
+  

@@ -11,7 +11,9 @@
     path: /root/.bashrc
     line: PATH=$PATH:/usr/lpp/mmfs/bin
     state: present
-  when: ansible_pkg_mgr != 'zypper'
+  when: 
+    - ansible_pkg_mgr != 'zypper'
+    - scale_prepare_disable_selinux | bool
 
 #
 # Configure SSH server
@@ -20,7 +22,7 @@
     - name: prepare | Enable SSH root login
       lineinfile:
         path: /etc/ssh/sshd_config
-        regexp: PermitRootLogin
+        regexp: ^PermitRootLogin
         line: PermitRootLogin yes
         state: present
       notify: reload-sshd
