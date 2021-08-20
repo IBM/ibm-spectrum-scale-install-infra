@@ -1,0 +1,6 @@
+---
+- name: upgrade | Upgrade GPFS HDFS packages
+  zypper:
+   name: "{{ scale_upgrade_all_packages }}"
+   state: latest
+   disable_gpg_check: no

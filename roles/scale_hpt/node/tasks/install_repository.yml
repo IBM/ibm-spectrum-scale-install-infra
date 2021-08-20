@@ -4,22 +4,14 @@
 #
 # Configure YUM repository
 #
-- name: install | Initialize
-  set_fact:
-   gpgcheck: "yes"
-
-- name: install | Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
-
 - name: install | Configure HPT YUM repository
   yum_repository:
     name: spectrum-scale-hpt
     description: IBM Spectrum Scale (HPT)
     baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
+    sslverify: no
     state: present
   notify: yum-clean-metadata
   when:

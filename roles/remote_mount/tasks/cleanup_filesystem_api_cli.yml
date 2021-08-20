@@ -1,0 +1,62 @@
+#
+# Client cluster (Access) cleanup, check and then unmount the filesystem, and then remove the remotefs
+# Read also the documentation of CLI command 'mmlsfs' and 'mmunmount'
+#
+- name: Cleanup Remote Filesystem Mount - API-CLI | Client Cluster (access) | Check if the Filesystem's is already configured
+  shell: "/usr/lpp/mmfs/bin/mmlsfs {{ remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }} -Y"
+  register: remote_filesystem_results_cli
+  changed_when: false
+  failed_when: false
+  run_once: True
+  loop: "{{ scale_remotemount_filesystem_name }}"
+  loop_control:
+     loop_var: remotemount_filesystem_name_loopvar
+
+- debug:
+    msg: "{{ remote_filesystem_results_cli_debug_loopvar.remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }}"
+  run_once: True
+  loop: "{{ remote_filesystem_results_cli.results }}"
+  loop_control:
+     loop_var: remote_filesystem_results_cli_debug_loopvar
+
+- name: Cleanup Remote Filesystem Mount - API-CLI | Client Cluster (access) | Filesystem is already removed
+  run_once: True
+  debug:
+    msg: Filesystem "{{ remote_filesystem_results_cli_loopvar.remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }}" is already removed, nothing to do.
+  loop: "{{ remote_filesystem_results_cli.results }}"
+  loop_control:
+     loop_var: remote_filesystem_results_cli_loopvar
+  when:
+    - remote_filesystem_results_cli_loopvar.rc == 1
+
+- name: Cleanup Remote Filesystem Mount - API-CLI | Client Cluster (access) | Problems checking filesystem.
+  run_once: True
+  debug:
+    msg: There is problems checking filesystem "{{ remote_filesystem_results_cli_loopvar_rc.remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }}"
+  loop: "{{ remote_filesystem_results_cli.results }}"
+  loop_control:
+     loop_var: remote_filesystem_results_cli_loopvar_rc
+  when:
+    - remote_filesystem_results_cli_loopvar_rc.rc == 116
+
+- name: Cleanup Remote Filesystem Mount - API-CLI | Client Cluster (access) | Unmount the Remote FileSystem on all nodes.
+  shell: "/usr/lpp/mmfs/bin/mmunmount {{ remote_filesystem_unmount_loopvar.remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }} -a"
+  register: access_cluster_unmount_fs
+  run_once: True
+  ignore_errors: true
+  loop: "{{ remote_filesystem_results_cli.results }}"
+  loop_control:
+     loop_var: remote_filesystem_unmount_loopvar
+  when:
+    - remote_filesystem_unmount_loopvar.rc == 0 or remote_filesystem_unmount_loopvar.rc == 116
+
+- name: Cleanup Remote Filesystem Mount - API-CLI | Client Cluster (access) | Delete/Remove the Remote FileSystem with force
+  shell: "/usr/lpp/mmfs/bin/mmremotefs delete {{ remote_filesystem_remove_loopvar.remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }} --force "
+  register: access_cluster_remove_fs
+  run_once: True
+  ignore_errors: true
+  loop: "{{ remote_filesystem_results_cli.results }}"
+  loop_control:
+     loop_var: remote_filesystem_remove_loopvar
+  when:
+    - remote_filesystem_remove_loopvar.rc == 0 or remote_filesystem_remove_loopvar.rc == 116

@@ -1,4 +1,44 @@
 ---
+- name: global_var | Initialize
+  set_fact:
+   scale_hdfs_nodes_list: []
+   scale_hdfs_namenodes_list: []
+   scale_hdfs_datanodes_list: []
+   scale_hdfs_cluster: []
+   hdfs_site_conf_dict: []
+   core_site_conf_dict: []
+   gpfs_site_conf_dict: []
+
+- name: global_var | initializing scale_hdfs_cluster
+  set_fact:
+    scale_hdfs_cluster: "{{ item }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS NameNodes
+  set_fact:
+   scale_hdfs_namenodes_list: "{{ scale_hdfs_cluster.namenodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS DataNodes
+  set_fact:
+   scale_hdfs_datanodes_list: "{{ scale_hdfs_cluster.datanodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Get HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
+
+- name: global_var | make unique HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
+
+- name: global_var | Initialize
+  set_fact:
+    namenodes_service: ""
+
 - block:
    - name: check | Collect hdfs datadir
      set_fact:
@@ -11,19 +51,65 @@
       scale_hdfs_cluster_name: "{{ scale_hdfs_cluster.name }}"
    - name: check | Collect ces hdfs group
      set_fact:
-      scale_hdfs_ces_group_name: "hdfs{{scale_hdfs_cluster.name}}"
-   - name: check | Collect hdfs cesip
-     set_fact:
-      scale_hdfs_ces_ip: "{{scale_protocols.export_ip_pool[0]}}"
+      scale_hdfs_ces_group_name: "hdfs{{ scale_hdfs_cluster.name }}"
    - name: configure | scale_server node
      set_fact:
        scale_server: "{{ scale_hdfs_cluster.namenodes[0] }}"
+   - name: configure |  initialise ces
+     set_fact:
+       scale_free_ces: []
+
+- name: check | namenode length
+  set_fact:
+    namenodes_length: "{{ scale_hdfs_namenodes_list|length }}"
+
+- name: check | calculate namenodes services 
+  set_fact:
+     namenodes_service: "{{ namenodes_service }}nn{{ item }},"
+  with_sequence: count={{ namenodes_length }}
+  when: scale_hdfs_namenodes_list|length > 1
   delegate_to: localhost
   run_once: true
 
+- name:
+  set_fact:
+     namenodes_service: "{{ namenodes_service | regex_replace('\\,$', '') }}"
+  when: scale_hdfs_namenodes_list|length > 1
+  delegate_to: localhost
+  run_once: true
+
+- name: check | calculate namenodes services
+  set_fact:
+     namenodes_service: 'nn1'
+  when: scale_hdfs_namenodes_list|length == 1
+  delegate_to: localhost
+  run_once: true
+
+- name: check | Verify existing ces ip
+  shell:
+    cmd: "mmces address list -Y|grep -w {{ scale_hdfs_ces_group_name }}|awk -F: '{print $7}'"
+  register: scale_existing_ces_ip
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+
+- name: check | Check free ces ip
+  shell:
+   cmd: "mmces address list -Y|grep -v -e hdfs -e object|awk -F: '{print $7}'|grep -v cesAddress"
+  register: scale_free_ces
+  delegate_to: "{{ scale_server }}"
+  run_once: true
+  when: scale_existing_ces_ip.stdout | length == 0
+
+- name: check | Collect hdfs cesip
+  set_fact:
+    scale_hdfs_ces_ip: "{{ scale_free_ces.stdout_lines }}"
+  when:
+    - scale_existing_ces_ip.stdout | length == 0
+    - scale_free_ces.stdout_lines | length > 0
+
 - block:
    - name: check | fetch mountpoint
-     shell: /usr/lpp/mmfs/bin/mmlsfs all -Y|grep "{{ scale_hdfs_filesystem }}"|grep defaultMountPoint|awk -F':' '{print $9}'
+     shell: /usr/lpp/mmfs/bin/mmlsfs "{{ scale_hdfs_filesystem }}" -T -Y | grep defaultMountPoint | awk -F':' '{print $9}'
      register: hdfs_mountpoint
    - name: check| decode mountpoint
      command: /usr/lpp/mmfs/bin/mmclidecode "{{ hdfs_mountpoint.stdout }}"
@@ -36,43 +122,41 @@
   run_once: true
   delegate_to: "{{ scale_server }}"
 
-- debug:
-    msg: "Collected hdfs mountpoint: {{ scale_hdfs_mountpoint }}"
-
 - fail:
     msg: "Failed to fetch mountpoint. "
   when: hdfs_mountpoint.changed|bool and hdfs_mountpoint.rc != 0 and scale_hdfs_mountpoint|length == 0
 
 - name: configure | Check HDFS ces_group
-  shell: /usr/lpp/mmfs/bin/mmces address list|grep "{{ scale_hdfs_ces_group_name }}"
+  shell: "/usr/lpp/mmfs/bin/mmces address list|grep {{ scale_hdfs_ces_group_name }}"
   register: check_hdfs_ces_group
   run_once: true
   delegate_to: "{{ scale_server }}"
+  failed_when: false
   ignore_errors: yes
 
-- name: configure | Check HDFS service
-  shell: "/usr/lpp/mmfs/bin/mmces service list|grep HDFS"
+- name: configure | Check Namenodes running status
+  shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is' | wc -l
   register: check_hdfs
-  run_once: true
   delegate_to: "{{ scale_server }}"
-  ignore_errors: yes
 
 - name: configure | Check HA
   set_fact:
       ha_enabled: "{{ true if scale_hdfs_cluster.namenodes|length > 1 else false }}"
-      ces_hdfs_enabled: "{{ false if check_hdfs.rc == 0 else true }}"
+      ces_hdfs_enabled: "{{ false if check_hdfs.stdout|int != 0 else true }}"
+  run_once: true
+  delegate_to: "{{ scale_server }}"
 
-- debug:
-    msg: "HDFS enabled: {{ ces_hdfs_enabled }}"
+- name: "fetch JAVA_HOME path"
+  shell: echo $JAVA_HOME
+  register: javahome_path
+  run_once: true
+  delegate_to: "{{ scale_server }}"
 
 - name: Configure | Set JAVA_HOME
-  command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k JAVA_HOME="{{ javahome_path }}"
+  command: "/usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k JAVA_HOME={{ javahome_path.stdout }}"
   register: javahome
   run_once: true
   delegate_to: "{{ scale_server }}"
-  when: ces_hdfs_enabled|bool
-
-- debug: var=java_home.stdout
 
 - block:
    - name: configure | Configuare core-site.xml
@@ -91,24 +175,28 @@
      set_fact:
          hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
      with_items:
-        - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': 'nn1' }
-        - { 'key': "dfs.client.failover.proxy.provider.{{ scale_hdfs_cluster.name }}", 'value': 'org.apache.hadoop.hdfs.scale_server.namenode.ha.ConfiguredFailoverProxyProvider' }
-        - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.nn1", 'value': "{{ scale_hdfs_cluster.namenodes[0] }}:8020" }
-        - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.nn1", 'value': "{{ scale_hdfs_cluster.namenodes[0] }}:50070" }
+        - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': "{{ namenodes_service }}" }
+        - { 'key': "dfs.client.failover.proxy.provider.{{ scale_hdfs_cluster.name }}", 'value': 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider' }
         - { 'key': "dfs.nameservices", 'value': "{{ scale_hdfs_cluster.name }}" }
         - { 'key': "dfs.namenode.rpc-bind-host", 'value': "0.0.0.0" }
         - { 'key': "dfs.namenode.servicerpc-bind-host", 'value': "0.0.0.0" }
         - { 'key': "dfs.namenode.lifeline.rpc-bind-host", 'value': "0.0.0.0" }
         - { 'key': "dfs.namenode.http-bind-host", 'value': "0.0.0.0" }
 
+   - name: configure | include append_dict.yml
+     include_tasks: append_dict.yml
+     vars:
+        map_var: "{{ namenodes_item }}" 
+     loop: "{{ namenodes_service.split(',')|zip(scale_hdfs_namenodes_list)|list }}"
+     loop_control:
+        loop_var: namenodes_item
+
    - name: configure | Configuare hdfs-site.xml for HA
      set_fact:
-        hdfs_site_conf_dict_ha: "{{ hdfs_site_conf_dict_ha | default({}) | combine ({ item.key : item.value }) }}"
+        hdfs_site_conf_dict: "{{ hdfs_site_conf_dict | default({}) | combine ({ item.key : item.value }) }}"
      with_items:
-       - { 'key': "dfs.ha.namenodes.{{ scale_hdfs_cluster.name }}", 'value': 'nn1,nn2' }
-       - { 'key': "dfs.namenode.rpc-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:8020" }
-       - { 'key': "dfs.namenode.http-address.{{ scale_hdfs_cluster.name }}.nn2", 'value': "{{ scale_hdfs_cluster.namenodes[1] }}:50070" }
        - { 'key': "dfs.namenode.shared.edits.dir", 'value': "file:///{{ scale_hdfs_mountpoint }}/HA-{{ scale_hdfs_cluster.name }}" }
+     when: ha_enabled|bool
 
    - name: configure | Configuare gpfs-site.xml
      set_fact:
@@ -121,87 +209,115 @@
   delegate_to: localhost
 
 - block:
-   - name: configure | Set comfiguration for core-site.xml
+   - name: configure | Set configuration for core-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set core-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ core_site_conf_dict | dict2items }}"
-     when: ces_hdfs_enabled|bool
 
-   - name: configure | Set comfiguration for gpfs-site.xml
+   - name: configure | Set configuration for gpfs-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set gpfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ gpfs_site_conf_dict | dict2items }}"
-     when: ces_hdfs_enabled|bool
 
-   - name: configure | Set comfiguration for hdfs-site.xml
+   - name: configure | Set configuration for hdfs-site.xml
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{ item.value }}"
      loop:  "{{ hdfs_site_conf_dict | dict2items }}"
-     when: ces_hdfs_enabled|bool
-
-   - name: configure | Set configuration for HA
-     command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hdfs-site.xml -k "{{ item.key }}"="{{item.value}}"
-     loop:  "{{ hdfs_site_conf_dict_ha | dict2items }}"
-     when: ha_enabled|bool and ces_hdfs_enabled|bool
 
    - name: configure | Remove localhost
      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker remove localhost
-     register: woker_remove
-     when: ces_hdfs_enabled|bool
+     register: worker_remove
 
    - name: configure | Add Datanodes
-     command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker add "{{ item }}"
-     register: worker_add
+     command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs worker add "{{ add_dn_item }}"
      loop: "{{ scale_hdfs_cluster.datanodes }}"
-     when: ces_hdfs_enabled|bool
+     loop_control:
+        loop_var: add_dn_item
+
+   - lineinfile: 
+       dest: /var/mmfs/hadoop/etc/hadoop/workers 
+       state: absent 
+       regexp: '(^\n)'
 
    - name: configure | Upload config
      command: /usr/lpp/mmfs/hadoop/sbin/mmhdfs config upload
      register: config_upload
-     when: ces_hdfs_enabled|bool
 
    - name: configure | InitializeSharedEdits for Namenodes HA
      command: /usr/lpp/mmfs/hadoop/bin/hdfs namenode -initializeSharedEdits -force
      register: initializedSharedEdits
-     when: ces_hdfs_enabled|bool
-    
+     when: ha_enabled|bool and ces_hdfs_enabled|bool
+
+   - name:  configure | suspend CES nodes
+     command: "/usr/lpp/mmfs/bin/mmces node suspend --stop -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+     register: suspend_ces
+     when:
+       - check_hdfs_ces_group.rc == 0
+
+   - name:  configure | current CES-GROUP cleanup
+     command: "/usr/lpp/mmfs/bin/mmchnode --noces-group {{ scale_hdfs_ces_group_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+     register: clean_ces
+     when:
+       - check_hdfs_ces_group.rc == 0
+
    - name:  configure | Enable CES
-     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group hdfs{{ scale_hdfs_cluster_name }} -N {{ item }}"
-     with_items: "{{ scale_hdfs_cluster.namenodes }}"
+     command: "/usr/lpp/mmfs/bin/mmchnode --ces-group {{ scale_hdfs_ces_group_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
      register: enable_ces
-     when: ces_hdfs_enabled|bool
 
-   - name: configure | Configure CES IP 
-     command: "/usr/lpp/mmfs/bin/mmces address add --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip }}"
+   - name:  configure | start CES nodes
+     command: "/usr/lpp/mmfs/bin/mmces node resume --start -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
+     register: start_ces
+     when:
+       - check_hdfs_ces_group.rc == 0
+
+   - name: configure | Configure CES IP
+     command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip[0] }}"
      register: add_cesip
-     when: ces_hdfs_enabled|bool and check_hdfs_ces_group.rc != 0
-
+     when:
+       - scale_hdfs_ces_ip is defined
+       - scale_hdfs_ces_ip|length > 0
+       - check_hdfs_ces_group.rc != 0
   run_once: true
   delegate_to: "{{ scale_server }}"
 
 - fail:
     msg: "mmces address add failed. "
   when: add_cesip.changed|bool and add_cesip.rc > 0 and not ces_hdfs_enabled|bool
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- fail:
+    msg: "Failed to upload config hdfs"
+  when: config_upload.rc > 0
+  run_once: true
+  delegate_to: "{{ scale_server }}"
 
 - block:
     - name: Enable HDFS
       command: /usr/lpp/mmfs/bin/mmces service enable HDFS
-      register: enable_hdfs
-  
-    - debug: var=enable_hdfs.stdout
-    
-    - name: Start Namenodes
-      shell: /usr/lpp/mmfs/bin/mmces service start HDFS -a
-      register: start_hdfs
-  
-    - name: Start Datanodes
-      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn start
-      register: start_dn
-  
-    - name: Check Namenodes running status
-      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is'
-      register: nn_status
-  
-    - name: Check Datanodes running status
-      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn status | grep 'datanode pid is'
-      register: dn_status
 
+    - name: Start Namenodes
+      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn restart
+      register: start_nn_status
+
+    - name: Check Namenodes running status
+      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is' | wc -l
+      register: nn_status
+
+    - name: Start Datanodes
+      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn restart
+
+    - name: Check Datanodes running status
+      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-dn status | grep 'datanode pid is' | wc -l
+      register: dn_status
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- fail:
+    msg: "Fail to start all NameNode. "
+  when: nn_status.stdout|int != scale_hdfs_namenodes_list|length
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
+- fail:
+    msg: "Fail to start all DataNode. "
+  when: dn_status.stdout|int != scale_hdfs_datanodes_list|length
   run_once: true
   delegate_to: "{{ scale_server }}"

@@ -15,7 +15,7 @@ Prerequisite
 - Native nfs service should be stopped, before usinf this role.
 - nfs-kernel-server service should be stopped.
 - knfs-server service should be stopped
-- The rpms required for callhome installation are as follows:
+- The rpms required for nfs installation are as follows:
   - gpfs.nfs-ganesha*.rpm
   - gpfs.nfs-ganesha-utils*.rpm
   - gpfs.nfs-ganesha-gpfs*.rpm
@@ -35,7 +35,7 @@ Design
     - `Node`: This role installs the rpms required for nfs protocol functionality. There are 3 methods to install nfs rpms:  
       - via local package, requires  scale_install_localpkg_path variable to be set in main playbook.
       - via remote package, requires scale_install_remotepkg_path variable to be set in main playbook.
-      - via yum repository, requires scale_install_callhome_repository_url variable to be set in main playbook.
+      - via yum repository, requires scale_install_repository_url variable to be set in main playbook.
     - `Cluster`: This role enables the nfs protocol.
     - `Postcheck`: This role checks if nfs service is running or not.
 
@@ -59,7 +59,7 @@ Implementation
     - Path: /root/ibm-spectrum-scale-install-infra/roles/nfs/node/tasks
     - This playbook configures the yum repo using the URL mentioned in variable scale_install_nfs_repository_url and creates a list ‘scale_install_all_rpms’ that contains all the rpms and dependencies required to install nfs.
   - The installation method is selected in the playbook ‘install.yml’ . Installation method depends on the variables defined.
-    - If  ‘scale_install_callhome_repository_url’ is defined, then the installation method is repository.
+    - If  ‘scale_install_repository_url’ is defined, then the installation method is repository.
     -	If  ‘scale_install_repository_url’ is undefined and ‘scale_install_remotepkg_path’ is defined, then the installation method is remote.
     -	If  ‘scale_install_repository_url’ is undefined and ‘scale_install_remotepkg_path’ is undefined and ‘scale_install_localpkg_path’ is defined, then the installation method is local.
   - Depending on the installation method, appropriate playbook is called for collecting the rpms and rpms are installed on all the nodes on which nfs is enabled. 

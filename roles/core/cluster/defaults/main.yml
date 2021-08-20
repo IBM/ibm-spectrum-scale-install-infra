@@ -28,6 +28,9 @@ scale_daemon_nodename: "{{ ansible_hostname }}"
 ## Spectrum Scale admin nodename (defaults to node's hostname)
 scale_admin_nodename: "{{ scale_daemon_nodename }}"
 
+## Desired state of the Spectrum Scale daemon
+scale_state: present
+
 ## Default cluster name
 scale_cluster_clustername: gpfs1.local
 
@@ -48,10 +51,13 @@ scale_cluster_manager: false
 ## can be overridden for each filesystem individually
 scale_storage_filesystem_defaults:
   blockSize: 1M
+  maxMetadataReplicas: 2
   defaultMetadataReplicas: 1
+  maxDataReplicas: 2
   defaultDataReplicas: 1
   numNodes: 32
   automaticMountOption: true
+  
   ## defaultMountPoint will be this prefix, followed by the filesystem name
   defaultMountPoint_prefix: /mnt/
   ## Overwrite existing NSDs - if set to 'true' then disks will *not* be checked
@@ -72,3 +78,6 @@ scale_cluster_profile_dir_path: /usr/lpp/mmfs/profiles/
 
 ## Default node role change variable flag
 scale_node_role_change: true
+
+## Upgrade check
+scale_node_update_check: true

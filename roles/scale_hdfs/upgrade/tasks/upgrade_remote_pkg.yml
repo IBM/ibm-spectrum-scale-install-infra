@@ -1,0 +1,119 @@
+---
+# Remote package installation method
+
+- name: upgrade | Stat remote installation package
+  stat:
+    path: "{{ scale_install_remotepkg_path }}"
+    checksum_algorithm: md5
+  register: scale_install_remotepkg
+
+- name: upgrade | Check remote installation package
+  assert:
+    that: scale_install_remotepkg.stat.exists
+    msg: >-
+      Please set the variable 'scale_install_remotepkg_path' to point to the
+      remote installation package (accessible on Ansible managed node)!
+
+#
+# Optionally, verify package checksum
+#
+- name: upgrade | Stat checksum file
+  stat:
+    path: "{{ scale_install_remotepkg_path }}.md5"
+  register: scale_install_md5_file
+
+- block:  ## when: scale_install_md5_file.stat.exists
+    - name: upgrade | Read checksum from file
+      slurp:
+        src: "{{ scale_install_remotepkg_path }}.md5"
+      register: scale_install_md5_sum
+
+    - name: upgrade | Compare checksums
+      vars:
+        md5sum: "{{ scale_install_md5_sum.content | b64decode }}"
+      assert:
+        that: md5sum.strip().split().0 == scale_install_remotepkg.stat.checksum
+        msg: >-
+          Checksums don't match. Please check integritiy of your remote
+          installation package!
+  when: scale_install_md5_file.stat.exists
+
+#
+# Extract installation package
+#
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ hdfs_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: upgrade | Make installation package executable
+  file:
+    path: "{{ scale_install_remotepkg_path }}"
+    mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+- name: upgrade | Extract installation package
+  command: "{{ scale_install_remotepkg_path + ' --silent' }}"
+  args:
+    creates:  "{{ hdfs_extracted_path }}"
+
+- name: upgrade | Stat extracted packages
+  stat:
+    path: "{{ hdfs_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: upgrade | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs_rpmdir.stat.exists
+      - scale_install_gpfs_rpmdir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      remote installation package!
+
+- name: upgrade | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: upgrade | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: upgrade | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_sles_distribution
+
+- name: upgrade | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
+
+- name: upgrade | hdfs path
+  set_fact:
+   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
+
+- block:  ## when: host is defined as a protocol node
+
+  - name: upgrade | Find gpfs.hdfs (gpfs.hdfs-protocol) package
+    find:
+     paths:  "{{ hdfs_extracted_path }}/{{ scale_hdfs_url }}"
+     patterns: gpfs.hdfs-protocol*
+    register: scale_install_gpfs_hdfs
+
+  - name: upgrade | Check valid GPFS (gpfs.hdfs-protocol) package
+    assert:
+     that: scale_install_gpfs_hdfs.matched > 0
+     msg: "No GPFS hdfs (gpfs.hdfs-protocol) package found {{ hdfs_extracted_path }}/{{ scale_hdfs_url }}gpfs.hdfs-protocol*"
+
+  - name: upgrade | Add GPFS hdfs package to list
+    vars:
+     current_package:  "{{ item.path }}"
+    set_fact:
+     scale_upgrade_all_packages: "{{ scale_upgrade_all_packages + [ current_package ] }}"
+    with_items:
+    - "{{ scale_install_gpfs_hdfs.files }}"
+

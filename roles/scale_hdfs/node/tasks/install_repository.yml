@@ -2,12 +2,6 @@
 - name: install | Initialize
   set_fact:
    scale_hdfs_url: ""
-   gpgcheck: "yes"
-
-- name: install | Disable gpg check
-  set_fact:
-   gpgcheck: "no"
-  when: scale_version < '5.0.4.0'
 
 - name: install | hdfs path
   set_fact:
@@ -22,22 +16,7 @@
 - name: install | hdfs path
   set_fact:
    scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
-
-- name: install | hdfs path
-  set_fact:
-   scale_hdfs_url: 'hdfs_rpms/rhel7/hdfs_3.1.1.x/'
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
-
-- name: install | hdfs path
-  set_fact:
-   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
-
-- name: install | hdfs path
-  set_fact:
-   scale_hdfs_url: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
 
 - name: install | hdfs path
   set_fact:
@@ -49,8 +28,9 @@
     name: spectrum-scale-hdfs
     description: IBM Spectrum Scale (hdfs)
     baseurl: "{{ scale_install_repository_url }}{{ scale_hdfs_url }}"
-    gpgcheck: "{{ gpgcheck }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
+    sslverify: no
     state: present
   notify: yum-clean-metadata
   when:
@@ -75,7 +55,7 @@
     validate_certs: no
     state: present
     update_cache: yes
-    codename: IBM Spectrum Scale (SMB debs)
+    codename: IBM Spectrum Scale (HDFS debs)
     mode: 0777
   when:
     - ansible_pkg_mgr == 'apt'
@@ -83,6 +63,8 @@
 
 - name: install | Add GPFS hdfs packages to list
   set_fact:
-    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+    scale_install_all_packages: "{{ scale_install_all_packages + [ hdfs_packages ] }}"
   with_items:
     - "{{ scale_hdfs_packages }}"
+  loop_control:
+     loop_var: hdfs_packages

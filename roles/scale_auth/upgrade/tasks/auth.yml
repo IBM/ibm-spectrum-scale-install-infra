@@ -1,0 +1,202 @@
+---
+- name: auth | check if auth is enable
+  command: "{{ scale_command_path }}mmuserauth service list"
+  register: scale_auth_status
+  ignore_errors: true
+  failed_when: false
+  run_once: true
+
+- block:
+     - name: auth | Register value of FILE_AUTH_TYPE variable
+       command: "{{ scale_command_path }}mmccr vget FILE_AUTH_TYPE"
+       register: scale_file_auth_type
+       ignore_errors: true
+       failed_when: false
+       run_once: true
+
+     - block:
+     
+          - name: auth | Check if LDAPMAP_DOMAINS is already present
+            command: "{{ scale_command_path }}mmccrnv authccr get LDAPMAP_DOMAINS"
+            register: scale_temp
+            ignore_errors: true
+            failed_when: false
+            run_once: true
+ 
+          - name: auth | Setting new variable LDAPMAP_DOMAINS for Authentication
+            command: "{{ scale_command_path }}mmccrnv authccr put LDAPMAP_DOMAINS none"
+            when: scale_temp is failed
+
+          - name: auth | Check if value of SERVERS is set
+            command: "{{ scale_command_path }}mmccrnv authccr get SERVERS | grep -w '\"*\"'"
+            register: scale_temp
+            ignore_errors: true
+            failed_when: false
+            run_once: true
+    
+          - name: auth | Setting new variable SERVERS for Authentication
+            command: "{{ scale_command_path }}mmccrnv authccr put SERVERS '\"*\"'"
+            when: scale_temp.rc != 0
+            run_once: true
+            delegate_to: localhost
+
+          - name: auth | Collect NETBIOS name
+            command: "{{ scale_command_path }}mmccrnv authccr get NETBIOS_NAME"
+            register: scale_auth_netbios
+            run_once: true
+
+          - name: auth | Check if USER_NAME is already set
+            command: "{{ scale_command_path }}mmccrnv authccr get USER_NAME | sed 's/$$//' | egrep {{ scale_auth_netbios.stdout }}$"
+            register: scale_temp
+            ignore_errors: true
+            failed_when: false
+            run_once: true
+
+          - name: auth | Setting new variable USER_NAME for Authentication
+            command: "{{ scale_command_path }}mmccrnv authccr put USER_NAME {{ scale_auth_netbios.stdout }}'$'"
+            when: scale_temp.rc != 0
+            run_once: true
+            delegate_to: localhost
+
+          - name: auth | Check if UNIXMAP_DOMAINS contain none or domXX(10-20:unix) or domYY(30-40:win)
+            command: "{{ scale_command_path }}mmccrnv authccr get UNIXMAP_DOMAINS"
+            register: scale_temp
+            ignore_errors: true
+            failed_when: false
+            run_once: true
+
+          - block:
+               - name: auth | Collect UNIXMAP_DOMAINS name
+                 command: "{{ scale_command_path }}mmccrnv authccr get UNIXMAP_DOMAINS | tr -d ')')':win)'"
+                 register: scale_unixmap_domain
+                 run_once: true
+
+               - name: auth | Set variable UNIXMAP_DOMAINS for Authentication
+                 command: "{{ scale_command_path }}mmccrnv authccr put UNIXMAP_DOMAINS {{ scale_unixmap_domain.stdout }}')':win)"
+                 run_once: true
+                 delegate_to: localhost
+            when: '"none" not in scale_temp.stdout and ":win" not in scale_temp.stdout and ":unix" not in scale_temp.stdout'
+
+       when: '"ad" in scale_file_auth_type.stdout'
+
+     - name: auth | Update the TLS_CIPHER_SUITE with proper string which will ensure minimum TLS version(1-2) is enforced
+       set_fact:
+           ldaptmppath : "/var/mmfs/tmp/LDAP_CONF_TMP_1"
+           ldapnewpath : "/var/mmfs/tmp/LDAP_CONF_TMP_2"
+           isFileAuth : false
+           isTLSenabled : false
+           getLDAPfile : false
+           putLDAPfile : false
+           isCipherPresent : false
+           isProtoPresent : false
+           searchstring1 : "TLS_CIPHER_SUITE"
+           searchstring2 : "TLS_PROTOCOL_MIN"
+           newTLSstring : ""
+           newPROTstring : "TLS_PROTOCOL_MIN 3.3"
+       run_once: true
+       delegate_to: localhost
+
+     - name: auth | Check current auth scheme
+       set_fact:
+           isFileAuth : true
+       when: 'scale_file_auth_type.stdout is defined and "ldap" in scale_file_auth_type.stdout'
+       run_once: true
+       delegate_to: localhost
+
+     - block:
+          - name: auth | Check if TLS is enabled or not
+            command: "{{ scale_command_path }}mmccrnv authccr get ENABLE_SERVER_TLS"
+            register: scale_temp
+            run_once: true
+            delegate_to: localhost
+            failed_when: false
+            ignore_errors: true
+            failed_when: false
+
+          - name: auth | Set isTLSenabled flag
+            set_fact:
+                isTLSenabled : true
+            when: 'scale_temp.stdout is defined and "true" in scale_temp.stdout'
+
+     - block:
+          - name: auth | If auth scheme = LDAP and TLS is enabled, get the ldap.conf file from mmccr
+            command: "{{ scale_command_path }}mmccr fget LDAP_CONF {{ ldaptmppath }}"
+            register: scale_temp
+            run_once: true
+            delegate_to: localhost
+
+          - name: auth | Set getLDAPfile flag
+            set_fact:
+                getLDAPfile : true
+            run_once: true
+            delegate_to: localhost
+            when: scale_temp.rc is defined and scale_temp.rc == 0 
+            #need to change this condition while testing for ldap depending on what is the output for scale_temp of the previous task
+
+          - name: auth | Set newTLSstring variable
+            set_fact:
+                newTLSstring : "TLS_CIPHER_SUITE DEFAULT:!SSLv3:!TLSv1:!TLSv1.1:@STRENGTH"
+            when: (ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7') or (ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8') or (ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15')
+            run_once: true
+            delegate_to: localhost
+
+          - name: auth | Set newTLSstring variable
+            set_fact:
+                newTLSstring : "NORMAL:-VERS-ALL:+VERS-TLS1.3:+VERS-TLS1.2:-AES-128-CBC:-AES-256-CBC"
+            when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+            run_once: true
+            delegate_to: localhost
+
+          - block:
+              - name: auth | Go through line by line and check if our search strings macthes ,if matches, replace it, if not, add the new string to the file
+                include_tasks: parseFile.yml
+                loop: "{{ lookup('file', ldaptmppath, errors='ignore').splitline() }}"
+                run_once: true
+
+              - name: auth | write newTLSstring to the file
+                lineinfile:
+                    path: "{{ ldapnewpath }}"
+                    create: true
+                    line: "{{ newTLSstring }}"
+                    state: present
+                    insertafter: '\n'
+                when: not isCipherPresent|bool
+
+              - name: auth | write newTLSstring to the file
+                lineinfile:
+                     path: "{{ ldapnewpath }}"
+                     create: true
+                     line: "{{ newPROTstring }}"
+                     state: present
+                     insertafter: '\n'
+                when: not isProtoPresent|bool
+
+              - name: auth | put back the new file to mmccr
+                command: "{{ scale_command_path }}mmccr fput LDAP_CONF {{ ldapnewpath }}"
+                register: scale_temp
+                run_once: true
+                delegate_to: localhost
+
+              - name: auth | Set putLDAPfile flag
+                set_fact:
+                    putLDAPfile : true
+                when: scale_temp.rc == 0
+ 
+              - block:
+                   - name: auth | Do callback for auth file change
+                     command: "{{ scale_command_path }}mmcesop cesauthfilechange ldap"
+
+                   - name: auth | Delete the tmp files
+                     file:
+                         path: "{{ ldapnewpath }}"
+                         state: absent
+
+                   - name: auth | Delete the tmp files
+                     file:
+                        path: "{{ ldaptmppath }}"
+                        state: absent
+                when: putLDAPfile|bool
+            when: getLDAPfile|bool
+       when: isFileAuth|bool and isTLSenabled|bool
+       ignore_errors: true
+  when: scale_auth_status.rc == 0

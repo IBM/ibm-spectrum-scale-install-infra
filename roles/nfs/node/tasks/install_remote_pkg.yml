@@ -84,12 +84,22 @@
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_debs/ubuntu16/'
-  when: ansible_distribution in scale_ubuntu_distribution
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
+
+- name: install | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 - name: install | nfs path
   set_fact:
    scale_nfs_url: 'ganesha_rpms/sles12/'
-  when: ansible_distribution in scale_sles_distribution
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+
+- name: install | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_rpms/sles15/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
 
 - name: install | zimon path
   set_fact:
@@ -103,11 +113,6 @@
 
 - name: install | zimon path
   set_fact:
-   scale_zimon_url: 'zimon_debs/ubuntu16/'
-  when: ansible_distribution in scale_ubuntu_distribution
-
-- name: install | zimon path
-  set_fact:
    scale_zimon_url: 'zimon_rpms/sles12/'
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
 
@@ -115,6 +120,16 @@
   set_fact:
    scale_zimon_url: 'zimon_rpms/sles15/'
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
+
+- name: install | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_debs/ubuntu16/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
+
+- name: install | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 - name: install | smb path
   set_fact:
@@ -136,7 +151,7 @@
   - name: install | Find gpfs.smb (gpfs.smb) package
     find:
      paths:  "{{ nfs_extracted_path }}/{{ scale_smb_url }}"
-     patterns: gpfs.smb*
+     patterns: gpfs.smb_*
     register: scale_install_gpfs_smb
 
   - name: install | Check valid GPFS (gpfs.smb) package
@@ -149,9 +164,9 @@
      current_package: "{{ item.path }}"
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
-    when: scale_install_gpfs_nfs_ganesha.files is defined
     with_items:
     - "{{ scale_install_gpfs_smb.files }}"
+
   when: ansible_distribution in scale_ubuntu_distribution
 
 - block:  ## when: host is defined as a protocol node
@@ -310,3 +325,8 @@
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
   when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
+
+- name: List all GPFS package to be installed
+  debug:
+    msg: "{{ scale_install_all_packages }}"
+  run_once: true

@@ -1,9 +1,13 @@
 ---
 # tasks file for configure
-- import_tasks: env_setup.yml
+- name: cluster | env setup
+  include_tasks: env_setup.yml
   when: scale_protocols is defined and scale_protocols.hdfs|bool
   tags: config
+  loop: "{{ scale_hdfs_clusters }}"
 
-- import_tasks: configure.yml
+- name: cluster | configure
+  include_tasks: configure.yml
   when: scale_protocols is defined and scale_protocols.hdfs|bool
   tags: config
+  loop: "{{ scale_hdfs_clusters }}"

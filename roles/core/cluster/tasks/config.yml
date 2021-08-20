@@ -38,7 +38,7 @@
         current_nodeclass: "{{ item | regex_replace('^scale_nodeclass_', '') }}"
       template:
         src: NodeClass.j2
-        dest: /var/tmp/NodeClass.{{ current_nodeclass }}
+        dest: /var/mmfs/tmp/NodeClass.{{ current_nodeclass }}
       register: scale_config_nodeclassfile
       with_items: "{{ scale_config_nodeclasses | default([]) }}"
 
@@ -48,7 +48,7 @@
     - name: config | Create new nodeclasses
       vars:
         current_nodeclass: "{{ item.item | regex_replace('^scale_nodeclass_', '') }}"
-      command: /usr/lpp/mmfs/bin/mmcrnodeclass {{ current_nodeclass }} -N /var/tmp/NodeClass.{{ current_nodeclass }}
+      command: /usr/lpp/mmfs/bin/mmcrnodeclass {{ current_nodeclass }} -N /var/mmfs/tmp/NodeClass.{{ current_nodeclass }}
       when:
         - not current_nodeclass in scale_config_existing_nodeclasses.stdout_lines
         - item is changed
@@ -61,7 +61,7 @@
     - name: config | Replace existing nodeclasses
       vars:
         current_nodeclass: "{{ item.item | regex_replace('^scale_nodeclass_', '') }}"
-      command: /usr/lpp/mmfs/bin/mmchnodeclass {{ current_nodeclass }} replace -N /var/tmp/NodeClass.{{ current_nodeclass }}
+      command: /usr/lpp/mmfs/bin/mmchnodeclass {{ current_nodeclass }} replace -N /var/mmfs/tmp/NodeClass.{{ current_nodeclass }}
       when:
         - current_nodeclass in scale_config_existing_nodeclasses.stdout_lines
         - item is changed
@@ -91,4 +91,26 @@
       when:
         - true in scale_config_changed_params.results | map(attribute='changed') | list
         - true in ansible_play_hosts | map('extract', hostvars, 'scale_daemon_running') | list
+  run_once: true
+
+- block:
+    - name: config | Check if ephemeral ports is exists
+      command: "{{ scale_command_path }}mmlsconfig tscCmdPortRange"
+      register: scale_portrange
+
+    - name: config | Setting ephemeral ports for GPFS daemon communication
+      vars:
+         ephemeral_ports: "{{ scale_cluster_config.ephemeral_port_range }}"
+      command: "{{ scale_command_path }}mmchconfig tscCmdPortRange={{ ephemeral_ports }}"
+      when:
+         - "'undefined' in scale_portrange.stdout"
+      register: scale_portrange_chnage
+
+    - debug:
+         msg: "{{ scale_portrange_chnage.cmd }}"
+      when: scale_portrange_chnage.cmd is defined
+      ignore_errors: yes
+
+  when:
+    - scale_cluster_config is defined and scale_cluster_config.ephemeral_port_range is defined
   run_once: true

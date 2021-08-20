@@ -34,6 +34,7 @@
 
 - import_tasks: finalize.yml
   tags: always
+  when: scale_node_update_check | bool
 
 # cluster node remover playbook
 - import_tasks: removenode.yml

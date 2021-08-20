@@ -33,7 +33,7 @@ Design
     - `node`: This role installs the rpms required for callhome functionality. There are 3 methods to install callhome rpms:  
       - via local package, requires  scale_install_localpkg_path variable to be set in main playbook.
       - via remote package, requires scale_install_remotepkg_path variable to be set in main playbook.
-      - via yum repository, requires scale_install_callhome_repository_url variable to be set in main playbook.
+      - via yum repository, requires scale_install_repository_url variable to be set in main playbook.
     - `cluster`: This role configures the callhome functionality. All the parameters required for configuration needs to be defined in `group_vars` or in the JSON inventory. If callhome is already configured, this step is skipped. Following configurations are made:
       - Check if callhome is enabled. If yes, skip this step.
       - Setup the call home proxy configuration if enabled.

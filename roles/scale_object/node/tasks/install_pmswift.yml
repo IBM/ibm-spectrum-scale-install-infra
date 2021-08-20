@@ -1,0 +1,49 @@
+---
+#
+# Installation of performance monitior swift package
+#
+
+# Add pmswift rpm
+
+- block: ## when: ansible_fqdn in scale_obj_nodes_list
+
+    - name: install | pmswift path
+      set_fact:
+        scale_zimon_url: 'zimon_rpms/rhel8'
+      when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+    - name: install | Configure ZIMon YUM repository
+      yum_repository:
+        name: spectrum-scale-zimon
+        description: IBM Spectrum Scale (ZIMon)
+        baseurl: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
+        gpgcheck: "{{ scale_install_gpgcheck }}"
+        repo_gpgcheck: no
+        state: present
+      notify: yum-clean-metadata
+      when:
+        - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+        - scale_install_repository_url != 'existing'
+
+    - name: install | Find pmswift packages
+      find:
+        paths: "{{ obj_extracted_path }}/{{ scale_zimon_url }}"
+        patterns: "pmswift*.rpm"
+      register: object_package
+
+    - name: install | Add pmswift package name
+      set_fact:
+         scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+      with_items:
+         - "{{ scale_obj_sensors_packages }}"
+      when: scale_install_repository_url is defined
+
+    - name: install | Add pmswift package name
+      vars:
+        pmswift_package: "{{ object_package.files | map(attribute='path') | list}}"
+      set_fact:
+        scale_install_all_packages: "{{ scale_install_all_packages + pmswift_package }}"
+      when: scale_install_repository_url is undefined
+
+  when: ansible_fqdn in scale_obj_nodes_list
+

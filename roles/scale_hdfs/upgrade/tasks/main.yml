@@ -1,0 +1,3 @@
+---
+- import_tasks: upgrade.yml
+  tags: upgrade
