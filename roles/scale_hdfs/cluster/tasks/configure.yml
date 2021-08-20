@@ -96,7 +96,7 @@
 
 - name: check | Check free ces ip
   shell:
-   cmd: "mmces address list -Y|grep -v -e hdfs -e object|awk -F: '{print $7}'|grep -v cesAddress"
+   cmd: "mmces address list -Y|awk -F: '(length($9) == 0){print $7}'"
   register: scale_free_ces
   delegate_to: "{{ scale_server }}"
   run_once: true
@@ -108,6 +108,8 @@
   when:
     - scale_existing_ces_ip.stdout | length == 0
     - scale_free_ces.stdout_lines | length > 0
+  delegate_to: "{{ scale_server }}"
+  run_once: true
 
 - block:
    - name: check | fetch mountpoint
@@ -140,7 +142,7 @@
   delegate_to: "{{ scale_server }}"
 
 - name: configure | Check HDFS ces_group
-  shell: "/usr/lpp/mmfs/bin/mmces address list|grep {{ scale_hdfs_ces_group_name }}"
+  shell: "/usr/lpp/mmfs/bin/mmces address list|grep -w {{ scale_hdfs_ces_group_name }}"
   register: check_hdfs_ces_group
   run_once: true
   delegate_to: "{{ scale_server }}"
