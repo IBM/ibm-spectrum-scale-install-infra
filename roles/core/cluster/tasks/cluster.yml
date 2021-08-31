@@ -135,7 +135,7 @@
          profile_type: "--profile {{ scale_cluster_profile_name }}"
       when:
         - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
-        - (stat_profile_result.matched) == 1 or (stat_user_profile_result is defined and stat_user_profile_result.matched == 1)
+        - (stat_profile_result.matched is defined and stat_profile_result.matched == 1) or (stat_user_profile_result.matched is defined and stat_user_profile_result.matched == 1)
 
     - name: cluster | Set gpfs remote shell command if it is defined
       set_fact:
