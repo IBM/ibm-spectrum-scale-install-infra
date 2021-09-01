@@ -7,7 +7,19 @@
     name: "{{ scale_install_all_packages }}"
     state: latest
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: ansible_pkg_mgr == 'yum'
+  when:
+     - ansible_pkg_mgr == 'yum'
+     - librdkafka_installed is not defined
+
+- name: upgrade | Upgrade GPFS file audit logging packages
+  yum:
+    name: "{{ scale_install_all_packages }}"
+    state: latest
+    update_only: yes
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when:
+     - ansible_pkg_mgr == 'yum'
+     - librdkafka_installed is defined and librdkafka_installed | bool
 
 - name: upgrade | Upgrade GPFS file audit logging packages
   dnf:
