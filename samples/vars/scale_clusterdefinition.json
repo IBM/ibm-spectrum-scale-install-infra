@@ -87,5 +87,16 @@
       "datanodes": ['host-vm1', 'host-vm2', 'host-vm3'],
       "datadir": "dhersing",
     }
-  ]
+  ],
+  "scale_remotemount":{
+      "client_gui_username": "admin",
+      "client_gui_password": "admin001",
+      "client_gui_hostname": "10.241.0.5",
+      "client_filesystem_name": "remotefs1",
+      "client_remotemount_path": "/mnt",
+      "storage_gui_username": "admin",
+      "storage_gui_password": "admin001",
+      "storage_gui_hostname": "10.241.1.4",
+      "storage_filesystem_name": "fs1"
+  }
 }

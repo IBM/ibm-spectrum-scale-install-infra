@@ -156,7 +156,7 @@ scale_cluster_gui: true  ##Dual/HA GUI
 ```
 
 
-- For more information check out man pages and https://www.ibm.com/support/knowledgecenter/en/STXKQY/ibmspectrumscale_welcome.html
+- For more information check out man pages and https://www.ibm.com/docs/en/spectrum-scale
 
 
 
