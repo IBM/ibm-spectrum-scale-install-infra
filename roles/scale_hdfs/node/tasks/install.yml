@@ -90,35 +90,32 @@
 - include_tasks: prepare_env.yml
 
 - block:
-  - name:
+  - name: install | Fetch hdfs version 
     set_fact:
-       hdfs_version_path_selection_rhel: "{{ hdfs_rhel_version_path_33 }}"
+      hdfs_version_path_selection_rhel: "{{ hdfs_rhel_version_path_33 }}"
     when: transparency_33_enabled|bool
 
   - name: install | Fetch hdfs rpm dir path for rhel
     set_fact:
-        hdfs_rpm_path_rhel: "{{ hdfs_version_path_selection_rhel }}" 
- 
+      hdfs_rpm_path_rhel: "{{ hdfs_version_path_selection_rhel }}" 
+
+  - name: install | Set correct hdfs rpm dir path for scale release lower 5.1.2
+    set_fact:
+      hdfs_rpm_path_rhel: "{{ hdfs_rpm_path_rhel | replace('/rhel/','/rhel7/') }}" 
+    when: scale_version is version_compare('5.1.2', '<')
+
   - name: install | Fetch hdfs rpm dir path for sles
     set_fact:
-        hdfs_rpm_path_sles: "{{ hdfs_sles_version_path }}" 
+      hdfs_rpm_path_sles: "{{ hdfs_sles_version_path }}" 
   
   - name: install | Fetch hdfs rpm dir path for ubuntu
     set_fact:
-        hdfs_rpm_path_ubuntu: "{{ hdfs_ubuntu_version_path }}" 
+      hdfs_rpm_path_ubuntu: "{{ hdfs_ubuntu_version_path }}" 
 
-  
   run_once: true
   delegate_to: localhost
 
 - include_tasks: install_{{ scale_installmethod }}.yml
 
-- import_tasks: apt/install.yml
-  when: ansible_distribution in scale_ubuntu_distribution
-
 - import_tasks: yum/install.yml
   when: ansible_distribution in scale_rhel_distribution
-
-- import_tasks: zypper/install.yml
-  when: ansible_distribution in scale_sles_distribution
-
