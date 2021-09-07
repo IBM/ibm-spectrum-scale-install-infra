@@ -3,9 +3,9 @@
 scale_remotemount_debug: false
 scale_remotemount_forceRun: false
 
-# retries - 3 minutes (36 x 5 seconds)
-restapi_retries_count: 36
-restapi_retries_delay: 5
+# retries - 2 minutes (40 x 3 seconds)
+restapi_retries_count: 40
+restapi_retries_delay: 3
 
 client_cluster_gui_port: 443
 storage_cluster_gui_port: 443
@@ -13,14 +13,43 @@ storage_cluster_gui_port: 443
 scalemgmt_endpoint: "scalemgmt/v2"
 remote_mount_endpoint: "{{ scalemgmt_endpoint }}/remotemount"
 
+validate_certs_uri: 'no'
+
+# Temporary Storage for Public Key, Only used when debuging
+scale_remote_mount_client_access_key: /tmp/client_cluster.pub
+
+# Sets the security mode for communications between the current cluster and the remote cluster
+# Encyption can have performance effect and increased CPU usage
+# mmauth show ciphers
+# Supported ciphers for nistCompliance=SP800-131A:
+#        AES128-SHA
+#        AES128-SHA256
+#        AES256-SHA
+#        AES256-SHA256
+
+# AES128-SHA', 'AES256-SHA' , AUTHONLY
+remotecluster_chipers: "AUTHONLY"
+
 # Storage filesystem
-scale_remotemount_access_mount_attributes: "rw"
+# scale_remotemount_access_mount_attributes: "rw"
+
+# Indicates when the file system is to be mounted:
+# yes :When the GPFS daemon starts.
+# no: Manual mount. This is the default.
+# automount : When the file system is first accessed.
+## scale_remotemount_client_mount_fs: "yes"
+
+# Controls the order in which the individual file systems are mounted at daemon startup or when one of the all keywords is specified on the mmmount command
+# File systems with higher Priority numbers are mounted after file systems with lower numbers. File systems that do not have mount priorities are mounted last. A value of zero indicates no priority.
+## scale_remotemount_client_mount_priority: "0"
 
 # If Accessing/Client Cluster dont have GUI, it will use CLI
 scale_remotemount_client_no_gui: False
 
 # Client Cluster (Access) is downloding the pubkey from Owning cluster and importing it.
 scale_remotemount_storage_pub_key_location: "/tmp/storage_cluster_public_key.pub"
+scale_remotemount_storage_pub_key_location_json: "/tmp/storage_cluster_public_key_json.pub"
+scale_remotemount_storage_pub_key_delete: true
 
 # Unmounts, remove the filesystem, and also the connection between Accessing/Client cluster and Owner/Storage Cluster.
 # This only works if both systems have GUI/RESTAPI interface

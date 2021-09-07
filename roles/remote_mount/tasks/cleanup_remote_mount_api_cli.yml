@@ -1,0 +1,169 @@
+#
+# Get some cluster information before starting Cleanup
+#
+- name: Cleanup Remote Mount - API-CLI | Storage Cluster (owner) | GET the Owning Cluster Information
+  uri:
+    validate_certs: "{{ validate_certs_uri }}"
+    force_basic_auth: yes
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+    method: GET
+    user: "{{ scale_remotemount_storage_gui_username }}"
+    password: "{{ scale_remotemount_storage_gui_password }}"
+    body_format: json
+    status_code:
+      - 200
+  register: owning_cluster_info
+  run_once: True
+  changed_when: false
+
+- name: Cleanup Remote Mount - API-CLI | scale_remotemount_debug | Storage Cluster (owner) | Print the Cluster Information
+  debug:
+    msg: "{{ owning_cluster_info }}"
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+  run_once: True
+
+- name: Cleanup Remote Mount - API-CLI  | Client Cluster (access) | GET the Client/Accessing Cluster Information
+  shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterSummary | cut -d ':' -f 9
+  register: access_cluster_info
+  changed_when: false
+  failed_when: false
+  run_once: True
+
+- name: Cleanup Remote Mount - API-CLI | scale_remotemount_debug | Client Cluster (access) | Print the Cluster Information
+  debug:
+    msg: "{{ access_cluster_info }}"
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+  run_once: True
+
+- set_fact:
+    access_cluster_name: "{{ access_cluster_info.stdout }}"
+    owning_cluster_name: "{{ owning_cluster_info.json.cluster.clusterSummary.clusterName }}"
+  run_once: True
+
+- name: Cleanup Remote Mount - API-CLI | scale_remotemount_debug | Print out the Storage and Client Cluster Names
+  debug:
+    msg: "Access: {{ access_cluster_name }} and Owning: {{ owning_cluster_name }}"
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+  run_once: True
+
+#
+# Client cluster (Access) cleanup, check and then unmount the filesystem
+# Read also the documentation of CLI command 'mmlsfs' and 'mmunmount'
+#
+- name: Cleanup Remote Mount - API-CLI | Client Cluster (access) | Check if the Filesystem's is already configured
+  shell: "/usr/lpp/mmfs/bin/mmlsfs {{ remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }} -Y"
+  register: remote_filesystem_results_cli
+  changed_when: false
+  failed_when: false
+  run_once: True
+  loop: "{{ scale_remotemount_filesystem_name }}"
+  loop_control:
+     loop_var: remotemount_filesystem_name_loopvar
+
+- debug:
+    msg: "{{ remote_filesystem_results_cli_debug_loopvar.remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }}"
+  run_once: True
+  loop: "{{ remote_filesystem_results_cli.results }}"
+  loop_control:
+     loop_var: remote_filesystem_results_cli_debug_loopvar
+
+- name: Cleanup Remote Mount - API-CLI | Client Cluster (access) | Filesystem is already removed
+  run_once: True
+  debug:
+    msg: Filesystem "{{ remote_filesystem_results_cli_loopvar.remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }}" is already removed, nothing to do.
+  loop: "{{ remote_filesystem_results_cli.results }}"
+  loop_control:
+     loop_var: remote_filesystem_results_cli_loopvar
+  when:
+    - remote_filesystem_results_cli_loopvar.rc == 1
+
+- name: Cleanup Remote Mount - API-CLI | Client Cluster (access) | Problems checking filesystem.
+  run_once: True
+  debug:
+    msg: There is problems checking filesystem "{{ remote_filesystem_results_cli_loopvar_rc.remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }}"
+  loop: "{{ remote_filesystem_results_cli.results }}"
+  loop_control:
+     loop_var: remote_filesystem_results_cli_loopvar_rc
+  when:
+    - remote_filesystem_results_cli_loopvar_rc.rc == 116
+
+- name: Cleanup Remote Mount - API-CLI | Client Cluster (access) | Unmount the Remote FileSystem on all nodes.
+  shell: "/usr/lpp/mmfs/bin/mmunmount {{ remote_filesystem_unmount_loopvar.remotemount_filesystem_name_loopvar.scale_remotemount_client_filesystem_name }} -a"
+  register: access_cluster_unmount_fs
+  run_once: True
+  ignore_errors: true
+  loop: "{{ remote_filesystem_results_cli.results }}"
+  loop_control:
+     loop_var: remote_filesystem_unmount_loopvar
+  when:
+    - remote_filesystem_unmount_loopvar.rc == 0 or remote_filesystem_unmount_loopvar.rc == 116
+
+#
+# Remove Storage Cluster (Owner) from Client Cluster (Access)
+# Read also the documentation of CLI command 'mmremotecluster'.
+#
+
+- name: Cleanup Remote Mount - API-CLI | Client Cluster (Access) | Check if the Storage Cluster ('{{ owning_cluster_name }}') is already defined on Client"
+  run_once: True
+  shell: |
+    /usr/lpp/mmfs/bin/mmremotecluster show {{ owning_cluster_name }}
+  register: remote_cluster_check_owning_cluster
+  ignore_errors: true
+  changed_when: false
+
+- name: Cleanup Remote Mount - API-CLI | Client Cluster (access) | Remove the connection of Storage Cluster (Owning) from Client Cluster (Access)
+  shell: "/usr/lpp/mmfs/bin/mmremotecluster delete {{ owning_cluster_name }}"
+  register: access_cluster_remove_remote_cluster
+  run_once: True
+  #ignore_errors: true
+  when: remote_cluster_check_owning_cluster.rc == 0
+
+#
+#  Unregister the Client Cluster (Access) from Storage Cluster (Owner) with RestAPI.  Check mmauth for same comamnds
+#  Read also the documentation of CLI command 'mmauth delete'.
+#
+
+- name: "Cleanup Remote Mount - API-CLI | Storage Cluster (owner) | Check if the Client Cluster ('{{ access_cluster_name }}') is already defined"
+  uri:
+    validate_certs: "{{ validate_certs_uri }}"
+    force_basic_auth: yes
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
+    method: GET
+    user: "{{ scale_remotemount_storage_gui_username }}"
+    password: "{{ scale_remotemount_storage_gui_password }}"
+    body_format: json
+    status_code:
+      - 200
+  register: remote_clusters_results
+  ignore_errors: true
+  run_once: True
+  changed_when: false
+
+- name: Cleanup Remote Mount - API-CLI | Storage Cluster (owner) | Delete the Client Cluster, if it exists.
+  block:
+    - name: "DELETE: {{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}"
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: true
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
+        method: DELETE
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+        status_code:
+          - 202
+      register: delete_call
+
+    - name: "Cleanup Remote Mount - API-CLI | Checking results from the job: {{ delete_call.json.jobs[0].jobId }}"
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: true
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+        method: GET
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+      register: completed_check
+      until: completed_check.json.jobs[0].status == "COMPLETED"
+      retries: "{{ restapi_retries_count }}"
+      delay: "{{ restapi_retries_delay }}"
+  when: not remote_clusters_results.failed
+  run_once: True
