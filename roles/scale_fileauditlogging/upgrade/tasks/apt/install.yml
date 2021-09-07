@@ -3,10 +3,12 @@
 #
 # Install or update RPMs
 #
-- name: upgrade | Upgrade GPFS file audit logging packages
-  package:
-    name: "{{ scale_install_all_packages }}"
-    state: latest
+
+- block:
+    - name: upgrade | Upgrade GPFS file audit logging packages
+      apt:
+        name: "{{ scale_install_all_packages }}"
+        state: latest
   when: scale_install_repository_url is defined
 
 - block:

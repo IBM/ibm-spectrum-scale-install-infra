@@ -12,3 +12,6 @@
 
 - name: install | Enable repo metadata gpg check
   command: "zypper modifyrepo --default-gpgcheck --all"
+  args:
+    warn: false 
+

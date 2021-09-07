@@ -164,13 +164,24 @@
       when:
          - is_pmwift_package_installed.rc == 0
 
-    - name: upgrade | Stop pmswiftd service
-      systemd:
-         name: "{{ item }}"
-         state: stopped
-      with_items:
-         - pmswiftd
-      when: (is_scale_pmswift_pkg_installed | bool)
+    - block:
+        - name: check | Collect status of pmswiftd
+          shell:
+            cmd: systemctl status pmswiftd
+          register: scale_pmswift_status
+          ignore_errors: true
+          failed_when: false
+
+        - name: upgrade | Stop pmswiftd service
+          systemd:
+            name: "{{ item }}"
+            state: stopped
+          with_items:
+            - pmswiftd
+          when:
+             - scale_pmswift_status.rc is defined and scale_pmswift_status.rc == 0
+      when: 
+         - (is_scale_pmswift_pkg_installed | bool)
 
     - name: upgrade | pmswift packages to list
       set_fact:

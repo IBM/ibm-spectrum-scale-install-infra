@@ -41,17 +41,35 @@
      - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
      - scale_gpfs_license_pkg is defined
 
-- name: upgrade | Find GPFS License package
-  set_fact:
-   scale_gpfs_license_package: "{{ package_name.stdout_lines.0[9:] }}"
-  when:
-  - ansible_pkg_mgr == 'apt'
+- block:
+    - name: upgrade | Find GPFS License package
+      set_fact:
+       scale_gpfs_license_package: "{{ package_name.stdout_lines.0[9:] }}"
+      when:
+         - scale_gpfs_license_pkg is not defined
 
-- name: upgrade | Find GPFS License package
-  set_fact:
-   scale_gpfs_license_package: "{{ package_name_version_zypp.stdout }}" 
+    - name: upgrade | Extract license package name
+      set_fact:
+        scale_gpfs_license_package:  "{{ scale_gpfs_license_pkg }}"
+      when:
+        - scale_gpfs_license_pkg is defined
   when:
-  - ansible_pkg_mgr == 'zypper'
+    - ansible_pkg_mgr == 'apt'
+
+- block:
+    - name: upgrade | Find GPFS License package
+      set_fact:
+        scale_gpfs_license_package: "{{ package_name_version_zypp.stdout }}"
+      when:
+         - scale_gpfs_license_pkg is not defined
+
+    - name: upgrade | Extract license package name
+      set_fact:
+        scale_gpfs_license_package:  "{{ scale_gpfs_license_pkg }}"
+      when:
+        - scale_gpfs_license_pkg is defined
+  when:
+    - ansible_pkg_mgr == 'zypper'
 
 - name: upgrade | Add GPFS license packages to list
   set_fact:
@@ -66,6 +84,8 @@
 
 - name: upgrade | Add GPFS license packages to list
   set_fact:
-    scale_install_license_packages: "{{ scale_gpfs_license_package }}"
+    scale_install_license_packages: "{{ scale_install_license_packages + [ item ] }}"
   when: "'gpfs.license.std' in scale_gpfs_license_package or  
          'gpfs.license.da' in scale_gpfs_license_package"
+  with_items:
+      - "{{ scale_gpfs_license_package }}"

@@ -13,8 +13,8 @@ scale_protocols:
   mountpoint: /gpfs/cesSharedRoot
 
 scale_hdfs_clusters:
-  name: mycluster
-  filesystem: gpfs1
-  namenodes: ['host-vm1.test.net', 'host-vm2.test.net']
-  datanodes: ['host-vm1.test.net', 'host-vm2.test.net', 'host-vm3.test.net']
-  datadir: datadir
+  - name: mycluster
+    filesystem: gpfs1
+    namenodes: ['host-vm1.test.net', 'host-vm2.test.net']
+    datanodes: ['host-vm3.test.net', 'host-vm4.test.net', 'host-vm5.test.net']
+    datadir: datadir

@@ -7,12 +7,23 @@
 - name: upgrade | Initialize
   set_fact:
    scale_fal_url: ""
+   scale_kafaka_url: ""
    package_installed: false
 
 - name: upgrade | file audit logging path
   set_fact:
-    scale_fal_url: 'gpfs_rpms/rhel/'
+    scale_kafaka_url: 'gpfs_rpms/rhel/'
   when: ansible_distribution in scale_rhel_distribution
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel7/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: upgrade | file audit logging path
   set_fact:
@@ -21,17 +32,8 @@
 
 - name: upgrade | file audit logging path
   set_fact:
-    scale_fal_url: 'gpfs_rpms/rhel/'
+    scale_fal_url: 'gpfs_rpms/sles15/'
   when: ansible_distribution in scale_sles_distribution
-
-- name: upgrade | Check if gpfs kafka installed
-  shell: rpm -q gpfs.kafka
-  register: gpfskafka_installed
-  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-  ignore_errors: true
-  failed_when: false
-  args:
-    warn: false
 
 - name: upgrade | Configure GPFS Java YUM repository
   yum_repository:
@@ -112,38 +114,6 @@
     state: present
   when:
     - ansible_pkg_mgr == 'zypper'
-
-- name: upgrade | Set if gpfs kafka installed
-  set_fact:
-    package_installed: true
-  when:
-     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-     - gpfskafka_installed.rc == 0
-     
-
-- name: upgrade | Check if gpfs kafka installed
-  shell: dpkg -l | grep gpfs.kafka | awk "{print $1}" |  grep ii
-  register: scale_kafka_status
-  failed_when: no
-  changed_when: no
-  args:
-    warn: false
-  when:
-    - ansible_pkg_mgr == 'apt'
-
-- name: upgrade | Set if gpfs kafka installed
-  set_fact:
-    package_installed: true
-  when:
-     - ansible_pkg_mgr == 'apt'
-     - scale_kafka_status.rc == 0
-
-- name: upgrade | Add GPFS file audit logging packages to list
-  set_fact:
-    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
-  with_items:
-    - gpfs.kafka*
-  when: (package_installed | bool)
 
 #
 # Add FAL packages
