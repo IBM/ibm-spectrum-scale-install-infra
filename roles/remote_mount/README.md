@@ -72,6 +72,7 @@ The following variables would need to be defined by the user, either as vars to 
 - ``scale_remotemount_storage_pub_key_location_json:`` (Defaults to : "/tmp/storage_cluster_public_key_json.pub") **Client Cluster (Access) is downloading the pubkey as JSON from Owning cluster**
 - ``scale_remotemount_storage_pub_key_delete:`` (Default to: true) **delete both temporary pubkey after the connection have been established**
 
+-  ``scale_remotemount_storage_adminnodename: true `` (Default to: false) **Spectrum Scale uses the Deamon node name and the IP Attach to connect and run cluster traffic on. In most cases the admin network and deamon network is the same. In case you have different AdminNode address and DeamonNode address and for some reason you want to use admin network, then you can set the variable to true**
 
 Example Playbook's
 -------------------------------

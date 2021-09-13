@@ -220,7 +220,12 @@
         msg: "Add the storage cluster (mmremotecluster add)"
       run_once: True
 
-    - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | GET Node Info - GET {{ scalemgmt_endpoint }}/nodes"
+#
+# After a feature improvements we want to grab adminnodename and deamonnode name after where we want the remote mount traffic going over.
+#
+# This Section is gather the nodenames and adminNodeName
+#
+    - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | GET adminNodeName Info - GET {{ scalemgmt_endpoint }}/nodes"
       uri:
         validate_certs: "{{ validate_certs_uri }}"
         force_basic_auth: yes
@@ -243,21 +248,71 @@
       with_items: "{{ owning_cluster_nodes.json.nodes }}"
       run_once: True
 
+#
+# This Section is when using daemonNodeName
+#
+    - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | GET daemonNodeName Info - GET {{ scalemgmt_endpoint }}/nodes/"
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: yes
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes/{{item}}
+        method: GET
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+        body_format: json
+        status_code:
+         - 200
+      register: owning_cluster_daemonnodes
+      with_items: "{{ owning_nodes_name }}"
+      run_once: True
+
+    - set_fact:
+        owning_daemon_nodes_name: []
+      run_once: True
+
+
+    - set_fact:
+        owning_daemon_nodes_name: "{{ owning_daemon_nodes_name }} + [ '{{ item.json.nodes.0.network.daemonNodeName }}' ]"
+      with_items: "{{ owning_cluster_daemonnodes.results }}"
+      run_once: True
+
+
+#
+# adminNodeName section
+#
     - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the array storing the nodes in the Storage Cluster (owning)
       debug:
         msg: "{{ owning_nodes_name }}"
       when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
       run_once: True
 
-    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Install storage cluster (owner) public key in remote cluster
+    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Install storage cluster (owner) public key in remote cluster with adminNodeName
       run_once: True
       shell: |
         /usr/lpp/mmfs/bin/mmremotecluster add {{ owning_cluster_name }} -n {{ owning_nodes_name | list | join(',') }} -k {{ scale_remotemount_storage_pub_key_location }}
       register: remote_cluster_add_ssh
       failed_when:
         - "remote_cluster_add_ssh.rc != 0 and 'is already defined' not in remote_cluster_add_ssh.stderr"
+      when: scale_remotemount_storage_adminnodename is defined and scale_remotemount_storage_adminnodename | bool
+#
+# deamonNodeName section
+#
+    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the array storing the nodes in the Storage Cluster (owning)
+      debug:
+        msg: "{{ owning_daemon_nodes_name }}"
+      when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+      run_once: True
 
-    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Cleanup temporary Keys.
+    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) |  Install storage cluster (owner) public key in remote cluster with daemonNodeName
+      run_once: True
+      shell: |
+        /usr/lpp/mmfs/bin/mmremotecluster add {{ owning_cluster_name }} -n {{ owning_daemon_nodes_name | list | join(',') }} -k {{ scale_remotemount_storage_pub_key_location }}
+      register: remote_cluster_add_ssh
+      failed_when:
+        - "remote_cluster_add_ssh.rc != 0 and 'is already defined' not in remote_cluster_add_ssh.stderr"
+      when: scale_remotemount_storage_adminnodename is not true
+
+    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Cleanup temporary keys.
       file:
         path: "{{ item }}"
         state: absent

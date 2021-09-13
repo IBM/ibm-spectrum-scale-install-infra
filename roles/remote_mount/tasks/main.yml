@@ -36,7 +36,7 @@
 - block: # RESTAPI - when: scale_remotemount_client_no_gui == false
     - name: Main | Storage Cluster (owner) | Check Connectivity to Storage Cluster GUI
       uri:
-        validate_certs: no
+        validate_certs: "{{ validate_certs_uri }}"
         force_basic_auth: yes
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
         method: GET
@@ -49,7 +49,18 @@
       run_once: True
       ignore_errors: true
 
-    - name: Main | Unauthorized Storage Cluster (owner)
+    - name: Main | Storage Cluster (owner) | Conenction Refused Storage Cluster
+      run_once: True
+      fail:
+        msg: "There is issues connection to GUI/RestAPI, http return code: {{ storage_cluster_status.status }}"
+      when:
+        - storage_cluster_status.status == -1
+
+    - meta: end_play
+      when:
+        - storage_cluster_status.status == -1
+
+    - name: Main | Storage Cluster (owner) | Unauthorized Storage Cluster
       run_once: True
       fail:
         msg: "The user is not authorized to access the Storage Cluster, http return code: {{ storage_cluster_status.status }}"
@@ -60,9 +71,9 @@
       when:
         - storage_cluster_status.status == 401
 
-    - name: Main | Client Cluster (access) | Check Connectivity to Storage Cluster GUI
+    - name: Main | Client Cluster (access) | Check Connectivity to Client Cluster GUI
       uri:
-        validate_certs: no
+        validate_certs: "{{ validate_certs_uri }}"
         force_basic_auth: yes
         url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
         method: GET
@@ -75,7 +86,18 @@
       run_once: True
       ignore_errors: true
 
-    - name: Main | Unauthorized Client Cluster (access)
+    - name: Main | Client Cluster (access) | Conenction Refused Client Cluster
+      run_once: True
+      fail:
+        msg: "There is issues connection to GUI/RestAPI, http return code: {{ access_cluster_status.status }}"
+      when:
+        - access_cluster_status.status == -1
+
+    - meta: end_play
+      when:
+        - access_cluster_status.status == -1
+
+    - name: Main | Client Cluster (access) | Unauthorized Client Cluster
       run_once: True
       fail:
         msg: "The user is not authorized to access the Client Cluster, http return code: {{ access_cluster_status.status }}"
@@ -103,7 +125,7 @@
 - block: # RESTAPI-CLI when: scale_remotemount_client_no_gui == true
   - name: Main | API-CLI | Storage Cluster (owner) | Check Connectivity to Storage Cluster GUI
     uri:
-      validate_certs: no
+      validate_certs: "{{ validate_certs_uri }}"
       force_basic_auth: yes
       url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
       method: GET
@@ -115,6 +137,17 @@
     register: storage_cluster_status
     run_once: True
     ignore_errors: true
+
+  - name: Main | API-CLI | Storage Cluster (owner) | Conenction Refused to Storage Cluster
+    run_once: True
+    fail:
+      msg: "There is issues connection to GUI/RestAPI, http return code: {{ access_cluster_status.status }}"
+    when:
+      - storage_cluster_status.status == -1
+
+  - meta: end_play
+    when:
+      - storage_cluster_status.status == -1
 
   - name: Main | API-CLI | Unauthorized Storage Cluster (owner)
     run_once: True
