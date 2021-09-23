@@ -2,6 +2,26 @@
 # Print messages collected during play
 
 - block:  ## run_once: true
+    - name: configure | check if package upgraded
+      set_fact:
+        scale_install_updated: true
+      when:
+       - (hostvars[item].scale_install_updated is defined and
+         (true in ansible_play_hosts | map('extract', hostvars, 'scale_install_updated') | map('bool') | list))
+      with_items: "{{ ansible_play_hosts }}"
+      run_once: true
+      delegate_facts: true
+
+    - name: configure | check if parameters were changed
+      set_fact:
+        scale_config_changed: true
+      when:
+       - (hostvars[item].scale_config_changed is defined and
+         (true in ansible_play_hosts | map('extract', hostvars, 'scale_config_changed') | map('bool') | list))
+      with_items: "{{ ansible_play_hosts }}"
+      run_once: true
+      delegate_facts: true
+
     - name: finalize | Check if GPFS RPMs were updated
       vars:
         msg: |-
@@ -22,7 +42,7 @@
           ######################################################################
       debug:
         msg: "{{ msg.split('\n') }}"
-      when: true in ansible_play_hosts | map('extract', hostvars, 'scale_install_updated') | list
+      when: scale_install_updated is defined and scale_install_updated | bool
       # TODO: print all hosts with scale_install_updated set: hostvars | selectattr('scale_install_updated')
 
     - name: finalize | Check if configuration parameters were changed
@@ -34,6 +54,6 @@
           ######################################################################
       debug:
         msg: "{{ msg.split('\n') }}"
-      when: true in ansible_play_hosts | map('extract', hostvars, 'scale_config_changed') | list
+      when: scale_config_changed is defined and scale_config_changed | bool
       # TODO: print all hosts with scale_daemon_running set: hostvars | selectattr('scale_daemon_running')
   run_once: true

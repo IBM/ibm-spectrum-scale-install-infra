@@ -22,6 +22,9 @@
     scale_admin_nodename: "{{ scale_admin_nodename }}"
   when: hostvars[inventory_hostname].scale_admin_nodename is undefined
 
+- set_fact: is_admin_node=false
+  when: hostvars[inventory_hostname].is_admin_node is undefined
+
 - name: check | Assign default admin nodes
   set_fact:
      is_admin_node: true
@@ -38,3 +41,6 @@
   when: hostvars[item].is_admin_node is defined and hostvars[item].is_admin_node | bool
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
+
+- debug:
+     msg: "{{groups['scale_cluster_admin_nodes']}}"
