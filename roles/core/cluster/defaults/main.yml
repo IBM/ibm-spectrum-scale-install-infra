@@ -81,3 +81,6 @@ scale_node_role_change: true
 
 ## Upgrade check
 scale_node_update_check: true
+
+## admin node flag
+is_admin_node: false
