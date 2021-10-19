@@ -51,13 +51,15 @@
   package:
    name: iputils-arping
    state: present
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_fqdn in scale_protocol_node_list
+  when: (ansible_distribution in scale_ubuntu_distribution) and
+        (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list)
 
 - name: configure | Check if SMB is running
   shell:
    cmd: "{{ scale_command_path }}mmces service list|grep SMB"
   register: scale_service_status
-  when: ansible_fqdn in scale_protocol_node_list
+  when: (ansible_fqdn in scale_protocol_node_list) or
+        (inventory_hostname in scale_protocol_node_list)
   ignore_errors: true
   failed_when: false
   run_once: true
@@ -65,20 +67,23 @@
 - name: configure | Add SMB service to list
   set_fact:
    scale_service_list: "{{ scale_service_list + [scale_service_status.stderr|regex_search('SMB')] }}"
-  when: ansible_fqdn in scale_protocol_node_list and scale_service_status.rc > 0
+  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+        ( scale_service_status.rc > 0 )
   run_once: true
 
 - name: configure | Add SMB service to list
   set_fact:
    scale_service_list: "{{ scale_service_list + ['SMB'] }}"
-  when: ansible_fqdn in scale_protocol_node_list and scale_service_status.rc == 0
+  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+        ( scale_service_status.rc == 0 )
   run_once: true
 
 - name: configure | Check if NFS is running
   shell:
    cmd: "{{ scale_command_path }}mmces service list|grep NFS"
   register: scale_service_status
-  when: ansible_fqdn in scale_protocol_node_list
+  when: (ansible_fqdn in scale_protocol_node_list) or
+        (inventory_hostname in scale_protocol_node_list)
   ignore_errors: true
   failed_when: false
   run_once: true
@@ -86,13 +91,15 @@
 - name: configure | Add NFS service to the list
   set_fact:
    scale_service_list: "{{ scale_service_list + [scale_service_status.stderr|regex_search('NFS')] }}"
-  when: ansible_fqdn in scale_protocol_node_list and scale_service_status.rc > 0
+  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+        ( scale_service_status.rc > 0 )
   run_once: true
 
 - name: configure | Add NFS service to the list
   set_fact:
    scale_service_list: "{{ scale_service_list + ['NFS'] }}"
-  when: ansible_fqdn in scale_protocol_node_list and scale_service_status.rc == 0
+  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+        ( scale_service_status.rc == 0 )
   run_once: true
 
 - import_role:
@@ -185,7 +192,8 @@
 
   - name: configure | Assign export ips as pool for CES groups
     command: "{{ scale_command_path }}mmces address add --ces-ip {{ item.export_ip_pool|join(',') }} --ces-group {{ item.group_name}}"
-    when: ansible_fqdn in scale_protocol_node_list
+    when: (ansible_fqdn in scale_protocol_node_list) or
+          (inventory_hostname in scale_protocol_node_list)
     delegate_to: "{{ scale_protocol_node_list.0 }}"
     with_items:
     - "{{ scale_protocols.scale_ces_groups }}"

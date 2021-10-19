@@ -28,12 +28,12 @@
 - name: check | Check for supported operating system
   assert:
     that:
-      - hostvars[item]['ansible_distribution'] in scale_rhel_distribution 
+      - hostvars[item]['ansible_distribution'] in scale_rhel_distribution
       - hostvars[item]['ansible_distribution_major_version'] == '8'
     msg: >-
       Object is only supported for Rhel 8 and higher!
   with_items:
-     - "{{ scale_obj_nodes_list }}"
+     - "{{ ansible_play_hosts }}"
+  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
   delegate_to: localhost
   run_once: true
-
