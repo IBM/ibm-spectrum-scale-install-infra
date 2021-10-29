@@ -1,6 +1,5 @@
 ---
 galaxy_info:
-  role_name: fileauditlogging
   author: IBM Corporation
   description: Role for installing and configuring IBM Spectrum Scale (GPFS) fileauditlogging
   company: IBM

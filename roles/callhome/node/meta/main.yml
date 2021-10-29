@@ -1,6 +1,5 @@
 ---
 galaxy_info:
-  role_name: callhome_node
   author: IBM Corporation
   description: Highly-customizable Ansible role for installing and configuring IBM Spectrum Scale (GPFS)
   company: IBM

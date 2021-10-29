@@ -1,5 +1,4 @@
 galaxy_info:
-  role_name: remote_mount
   author: IBM Corporation
   description: IBM Spectrum Scale (GPFS) ansible role to configure remote mount
   company: IBM

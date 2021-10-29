@@ -1,6 +1,5 @@
 ---
 galaxy_info:
-  role_name: scale_ece
   author: IBM Corporation
   description: Role for configuring IBM Spectrum Scale (GPFS) Erasure Code Edition configuration role
   company: IBM

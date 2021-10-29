@@ -1,6 +1,5 @@
 ---
 galaxy_info:
-  role_name: scale_hpt
   author: IBM Corporation
   description: Role for installing IBM Spectrum Scale (GPFS) AFM COS package
   company: IBM
