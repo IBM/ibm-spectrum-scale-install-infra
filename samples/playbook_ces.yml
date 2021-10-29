@@ -11,6 +11,8 @@
 # Sample definitions can be found in samples/vars/ces_vars.yml
 
 - hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
   vars:
     - scale_version: 5.0.4.0
     - scale_install_localpkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
@@ -24,6 +26,8 @@
     - nfs/precheck
     - nfs/node
     - nfs/cluster
+    - nfs/postcheck
     - smb/precheck
-    - smb/node     
+    - smb/node
     - smb/cluster
+    - smb/postcheck

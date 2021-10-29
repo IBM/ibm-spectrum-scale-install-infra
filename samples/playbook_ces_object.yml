@@ -11,13 +11,18 @@
 # Sample definitions can be found in samples/vars/scale_object_vars.yml
 
 - hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
   vars:
     - scale_install_localpkg_path: /root/Spectrum_Scale_Advanced-5.1.1.0-x86_64-Linux-install
   pre_tasks:
     - include_vars: scale_object_vars.yml
   roles:
+    - core/precheck
+    - core/node
+    - core/cluster
+    - core/postcheck
     - scale_object/precheck
     - scale_object/node
     - scale_object/cluster
     - scale_object/postcheck
-

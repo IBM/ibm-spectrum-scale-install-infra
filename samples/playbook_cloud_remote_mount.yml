@@ -10,8 +10,9 @@
 
 - import_playbook: "set_json_variables.yml"
 
-- hosts: scale_node
-  become: true
+- hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
   vars:
     - scale_remotemount_debug: true
   roles:

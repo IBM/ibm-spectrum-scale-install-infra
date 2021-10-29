@@ -11,8 +11,9 @@
 # Following example will connect up to the first host in your ansible host file, and then run the playbook and do API Call to Storage Cluster.
 # So in this case the Client Cluster node need access on https/443 to Storage Cluster GUI Node.
 
-- hosts: scale-client-cluster-node-1
-  gather_facts: false
+- hosts: host-vm1
+  collections:
+    - ibm.spectrum_scale
   vars:
     scale_remotemount_storage_gui_username: admin
     scale_remotemount_storage_gui_password: Admin@GUI
@@ -21,5 +22,5 @@
     scale_remotemount_filesystem_name:
       - { scale_remotemount_client_filesystem_name: "fs1", scale_remotemount_client_remotemount_path: "/gpfs/fs1", scale_remotemount_storage_filesystem_name: "gpfs01", } # Minimum variables
       - { scale_remotemount_client_filesystem_name: "fs2", scale_remotemount_client_remotemount_path: "/gpfs/fs1", scale_remotemount_storage_filesystem_name: "gpfs02", scale_remotemount_client_mount_priority: '2', scale_remotemount_access_mount_attributes: "rw", scale_remotemount_client_mount_fs: "yes"  }
-   roles:
-     - remote_mount
+  roles:
+    - remote_mount
