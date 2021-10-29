@@ -45,20 +45,23 @@
 # Setup Spectrum Scale on nodes and create cluster
 - hosts: scale_node
   any_errors_fatal: true
+  collections:
+    - ibm.spectrum_scale
   vars:
     - scale_install_directory_pkg_path: /opt/IBM/gpfs_cloud_rpms
   roles:
-     - core/precheck
-     - core/node
-     - core/cluster
-     - gui/precheck
-     - gui/node
-     - gui/cluster
-     - gui/postcheck
-     - zimon/precheck
-     - zimon/node
-     - zimon/cluster
-     - zimon/postcheck
+    - core/precheck
+    - core/node
+    - core/cluster
+    - core/postcheck
+    - gui/precheck
+    - gui/node
+    - gui/cluster
+    - gui/postcheck
+    - zimon/precheck
+    - zimon/node
+    - zimon/cluster
+    - zimon/postcheck
 
   # Cloud deployment specific actions after Spectrum Scale
   # cluster installation and setup
@@ -192,4 +195,3 @@
       when:
         - pagepool_storage is defined
       run_once: true
-

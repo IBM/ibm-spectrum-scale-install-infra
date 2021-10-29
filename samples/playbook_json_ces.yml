@@ -11,28 +11,37 @@
 # samples/vars/scale_clusterdefinition.json
 - import_playbook: set_json_variables.yml
 
-- hosts: scale_node
-  any_errors_fatal: true
+- hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
   vars:
     - scale_install_localpkg_path: /root/Spectrum_Scale_Advanced-5.1.0.0-x86_64-Linux-install
   roles:
-     - core/precheck
-     - core/node
-     - core/cluster
-     - gui/precheck
-     - gui/node
-     - gui/cluster
-     - gui/postcheck
-     - zimon/precheck
-     - zimon/node
-     - zimon/cluster
-     - zimon/postcheck
-     - callhome/precheck
-     - callhome/cluster
-     - nfs/precheck
-     - nfs/node
-     - nfs/cluster
-     - smb/node
-     - smb/cluster
-     - scale_fileauditlogging/node
-     - scale_fileauditlogging/cluster
+    - core/precheck
+    - core/node
+    - core/cluster
+    - core/postcheck
+    - gui/precheck
+    - gui/node
+    - gui/cluster
+    - gui/postcheck
+    - zimon/precheck
+    - zimon/node
+    - zimon/cluster
+    - zimon/postcheck
+    - callhome/precheck
+    - callhome/node
+    - callhome/cluster
+    - callhome/postcheck
+    - nfs/precheck
+    - nfs/node
+    - nfs/cluster
+    - nfs/postcheck
+    - smb/precheck
+    - smb/node
+    - smb/cluster
+    - smb/postcheck
+    - scale_fileauditlogging/precheck
+    - scale_fileauditlogging/node
+    - scale_fileauditlogging/cluster
+    - scale_fileauditlogging/postcheck

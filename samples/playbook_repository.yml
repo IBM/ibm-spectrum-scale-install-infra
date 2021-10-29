@@ -14,6 +14,8 @@
 # installation method.
 
 - hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
   vars:
     - scale_version: 5.0.4.0
     # Remember the trailing slash `/` in the URL

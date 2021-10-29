@@ -9,6 +9,8 @@
 # Sample definitions can be found in samples/vars/fal_vars.yml
 
 - hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
   vars:
     - scale_version: 5.0.4.0
     - scale_install_localpkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
@@ -22,3 +24,4 @@
     - scale_fileauditlogging/precheck
     - scale_fileauditlogging/node
     - scale_fileauditlogging/cluster
+    - scale_fileauditlogging/postcheck
