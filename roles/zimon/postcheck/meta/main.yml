@@ -12,13 +12,6 @@ galaxy_info:
       versions:
         - 7
 
-  galaxy_tags:
-    - ibm
-    - spectrum
-    - scale
-    - gpfs
-    - graphical
-    - interface
-    - gui
+  galaxy_tags: []
 
 dependencies: []

@@ -12,13 +12,9 @@ galaxy_info:
       versions:
         - 7
         - 8
-  galaxy_tags:
-    - ibm
-    - spectrum
-    - scale
-    - gpfs
+
+  galaxy_tags: []
 
 dependencies:
   - scale_object/precheck
   - nfs/common
-

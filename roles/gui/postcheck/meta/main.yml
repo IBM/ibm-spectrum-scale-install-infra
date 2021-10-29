@@ -13,13 +13,6 @@ galaxy_info:
         - 7
         - 8
 
-  galaxy_tags:
-    - ibm
-    - spectrum
-    - scale
-    - gpfs
-    - graphical
-    - interface
-    - gui
+  galaxy_tags: []
 
 dependencies: []
