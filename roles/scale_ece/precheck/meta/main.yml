@@ -3,8 +3,10 @@ galaxy_info:
   author: IBM Corporation
   description: Role for configuring IBM Spectrum Scale (GPFS) Erasure Code Edition configuration role
   company: IBM
+
   license: Apache-2.0
-  min_ansible_version: 2.8
+
+  min_ansible_version: 2.9
 
   platforms:
     - name: EL
