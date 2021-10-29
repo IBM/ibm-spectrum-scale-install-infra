@@ -1,0 +1,22 @@
+---
+#
+# samples/playbook_localpkg.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using local
+# archive installation method. This means that the self-extracting archive
+# containing the Spectrum Scale code is accessible on the Ansible control
+# machine running the playbook. Integrity of the archive will be validated by
+# comparing checksums with a *.md5 reference file (if present), the archive will
+# be copied to each managed node in your cluster
+# ('scale_install_localpkg_tmpdir_path'), and subsequently the archive will be
+# extracted. Packages will then be installed from the local files on each node.
+
+- hosts: cluster01
+  vars:
+    - scale_install_localpkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
+  roles:
+    - core/precheck
+    - core/node
+    - core/cluster
+    - core/postcheck
