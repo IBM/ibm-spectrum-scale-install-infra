@@ -17,4 +17,4 @@ galaxy_info:
   galaxy_tags: []
 
 dependencies:
-  - precheck
+  - ibm.spectrum_scale.callhome_prepare

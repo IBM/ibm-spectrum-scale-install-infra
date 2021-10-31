@@ -17,5 +17,5 @@ galaxy_info:
   galaxy_tags: []
 
 dependencies:
-  - core_common
-  - nfs_prepare
+  - ibm.spectrum_scale.core_common
+  - ibm.spectrum_scale.nfs_prepare

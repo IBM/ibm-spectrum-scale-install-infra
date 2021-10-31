@@ -17,5 +17,5 @@ galaxy_info:
   galaxy_tags: []
 
 dependencies:
-  - obj_prepare
-  - ces_common
+  - ibm.spectrum_scale.obj_prepare
+  - ibm.spectrum_scale.ces_common

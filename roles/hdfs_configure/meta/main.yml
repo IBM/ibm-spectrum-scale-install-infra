@@ -17,4 +17,4 @@ galaxy_info:
   galaxy_tags: []
 
 dependencies:
-  - ces_common
+  - ibm.spectrum_scale.ces_common
