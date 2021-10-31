@@ -17,5 +17,5 @@ galaxy_info:
   galaxy_tags: []
 
 dependencies:
-    - core/common
-    - scale_hdfs/precheck
+  - core/common
+  - scale_hdfs/precheck
