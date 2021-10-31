@@ -17,5 +17,5 @@ galaxy_info:
   galaxy_tags: []
 
 dependencies:
-  - core/common
-  - zimon/node
+  - core_common
+  - perfmon_install

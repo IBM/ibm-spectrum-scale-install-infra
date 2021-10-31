@@ -17,5 +17,5 @@ galaxy_info:
   galaxy_tags: []
 
 dependencies:
-  - core/common
-  - smb/precheck
+  - core_common
+  - smb_prepare

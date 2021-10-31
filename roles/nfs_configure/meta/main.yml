@@ -17,5 +17,5 @@ galaxy_info:
   galaxy_tags: []
 
 dependencies:
-  - nfs/precheck
-  - nfs/common
+  - nfs_prepare
+  - ces_common
