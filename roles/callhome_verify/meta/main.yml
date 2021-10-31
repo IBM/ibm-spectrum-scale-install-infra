@@ -17,4 +17,4 @@ galaxy_info:
   galaxy_tags: []
 
 dependencies: []
-#  - common
+#  - core_common
