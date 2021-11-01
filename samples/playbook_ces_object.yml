@@ -18,11 +18,11 @@
   pre_tasks:
     - include_vars: scale_object_vars.yml
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
-    - scale_object/precheck
-    - scale_object/node
-    - scale_object/cluster
-    - scale_object/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify
+    - obj_prepare
+    - obj_install
+    - obj_configure
+    - obj_verify

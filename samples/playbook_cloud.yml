@@ -14,15 +14,15 @@
   collections:
     - ibm.spectrum_scale
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
-    - gui/precheck
-    - gui/node
-    - gui/cluster
-    - gui/postcheck
-    - zimon/precheck
-    - zimon/node
-    - zimon/cluster
-    - zimon/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify
+    - gui_prepare
+    - gui_install
+    - gui_configure
+    - gui_verify
+    - perfmon_prepare
+    - perfmon_install
+    - perfmon_configure
+    - perfmon_verify

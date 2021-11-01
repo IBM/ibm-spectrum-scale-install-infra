@@ -16,7 +16,7 @@
   vars:
     - scale_install_remotepkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify

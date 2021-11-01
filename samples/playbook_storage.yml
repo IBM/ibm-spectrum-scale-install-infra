@@ -19,7 +19,7 @@
   pre_tasks:
     - include_vars: storage_vars.yml
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify

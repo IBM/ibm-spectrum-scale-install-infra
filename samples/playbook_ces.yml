@@ -19,15 +19,15 @@
   pre_tasks:
     - include_vars: ces_vars.yml
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
-    - nfs/precheck
-    - nfs/node
-    - nfs/cluster
-    - nfs/postcheck
-    - smb/precheck
-    - smb/node
-    - smb/cluster
-    - smb/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify
+    - nfs_prepare
+    - nfs_install
+    - nfs_configure
+    - nfs_verify
+    - smb_prepare
+    - smb_install
+    - smb_configure
+    - smb_verify

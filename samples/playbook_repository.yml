@@ -21,7 +21,7 @@
     # Remember the trailing slash `/` in the URL
     - scale_install_repository_url: http://server/path/
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify

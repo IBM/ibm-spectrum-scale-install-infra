@@ -16,7 +16,7 @@
   vars:
     - scale_install_directory_pkg_path: /root/spectrum_scale_packages
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify

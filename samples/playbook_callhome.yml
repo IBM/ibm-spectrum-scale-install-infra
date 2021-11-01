@@ -19,11 +19,11 @@
   pre_tasks:
     - include_vars: callhome_vars.yml
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
-    - callhome/precheck
-    - callhome/node
-    - callhome/cluster
-    - callhome/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify
+    - callhome_prepare
+    - callhome_install
+    - callhome_configure
+    - callhome_verify
