@@ -204,10 +204,10 @@ Installation Instructions
     vars:
       - scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
     roles:
-      - core/precheck
-      - core/node
-      - core/cluster
-      - core/postcheck
+      - core_prepare
+      - core_install
+      - core_configure
+      - core_verify
   ```   
 
   Again, this is just a minimal example. There are different installation methods available, each offering a specific set of options:
