@@ -1,4 +1,0 @@
-{% for host in groups['test_add_nodes'] | sort %}
-{{ hostvars[host].inventory_hostname }}:{{hostvars[host].designation }}
-{% endfor %}
-

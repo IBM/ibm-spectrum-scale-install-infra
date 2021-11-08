@@ -17,11 +17,11 @@
   pre_tasks:
     - include_vars: fal_vars.yml
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
-    - scale_fileauditlogging/precheck
-    - scale_fileauditlogging/node
-    - scale_fileauditlogging/cluster
-    - scale_fileauditlogging/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify
+    - fal_prepare
+    - fal_install
+    - fal_configure
+    - fal_verify

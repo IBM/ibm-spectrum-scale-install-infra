@@ -23,4 +23,4 @@
       - { scale_remotemount_client_filesystem_name: "fs1", scale_remotemount_client_remotemount_path: "/gpfs/fs1", scale_remotemount_storage_filesystem_name: "gpfs01", } # Minimum variables
       - { scale_remotemount_client_filesystem_name: "fs2", scale_remotemount_client_remotemount_path: "/gpfs/fs1", scale_remotemount_storage_filesystem_name: "gpfs02", scale_remotemount_client_mount_priority: '2', scale_remotemount_access_mount_attributes: "rw", scale_remotemount_client_mount_fs: "yes"  }
   roles:
-    - remote_mount
+    - remotemount_configure

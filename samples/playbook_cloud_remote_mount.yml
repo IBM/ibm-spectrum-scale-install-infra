@@ -16,7 +16,7 @@
   vars:
     - scale_remotemount_debug: true
   roles:
-    - remote_mount
+    - remotemount_configure
 
 # If Accessing/Client Cluster don't have GUI,
 # Then change wee need to add variable scale_remotemount_client_no_gui: true and ansible "hosts" need to point to one of the Scale client cluster node

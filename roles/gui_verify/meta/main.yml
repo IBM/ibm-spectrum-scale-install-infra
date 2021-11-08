@@ -1,0 +1,19 @@
+---
+galaxy_info:
+  author: IBM Corporation
+  description: Role for installing and configuring IBM Spectrum Scale (GPFS) Graphical User Interface (GUI)
+  company: IBM
+
+  license: Apache-2.0
+
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: EL
+      versions:
+        - 7
+        - 8
+
+  galaxy_tags: []
+
+dependencies: []

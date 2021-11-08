@@ -173,21 +173,6 @@ Installation Instructions
   └── playbook.yml
   ```
 
-  - **Alternatives - now deprecated!**
-
-    Alternatively, you can clone the project repository and create your [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html) inside the repository's directory structure:
-
-      ```shell
-      $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
-      $ cd ibm-spectrum-scale-install-infra
-      ```
-
-    Yet another alternative, you can also define an [Ansible environment variable](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#envvar-ANSIBLE_ROLES_PATH) to make the roles accessible in any external project directory:
-
-      ```shell
-      $ export ANSIBLE_ROLES_PATH=$(pwd)/ibm-spectrum-scale-install-infra/roles/
-      ```
-
 - **Create Ansible inventory**
 
   Define Spectrum Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `hosts`) in the following format:
@@ -219,10 +204,10 @@ Installation Instructions
     vars:
       - scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
     roles:
-      - core/precheck
-      - core/node
-      - core/cluster
-      - core/postcheck
+      - core_prepare
+      - core_install
+      - core_configure
+      - core_verify
   ```   
 
   Again, this is just a minimal example. There are different installation methods available, each offering a specific set of options:

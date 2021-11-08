@@ -19,11 +19,11 @@
   pre_tasks:
     - include_vars: hdfs_cluster_vars.yml
   roles:
-    - core/precheck
-    - core/node
-    - core/cluster
-    - core/postcheck
-    - scale_hdfs/precheck
-    - scale_hdfs/node
-    - scale_hdfs/cluster
-    - scale_hdfs/postcheck
+    - core_prepare
+    - core_install
+    - core_configure
+    - core_verify
+    - hdfs_prepare
+    - hdfs_install
+    - hdfs_configure
+    - hdfs_verify
