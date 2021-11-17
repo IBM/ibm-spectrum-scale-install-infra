@@ -12,7 +12,7 @@
 
 - name: check | Collect all object nodes
   set_fact:
-    scale_obj_nodes_list: "{{ scale_obj_nodes_list + [hostvars[item]['ansible_fqdn']] }}"
+    scale_obj_nodes_list: "{{ scale_obj_nodes_list + [hostvars[item]['inventory_hostname']] }}"
   when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
   with_items:
    - "{{ ansible_play_hosts }}"

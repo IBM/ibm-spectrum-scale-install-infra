@@ -5,7 +5,7 @@
 
 # Add pmswift rpm
 
-- block: ## when: ansible_fqdn in scale_obj_nodes_list
+- block: ## when: inventory_hostname in scale_obj_nodes_list
     - name: upgrade | pmswift path
       set_fact:
         scale_obj_url: 'zimon_rpms/rhel8'
@@ -24,9 +24,11 @@
          - "{{ scale_obj_sensors_packages }}"
       when: scale_install_repository_url is defined
 
-    - name: upgrade | Add pmswift package name 
+    - name: upgrade | Add pmswift package name
       vars:
         pmswift_package: "{{ object_package.files | map(attribute='path') | list}}"
       set_fact:
         scale_install_all_packages: "{{ scale_install_all_packages + pmswift_package }}"
       when: scale_install_repository_url is undefined
+
+  when: inventory_hostname in scale_obj_nodes_list
