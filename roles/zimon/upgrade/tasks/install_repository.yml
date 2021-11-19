@@ -188,6 +188,8 @@
          scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
       with_items:
           - "{{ scale_obj_sensors_packages }}"
-      when: (is_scale_pmswift_pkg_installed | bool)
+      when: 
+          - is_scale_pmswift_pkg_installed | bool
+          - scale_zimon_offline_upgrade is undefined
   when:
      - ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
