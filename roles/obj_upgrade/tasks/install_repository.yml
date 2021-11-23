@@ -4,12 +4,20 @@
     scale_obj_url: 'object_rpms/rhel8/'
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
+- name: install | pmswift path
+  set_fact:
+     scale_gpg_key_path:
+        - "{{ scale_gpgKey_repository_obj_src }}"
+        - "{{ scale_gpgKey_repository_src }}"
+  when: scale_version >= "5.1.2.2"
+
 - name: upgrade | configure object YUM repository
   yum_repository:
     name: spectrum-scale-object-rpms
     description: IBM Spectrum Scale (object RPMS)
     baseurl: "{{ scale_install_repository_url }}{{ scale_obj_url }}"
     gpgcheck: "{{ scale_install_gpgcheck }}"
+    gpgkey: "{{ scale_gpg_key_path }}"
     repo_gpgcheck: no
     sslverify: no
     state: present

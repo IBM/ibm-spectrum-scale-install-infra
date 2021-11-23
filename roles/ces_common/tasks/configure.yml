@@ -100,6 +100,30 @@
         ( scale_service_status.rc == 0 )
   run_once: true
 
+- name: configure | Check if OBJ is running
+  shell:
+   cmd: "{{ scale_command_path }}mmces service list|grep OBJ"
+  register: scale_service_status
+  when: (ansible_fqdn in scale_protocol_node_list) or
+        (inventory_hostname in scale_protocol_node_list)
+  ignore_errors: true
+  failed_when: false
+  run_once: true
+
+- name: configure | Add OBJ service to the list
+  set_fact:
+   scale_service_list: "{{ scale_service_list + [scale_service_status.stderr|regex_search('OBJ')] }}"
+  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+        ( scale_service_status.rc > 0 )
+  run_once: true
+
+- name: configure | Add OBJ service to the list
+  set_fact:
+   scale_service_list: "{{ scale_service_list + ['OBJ'] }}"
+  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+        ( scale_service_status.rc == 0 )
+  run_once: true
+
 - import_role:
    name: ibm.spectrum_scale.nfs_install
   when: scale_ces_disabled_nodes|length > 0 and 'NFS' in scale_service_list
@@ -107,6 +131,10 @@
 - import_role:
    name: ibm.spectrum_scale.smb_install
   when: scale_ces_disabled_nodes|length > 0 and 'SMB' in scale_service_list
+
+- import_role:
+   name: scale_object/node
+  when: scale_ces_disabled_nodes|length > 0 and 'OBJ' in scale_service_list
 
 - name: configure | Prepare ces nodes string
   set_fact:
