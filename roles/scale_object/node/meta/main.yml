@@ -20,5 +20,3 @@ galaxy_info:
 
 dependencies: 
     - scale_object/precheck
-    - nfs/common
-

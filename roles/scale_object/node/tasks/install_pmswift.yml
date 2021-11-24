@@ -12,14 +12,23 @@
         scale_zimon_url: 'zimon_rpms/rhel8'
       when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
+    - name: install | pmswift path
+      set_fact:
+        scale_gpg_key_path:
+             - "{{ scale_gpgKey_repository_obj_src }}"
+             - "{{ scale_gpgKey_repository_src }}"
+      when: scale_version >= "5.1.2.2"
+
     - name: install | Configure ZIMon YUM repository
       yum_repository:
         name: spectrum-scale-zimon
         description: IBM Spectrum Scale (ZIMon)
         baseurl: "{{ scale_install_repository_url }}{{ scale_zimon_url }}"
         gpgcheck: "{{ scale_install_gpgcheck }}"
+        gpgkey: "{{ scale_gpg_key_path }}"
         repo_gpgcheck: no
         state: present
+        sslverify: false
       notify: yum-clean-metadata
       when:
         - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
