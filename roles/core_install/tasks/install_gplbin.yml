@@ -15,6 +15,7 @@
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
     - scale_install_gplbin_repository_url is defined
+    - scale_install_gplbin_repository_url != 'existing'
 
 - name: install | Configure GPL module repository
   apt_repository:
@@ -26,6 +27,7 @@
   when:
     - ansible_pkg_mgr == 'apt'
     - scale_install_gplbin_repository_url is defined
+    - scale_install_gplbin_repository_url != 'existing'
 
 - name: install | Configure GPL module repository
   zypper_repository:
@@ -37,6 +39,7 @@
   when:
     - ansible_pkg_mgr == 'zypper'
     - scale_install_gplbin_repository_url is defined
+    - scale_install_gplbin_repository_url != 'existing'
 #
 # Add kernel extension prereqs
 #

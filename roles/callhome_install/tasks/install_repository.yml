@@ -16,6 +16,7 @@
   notify: yum-clean-metadata
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
 
 - name: install | Configure Callhome APT repository
@@ -29,6 +30,7 @@
     mode: 0777
   when:
     - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
 
 - name: install | Configure Callhome zypper repository
@@ -40,6 +42,7 @@
     disable_gpg_check: yes
   when:
     - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
 
 #
