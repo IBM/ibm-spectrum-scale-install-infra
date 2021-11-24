@@ -48,21 +48,21 @@
 
 - name: configure | Set configuration parameter to configure OBJ
   set_fact:
-    obj_param: "-g {{ scale_protocols.mountpoint }} -o {{ scale_ces_obj.object_fileset }} --cluster-hostname {{ scale_obj_nodes_list.0 }} --pwd-file {{ scale_ces_obj.pwd_file }}"
+    obj_param: "-g {{ scale_protocols.mountpoint }} -o {{ scale_ces_obj.object_fileset }} --cluster-hostname {{ hostvars[scale_obj_nodes_list.0]['scale_daemon_nodename'] }} --pwd-file {{ scale_ces_obj.pwd_file }}"
   delegate_to: "{{ scale_obj_nodes_list.0 }}"
   when:
      - not scale_ces_dynamic_obj|bool
   run_once: True
 
-- name: configure | Check local-keystone is defined 
+- name: configure | Check local-keystone is defined
   set_fact:
-    obj_param: "{{ obj_param }} --local-keystone" 
-  when: 
+    obj_param: "{{ obj_param }} --local-keystone"
+  when:
      - scale_ces_obj.local_keystone is defined and scale_ces_obj.local_keystone|bool
      - not scale_ces_dynamic_obj|bool
   delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: True
- 
+
 - name: configure | Check enable-s3 is defined
   set_fact:
     obj_param: "{{ obj_param }} --enable-s3"
@@ -80,7 +80,7 @@
      - not scale_ces_dynamic_obj|bool
   delegate_to: "{{ scale_obj_nodes_list.0 }}"
   run_once: true
- 
+
 #
 # Configure Object
 #
@@ -104,8 +104,8 @@
       register: scale_ces_enable_obj_service
 
     - name: configure | Show OBJ Service is enabled
-      debug: 
-        var: scale_ces_enable_obj_service.stdout_lines 
+      debug:
+        var: scale_ces_enable_obj_service.stdout_lines
 
     # Start Object on CES
     - name: configure | Start OBJ Service
@@ -124,4 +124,4 @@
 
   when: obj_enabled is defined and not obj_enabled
   delegate_to: "{{ scale_obj_nodes_list.0 }}"
-  run_once: true 
+  run_once: true
