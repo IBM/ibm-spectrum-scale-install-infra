@@ -28,4 +28,4 @@ scale_pm_package:
 scale_install_localpkg_tmpdir_path: /tmp
 
 ## Flag to install ganesha debug package
-install_debuginfo: true
+scale_nfs_install_debuginfo: true
