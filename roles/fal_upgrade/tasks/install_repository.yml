@@ -123,4 +123,4 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_auditlogging_packages }}"
-  when: (scale_fileauditlogging_enable | bool)
+  when: (scale_fal_enable | bool)

@@ -3,7 +3,7 @@
 # either edit this file or define your own variables to override the defaults
 
 ## Flag to enable fileauditlogging
-scale_fileauditlogging_enable: true
+scale_fal_enable: true
 
 ## Default filesystem parameters for file audit logging-
 ## can be overridden for each filesystem individually

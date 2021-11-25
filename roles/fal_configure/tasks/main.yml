@@ -3,13 +3,13 @@
 - import_tasks: configure.yml
   tags: configure
   when:
-     - scale_fileauditlogging_enable | bool
+     - scale_fal_enable | bool
      - scale_filesystem is undefined
      - scale_storage is defined
  
 - import_tasks: configure_fal.yml
   tags: configure
   when:
-     - scale_fileauditlogging_enable | bool
+     - scale_fal_enable | bool
      - scale_filesystem is defined
      - scale_storage is undefined
