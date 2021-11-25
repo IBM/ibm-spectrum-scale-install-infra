@@ -22,7 +22,7 @@
         groups: scale_cluster_members
       when:
         - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'present'
-        - hostvars[item].is_admin_node is defined and hostvars[item].is_admin_node|bool
+        - hostvars[item].scale_admin_node is defined and hostvars[item].scale_admin_node|bool
         - hostvars[item].scale_cluster_clusterId.stdout
       with_items: "{{ ansible_play_hosts }}"
       changed_when: false
