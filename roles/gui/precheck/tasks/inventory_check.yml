@@ -1,4 +1,6 @@
 ---
+- set_fact:
+        scale_cluster_gui_node: false
 
 - name: check | Check gui node
   add_host:
@@ -14,9 +16,7 @@
   set_fact:
     scale_cluster_gui_node: true
   when:
-     - (hostvars[item].scale_cluster_gui is defined and
-       (true in ansible_play_hosts | map('extract', hostvars, 'scale_cluster_gui') | map('bool') | list))
-  with_items: "{{ ansible_play_hosts }}"
+     - groups['scale_gui_nodes'] is defined and groups['scale_gui_nodes'] | length > 0
   run_once: true
   delegate_facts: true
 
