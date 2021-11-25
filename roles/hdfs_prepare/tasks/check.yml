@@ -41,7 +41,7 @@
 
 - fail:
     msg: "HDFS is not supported on {{ ansible_distribution }} OS."
-  when: ansible_distribution not in hdfs_os_distribution
+  when: ansible_distribution not in scale_hdfs_os_distribution
   delegate_to: "{{ server }}"
   run_once: true
 
