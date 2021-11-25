@@ -41,7 +41,6 @@
   when:
      - (groups['scale_gui_colnodes'] is defined and groups['scale_gui_colnodes'] | length > 0) or
        (groups['scale_zimon_collectors'] is defined and groups['scale_zimon_collectors'] | length > 0)
-  with_items: "{{ ansible_play_hosts }}"
   run_once: true
   delegate_facts: true
 
