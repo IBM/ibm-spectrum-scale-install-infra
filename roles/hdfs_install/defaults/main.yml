@@ -12,7 +12,7 @@ scale_hdfs_packages: gpfs.hdfs-protocol
 scale_install_localpkg_tmpdir_path: /tmp
 
 ## Flag to install hdfs debug package
-install_debuginfo: true
+scale_hdfs_install_debuginfo: true
 
 # Directory to install 3.1.1.x hdfs package
 hdfs_rhel_version_path: 'hdfs_rpms/rhel/hdfs_3.1.1.x/'
