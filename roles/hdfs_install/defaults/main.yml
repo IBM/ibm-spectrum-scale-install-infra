@@ -15,13 +15,13 @@ scale_install_localpkg_tmpdir_path: /tmp
 scale_hdfs_install_debuginfo: true
 
 # Directory to install 3.1.1.x hdfs package
-hdfs_rhel_version_path: 'hdfs_rpms/rhel/hdfs_3.1.1.x/'
+scale_hdfs_rhel_version_path: 'hdfs_rpms/rhel/hdfs_3.1.1.x/'
 
 # Directory to install 3.3.x hdfs package
-hdfs_rhel_version_path_33: 'hdfs_rpms/rhel/hdfs_3.3.x/'
+scale_hdfs_rhel_version_path_33: 'hdfs_rpms/rhel/hdfs_3.3.x/'
 
 # Directory to install 3.1.1.x hdfs package
-hdfs_sles_version_path: 'hdfs_rpms/rhel/hdfs_3.1.1.x/'
+scale_hdfs_sles_version_path: 'hdfs_rpms/rhel/hdfs_3.1.1.x/'
 
 # Directory to install 3.1.1.x hdfs package
-hdfs_ubuntu_version_path: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
+scale_hdfs_ubuntu_version_path: 'hdfs_debs/ubuntu/hdfs_3.1.1.x/'
