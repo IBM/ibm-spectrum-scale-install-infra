@@ -44,11 +44,10 @@
 - name: check | Check if ece node is not nsd node
   assert:
     that:
-      - not hostvars[item]['is_nsd_server']|bool
+      - not hostvars[item]['scale_nsd_server']|bool
     fail_msg: "ECE node cannot be nsd server"
-  when: hostvars[item]['is_nsd_server'] is defined
+  when: hostvars[item]['scale_nsd_server'] is defined
   with_items:
     - "{{ scale_ece_nodes_list }}"
   run_once: true
   any_errors_fatal: true
-
