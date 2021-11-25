@@ -58,7 +58,7 @@
      scale_remotemount_storage_gui_hostname: "{{ scale_remotemount.storage_gui_hostname | default(omit) }}"
      scale_remotemount_storage_filesystem_name: "{{ scale_remotemount.storage_filesystem_name | default(omit) }}"
      scale_sync_replication_config: "{{ scale_cluster.scale_sync_replication_config | default(false) }}"
-     is_protocol_node: "{{ item.is_protocol_node | default(false) }}"
+     scale_protocol_node: "{{ item.is_protocol_node | default(false) }}"
      scale_callhome_params: "{{ scale_callhome_params | default(omit) }}"
      scale_protocols: "{{ scale_protocols | default(omit) }}"
      scale_hdfs_cluster: "{{ scale_hdfs_cluster | default(omit) }}"

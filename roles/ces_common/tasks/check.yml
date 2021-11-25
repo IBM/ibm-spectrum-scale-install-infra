@@ -17,7 +17,7 @@
 - name: check | Collect all protocol nodes
   set_fact:
    scale_protocol_node_list: "{{ scale_protocol_node_list + [hostvars[item]['scale_daemon_nodename']] }}"
-  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+  when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
   with_items:
    - "{{ ansible_play_hosts }}"
   delegate_to: localhost
@@ -34,7 +34,7 @@
 - name: check | Collect all protocol node OS
   set_fact:
    scale_os_list: "{{ scale_os_list + [hostvars[item]['ansible_distribution']] }}"
-  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+  when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
   with_items:
   - "{{ ansible_play_hosts }}"
   delegate_to: localhost
@@ -50,7 +50,7 @@
 - name: check | Collect all protocol node architecture
   set_fact:
    scale_arch_list: "{{ scale_arch_list + [hostvars[item]['ansible_architecture']] }}"
-  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+  when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
   with_items:
   - "{{ ansible_play_hosts }}"
   delegate_to: localhost

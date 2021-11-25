@@ -13,7 +13,7 @@
 - name: check | Collect all protocol nodes
   set_fact:
    scale_protocol_nodes_list: "{{ scale_protocol_nodes_list + [hostvars[hosts]['ansible_fqdn']] }}"
-  when: hostvars[hosts]['is_protocol_node'] is defined and hostvars[hosts]['is_protocol_node']|bool
+  when: hostvars[hosts]['scale_protocol_node'] is defined and hostvars[hosts]['scale_protocol_node']|bool
   with_items:
    - "{{ ansible_play_hosts }}"
   loop_control:
