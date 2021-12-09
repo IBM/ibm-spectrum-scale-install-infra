@@ -58,4 +58,32 @@ scale_remotemount_cleanup_remote_mount: false
 # Spectrum Scale uses the Deamon Node Name and the IP Attach to connect and run Cluster traffic. in most cases the admin network and deamon network is the same.
 # In case you have different AdminNode address and DeamonNode address and for some reason you want to use admin network, then you can set the variable: scale_remotemount_storage_adminnodename: true
 # Default = DeamonNodeName
-#scale_remotemount_storage_adminnodename: false
+scale_remotemount_storage_adminnodename: false
+
+
+# Added check that GPFS deamon is started on GUI node, it will check the first server in NodeClass GUI_MGMT_SERVERS
+# Check can be disabled with changing the flag to false.
+scale_remotemount_gpfsdemon_check: true
+
+# Default it will try to mount the filesystem on all client cluster (accessing) nodes, here you can replace the this with a comma seperated list of servers.
+# scale1-test,scale2-test
+# scale_remotemount_client_mount_on_nodes: all
+
+# When we are adding the storage Cluster in client cluster we need to spesify what nodes should be used. and in normal cases all nodes would be fine.
+# In cases we have AFM Gateway nodes, or Cloud nodes TFCT, we want to use the RESTAPI filter to remove those nodes so they are not used.
+# Example and the default below is to only list all servers that have (AFM) gatewayNode=false.
+scale_remotemount_storage_contactnodes_filter: '?fields=roles.gatewayNode%2Cnetwork.daemonNodeName&filter=roles.gatewayNode%3Dfalse'
+# Examples:
+# NO AFM and CloudGateway: ?fields=roles.gatewayNode%2Cnetwork.daemonNodeName%2Croles.cloudGatewayNode&filter=roles.gatewayNode%3Dfalse%2Croles.cloudGatewayNode%3Dfalse
+# to create your own filter, go to the API Explorer on Spectrum Scale GUI. https://IP-TO-GUI-NODE/ibm/api/explorer/#!/Spectrum_Scale_REST_API_v2/nodesGetv2
+# Roles in version 5.1.1.3
+#      "roles": {
+#        "cesNode": false,
+#        "cloudGatewayNode": false,
+#        "cnfsNode": false,
+#        "designation": "quorum",
+#        "gatewayNode": false,
+#        "managerNode": false,
+#        "otherNodeRoles": "perfmonNode",
+#        "quorumNode": true,
+#        "snmpNode": false

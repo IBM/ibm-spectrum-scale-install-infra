@@ -90,7 +90,9 @@
   run_once: True
 
 #
-# TODO: there is no Check if the Storage Cluster (Owner) is allready defined on Client Cluster
+# TODO: there is no Check if the Storage Cluster (Owner) is allready defined on Client Cluster, so in some cases where storage cluster have connection to client cluster (mmauth) but the client cluster don't have, the playbook will fail
+# as the owningcluster is in a array, we need to loop over or make list of the array to be able to use when:
+#
 - name: Client Cluster (access) | List the remote cluster already defined
   uri:
     validate_certs: "{{ validate_certs_uri }}"
@@ -266,7 +268,7 @@
       uri:
         validate_certs: "{{ validate_certs_uri }}"
         force_basic_auth: yes
-        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes{{ scale_remotemount_storage_contactnodes_filter }}
         method: GET
         user: "{{ scale_remotemount_storage_gui_username }}"
         password: "{{ scale_remotemount_storage_gui_password }}"
@@ -315,7 +317,7 @@
 #
 # adminNodeName section
 #
-    - name: scale_remotemount_debug | Print out the array storing the nodes in the Storage Cluster (owning)
+    - name: scale_remotemount_debug | Print out the array storing the adminNodeNames from the Storage Cluster (owning)
       debug:
         msg: "{{ owning_nodes_name }}"
       when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
@@ -359,7 +361,7 @@
 #
 # deamonNodeName section
 #
-    - name: scale_remotemount_debug | Print out the array storing the nodes in the Storage Cluster (owning)
+    - name: scale_remotemount_debug | Print out the array storing the DeamonNodeNames from the Storage Cluster (owning)
       debug:
         msg: "{{ owning_daemon_nodes_name }}"
       when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
@@ -384,7 +386,7 @@
           - 202
       register: daemonnodesname_uri_result
       run_once: True
-      when: scale_remotemount_storage_adminnodename is not true
+      when: not scale_remotemount_storage_adminnodename
 
     - name: "Client Cluster (access) | Check the result of adding the remote Storage Cluster with DeamonNodeName (JOB: {{ daemonnodesname_uri_result.json.jobs[0].jobId }})"
       uri:
@@ -399,7 +401,7 @@
       retries: "{{ restapi_retries_count }}"
       delay: "{{ restapi_retries_delay }}"
       run_once: True
-      when: scale_remotemount_storage_adminnodename is not true
+      when: not scale_remotemount_storage_adminnodename
   when:
     - (remote_clusters_results.status == 400) or (scale_remotemount_forceRun | bool)
 
@@ -474,7 +476,7 @@
   when:
    - 'item.item.scale_remotemount_storage_filesystem_name not in current_scale_remotemount_storage_filesystem_name'
 
-- name: Mount Filesystem | Storage Cluster (owning) | Check the result of setting the access attributes on the Storage Cluster "{{ item.json.jobs.0['jobId'] }}"
+- name: Mount Filesystem | Storage Cluster (owning) | Check the result of setting the access attributes on the Storage Cluster ##"{{ item.json.jobs.0['jobId'] }}"
   uri:
     validate_certs: "{{ validate_certs_uri }}"
     force_basic_auth: true

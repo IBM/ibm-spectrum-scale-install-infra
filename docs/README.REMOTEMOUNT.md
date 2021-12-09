@@ -3,7 +3,7 @@ IBM Spectrum Scale (GPFS) Remote Cluster and Mount Role
 
 Role Definition
 -------------------------------
-- Role name: **remote_mount**
+- Role name: **remotemount_configure**
 - Definition:
   - This role adds support for consumers of the playbook to remote mount a IBM Spectrum Scale filesystem from a Storage cluster. 
     The roles leverage the Spectrum Scale REST API , meaning 5.0.5.2 or later versions of Scale contains the endpoints.
@@ -74,6 +74,35 @@ The following variables would need to be defined by the user, either as vars to 
 
 -  ``scale_remotemount_storage_adminnodename: true `` (Default to: false) **Spectrum Scale uses the Deamon node name and the IP Attach to connect and run cluster traffic on. In most cases the admin network and deamon network is the same. In case you have different AdminNode address and DeamonNode address and for some reason you want to use admin network, then you can set the variable to true**
 
+
+- ``scale_remotemount_gpfsdemon_check: true ``(Default to: true) **Checks that GPFS deamon is started on GUI node, it will check the first server in NodeClass GUI_MGMT_SERVERS, this is the same flag to check when trying to mount up filesystems on all nodes. Check can be disabled with changing the flag to false.**
+
+- ``scale_remotemount_client_mount_on_nodes: all``(Default to: all) **Default it will try to mount the filesystem on all client cluster (accessing) nodes, here you can replace this with a comma separated list of servers. example: scale1-test,scale2-test**
+
+
+- ``scale_remotemount_storage_contactnodes_filter: '?fields=roles.gatewayNode%2Cnetwork.daemonNodeName&filter=roles.gatewayNode%3Dfalse' `` 
+  - When adding the storage Cluster as a remotecluster in client cluster we need to specify what nodes should be used as contact node, and in normal cases **all** nodes would be fine. In case we have AFM Gateway nodes, or Cloud nodes TFCT, we want to use the RESTAPI filter to remove those nodes, so they are not used.
+
+  - **Example**: 
+     - Default is only list all servers that have (AFM) gatewayNode=false. ``scale_remotemount_storage_contactnodes_filter: '?fields=roles.gatewayNode%2Cnetwork.daemonNodeName&filter=roles.gatewayNode%3Dfalse'``
+     - No AFM and CloudGateway: ``?fields=roles.gatewayNode%2Cnetwork.daemonNodeName%2Croles.cloudGatewayNode&filter=roles.gatewayNode%3Dfalse%2Croles.cloudGatewayNode%3Dfalse``
+     - To create your own filter, go to the API Explorer on Spectrum Scale GUI. https://IP-TO-GUI-NODE/ibm/api/explorer/#!/Spectrum_Scale_REST_API_v2/nodesGetv2
+      
+    Roles in version 5.1.1.3
+        
+    ```json
+      "roles": {
+         "cesNode": false,
+         "cloudGatewayNode": false,
+         "cnfsNode": false,
+         "designation": "quorum",
+         "gatewayNode": false,
+         "managerNode": false,
+         "otherNodeRoles": "perfmonNode",
+         "quorumNode": true,
+         "snmpNode": false
+    ```
+
 Example Playbook's
 -------------------------------
 
@@ -82,7 +111,7 @@ There is also example playbook's in samples folder.
 ### Playbook: Storage Cluster and Client Cluster have GUI
 
 You can use localhost, then all RestAPI call will occur over https to Storage and Client Cluster locally from where you run the Ansible playbook 
-
+```yaml
     - hosts: localhost
       vars:
          scale_remotemount_client_gui_username: admin
@@ -96,6 +125,7 @@ You can use localhost, then all RestAPI call will occur over https to Storage an
           - { scale_remotemount_client_filesystem_name: "fs3", scale_remotemount_client_remotemount_path: "/gpfs/fs3", scale_remotemount_storage_filesystem_name: "gpfs02", scale_remotemount_client_mount_priority: '2', scale_remotemount_access_mount_attributes: "rw", scale_remotemount_client_mount_fs: "yes"  }
       roles:
         - remote_mount
+```
 
 ``ansible-playbook -i hosts remotmount.yml``
 
@@ -105,7 +135,7 @@ You can use localhost, then all RestAPI call will occur over https to Storage an
 
 Following example will connect up to the first host in your ansible host file, and then run the playbook and do API Call to Storage Cluster. 
 So in this case the Client Cluster node needs access on https/443 to Storage Cluster GUI Node.
-
+```yaml
     - hosts: scale-client-cluster-node-1
       gather_facts: false
       vars:
@@ -118,7 +148,7 @@ So in this case the Client Cluster node needs access on https/443 to Storage Clu
           - { scale_remotemount_client_filesystem_name: "fs3", scale_remotemount_client_remotemount_path: "/gpfs/fs3", scale_remotemount_storage_filesystem_name: "gpfs02", scale_remotemount_client_mount_priority: '2', scale_remotemount_access_mount_attributes: "rw", scale_remotemount_client_mount_fs: "yes"  }
        roles:
          - remote_mount
-
+```
 Firewall recommendations for communication among cluster's
 --------
 

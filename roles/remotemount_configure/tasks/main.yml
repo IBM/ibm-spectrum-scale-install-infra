@@ -108,6 +108,76 @@
       when:
         - access_cluster_status.status == 401
 
+    - name: Main | Client Cluster (access) | Check status of GPFS deamon (Nodeclass GUI_MGMT_SERVERS)
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: true
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes/GUI_MGMT_SERVERS/health/states?fields=component%2Cstate&filter=component%3DGPFS%2C
+        method: GET
+        user: "{{ scale_remotemount_client_gui_username }}"
+        password: "{{ scale_remotemount_client_gui_password }}"
+        body_format: json
+        return_content: yes
+        status_code:
+          - 200
+      register: clientcluster_gpfs_deamon_status
+      run_once: True
+      when: scale_remotemount_gpfsdemon_check | bool
+
+    - name: Main | Client Cluster (access) | Print status of GPFS deamon on GUI_MGMT_SERVERS - Debug
+      run_once: True
+      ignore_errors: true
+      debug:
+        msg: "{{ clientcluster_gpfs_deamon_status.json.states[0].state }}"
+      when:
+        - scale_remotemount_gpfsdemon_check | bool
+        - scale_remotemount_debug is defined
+        - scale_remotemount_debug | bool
+
+    - name: Main | Client Cluster (access) | GPFS Deamon on Client Cluster is down (Nodeclass GUI_MGMT_SERVERS)
+      run_once: True
+      assert:
+        that:
+          - "'HEALTHY' or 'DEGRADED' in storagecluster_gpfs_deamon_status.json.states[0].state"
+        fail_msg: "'GPFS Deamon is NOT started on NodeClass GUI_MGMT_SERVERS"
+        success_msg: "'GPFS Deamon is started on NodeClass GUI_MGMT_SERVERS"
+      when: scale_remotemount_gpfsdemon_check | bool
+
+    - name: Main | Storage Cluster (owning) | Check status of gpfs deamon on GUI_MGMT_SERVERS
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: true
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes/GUI_MGMT_SERVERS/health/states?fields=component%2Cstate&filter=component%3DGPFS%2C
+        method: GET
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+        body_format: json
+        return_content: yes
+        status_code:
+          - 200
+      register: storagecluster_gpfs_deamon_status
+      run_once: True
+      when: scale_remotemount_gpfsdemon_check | bool
+
+    - name: Main | storage Cluster (owning) | Print status of GPFS deamon on GUI_MGMT_SERVERS - Debug
+      run_once: True
+      ignore_errors: true
+      debug:
+        msg: "{{ storagecluster_gpfs_deamon_status.json.states[0].state }}"
+      when:
+        - scale_remotemount_gpfsdemon_check | bool
+        - scale_remotemount_debug is defined
+        - scale_remotemount_debug | bool
+
+    - name: Main | Storage Cluster (owning) | GPFS Deamon on Storage Cluster is down (Nodeclass GUI_MGMT_SERVERS)
+      run_once: True
+      assert:
+        that:
+          - "'HEALTHY' or 'DEGRADED' in storagecluster_gpfs_deamon_status.json.states[0].state"
+        fail_msg: "'GPFS Deamon is NOT started on NodeClass GUI_MGMT_SERVERS"
+        success_msg: "'GPFS Deamon is started on NodeClass GUI_MGMT_SERVERS"
+      when: scale_remotemount_gpfsdemon_check | bool
+
     - name: msg
       debug:
         msg: "Force Run was passed in, attempting to run remote_mount role regardless of whether the filesystem is configured."
@@ -160,16 +230,51 @@
     when:
       - storage_cluster_status.status == 401
 
+  - name: Main | API-CLI | Storage Cluster (owning) | Check status of gpfs deamon on GUI_MGMT_SERVERS
+    uri:
+      validate_certs: "{{ validate_certs_uri }}"
+      force_basic_auth: true
+      url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes/GUI_MGMT_SERVERS/health/states?fields=component%2Cstate&filter=component%3DGPFS%2C
+      method: GET
+      user: "{{ scale_remotemount_storage_gui_username }}"
+      password: "{{ scale_remotemount_storage_gui_password }}"
+      body_format: json
+      return_content: yes
+      status_code:
+        - 200
+    register: storagecluster_gpfs_deamon_status
+    run_once: True
+    when: scale_remotemount_gpfsdemon_check | bool
+
+  - name: Main | API-CLI |  Storage Cluster (owning) | Print status of GPFS deamon on GUI_MGMT_SERVERS - Debug
+    run_once: True
+    ignore_errors: true
+    debug:
+      msg: "{{ storagecluster_gpfs_deamon_status.json.states[0].state }}"
+    when:
+      - scale_remotemount_gpfsdemon_check | bool
+      - scale_remotemount_debug is defined
+      - scale_remotemount_debug | bool
+
+  - name: Main | API-CLI | Storage Cluster (owning) | GPFS Deamon on Storage Cluster is down (Nodeclass GUI_MGMT_SERVERS)
+    run_once: True
+    assert:
+      that:
+        - "'HEALTHY' or 'DEGRADED' in storagecluster_gpfs_deamon_status.json.states[0].state"
+      fail_msg: "'GPFS Deamon is NOT started on NodeClass GUI_MGMT_SERVERS"
+      success_msg: "'GPFS Deamon is started on NodeClass GUI_MGMT_SERVERS"
+    when: scale_remotemount_gpfsdemon_check | bool
+
   - name: Main | API-CLI | Force Run
     debug:
-      msg: "Force Run was passed in, attempting to run remote_mount role regardless of whether the filesystem is configured."
+      msg: "Force Run was passed in, attempting to run remote_mount role regardless of whether the filesystem is configured"
     when: scale_remotemount_forceRun | bool
 
   - name: Main | API-CLI | Configure Remote Cluster
     include_tasks: remotecluster_api_cli.yml
     run_once: True
 
-  - name: Main | API-CLI | Remote mount the filesystem's
+  - name: Main | API-CLI | Remote Mount the filesystems
     include_tasks: mount_filesystem_api_cli.yml
     run_once: True
 
