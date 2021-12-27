@@ -4,7 +4,7 @@
   shell:
    cmd: "{{ scale_command_path }}mmces service list|grep OBJ"
   register: scale_obj_status
-  when: ansible_fqdn in scale_obj_nodes_list
+  when: inventory_hostname in scale_obj_nodes_list
   failed_when: false
 
 - name: postcheck | Check if OBJ is running
@@ -12,4 +12,4 @@
    that:
    - scale_obj_status.rc == 0
    fail_msg: "OBJ is not active on {{ ansible_hostname }}"
-  when: ansible_fqdn in scale_obj_nodes_list
+  when: inventory_hostname in scale_obj_nodes_list

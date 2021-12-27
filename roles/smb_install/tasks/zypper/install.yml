@@ -4,4 +4,4 @@
    name: "{{ scale_install_all_packages }}"
    state: present
    disable_gpg_check: no
-  when: ansible_fqdn in scale_smb_node_list
+  when: inventory_hostname in scale_smb_node_list

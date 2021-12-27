@@ -21,9 +21,9 @@
 
 - name: configure | Prepare server nodes string
   set_fact:
-   scale_server_nodes: "{{ scale_server_nodes + ',' + item|string }}"
+    scale_server_nodes: "{{ scale_server_nodes + ',' + hostvars[item]['scale_daemon_nodename'] | string }}"
   with_items:
-  - "{{ scale_protocol_node_list }}"
+    - "{{ scale_protocol_node_list }}"
 
 - name: configure | Setting server licenses on protocol nodes
   command: "{{ scale_command_path }}mmchlicense server --accept -N {{ scale_server_nodes[1:] }}"
@@ -42,8 +42,8 @@
 
 - name: configure | Collect all nodes on which ces is not enabled
   set_fact:
-    scale_ces_disabled_nodes: "{{ scale_ces_disabled_nodes + [ item ]}}"
-  when: not scale_ces_enable_status.stdout_lines is search(item)
+    scale_ces_disabled_nodes: "{{ scale_ces_disabled_nodes + [hostvars[item]['scale_daemon_nodename']] }}"
+  when: not scale_ces_enable_status.stdout_lines is search(hostvars[item]['scale_daemon_nodename'])
   with_items:
     - "{{ scale_protocol_node_list }}"
 
@@ -52,14 +52,13 @@
    name: iputils-arping
    state: present
   when: (ansible_distribution in scale_ubuntu_distribution) and
-        (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list)
+        (inventory_hostname in scale_protocol_node_list)
 
 - name: configure | Check if SMB is running
   shell:
    cmd: "{{ scale_command_path }}mmces service list|grep SMB"
   register: scale_service_status
-  when: (ansible_fqdn in scale_protocol_node_list) or
-        (inventory_hostname in scale_protocol_node_list)
+  when: inventory_hostname in scale_protocol_node_list
   ignore_errors: true
   failed_when: false
   run_once: true
@@ -67,14 +66,14 @@
 - name: configure | Add SMB service to list
   set_fact:
    scale_service_list: "{{ scale_service_list + [scale_service_status.stderr|regex_search('SMB')] }}"
-  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+  when: (inventory_hostname in scale_protocol_node_list) and
         ( scale_service_status.rc > 0 )
   run_once: true
 
 - name: configure | Add SMB service to list
   set_fact:
    scale_service_list: "{{ scale_service_list + ['SMB'] }}"
-  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+  when: (inventory_hostname in scale_protocol_node_list) and
         ( scale_service_status.rc == 0 )
   run_once: true
 
@@ -82,8 +81,7 @@
   shell:
    cmd: "{{ scale_command_path }}mmces service list|grep NFS"
   register: scale_service_status
-  when: (ansible_fqdn in scale_protocol_node_list) or
-        (inventory_hostname in scale_protocol_node_list)
+  when: inventory_hostname in scale_protocol_node_list
   ignore_errors: true
   failed_when: false
   run_once: true
@@ -91,14 +89,14 @@
 - name: configure | Add NFS service to the list
   set_fact:
    scale_service_list: "{{ scale_service_list + [scale_service_status.stderr|regex_search('NFS')] }}"
-  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+  when: (inventory_hostname in scale_protocol_node_list) and
         ( scale_service_status.rc > 0 )
   run_once: true
 
 - name: configure | Add NFS service to the list
   set_fact:
    scale_service_list: "{{ scale_service_list + ['NFS'] }}"
-  when: (ansible_fqdn in scale_protocol_node_list or inventory_hostname in scale_protocol_node_list) and
+  when: (inventory_hostname in scale_protocol_node_list) and
         ( scale_service_status.rc == 0 )
   run_once: true
 
@@ -128,10 +126,10 @@
 
   #- name: configure | Collect status of ces nodes
   #shell:
-  # cmd: "{{ scale_command_path }}mmces node list|grep {{ item }}"
+  # cmd: "{{ scale_command_path }}mmces node list|grep {{ hostvars[item]['scale_daemon_nodename'] }}"
   #register: scale_ces_enable_status
   #with_items:
-  #- "{{ scale_protocol_node_list }}"
+  #  - "{{ scale_protocol_node_list }}"
   #delegate_to: "{{ scale_protocol_node_list.0 }}"
 
   #- name: configure | Check CES enabled on all nodes
@@ -157,7 +155,7 @@
 - name: configure| Check CES enabled on all nodes
   assert:
     that:
-      - "item in scale_ces_enable_status.stdout"
+      - hostvars[item]['scale_daemon_nodename'] in scale_ces_enable_status.stdout
     fail_msg: "CES is not enabled on {{ item }} protocol node"
     success_msg: "Successful enabling of CES on protocol node {{ item }}"
   with_items:
@@ -192,8 +190,7 @@
 
   - name: configure | Assign export ips as pool for CES groups
     command: "{{ scale_command_path }}mmces address add --ces-ip {{ item.export_ip_pool|join(',') }} --ces-group {{ item.group_name}}"
-    when: (ansible_fqdn in scale_protocol_node_list) or
-          (inventory_hostname in scale_protocol_node_list)
+    when: inventory_hostname in scale_protocol_node_list
     delegate_to: "{{ scale_protocol_node_list.0 }}"
     with_items:
     - "{{ scale_protocols.scale_ces_groups }}"
@@ -218,7 +215,7 @@
 
 - name: configure | Rebalance CES IPs
   command: "{{ scale_command_path }}mmces address move --rebalance"
-  #when: ansible_fqdn in scale_protocol_node_list
+  #when: inventory_hostname in scale_protocol_node_list
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
 

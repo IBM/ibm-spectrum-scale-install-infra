@@ -72,4 +72,4 @@
   package:
    name: rpcbind
    state: present
-  when: ansible_fqdn in scale_nfs_nodes_list
+  when: inventory_hostname in scale_nfs_nodes_list

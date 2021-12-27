@@ -99,13 +99,13 @@
 
 # Find object rpms
 
-- block: ## when: ansible_fqdn in scale_obj_nodes_list 
+- block: ## when: inventory_hostname in scale_obj_nodes_list
     - name: install | obj path
       set_fact:
         scale_obj_url: 'object_rpms/rhel8'
       when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
-    - name: install | Find all packages 
+    - name: install | Find all packages
       find:
         paths:  "{{ obj_extracted_path }}/{{ scale_obj_url }}"
         patterns: "*.rpm"
@@ -132,5 +132,4 @@
         msg: "No Scale object spectrum-scale-object package found {{ obj_extracted_path }}/{{ scale_obj_url }}/spectrum-scale-object*"
       run_once: true
 
-  when: ansible_fqdn in scale_obj_nodes_list 
-
+  when: inventory_hostname in scale_obj_nodes_list

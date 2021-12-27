@@ -73,7 +73,7 @@
 
 # Find object rpms
 
-- block: ## when: ansible_fqdn in scale_obj_nodes_list
+- block: ## when: inventory_hostname in scale_obj_nodes_list
     - name: upgrade | obj path
       set_fact:
         scale_obj_url: 'object_rpms/rhel8'
@@ -106,5 +106,4 @@
         msg: "No Scale object spectrum-scale-object package found {{ obj_extracted_path }}/{{ scale_obj_url }}/spectrum-scale-object*"
       run_once: true
 
-  when: ansible_fqdn in scale_obj_nodes_list
-
+  when: inventory_hostname in scale_obj_nodes_list

@@ -16,7 +16,7 @@
 
 - name: check | Collect all protocol nodes
   set_fact:
-   scale_protocol_node_list: "{{ scale_protocol_node_list + [hostvars[item]['scale_daemon_nodename']] }}"
+    scale_protocol_node_list: "{{ scale_protocol_node_list + [hostvars[item]['inventory_hostname']] }}"
   when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
   with_items:
    - "{{ ansible_play_hosts }}"
@@ -155,21 +155,21 @@ Please define the CES shared root file system mount point in the inventory."
   - name: check | Prepare CES ip list
     set_fact:
      scale_export_ip: "{{ scale_ces_export_ip|flatten }}"
-  
+
   - name: check | Prepare IPv6 export ip list
     set_fact:
      scale_ces_ipv6_list: "{{ scale_ces_ipv6_list + [ item ]}}"
     when: item is regex ( scale_ipv6_regex )
     with_items:
     - "{{ scale_export_ip }}"
-  
+
   - name: check | Prepare IPv4 export ip list
     set_fact:
      scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
     when: item is regex ( scale_ipv4_regex )
     with_items:
     - "{{ scale_export_ip }}"
-  
+
   - name: check | Check if interface is defined
     assert:
      that:
@@ -181,7 +181,7 @@ Please define the CES shared root file system mount point in the inventory."
      msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6."
     when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
     failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
-  
+
   when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0
 
 - block:
@@ -191,7 +191,7 @@ Please define the CES shared root file system mount point in the inventory."
     when: item is regex ( scale_ipv6_regex )
     with_items:
     - "{{ scale_protocols.export_ip_pool }}"
-      
+
   - name: check | Prepare IPv4 export ip list
     set_fact:
      scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
@@ -207,9 +207,8 @@ Please define the CES shared root file system mount point in the inventory."
 
   - name: check | Check if all ces ips are either IPv4 or IPv6
     debug:
-     msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6." 
+     msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6."
     when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
     failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
- 
-  when: scale_protocols.scale_ces_groups is not defined 
 
+  when: scale_protocols.scale_ces_groups is not defined
