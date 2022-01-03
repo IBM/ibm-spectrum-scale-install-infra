@@ -60,7 +60,7 @@
     #TODO: added a check for output, but are having problems using the ( collector_nodes | join(',') ) to use when adding nodes.
     - name: configure | Initialize performance collection
       vars:
-        collector_nodes: "{{ groups['scale_zimon_collectors'] | list }}"
+        collector_nodes: "{{ groups['scale_zimon_collectors'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
       command: /usr/lpp/mmfs/bin/mmperfmon config generate --collectors {{ collector_nodes | join(',') }}
       register: scale_zimon_conf_pmcollector
       when:
@@ -73,7 +73,7 @@
 
     - name: configure | update performance collection for new node
       vars:
-        collector_nodes_new: "{{ groups['scale_zimon_collectors'] | list }}"
+        collector_nodes_new: "{{ groups['scale_zimon_collectors'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
       command: /usr/lpp/mmfs/bin/mmperfmon config update --collectors "{{ collector_nodes_new | join(',') }}"
       register: scale_zimon_update_pmcollector
       when:

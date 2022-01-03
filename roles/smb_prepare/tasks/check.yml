@@ -5,7 +5,7 @@
 
 - name: check | Collect all smb nodes
   set_fact:
-   scale_smb_node_list: "{{ scale_smb_node_list + [hostvars[item]['ansible_fqdn']] }}"
+    scale_smb_node_list: "{{ scale_smb_node_list + [hostvars[item]['inventory_hostname']] }}"
   when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
   with_items:
    - "{{ ansible_play_hosts }}"
@@ -30,7 +30,7 @@
    that:
    - ansible_facts.services["smb"].state != "running"
    fail_msg: "Service smb found running on {{ ansible_hostname }}. Which conflicts with the installation of SMB.SUGGESTTED ACTION- Run commands to stop (systemctl stop smb) and disable (systemctl disable smb) this service on node {{ ansible_hostname }}"
-  when: ansible_fqdn in scale_smb_node_list and ansible_facts.services["smb"].state is defined
+  when: inventory_hostname in scale_smb_node_list and ansible_facts.services["smb"].state is defined
   any_errors_fatal: true
 
 - name: check | Check if service smbd is running
@@ -38,7 +38,7 @@
    that:
    - ansible_facts.services["smbd"].state != "running"
    fail_msg: "Service smbd found running on {{ ansible_hostname }}. Which conflicts with the installation of SMB.SUGGESTTED ACTION- Run commands to stop (systemctl stop smbd) and disable (systemctl disable smbd) this service on node {{ ansible_hostname }}"
-  when: ansible_fqdn in scale_smb_node_list and ansible_facts.services["smbd"].state is defined
+  when: inventory_hostname in scale_smb_node_list and ansible_facts.services["smbd"].state is defined
   any_errors_fatal: true
 
 - name: check | Check if service winbind is running
@@ -46,7 +46,7 @@
    that:
    - ansible_facts.services["winbind"].state != "running"
    fail_msg: "Service smb found running on {{ ansible_hostname }}. Which conflicts with the installation of SMB.SUGGESTTED ACTION- Run commands to stop (systemctl stop winbind) and disable (systemctl disable winbind) this service on node {{ ansible_hostname }}"
-  when: ansible_fqdn in scale_smb_node_list and ansible_facts.services["winbind"].state is defined
+  when: inventory_hostname in scale_smb_node_list and ansible_facts.services["winbind"].state is defined
   any_errors_fatal: true
 
 - name: check | Check if service winbindd is running
@@ -54,7 +54,7 @@
    that:
    - ansible_facts.services["winbindd"].state != "running"
    fail_msg: "Service winbindd found running on {{ ansible_hostname }}. Which conflicts with the installation of SMB.SUGGESTTED ACTION- Run commands to stop (systemctl stop winbindd) and disable (systemctl disable winbindd) this service on node {{ ansible_hostname }}"
-  when: ansible_fqdn in scale_smb_node_list and ansible_facts.services["winbindd"].state is defined
+  when: inventory_hostname in scale_smb_node_list and ansible_facts.services["winbindd"].state is defined
   any_errors_fatal: true
 
 - name: check | Check if service ctdb is running
@@ -62,7 +62,7 @@
    that:
    - ansible_facts.services["ctdb"].state != "running"
    fail_msg: "Service ctdb found running on {{ ansible_hostname }}. Which conflicts with the installation of SMB.SUGGESTTED ACTION- Run commands to stop (systemctl stop ctdb) and disable (systemctl disable ctdb) this service on node {{ ansible_hostname }}"
-  when: ansible_fqdn in scale_smb_node_list and ansible_facts.services["ctdb"].state is defined
+  when: inventory_hostname in scale_smb_node_list and ansible_facts.services["ctdb"].state is defined
   any_errors_fatal: true
 
 - name: check | Check if service ctdbd is running
@@ -70,7 +70,7 @@
    that:
    - ansible_facts.services["ctdbd"].state != "running"
    fail_msg: "Service ctdbd found running on {{ ansible_hostname }}. Which conflicts with the installation of SMB.SUGGESTTED ACTION- Run commands to stop (systemctl stop ctdbd) and disable (systemctl disable ctdbd) this service on node {{ ansible_hostname }}"
-  when: ansible_fqdn in scale_smb_node_list and ansible_facts.services["ctdbd"].state is defined
+  when: inventory_hostname in scale_smb_node_list and ansible_facts.services["ctdbd"].state is defined
   any_errors_fatal: true
 
 - debug:

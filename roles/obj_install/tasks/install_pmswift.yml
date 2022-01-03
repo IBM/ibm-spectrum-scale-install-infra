@@ -5,7 +5,7 @@
 
 # Add pmswift rpm
 
-- block: ## when: ansible_fqdn in scale_obj_nodes_list
+- block: ## when: inventory_hostname in scale_obj_nodes_list
 
     - name: install | pmswift path
       set_fact:
@@ -45,5 +45,4 @@
         scale_install_all_packages: "{{ scale_install_all_packages + pmswift_package }}"
       when: scale_install_repository_url is undefined
 
-  when: ansible_fqdn in scale_obj_nodes_list
-
+  when: inventory_hostname in scale_obj_nodes_list

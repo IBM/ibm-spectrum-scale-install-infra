@@ -84,5 +84,4 @@
         msg: "No Scale object (spectrum-scale-object) package found {{ obj_extracted_path }}/{{ scale_obj_url }}/spectrum-scale-object*"
       run_once: true
 
-  when: when: ansible_fqdn in scale_protocol_node_list 
-
+  when: inventory_hostname in scale_protocol_node_list
