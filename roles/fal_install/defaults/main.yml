@@ -19,7 +19,7 @@ scale_auditlogging_packages:
   - gpfs.java
 
 ## Flag to enable fileauditlogging
-scale_fileauditlogging_enable: true
+scale_fal_enable: true
 
 ## To Enabled output from Ansible task in stdout and stderr for some tasks.
 ## Run the playbook with -vv

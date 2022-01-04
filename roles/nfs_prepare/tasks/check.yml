@@ -11,8 +11,8 @@
 
 - name: check | Collect all nfs nodes
   set_fact:
-   scale_nfs_nodes_list: "{{ scale_nfs_nodes_list + [hostvars[item]['inventory_hostname']] }}"
-  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+    scale_nfs_nodes_list: "{{ scale_nfs_nodes_list + [hostvars[item]['inventory_hostname']] }}"
+  when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
   with_items:
    - "{{ ansible_play_hosts }}"
   delegate_to: localhost

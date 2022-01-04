@@ -231,7 +231,7 @@
   - name: upgrade | remove debuginfo from packages
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
-  when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
+  when: not scale_nfs_install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
 
 - debug:
         msg: "{{ scale_install_all_packages }}"

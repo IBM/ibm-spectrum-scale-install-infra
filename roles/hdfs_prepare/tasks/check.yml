@@ -13,7 +13,7 @@
 - name: check | Collect all protocol nodes
   set_fact:
     scale_protocol_nodes_list: "{{ scale_protocol_nodes_list + [hostvars[hosts]['inventory_hostname']] }}"
-  when: hostvars[hosts]['is_protocol_node'] is defined and hostvars[hosts]['is_protocol_node']|bool
+  when: hostvars[hosts]['scale_protocol_node'] is defined and hostvars[hosts]['scale_protocol_node']|bool
   with_items:
    - "{{ ansible_play_hosts }}"
   loop_control:
@@ -41,7 +41,7 @@
 
 - fail:
     msg: "HDFS is not supported on {{ ansible_distribution }} OS."
-  when: ansible_distribution not in hdfs_os_distribution
+  when: ansible_distribution not in scale_hdfs_os_distribution
   delegate_to: "{{ server }}"
   run_once: true
 

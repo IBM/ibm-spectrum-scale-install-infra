@@ -6,8 +6,7 @@
 scale_command_path: /usr/lpp/mmfs/bin/
 
 # default mm command exection path for hdfs
-hdfs_command_path: /usr/lpp/mmfs/hadoop/bin/
+scale_hdfs_command_path: /usr/lpp/mmfs/hadoop/bin/
 
 # default mmhdfs command exection path
-mmhdfs_command_path: /usr/lpp/mmfs/hadoop/sbin/
-
+scale_mmhdfs_command_path: /usr/lpp/mmfs/hadoop/sbin/

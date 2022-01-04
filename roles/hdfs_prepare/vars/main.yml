@@ -1,6 +1,6 @@
 ---
 # vars file for precheck
 ## Supported HDFS os distrubution
-hdfs_os_distribution:
+scale_hdfs_os_distribution:
   - RedHat
   - CentOS

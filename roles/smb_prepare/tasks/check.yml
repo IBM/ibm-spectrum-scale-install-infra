@@ -6,7 +6,7 @@
 - name: check | Collect all smb nodes
   set_fact:
     scale_smb_node_list: "{{ scale_smb_node_list + [hostvars[item]['inventory_hostname']] }}"
-  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+  when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
   with_items:
    - "{{ ansible_play_hosts }}"
   delegate_to: localhost

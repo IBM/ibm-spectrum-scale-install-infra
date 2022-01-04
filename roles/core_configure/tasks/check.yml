@@ -22,13 +22,14 @@
     scale_admin_nodename: "{{ scale_admin_nodename }}"
   when: hostvars[inventory_hostname].scale_admin_nodename is undefined
 
-- set_fact: is_admin_node=false
-  when: hostvars[inventory_hostname].is_admin_node is undefined
+- set_fact:
+    scale_admin_node: false
+  when: hostvars[inventory_hostname].scale_admin_node is undefined
 
 - name: check | Assign default admin nodes
   set_fact:
-     is_admin_node: true
-  when: true not in ansible_play_hosts | map('extract', hostvars, 'is_admin_node') | map('bool') | list
+    scale_admin_node: true
+  when: true not in ansible_play_hosts | map('extract', hostvars, 'scale_admin_node') | map('bool') | list
   with_sequence: start=1 end={{ [ ansible_play_hosts | length, 1 ] | min }}
   run_once: true
   delegate_to: "{{ ansible_play_hosts[item | int - 1] }}"
@@ -38,7 +39,7 @@
   add_host:
     name: "{{ item }}"
     groups: scale_cluster_admin_nodes
-  when: hostvars[item].is_admin_node is defined and hostvars[item].is_admin_node | bool
+  when: hostvars[item].scale_admin_node is defined and hostvars[item].scale_admin_node | bool
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 

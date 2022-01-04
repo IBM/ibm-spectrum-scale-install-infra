@@ -75,4 +75,4 @@
       with_items:
         - "{{ scale_install_gpfs_fal.files.0.path | basename }}"
 
-  when: (scale_fileauditlogging_enable | bool)
+  when: (scale_fal_enable | bool)

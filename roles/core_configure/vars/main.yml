@@ -25,7 +25,7 @@ scale_active_states:
   - active
 
 # scale supported profile
-gpfs_cluster_system_profile:
+scale_cluster_system_profile:
    - gpfsprotocoldefaults
    - gpfsprotocolrandomio
 

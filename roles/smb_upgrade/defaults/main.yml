@@ -16,4 +16,4 @@ scale_smb_packages:
 scale_install_localpkg_tmpdir_path: /tmp
 
 ## Flag to install smb debug package
-install_debuginfo: true
+scale_smb_install_debuginfo: true

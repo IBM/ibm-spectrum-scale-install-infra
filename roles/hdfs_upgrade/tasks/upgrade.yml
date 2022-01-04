@@ -51,7 +51,7 @@
 - name: upgrade | Set the extracted package directory path
   set_fact:
     hdfs_extracted_path: "{{ scale_extracted_path }}"
-    hdfs_version_path_selection_rhel: "{{ hdfs_rhel_version_path }}"
+    hdfs_version_path_selection_rhel: "{{ scale_hdfs_rhel_version_path }}"
 
 - name: upgrade | Stat extracted packages directory
   stat:
@@ -63,7 +63,7 @@
 - block:
   - name:
     set_fact:
-       hdfs_version_path_selection_rhel: "{{ hdfs_rhel_version_path_33 }}"
+       hdfs_version_path_selection_rhel: "{{ scale_hdfs_rhel_version_path_33 }}"
     when: transparency_33_enabled|bool
 
   - name: upgrade | Fetch hdfs rpm dir path for rhel

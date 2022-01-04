@@ -13,7 +13,7 @@
 - name: check | Collect all object nodes
   set_fact:
     scale_obj_nodes_list: "{{ scale_obj_nodes_list + [hostvars[item]['inventory_hostname']] }}"
-  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+  when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
   with_items:
    - "{{ ansible_play_hosts }}"
   delegate_to: localhost
@@ -34,6 +34,6 @@
       Object is only supported for Rhel 8 and higher!
   with_items:
      - "{{ ansible_play_hosts }}"
-  when: hostvars[item]['is_protocol_node'] is defined and hostvars[item]['is_protocol_node']|bool
+  when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
   delegate_to: localhost
   run_once: true

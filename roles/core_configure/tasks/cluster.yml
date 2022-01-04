@@ -79,7 +79,7 @@
   delegate_to: localhost
   when:
     - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
-    - scale_cluster_profile_name not in gpfs_cluster_system_profile
+    - scale_cluster_profile_name not in scale_cluster_system_profile
 
 - block:
     - name: cluster | cluster profile name validation
@@ -98,7 +98,7 @@
   delegate_to: localhost
   when:
     - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
-    - scale_cluster_profile_name not in gpfs_cluster_system_profile
+    - scale_cluster_profile_name not in scale_cluster_system_profile
 
 - block:
     - name: cluster | Copy user defined profile
@@ -108,7 +108,7 @@
         mode: '0444'
   when:
     - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
-    - scale_cluster_profile_name not in gpfs_cluster_system_profile
+    - scale_cluster_profile_name not in scale_cluster_system_profile
 
 #
 # Create new cluster

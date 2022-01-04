@@ -91,5 +91,5 @@
   - name: remove debuginfo from packages
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
-  when: not install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
+  when: not scale_hdfs_install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
 
