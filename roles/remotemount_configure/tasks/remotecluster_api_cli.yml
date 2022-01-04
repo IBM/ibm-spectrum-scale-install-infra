@@ -21,7 +21,7 @@
   register: owning_cluster_info
   run_once: True
 
-- name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Storage Cluster (owner) | Print the Cluster Information
+- name: Remote Cluster Config - API-CLI |  Storage Cluster (owner) | scale_remotemount_debug | Print the Cluster Information
   debug:
     msg: "{{ owning_cluster_info }}"
   when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
@@ -34,7 +34,7 @@
   failed_when: false
   run_once: True
 
-- name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Client Cluster (access) | Print the Cluster Information
+- name: Remote Cluster Config - API-CLI | Client Cluster (access) | scale_remotemount_debug | Print the Cluster Information
   debug:
     msg: "{{ access_cluster_info }}"
   when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
@@ -116,31 +116,75 @@
   when:
     - (remote_clusters_results.status == 200) or (scale_remotemount_forceRun | bool)
 
+# Get node names and check if gpfs deamon is running.
 
+- name: Remote Cluster Config - API-CLI | Client Cluster (access) | GET the cluster nodes name information
+  shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterNode |  cut -d ':' -f 8
+  register: access_node_names
+  changed_when: false
+  failed_when: false
+  run_once: True
+
+- name: Remote Cluster Config - API-CLI | Client Cluster (access) | scale_remotemount_debug | Print the Cluster Information
+  debug:
+    msg: "{{ access_node_names.stdout_lines |  join(',') }}"
+  when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
+  run_once: True
+
+- set_fact:
+    accessing_nodes_name: []
+  run_once: True
+
+- set_fact:
+    accessing_nodes_name: "{{ access_node_names.stdout_lines |  join(',')  }}"
+  run_once: True
+
+- name: Remote Cluster Config - API-CLI | Client Cluster (access) | Check if GPFS deamon is started
+  shell: /usr/lpp/mmfs/bin/mmgetstate -Y -N {{ accessing_nodes_name }} | grep -v HEADER | cut -d ':' -f 9
+  register: gpfs_deamon_state
+  changed_when: false
+  run_once: true
+
+- name: Remote Cluster Config - API-CLI | Client Cluster (access) | Fail if GPFS deamon is not started
+  fail:
+    msg: "Scale/GPFS deamon is NOT running on one or serveral of your client cluster node. Check and run mmount manually"
+  when: "'down' in gpfs_deamon_state.stdout"
+  ignore_errors: true
+  run_once: true
+
+#
+# Section for doing the configuration of remote cluster.
+#
 - name: Remote Cluster Config - API-CLI | Exchange the keys between Storage and Client Clusters (access)
   block:
     - name: Step 3 - Remote Cluster Config - API-CLI
       debug:
         msg: "Configure remote Cluster connection between Storage Cluster (owner) and Client Cluster (access)"
       run_once: True
+      when:
+        - (remote_clusters_results.status == 400) or (scale_remotemount_forceRun | bool)
 
     - name: Remote Cluster Config - API-CLI | Remote Cluster connection status
       debug:
         msg: "Remote Cluster connection to ('{{ access_cluster_name }}') is not configured, procceding with configuration"
       run_once: True
+      when:
+        - (remote_clusters_results.status == 400) or (scale_remotemount_forceRun | bool)
 
     - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Get the Public key from CLI and register
       shell: "cat /var/mmfs/ssl/id_rsa_committed.pub"
       register: accesskey_result
       run_once: True
+      when:
+        - (remote_clusters_results.status == 400) or (scale_remotemount_forceRun | bool)
 
-    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the Client Cluster (access) Public Key results
+    - name: Remote Cluster Config - API-CLI |  Client Cluster (accesing) | scale_remotemount_debug | Print out the Client Cluster (access) Public Key results
       debug:
         msg: "{{ accesskey_result }}"
       when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
       run_once: True
 
-    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the Client Cluster (access) Public Key results to file ("{{ scale_remote_mount_client_access_key }}")
+    - name: Remote Cluster Config - API-CLI | Client Cluster (accesing) | scale_remotemount_debug | Print out the Client Cluster (access) Public Key results to file ("{{ scale_remote_mount_client_access_key }}")
       copy:
         dest: "{{ scale_remote_mount_client_access_key }}"
         content: "{{ accesskey_result }}\n"
@@ -169,6 +213,8 @@
           - 202
       register: send_key
       run_once: True
+      when:
+        - (remote_clusters_results.status == 400) or (scale_remotemount_forceRun | bool)
 
     - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | Check the result of adding the Client Cluster {{ send_key.json.jobs[0].jobId }}"
       uri:
@@ -183,6 +229,8 @@
       retries: "{{ restapi_retries_count }}"
       delay: "{{ restapi_retries_delay }}"
       run_once: True
+      when:
+        - (remote_clusters_results.status == 400) or (scale_remotemount_forceRun | bool)
 
     - name: Remote Cluster Config - API-CLI | Storage Cluster (owner) | Get the Public Key
       uri:
@@ -229,7 +277,7 @@
       uri:
         validate_certs: "{{ validate_certs_uri }}"
         force_basic_auth: yes
-        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes{{ scale_remotemount_storage_contactnodes_filter }}
         method: GET
         user: "{{ scale_remotemount_storage_gui_username }}"
         password: "{{ scale_remotemount_storage_gui_password }}"
@@ -280,7 +328,7 @@
 #
 # adminNodeName section
 #
-    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the array storing the nodes in the Storage Cluster (owning)
+    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the array storing the AdminNodeNames from the Storage Cluster (owning)
       debug:
         msg: "{{ owning_nodes_name }}"
       when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
@@ -297,7 +345,7 @@
 #
 # deamonNodeName section
 #
-    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the array storing the nodes in the Storage Cluster (owning)
+    - name: Remote Cluster Config - API-CLI | scale_remotemount_debug | Print out the array storing the DeamonNodeNames from the Storage Cluster (owning)
       debug:
         msg: "{{ owning_daemon_nodes_name }}"
       when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
@@ -310,7 +358,7 @@
       register: remote_cluster_add_ssh
       failed_when:
         - "remote_cluster_add_ssh.rc != 0 and 'is already defined' not in remote_cluster_add_ssh.stderr"
-      when: scale_remotemount_storage_adminnodename is not true
+      when: not scale_remotemount_storage_adminnodename
 
     - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Cleanup temporary keys.
       file:

@@ -1,5 +1,51 @@
 ---
-- name: Step 7 - Configure and Mount filesystems
+
+
+- name: Step 7 - Check status of GPFS deamon on all nodes before mounting filesystem.
+  debug:
+    msg: "Check status of GPFS deamon on all nodes before mounting filesystem "
+  run_once: True
+#
+# Cheking that GPFS deamon is started on all nodes, else the adding and mounting of filesystem fails.
+# RestAPI filters for GPFS deamon on all nodes with the state FAILED.
+#
+- name: Client Cluster (access) | Check status of GPFS deamon on all nodes before mounting filesystem.
+  uri:
+    validate_certs: "{{ validate_certs_uri }}"
+    force_basic_auth: true
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes/%3Aall%3A/health/states?fields=component%2Cstate&filter=component%3DGPFS%2Cstate%3DFAILED
+    method: GET
+    user: "{{ scale_remotemount_client_gui_username }}"
+    password: "{{ scale_remotemount_client_gui_password }}"
+    body_format: json
+    return_content: yes
+    status_code:
+      - 200
+  register: clientcluster_gpfs_deamon_all_status
+  run_once: True
+  when: scale_remotemount_gpfsdemon_check | bool
+
+- name: Client Cluster (access) | Print status of GPFS deamon - Debug
+  run_once: True
+  ignore_errors: true
+  debug:
+    msg: "{{ clientcluster_gpfs_deamon_all_status.json.states }}"
+  when:
+    - scale_remotemount_gpfsdemon_check | bool
+    - scale_remotemount_debug is defined
+    - scale_remotemount_debug | bool
+
+- name: Client Cluster (access) | One or more GPFS Deamon on Client Cluster is down.
+  run_once: True
+  assert:
+    that:
+      - "{{ clientcluster_gpfs_deamon_all_status.json.states|length == 0 }}"
+    fail_msg: "'GPFS Deamon is NOT started on all nodes, so mounting of filesystem will fail "
+    success_msg: "'GPFS Deamon is started on all nodes"
+  when:
+    - scale_remotemount_gpfsdemon_check | bool
+
+- name: Step 8 - Configure and Mount filesystems
   debug:
     msg: "Check if remotefileystem '{{ filesystem_loop.scale_remotemount_client_filesystem_name }}' is already defined on Client Cluster"
   run_once: True
@@ -21,7 +67,7 @@
 
 - name: block
   block:
-    - name: Step 8
+    - name: Step 9
       debug:
         msg: "Add the remotefileystem '{{ filesystem_loop.scale_remotemount_client_filesystem_name }}' and mount it on the Client Cluster (access)"
       run_once: True
@@ -43,7 +89,7 @@
             "remoteMountPath": "{{ filesystem_loop.scale_remotemount_client_remotemount_path | realpath }}",
             "mountOptions": "{{ filesystem_loop.scale_remotemount_access_mount_attributes | default('rw') }}",
             "automount": "{{ filesystem_loop.scale_remotemount_client_mount_fs | default('yes') }}",
-            "mountOnNodes": "all"
+            "mountOnNodes": "{{ scale_remotemount_client_mount_on_nodes | default('all') }}"
           }
         status_code:
           - 202

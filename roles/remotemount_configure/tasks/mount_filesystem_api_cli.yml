@@ -9,7 +9,7 @@
 
 - name: Mount Filesystem - Rest-API | Storage Cluster (owner) | GET the Cluster Information
   uri:
-    validate_certs: no
+    validate_certs: "{{ validate_certs_uri }}"
     force_basic_auth: yes
     url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
     method: GET
@@ -57,7 +57,7 @@
 
 - name: "Mount Filesystem - Rest-API | Storage Cluster (owner) | Check if filesystems is allready accessible for Client Cluster  ('{{ access_cluster_name }}')"
   uri:
-    validate_certs: no
+    validate_certs: "{{ validate_certs_uri }}"
     force_basic_auth: yes
     url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
     method: GET
@@ -92,7 +92,7 @@
 
 - name: Mount Filesystem - Rest-API | Storage Cluster (owning) | Allow and Set the client cluster filesystem access attributes on the Storage Cluster
   uri:
-    validate_certs: no
+    validate_certs: "{{ validate_certs_uri }}"
     force_basic_auth: true
     url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}/access/{{ item.scale_remotemount_storage_filesystem_name }}
     method: POST
@@ -121,7 +121,7 @@
 
 - name: Mount Filesystem - Rest-API | Storage Cluster (owning) | Check the result of setting the access attributes on the Storage Cluster ##"{{ completed_check.json.jobs[0].jobId }}"
   uri:
-    validate_certs: no
+    validate_certs: "{{ validate_certs_uri }}"
     force_basic_auth: true
     url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ item.json.jobs.0['jobId'] }}
     method: GET
@@ -168,7 +168,7 @@
   debug:
     msg: "Add the remotefileystem and mount it on the Client Side"
 
-- name: Mount Filesystem - Rest-API | Client Cluster (access) | Add remote filesystem
+- name: Mount Filesystem - Rest-API | Client Cluster (access) | Add remote filesystem - Output is from check.
   run_once: True
   shell: |
     /usr/lpp/mmfs/bin/mmremotefs add {{ item.item.scale_remotemount_client_filesystem_name }} -f {{ item.item.scale_remotemount_storage_filesystem_name }} -C {{ owning_cluster_name }} -T {{ item.item.scale_remotemount_client_remotemount_path }} -o  {{ item.item.scale_remotemount_access_mount_attributes | default ('rw') }} -A {{ item.item.scale_remotemount_client_mount_fs | default ('yes') }} --mount-priority {{ item.item.scale_remotemount_client_mount_priority | default ('0') }}
@@ -212,14 +212,13 @@
   fail:
     msg: "Scale/GPFS deamon is NOT running on one or serveral of your client cluster node. Check and run mmount manually"
   when: "'down' in gpfs_deamon_state.stdout"
-  ignore_errors: true
   run_once: true
 
 # Not adding any check here, run only when when mmremotefs add task is also run.
 
-- name: Client Cluster (access) | Mount remote filesystem on all client nodes
+- name: Client Cluster (access) | Mount remote filesystem on all client nodes - Output is from previous task, check if the filesystem's is allready mounted
   run_once: True
-  command: /usr/lpp/mmfs/bin/mmmount {{ item.item.scale_remotemount_client_filesystem_name }} -N {{ accessing_nodes_name }}
+  command: /usr/lpp/mmfs/bin/mmmount {{ item.item.scale_remotemount_client_filesystem_name }} -N {{ scale_remotemount_client_mount_on_nodes | default('all') }}
   loop: "{{ remote_filesystem_results_cli.results }}"
   when:
     - item.rc != 0 or scale_remotemount_forceRun | bool
@@ -231,7 +230,7 @@
 
 # Adding a stdout from previous as the stdout from the loop abow can be confusing when several loops.
 
-- name:  Client Cluster (access) | Mount remote filesystem on all client nodes - Show stdout from the previous task.
+- name:  Client Cluster (access) | Mount remote filesystem on all client nodes - Shows stdout from the previous task.
   debug:
     msg: "Message from mount remote filesystem task: {{ item }}"
   loop: "{{ client_cluster_mount_remotefs | json_query('results[*].stdout') }}"
