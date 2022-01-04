@@ -15,12 +15,15 @@ Role Definition
 Features
 -----------------------------
 
-- Remote Mounts FS with API calls to Clusters Storage and Client
-- Remote Mounts FS with API calls to Storage Clusters and CLI to Client/Accessing Cluster
+- Remote Mounts FS with API calls to Cluster Storage and Client
+- Remote Mounts FS with API calls to Storage Cluster and CLI to Client/Accessing Cluster
 - Cleanup Remote Mount from Client and Storage Servers
 - Remote Mount several filesystems in same ansible play.
 - Check's and add Remote Filesystems if not already there. 
-- Check if remote cluster is already defined. 
+- Check's if remote cluster is already defined.
+- Added option for Security mode for communications between the current cluster and the remote cluster (Encryption)
+- Mount filesystem on desired client cluster nodes.
+- Option to specify either Deamon or Admin node name for cluster traffic.
 
 
 Limitation
@@ -72,8 +75,18 @@ The following variables would need to be defined by the user, either as vars to 
 - ``scale_remotemount_storage_pub_key_location_json:`` (Defaults to : "/tmp/storage_cluster_public_key_json.pub") **Client Cluster (Access) is downloading the pubkey as JSON from Owning cluster**
 - ``scale_remotemount_storage_pub_key_delete:`` (Default to: true) **delete both temporary pubkey after the connection have been established**
 
--  ``scale_remotemount_storage_adminnodename: true `` (Default to: false) **Spectrum Scale uses the Deamon node name and the IP Attach to connect and run cluster traffic on. In most cases the admin network and deamon network is the same. In case you have different AdminNode address and DeamonNode address and for some reason you want to use admin network, then you can set the variable to true**
+- ``scale_remotemount_storage_adminnodename: `` (Default to: false) **Spectrum Scale uses the Deamon node name and the IP Attach to connect and run cluster traffic on. In most cases the admin network and deamon network is the same. In case you have different AdminNode address and DeamonNode address and for some reason you want to use admin network, then you can set the variable to true**
 
+- ``scale_remotemount_remotecluster_chipers: `` (Default to: AUTHONLY) **Sets the security mode for communications between the current cluster and the remote cluster  Encyption can have performance effect and increased CPU usage**
+  - Run the follwing command to check the supported ciphers: mmauth show ciphers
+
+  ```console
+  Supported ciphers for nistCompliance=SP800-131A: 
+  AES128-SHA
+  AES128-SHA256
+  AES256-SHA
+  AES256-SHA256
+  ```
 
 - ``scale_remotemount_gpfsdemon_check: true ``(Default to: true) **Checks that GPFS deamon is started on GUI node, it will check the first server in NodeClass GUI_MGMT_SERVERS, this is the same flag to check when trying to mount up filesystems on all nodes. Check can be disabled with changing the flag to false.**
 
@@ -112,19 +125,19 @@ There is also example playbook's in samples folder.
 
 You can use localhost, then all RestAPI call will occur over https to Storage and Client Cluster locally from where you run the Ansible playbook 
 ```yaml
-    - hosts: localhost
-      vars:
-         scale_remotemount_client_gui_username: admin
-         scale_remotemount_client_gui_password: Admin@GUI
-         scale_remotemount_client_gui_hostname: 10.10.10.10
-         scale_remotemount_storage_gui_username: admin
-         scale_remotemount_storage_gui_password: Admin@GUI
-         scale_remotemount_storage_gui_hostname: 10.10.10.20
-         scale_remotemount_filesystem_name:
-          - { scale_remotemount_client_filesystem_name: "fs2", scale_remotemount_client_remotemount_path: "/gpfs/fs2", scale_remotemount_storage_filesystem_name: "gpfs01", } # Minimum variables
-          - { scale_remotemount_client_filesystem_name: "fs3", scale_remotemount_client_remotemount_path: "/gpfs/fs3", scale_remotemount_storage_filesystem_name: "gpfs02", scale_remotemount_client_mount_priority: '2', scale_remotemount_access_mount_attributes: "rw", scale_remotemount_client_mount_fs: "yes"  }
-      roles:
-        - remote_mount
+- hosts: localhost
+  vars:
+     scale_remotemount_client_gui_username: admin
+     scale_remotemount_client_gui_password: Admin@GUI
+     scale_remotemount_client_gui_hostname: 10.10.10.10
+     scale_remotemount_storage_gui_username: admin
+     scale_remotemount_storage_gui_password: Admin@GUI
+     scale_remotemount_storage_gui_hostname: 10.10.10.20
+     scale_remotemount_filesystem_name:
+      - { scale_remotemount_client_filesystem_name: "fs2", scale_remotemount_client_remotemount_path: "/gpfs/fs2", scale_remotemount_storage_filesystem_name: "gpfs01", } # Minimum variables
+      - { scale_remotemount_client_filesystem_name: "fs3", scale_remotemount_client_remotemount_path: "/gpfs/fs3", scale_remotemount_storage_filesystem_name: "gpfs02", scale_remotemount_client_mount_priority: '2', scale_remotemount_access_mount_attributes: "rw", scale_remotemount_client_mount_fs: "yes"  }
+  roles:
+    - remote_mount
 ```
 
 ``ansible-playbook -i hosts remotmount.yml``
@@ -136,18 +149,18 @@ You can use localhost, then all RestAPI call will occur over https to Storage an
 Following example will connect up to the first host in your ansible host file, and then run the playbook and do API Call to Storage Cluster. 
 So in this case the Client Cluster node needs access on https/443 to Storage Cluster GUI Node.
 ```yaml
-    - hosts: scale-client-cluster-node-1
-      gather_facts: false
-      vars:
-        scale_remotemount_storage_gui_username: admin
-        scale_remotemount_storage_gui_password: Admin@GUI
-        scale_remotemount_storage_gui_hostname: 10.10.10.20
-        scale_remotemount_client_no_gui: true
-        scale_remotemount_filesystem_name:
-          - { scale_remotemount_client_filesystem_name: "fs2", scale_remotemount_client_remotemount_path: "/gpfs/fs2", scale_remotemount_storage_filesystem_name: "gpfs01", } # Minimum variables
-          - { scale_remotemount_client_filesystem_name: "fs3", scale_remotemount_client_remotemount_path: "/gpfs/fs3", scale_remotemount_storage_filesystem_name: "gpfs02", scale_remotemount_client_mount_priority: '2', scale_remotemount_access_mount_attributes: "rw", scale_remotemount_client_mount_fs: "yes"  }
-       roles:
-         - remote_mount
+- hosts: scale-client-cluster-node-1
+  gather_facts: false
+  vars:
+    scale_remotemount_storage_gui_username: admin
+    scale_remotemount_storage_gui_password: Admin@GUI
+    scale_remotemount_storage_gui_hostname: 10.10.10.20
+    scale_remotemount_client_no_gui: true
+    scale_remotemount_filesystem_name:
+      - { scale_remotemount_client_filesystem_name: "fs2", scale_remotemount_client_remotemount_path: "/gpfs/fs2", scale_remotemount_storage_filesystem_name: "gpfs01", } # Minimum variables
+      - { scale_remotemount_client_filesystem_name: "fs3", scale_remotemount_client_remotemount_path: "/gpfs/fs3", scale_remotemount_storage_filesystem_name: "gpfs02", scale_remotemount_client_mount_priority: '2', scale_remotemount_access_mount_attributes: "rw", scale_remotemount_client_mount_fs: "yes"  }
+   roles:
+     - remote_mount
 ```
 Firewall recommendations for communication among cluster's
 --------
@@ -175,7 +188,7 @@ to set the tscCmdPortRange configuration variable:
 Troubleshooting
 ------------------------
 
-- If you get **401 - Unauthorized** -  Check that your user is working with a Curl, and that is have the correct Role. 
+- If you get **401 - Unauthorized** -  Check that your user is working with a Curl, and that the user have the correct Role/Permission. 
 
   ``-k`` will use insecure.
   

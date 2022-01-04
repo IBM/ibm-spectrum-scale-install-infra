@@ -11,9 +11,9 @@
 #
 - name: Client Cluster (access) | Check status of GPFS deamon on all nodes before mounting filesystem.
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: true
-    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes/%3Aall%3A/health/states?fields=component%2Cstate&filter=component%3DGPFS%2Cstate%3DFAILED
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/nodes/%3Aall%3A/health/states?fields=component%2Cstate&filter=component%3DGPFS%2Cstate%3DFAILED
     method: GET
     user: "{{ scale_remotemount_client_gui_username }}"
     password: "{{ scale_remotemount_client_gui_password }}"
@@ -52,15 +52,16 @@
 
 - name: Client Cluster (access) | Check if the remotefilesystem is already defined
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: yes
-    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ filesystem_loop.scale_remotemount_client_filesystem_name }}
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remotefilesystems/{{ filesystem_loop.scale_remotemount_client_filesystem_name }}
     method: GET
     user: "{{ scale_remotemount_client_gui_username }}"
     password: "{{ scale_remotemount_client_gui_password }}"
     body_format: json
     status_code:
       - 200
+      - 400
   register: remote_filesystem_results
   ignore_errors: true
   run_once: True
@@ -74,9 +75,9 @@
 
     - name: Client Cluster (access) | Create the remotefs and then mount the filesystem
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remotefilesystems
         method: POST
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
@@ -98,16 +99,16 @@
 
     - name: "Client Cluster (access) | Check the result of adding the remotefs and mounting the filesystem (JOB: {{ send_key.json.jobs[0].jobId }})"
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ send_key.json.jobs[0].jobId }}
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/jobs/{{ send_key.json.jobs[0].jobId }}
         method: GET
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
-      retries: "{{ restapi_retries_count }}"
-      delay: "{{ restapi_retries_delay }}"
+      retries: "{{ scale_remotemount_restapi_retries_count }}"
+      delay: "{{ scale_remotemount_restapi_retries_delay }}"
       run_once: True
 
   when: (remote_filesystem_results.status == 400)

@@ -9,9 +9,9 @@
 
 - name: Mount Filesystem - Rest-API | Storage Cluster (owner) | GET the Cluster Information
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: yes
-    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
     method: GET
     user: "{{ scale_remotemount_storage_gui_username }}"
     password: "{{ scale_remotemount_storage_gui_password }}"
@@ -52,14 +52,14 @@
 
 - name: Step 5 - Mount Filesystem - Rest-API
   debug:
-    msg: "On Storage Cluster, Check if filesystems is allready accessible for Client Cluster"
+    msg: "On Storage Cluster, Check if filesystems is already accessible for Client Cluster"
   run_once: True
 
-- name: "Mount Filesystem - Rest-API | Storage Cluster (owner) | Check if filesystems is allready accessible for Client Cluster  ('{{ access_cluster_name }}')"
+- name: "Mount Filesystem - Rest-API | Storage Cluster (owner) | Check if filesystems is already accessible for Client Cluster  ('{{ access_cluster_name }}')"
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: yes
-    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}
     method: GET
     user: "{{ scale_remotemount_storage_gui_username }}"
     password: "{{ scale_remotemount_storage_gui_password }}"
@@ -92,9 +92,9 @@
 
 - name: Mount Filesystem - Rest-API | Storage Cluster (owning) | Allow and Set the client cluster filesystem access attributes on the Storage Cluster
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: true
-    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}/access/{{ item.scale_remotemount_storage_filesystem_name }}
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}/access/{{ item.scale_remotemount_storage_filesystem_name }}
     method: POST
     user: "{{ scale_remotemount_storage_gui_username }}"
     password: "{{ scale_remotemount_storage_gui_password }}"
@@ -121,16 +121,16 @@
 
 - name: Mount Filesystem - Rest-API | Storage Cluster (owning) | Check the result of setting the access attributes on the Storage Cluster ##"{{ completed_check.json.jobs[0].jobId }}"
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: true
-    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ item.json.jobs.0['jobId'] }}
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/jobs/{{ item.json.jobs.0['jobId'] }}
     method: GET
     user: "{{ scale_remotemount_storage_gui_username }}"
     password: "{{ scale_remotemount_storage_gui_password }}"
   register: completed_check
   until: completed_check.json.jobs[0].status == "COMPLETED"
-  retries: "{{ restapi_retries_count }}"
-  delay: "{{ restapi_retries_delay }}"
+  retries: "{{ scale_remotemount_restapi_retries_count }}"
+  delay: "{{ scale_remotemount_restapi_retries_delay }}"
   run_once: True
   loop: "{{ uri_result.results }}"
   when:
@@ -214,9 +214,9 @@
   when: "'down' in gpfs_deamon_state.stdout"
   run_once: true
 
-# Not adding any check here, run only when when mmremotefs add task is also run.
+# Not adding any check here, runs only when when mmremotefs add task is also run.
 
-- name: Client Cluster (access) | Mount remote filesystem on all client nodes - Output is from previous task, check if the filesystem's is allready mounted
+- name: Client Cluster (access) | Mount remote filesystem on all client nodes - Output is from previous task, checks if the filesystem's is already mounted
   run_once: True
   command: /usr/lpp/mmfs/bin/mmmount {{ item.item.scale_remotemount_client_filesystem_name }} -N {{ scale_remotemount_client_mount_on_nodes | default('all') }}
   loop: "{{ remote_filesystem_results_cli.results }}"
@@ -230,7 +230,7 @@
 
 # Adding a stdout from previous as the stdout from the loop abow can be confusing when several loops.
 
-- name:  Client Cluster (access) | Mount remote filesystem on all client nodes - Shows stdout from the previous task.
+- name:  Client Cluster (access) | Mount remote filesystem on all client nodes - shows stdout from the previous task.
   debug:
     msg: "Message from mount remote filesystem task: {{ item }}"
   loop: "{{ client_cluster_mount_remotefs | json_query('results[*].stdout') }}"
