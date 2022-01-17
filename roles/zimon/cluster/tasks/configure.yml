@@ -27,7 +27,7 @@
 
 - name: check | Check gui nodes
   add_host:
-    name: "{{ hostvars[item]['ansible_fqdn'] }}"
+    name: "{{ hostvars[item]['inventory_hostname'] }}"
     groups: scale_gui_colnodes
   when:
      - hostvars[item].scale_cluster_gui is defined
