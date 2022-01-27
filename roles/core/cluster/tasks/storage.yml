@@ -56,6 +56,40 @@
     - "{{ scale_storage }}"
     - disks
 
+#
+# NSD device discovery script
+#
+
+- block:  ## run_once: true
+    - name: install | Stat user defined nsddevice disk discovery script
+      stat:
+        path: "{{ scale_user_created_nsddevices_file_path }}"
+      register: scale_user_creatednsddevices
+      run_once: true
+      delegate_to: localhost
+
+    - name: install | Check user defined nsddevice disk discovery script
+      assert:
+        that: scale_user_creatednsddevices.stat.exists
+        msg: >-
+          Please set the variable 'scale_user_created_nsddevices_file_path' to point to the
+          correct user defined nsddevices script (accessible on Ansible control machine)!
+      run_once: true
+      delegate_to: localhost
+
+    #
+    # Copy nsd device script to the /var/mmfs/etc/
+    #
+
+    - name: install | Copy user defined nsddevice disk discovery script to the node
+      copy:
+        src: "{{ scale_user_created_nsddevices_file_path }}"
+        dest: "{{ scale_user_created_nsddevices_systems_path }}"
+        mode: a+x
+      when: scale_user_creatednsddevices.stat.exists
+
+  when: scale_user_defined_nsddevices_discovery | bool
+
 - block:  ## run_once: true
     - name: storage | Consolidate defined NSDs
       set_fact:
