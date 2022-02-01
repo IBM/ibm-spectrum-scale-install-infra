@@ -232,6 +232,9 @@ Installation Instructions
   - Installation from local installation package (see [samples/playbook_localpkg.yml](samples/playbook_localpkg.yml))
   - Installation from single directory package path (see [samples/playbook_directory.yml](samples/playbook_directory.yml))
 
+  > **Note:**
+  Sample playbooks now contain Ansible collection syntax, which requires the project to be cloned into the `collections/ansible_collections/ibm/spectrum_scale/` subdirectory. Alternative samples of playbooks with prior, non-collection syntax can be found in the [samples/legacy](samples/legacy) folder.
+
   Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
 - **Run the playbook to install and configure the Spectrum Scale cluster**
@@ -330,6 +333,8 @@ Note that [Core GPFS](roles/core) is the only mandatory role, all other roles ar
 - Configure Call Home (see [samples/playbook_callhome.yml](samples/playbook_callhome.yml))
 - Configure File Audit Logging (see [samples/playbook_fileauditlogging.yml](samples/playbook_fileauditlogging.yml))
 - Configure cluster with daemon and admin network (see samples/daemon_admin_network)
+> **Note:**
+Sample playbooks now contain Ansible collection syntax, which requires the project to be cloned into the `collections/ansible_collections/ibm/spectrum_scale/` subdirectory. Alternative samples of playbooks with prior, non-collection syntax can be found in the [samples/legacy](samples/legacy) folder.
 
 Cluster Membership
 ------------------
