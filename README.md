@@ -326,14 +326,13 @@ The following [roles](https://docs.ansible.com/ansible/latest/user_guide/playboo
 
 Note that [Core GPFS](roles/core) is the only mandatory role, all other roles are optional. Each of the optional roles requires additional configuration variables. Browse the examples in the [samples/](samples/) directory to learn how to:
 
-- Configure storage (NSDs) and file systems (see [samples/playbook_storage.yml](samples/playbook_storage.yml))
-- Configure node classes and configuration attributes (see [samples/playbook_nodeclass.yml](samples/playbook_nodeclass.yml))
 - Configure Protocol Services (SMB & NFS) (see [samples/playbook_ces.yml](samples/playbook_ces.yml))
 - Configure Protocol Services (HDFS) (see [samples/playbook_ces_hdfs.yml](samples/playbook_ces_hdfs.yml))
 - Configure Protocol Services (OBJECT) (see [samples/playbook_ces_object.yml](samples/playbook_ces_object.yml))
 - Configure Call Home (see [samples/playbook_callhome.yml](samples/playbook_callhome.yml))
 - Configure File Audit Logging (see [samples/playbook_fileauditlogging.yml](samples/playbook_fileauditlogging.yml))
 - Configure cluster with daemon and admin network (see [samples/daemon_admin_network](samples/daemon_admin_network))
+- Configure remotely mounted filesystems (see [samples/playbook_remote_mount.yml](samples/playbook_remote_mount.yml))
 
 > **Note:**
 Sample playbooks now contain Ansible collection syntax, which requires the project to be cloned into the `collections/ansible_collections/ibm/spectrum_scale/` subdirectory. Alternative samples of playbooks with prior, non-collection syntax can be found in the [samples/legacy](samples/legacy) folder.
