@@ -58,7 +58,7 @@ dependencies: {}
 repository: https://github.com/IBM/ibm-spectrum-scale-install-infra
 
 # The URL to any online docs
-documentation: https://github.com/IBM/ibm-spectrum-scale-install-infra
+documentation: https://github.com/IBM/ibm-spectrum-scale-install-infra#readme
 
 # The URL to the homepage of the collection/project
 homepage:
