@@ -1,26 +1,27 @@
 ---
 - name: "Cleanup | Client Cluster (access) | Check if the remotefilesystem is already defined {{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}"
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: yes
-    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remotefilesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}
     method: GET
     user: "{{ scale_remotemount_client_gui_username }}"
     password: "{{ scale_remotemount_client_gui_password }}"
     body_format: json
     status_code:
       - 200
+      - 400
   register: remote_filesystem_results
   ignore_errors: true
   run_once: True
 
 - name: "Cleanup | Client Cluster (access) | Remove defined filesystem {{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}"
   block:
-    - name: "Client Cluster (access) | Unmount the filesystem | PUT {{ scalemgmt_endpoint }}/filesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}/unmount"
+    - name: "Client Cluster (access) | Unmount the filesystem | PUT {{ scale_remotemount_scalemgmt_endpoint }}/filesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}/unmount"
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/filesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}/unmount
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/filesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}/unmount
         method: PUT
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
@@ -36,22 +37,22 @@
 
     - name: "Checking results from the job: {{ umount_call.json.jobs[0].jobId }}"
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ umount_call.json.jobs[0].jobId }}
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/jobs/{{ umount_call.json.jobs[0].jobId }}
         method: GET
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
-      retries: "{{ restapi_retries_count }}"
-      delay: "{{ restapi_retries_delay }}"
+      retries: "{{ scale_remotemount_restapi_retries_count }}"
+      delay: "{{ scale_remotemount_restapi_retries_delay }}"
 
-    - name: "Client Cluster (access) | Delete the filesystem | DELETE {{ remote_mount_endpoint }}/remotefilesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}?force=yes"
+    - name: "Client Cluster (access) | Delete the filesystem | DELETE {{ scale_remotemount_endpoint }}/remotefilesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}?force=yes"
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/remotefilesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}?force=yes
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remotefilesystems/{{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}?force=yes
         method: DELETE
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
@@ -61,15 +62,22 @@
 
     - name: "Checking results from the job: {{ delete_call.json.jobs[0].jobId }}"
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
         method: GET
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
-      retries: "{{ restapi_retries_count }}"
-      delay: "{{ restapi_retries_delay }}"
-  when: not remote_filesystem_results.failed
+      retries: "{{ scale_remotemount_restapi_retries_count }}"
+      delay: "{{ scale_remotemount_restapi_retries_delay }}"
+  when: remote_filesystem_results.json.status.code == 200
   run_once: True
+
+- name: "Cleanup | Client Cluster (access) | Output from remove defined filesystem {{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}"
+  run_once: True
+  debug:
+    msg: "The is no filesystem named ({{ cleanup_filesystem_loop.scale_remotemount_client_filesystem_name }}) - Message from Restapi: {{ remote_filesystem_results.json.status.message }}"
+  when:
+    - remote_filesystem_results.json.status.code == 400

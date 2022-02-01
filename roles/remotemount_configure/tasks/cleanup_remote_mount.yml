@@ -3,9 +3,9 @@
 #
 - name: Cleanup | Storage Cluster (owner) | GET the Cluster Information
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: yes
-    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
     method: GET
     user: "{{ scale_remotemount_storage_gui_username }}"
     password: "{{ scale_remotemount_storage_gui_password }}"
@@ -23,9 +23,9 @@
 
 - name: Cleanup | Client Cluster (access) | GET the Cluster Information
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: yes
-    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
     method: GET
     user: "{{ scale_remotemount_client_gui_username }}"
     password: "{{ scale_remotemount_client_gui_password }}"
@@ -69,16 +69,16 @@
 
 - name: Cleanup | Client Cluster (access) | List the remote cluster already defined
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: true
-    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/owningclusters
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/owningclusters
     method: GET
     user: "{{ scale_remotemount_client_gui_username }}"
     password: "{{ scale_remotemount_client_gui_password }}"
   register: remote_clusters_result
   run_once: True
 
-- name: Cleanup | scale_remotemount_debug | Print out the remote clusters
+- name: Cleanup | Client Cluster (access) | scale_remotemount_debug | Print out the remote clusters message code from RestAPI.
   debug:
     msg: "{{ remote_clusters_result.json }}"
   when: scale_remotemount_debug is defined and scale_remotemount_debug | bool
@@ -86,7 +86,7 @@
 
 # The remote_clusters_results is in an array, so looping here incase there are multiple remote clusters
 # We want to delete the one where the owningCluster name matches what we are trying to do a remote mount on
-- name: Cleanup | Delete the clusters on a loop...
+- name: Cleanup | Client Cluster (access) | Delete the Remote Mount/clusters connection on a loop.
   include_tasks: delete_remote_cluster.yml
   when: item.owningCluster == owning_cluster_name
   loop: "{{ remote_clusters_result.json.owningClusters }}"
@@ -98,26 +98,27 @@
 
 - name: "Cleanup | Storage Cluster (owner) | Check if the Client Cluster ('{{ access_cluster_name }}') is already defined"
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: yes
-    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
+    url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}
     method: GET
     user: "{{ scale_remotemount_storage_gui_username }}"
     password: "{{ scale_remotemount_storage_gui_password }}"
     body_format: json
     status_code:
       - 200
+      - 400
   register: remote_clusters_results
   ignore_errors: true
   run_once: True
 
 - name: Cleanup | Storage Cluster (owner) | Delete the Client Cluster, if it exists
   block:
-    - name: "DELETE: {{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}"
+    - name: "DELETE: {{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}"
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ remote_mount_endpoint }}/remoteclusters/{{ access_cluster_name }}
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}
         method: DELETE
         user: "{{ scale_remotemount_storage_gui_username }}"
         password: "{{ scale_remotemount_storage_gui_password }}"
@@ -127,15 +128,23 @@
 
     - name: "Cleanup | Checking results from the job: {{ delete_call.json.jobs[0].jobId }}"
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
         method: GET
         user: "{{ scale_remotemount_storage_gui_username }}"
         password: "{{ scale_remotemount_storage_gui_password }}"
       register: completed_check
       until: completed_check.json.jobs[0].status == "COMPLETED"
-      retries: "{{ restapi_retries_count }}"
-      delay: "{{ restapi_retries_delay }}"
-  when: not remote_clusters_results.failed
+      retries: "{{ scale_remotemount_restapi_retries_count }}"
+      delay: "{{ scale_remotemount_restapi_retries_delay }}"
+  #when: not remote_clusters_results.failed
+  when: remote_clusters_results.json.status.code == 200
   run_once: True
+
+- name: "Cleanup | Storage Cluster (owner) | Output from delete the Client Cluster, ('{{ access_cluster_name }}')"
+  run_once: True
+  debug:
+    msg: "The is no Client/Accessing cluster named: ({{ access_cluster_name }}) - Message from RestAPI: {{ remote_clusters_results.json.status.message }}"
+  when:
+    - remote_clusters_results.json.status.code == 400

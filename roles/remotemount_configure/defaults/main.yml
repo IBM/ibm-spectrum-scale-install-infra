@@ -4,19 +4,20 @@ scale_remotemount_debug: false
 scale_remotemount_forceRun: false
 
 # retries - 2 minutes (40 x 3 seconds)
-restapi_retries_count: 40
-restapi_retries_delay: 3
+scale_remotemount_restapi_retries_count: 40
+scale_remotemount_restapi_retries_delay: 3
 
-client_cluster_gui_port: 443
-storage_cluster_gui_port: 443
+scale_remotemount_client_cluster_gui_port: 443
+scale_remotemount_storage_cluster_gui_port: 443
 
-scalemgmt_endpoint: "scalemgmt/v2"
-remote_mount_endpoint: "{{ scalemgmt_endpoint }}/remotemount"
+scale_remotemount_scalemgmt_endpoint: "scalemgmt/v2"
+scale_remotemount_endpoint: "{{ scale_remotemount_scalemgmt_endpoint }}/remotemount"
 
-validate_certs_uri: 'no'
+
+scale_remotemount_validate_certs_uri: 'no'
 
 # Temporary Storage for Public Key, Only used when debuging
-scale_remote_mount_client_access_key: /tmp/client_cluster.pub
+scale_remotemount_client_access_key: /tmp/client_cluster.pub
 
 # Sets the security mode for communications between the current cluster and the remote cluster
 # Encyption can have performance effect and increased CPU usage
@@ -28,7 +29,7 @@ scale_remote_mount_client_access_key: /tmp/client_cluster.pub
 #        AES256-SHA256
 
 # AES128-SHA', 'AES256-SHA' , AUTHONLY
-remotecluster_chipers: "AUTHONLY"
+scale_remotemount_remotecluster_chipers: "AUTHONLY"
 
 # Storage filesystem
 # scale_remotemount_access_mount_attributes: "rw"

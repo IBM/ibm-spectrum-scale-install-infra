@@ -4,9 +4,9 @@
 #  Only users with role 'Administrator' or 'CNSS Operator' have permission to for this REST endpoint. Read also the documentation of CLI command 'mmremotecluster delete'.
 - name: Client Cluster (access) | DELETE The remotecluster {{ owning_cluster_name }} ...
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: true
-    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ remote_mount_endpoint }}/owningclusters/{{ owning_cluster_name }}
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/owningclusters/{{ owning_cluster_name }}
     method: DELETE
     user: "{{ scale_remotemount_client_gui_username }}"
     password: "{{ scale_remotemount_client_gui_password }}"
@@ -16,13 +16,13 @@
 
 - name: Client Cluster (access) | Check the results from the DELETE
   uri:
-    validate_certs: "{{ validate_certs_uri }}"
+    validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
     force_basic_auth: true
-    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
+    url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
     method: GET
     user: "{{ scale_remotemount_client_gui_username }}"
     password: "{{ scale_remotemount_client_gui_password }}"
   register: completed_check
   until: completed_check.json.jobs[0].status == "COMPLETED"
-  retries: "{{ restapi_retries_count }}"
-  delay: "{{ restapi_retries_delay }}"
+  retries: "{{ scale_remotemount_restapi_retries_count }}"
+  delay: "{{ scale_remotemount_restapi_retries_delay }}"

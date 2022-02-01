@@ -36,9 +36,9 @@
 - block: # RESTAPI - when: scale_remotemount_client_no_gui == false
     - name: Main | Storage Cluster (owner) | Check Connectivity to Storage Cluster GUI
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: yes
-        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
         method: GET
         user: "{{ scale_remotemount_storage_gui_username }}"
         password: "{{ scale_remotemount_storage_gui_password }}"
@@ -73,9 +73,9 @@
 
     - name: Main | Client Cluster (access) | Check Connectivity to Client Cluster GUI
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: yes
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
         method: GET
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
@@ -110,9 +110,9 @@
 
     - name: Main | Client Cluster (access) | Check status of GPFS deamon (Nodeclass GUI_MGMT_SERVERS)
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes/GUI_MGMT_SERVERS/health/states?fields=component%2Cstate&filter=component%3DGPFS%2C
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/nodes/GUI_MGMT_SERVERS/health/states?fields=component%2Cstate&filter=component%3DGPFS%2C
         method: GET
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"
@@ -120,6 +120,7 @@
         return_content: yes
         status_code:
           - 200
+          - 400
       register: clientcluster_gpfs_deamon_status
       run_once: True
       when: scale_remotemount_gpfsdemon_check | bool
@@ -128,26 +129,26 @@
       run_once: True
       ignore_errors: true
       debug:
-        msg: "{{ clientcluster_gpfs_deamon_status.json.states[0].state }}"
+        msg: "Status of GPFS Deamon: {{ clientcluster_gpfs_deamon_status.json.states[0].state }} - Rest API status message: {{ clientcluster_gpfs_deamon_status.json.status.message }}"
       when:
         - scale_remotemount_gpfsdemon_check | bool
         - scale_remotemount_debug is defined
         - scale_remotemount_debug | bool
 
-    - name: Main | Client Cluster (access) | GPFS Deamon on Client Cluster is down (Nodeclass GUI_MGMT_SERVERS)
+    - name: Main | Client Cluster (access) | GPFS Deamon on Client Cluster (Nodeclass GUI_MGMT_SERVERS)
       run_once: True
       assert:
         that:
-          - "'HEALTHY' or 'DEGRADED' in storagecluster_gpfs_deamon_status.json.states[0].state"
+          - "'HEALTHY' or 'DEGRADED' in clientcluster_gpfs_deamon_status.json.states[0].state"
         fail_msg: "'GPFS Deamon is NOT started on NodeClass GUI_MGMT_SERVERS"
         success_msg: "'GPFS Deamon is started on NodeClass GUI_MGMT_SERVERS"
       when: scale_remotemount_gpfsdemon_check | bool
 
     - name: Main | Storage Cluster (owning) | Check status of gpfs deamon on GUI_MGMT_SERVERS
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: true
-        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes/GUI_MGMT_SERVERS/health/states?fields=component%2Cstate&filter=component%3DGPFS%2C
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/nodes/GUI_MGMT_SERVERS/health/states?fields=component%2Cstate&filter=component%3DGPFS%2C
         method: GET
         user: "{{ scale_remotemount_storage_gui_username }}"
         password: "{{ scale_remotemount_storage_gui_password }}"
@@ -155,6 +156,7 @@
         return_content: yes
         status_code:
           - 200
+          - 400
       register: storagecluster_gpfs_deamon_status
       run_once: True
       when: scale_remotemount_gpfsdemon_check | bool
@@ -169,7 +171,7 @@
         - scale_remotemount_debug is defined
         - scale_remotemount_debug | bool
 
-    - name: Main | Storage Cluster (owning) | GPFS Deamon on Storage Cluster is down (Nodeclass GUI_MGMT_SERVERS)
+    - name: Main | Storage Cluster (owning) | GPFS Deamon on Storage Cluster (Nodeclass GUI_MGMT_SERVERS)
       run_once: True
       assert:
         that:
@@ -195,9 +197,9 @@
 - block: # RESTAPI-CLI when: scale_remotemount_client_no_gui == true
   - name: Main | API-CLI | Storage Cluster (owner) | Check Connectivity to Storage Cluster GUI
     uri:
-      validate_certs: "{{ validate_certs_uri }}"
+      validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
       force_basic_auth: yes
-      url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+      url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
       method: GET
       user: "{{ scale_remotemount_storage_gui_username }}"
       password: "{{ scale_remotemount_storage_gui_password }}"
@@ -232,9 +234,9 @@
 
   - name: Main | API-CLI | Storage Cluster (owning) | Check status of gpfs deamon on GUI_MGMT_SERVERS
     uri:
-      validate_certs: "{{ validate_certs_uri }}"
+      validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
       force_basic_auth: true
-      url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/nodes/GUI_MGMT_SERVERS/health/states?fields=component%2Cstate&filter=component%3DGPFS%2C
+      url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/nodes/GUI_MGMT_SERVERS/health/states?fields=component%2Cstate&filter=component%3DGPFS%2C
       method: GET
       user: "{{ scale_remotemount_storage_gui_username }}"
       password: "{{ scale_remotemount_storage_gui_password }}"
