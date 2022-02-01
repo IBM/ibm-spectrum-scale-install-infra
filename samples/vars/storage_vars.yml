@@ -8,12 +8,6 @@
 # the `device` parameter is mandatory for each of the file system's `disks`. All
 # other file system and disk parameters are optional.
 
-# Important:
-# `scale_storage` *must* be define using group variables. Do *not* define disk
-# parameters using host variables or inline variables in your playbook. Doing so
-# would apply them to all hosts in the group/play, thus defining the same disk
-# multiple times...
-
 scale_storage:
   - filesystem: gpfs01
     blockSize: 4M
