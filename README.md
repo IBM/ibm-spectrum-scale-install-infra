@@ -342,7 +342,22 @@ Cluster Membership
 
 All hosts in the play are configured as nodes in the same Spectrum Scale cluster. If you want to add hosts to an existing cluster then add at least one node from that existing cluster to the play.
 
-You can create multiple clusters by running multiple plays.
+You can create multiple clusters by running multiple plays. Note that you will need to [reload the inventory](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/meta_module.html) to clear dynamic groups add by the Spectrum Scale roles:
+
+```yaml
+- name: Create one cluster
+  hosts: cluster01
+  roles:
+    ...
+
+- name: Refresh inventory to clear dynamic groups
+  meta: refresh_inventory
+
+- name: Create another cluster
+  hosts: cluster02
+  roles:
+    ...
+```
 
 
 Limitations
