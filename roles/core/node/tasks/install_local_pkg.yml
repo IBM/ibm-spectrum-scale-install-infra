@@ -74,7 +74,7 @@
 - name: install | Extract installation package
   vars:
     localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
-  command: "{{ localpkg + ' --silent' }}"
+  command: "{{ '/bin/bash ' + localpkg + ' --silent' }}"
   args:
     creates: "{{ scale_gpfs_path_url }}"
 

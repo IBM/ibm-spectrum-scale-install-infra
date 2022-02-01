@@ -1,7 +1,7 @@
 ---
 # Build Linux kernel extension from source
 
-- block:  ## when: scale_install_gplbin_rpm is undefined
+- block:  ## when: scale_install_gplbin_package is undefined
 #
 # Identify Linux Distribution
 #
@@ -43,4 +43,4 @@
         msg: >-
           Unable to build Linux kernel extension for running kernel
           {{ ansible_kernel }}!
-  when: scale_install_gplbin_rpm is undefined
+  when: scale_install_gplbin_package is undefined

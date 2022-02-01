@@ -25,15 +25,22 @@
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
+- name: check | Check gui nodes
+  add_host:
+    name: "{{ hostvars[item]['inventory_hostname'] }}"
+    groups: scale_gui_colnodes
+  when:
+     - hostvars[item].scale_cluster_gui is defined
+     - (hostvars[item].scale_cluster_gui is defined and hostvars[item].scale_cluster_gui | bool)
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
 - name: configure | check if zimon is enabled
   set_fact:
     scale_cluster_zimon: true
   when:
-     - (hostvars[item].scale_cluster_gui is defined and
-       (true in ansible_play_hosts | map('extract', hostvars, 'scale_cluster_gui') | map('bool') | list)) or
-       (hostvars[item].scale_zimon_collector is defined and
-       (true in ansible_play_hosts | map('extract', hostvars, 'scale_zimon_collector') | map('bool') | list))
-  with_items: "{{ ansible_play_hosts }}"
+     - (groups['scale_gui_colnodes'] is defined and groups['scale_gui_colnodes'] | length > 0) or
+       (groups['scale_zimon_collectors'] is defined and groups['scale_zimon_collectors'] | length > 0)
   run_once: true
   delegate_facts: true
 

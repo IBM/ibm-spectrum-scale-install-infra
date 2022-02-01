@@ -29,4 +29,4 @@
 #
 - name: install | Add GPL module RPM to list
   set_fact:
-    scale_install_all_rpms: "{{ scale_install_all_rpms + [ scale_install_gplbin_rpm ] }}"
+    scale_install_all_rpms: "{{ scale_install_all_rpms + [ scale_install_gplbin_package ] }}"

@@ -2,6 +2,25 @@
 #
 # Install or update RPMs
 #
+
+- block:
+    - name: upgrade | Check if gpfs librdkafka installed
+      shell: rpm -q gpfs.librdkafka
+      register: gpfslibrdkafka_installed
+      ignore_errors: true
+      failed_when: false
+      args:
+        warn: false
+
+    - name: upgrade | Set if gpfs librdkafka installed
+      set_fact:
+        librdkafka_installed: true
+      when:
+        - gpfslibrdkafka_installed.rc == 0
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - offline_upgrade is defined and offline_upgrade | bool
+
 - name: upgrade | Upgrade GPFS file audit logging packages
   yum:
     name: "{{ scale_install_all_packages }}"

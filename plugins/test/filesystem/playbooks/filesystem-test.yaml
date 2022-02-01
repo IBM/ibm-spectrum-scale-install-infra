@@ -1,0 +1,29 @@
+#
+# Copyright 2020 IBM Corporation
+# and other contributors as indicated by the @author tags.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#
+- name: Test Spectrum Scale Cluster Module
+  hosts: controller
+  tasks:
+  - name: Run Filesystem Module
+    ibm_spectrumscale_filesystem:
+      op: 'get'
+    register: module_out
+
+  - name: Dump Filesystem output
+    debug:
+      msg: "{{ (module_out.result | from_json).filesystems | map(attribute='deviceName') | list }}"
+

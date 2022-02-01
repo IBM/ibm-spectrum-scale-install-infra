@@ -11,6 +11,8 @@
 # installation method.
 
 - hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
   vars:
     - scale_install_directory_pkg_path: /root/spectrum_scale_packages
   roles:

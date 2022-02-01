@@ -13,6 +13,8 @@
 # extracted. Packages will then be installed from the local files on each node.
 
 - hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
   vars:
     - scale_install_localpkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
   roles:

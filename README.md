@@ -105,7 +105,7 @@ The following IBM Spectrum Scale versions are tested:
 Specific OS requirements:
 
 - For CES (SMB/NFS) on SLES15, Python 3 is required.
-- For CES (OBJECT) RhedHat 8.x is required. 
+- For CES (OBJECT) RhedHat 8.x is required.
 
 
 Prerequisites
@@ -150,29 +150,47 @@ Users need to have a basic understanding of the [Ansible concepts](https://docs.
 Installation Instructions
 -------------------------
 
-- **Clone `ibm-spectrum-scale-install-infra` repository to your [Ansible control node](https://docs.ansible.com/ansible/latest/user_guide/basic_concepts.html#control-node)**
+- **Create project directory on [Ansible control node](https://docs.ansible.com/ansible/latest/user_guide/basic_concepts.html#control-node)**
+
+  The preferred way of accessing the roles provided by this project is by placing them inside the `collections/ansible_collections/ibm/spectrum_scale` directory of your project, adjacent to your [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html). Simply clone the repository to the correct path:
 
   ```shell
-  $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
+  $ mkdir my_project
+  $ cd my_project
+  $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git collections/ansible_collections/ibm/spectrum_scale
   ```
 
-- **Change working directory**
-
-  There are different methods for accessing the roles provided by this project. You can either change your working directory to the cloned repository and create your own files inside this directory (optionally copying examples from the [samples/](samples/) subdirectory):
+  Be sure to clone the project under the correct subdirectory:
 
   ```shell
-  $ cd ibm-spectrum-scale-install-infra/
+  my_project/
+  ├── collections/
+  │   └── ansible_collections/
+  │       └── ibm/
+  │           └── spectrum_scale/
+  │               └── ...
+  ├── hosts
+  └── playbook.yml
   ```
 
-  Alternatively, you can define an [Ansible environment variable](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#envvar-ANSIBLE_ROLES_PATH) to make the roles accessible in any external project directory:
+  - **Alternatives - now deprecated!**
 
-  ```shell
-  $ export ANSIBLE_ROLES_PATH=$(pwd)/ibm-spectrum-scale-install-infra/roles/
-  ```
+    Alternatively, you can clone the project repository and create your [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html) inside the repository's directory structure:
+
+      ```shell
+      $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
+      $ cd ibm-spectrum-scale-install-infra
+      ```
+
+    Yet another alternative, you can also define an [Ansible environment variable](https://docs.ansible.com/ansible/latest/reference_appendices/config.html#envvar-ANSIBLE_ROLES_PATH) to make the roles accessible in any external project directory:
+
+      ```shell
+      $ export ANSIBLE_ROLES_PATH=$(pwd)/ibm-spectrum-scale-install-infra/roles/
+      ```
 
 - **Create Ansible inventory**
 
-  Define Spectrum Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `./hosts`) in the following format:
+  Define Spectrum Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `hosts`) in the following format:
 
   ```yaml
   # hosts:
@@ -190,12 +208,14 @@ Installation Instructions
 
 - **Create Ansible playbook**
 
-  The basic [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html) (e.g. `./playbook.yml`) looks as follows:
+  The basic [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html) (e.g. `playbook.yml`) looks as follows:
 
   ```yaml
   # playbook.yml:
   ---
   - hosts: cluster01
+    collections:
+      - ibm.spectrum_scale
     vars:
       - scale_install_localpkg_path: /path/to/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
     roles:
