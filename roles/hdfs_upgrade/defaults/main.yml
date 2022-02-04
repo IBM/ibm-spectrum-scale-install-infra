@@ -21,6 +21,9 @@ scale_hdfs_rhel_version_path: 'hdfs_rpms/rhel/hdfs_3.1.1.x/'
 # Directory to install 3.3.x hdfs package
 scale_hdfs_rhel_version_path_33: 'hdfs_rpms/rhel/hdfs_3.3.x/'
 
+# Directory to install 3.2.2.x hdfs package
+scale_hdfs_rhel_version_path_322: 'hdfs_rpms/rhel/hdfs_3.2.2.x/'
+
 # Directory to install 3.1.1.x hdfs package
 scale_hdfs_sles_version_path: 'hdfs_rpms/rhel/hdfs_3.1.1.x/'
 

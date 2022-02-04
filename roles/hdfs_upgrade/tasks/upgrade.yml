@@ -66,9 +66,14 @@
        hdfs_version_path_selection_rhel: "{{ scale_hdfs_rhel_version_path_33 }}"
     when: transparency_33_enabled|bool
 
+  - name:
+    set_fact:
+       hdfs_version_path_selection_rhel: "{{ scale_hdfs_rhel_version_path_322 }}"
+    when: transparency_322_enabled|bool
+
   - name: upgrade | Fetch hdfs rpm dir path for rhel
     set_fact:
-        hdfs_rpm_path_rhel: "{{ hdfs_version_path_selection_rhel }}" 
+        hdfs_rpm_path_rhel: "{{ hdfs_version_path_selection_rhel }}"
   run_once: true
   delegate_to: localhost
 
