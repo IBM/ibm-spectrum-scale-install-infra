@@ -232,6 +232,9 @@ Installation Instructions
   - Installation from local installation package (see [samples/playbook_localpkg.yml](samples/playbook_localpkg.yml))
   - Installation from single directory package path (see [samples/playbook_directory.yml](samples/playbook_directory.yml))
 
+  > **Note:**
+  Sample playbooks now contain Ansible collection syntax, which requires the project to be cloned into the `collections/ansible_collections/ibm/spectrum_scale/` subdirectory. Alternative samples of playbooks with prior, non-collection syntax can be found in the [samples/legacy](samples/legacy) folder.
+
   Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
 - **Run the playbook to install and configure the Spectrum Scale cluster**
@@ -323,20 +326,42 @@ The following [roles](https://docs.ansible.com/ansible/latest/user_guide/playboo
 
 Note that [Core GPFS](roles/core) is the only mandatory role, all other roles are optional. Each of the optional roles requires additional configuration variables. Browse the examples in the [samples/](samples/) directory to learn how to:
 
-- Configure Graphical User Interface (GUI) (see [samples/playbook_gui.yml](samples/playbook_gui.yml))
 - Configure Protocol Services (SMB & NFS) (see [samples/playbook_ces.yml](samples/playbook_ces.yml))
 - Configure Protocol Services (HDFS) (see [samples/playbook_ces_hdfs.yml](samples/playbook_ces_hdfs.yml))
 - Configure Protocol Services (OBJECT) (see [samples/playbook_ces_object.yml](samples/playbook_ces_object.yml))
 - Configure Call Home (see [samples/playbook_callhome.yml](samples/playbook_callhome.yml))
 - Configure File Audit Logging (see [samples/playbook_fileauditlogging.yml](samples/playbook_fileauditlogging.yml))
-- Configure cluster with daemon and admin network (see samples/daemon_admin_network)
+- Configure cluster with daemon and admin network (see [samples/daemon_admin_network](samples/daemon_admin_network))
+- Configure remotely mounted filesystems (see [samples/playbook_remote_mount.yml](samples/playbook_remote_mount.yml))
+
+> **Note:**
+Sample playbooks now contain Ansible collection syntax, which requires the project to be cloned into the `collections/ansible_collections/ibm/spectrum_scale/` subdirectory. Alternative samples of playbooks with prior, non-collection syntax can be found in the [samples/legacy](samples/legacy) folder.
 
 Cluster Membership
 ------------------
 
 All hosts in the play are configured as nodes in the same Spectrum Scale cluster. If you want to add hosts to an existing cluster then add at least one node from that existing cluster to the play.
 
-You can create multiple clusters by running multiple plays.
+You can create multiple clusters by running multiple plays. Note that you will need to [reload the inventory](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/meta_module.html) to clear dynamic groups added by the Spectrum Scale roles:
+
+```yaml
+- name: Create one cluster
+  hosts: cluster01
+  roles:
+    ...
+
+- name: Refresh inventory to clear dynamic groups
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - meta: refresh_inventory
+
+- name: Create another cluster
+  hosts: cluster02
+  roles:
+    ...
+```
 
 
 Limitations
