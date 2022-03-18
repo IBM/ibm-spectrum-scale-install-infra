@@ -100,9 +100,24 @@
         - item.size > 1
       with_items: "{{ scale_storage_stanzafile_new.results }}"
 
-    - name: storage | Wait for NSD configuration to be synced across cluster
-      wait_for:
-        timeout: 30
+    - block:
+         - debug:
+             msg: Wait for 60 second for NSD configuration to be synced across cluster. Please be patient...
+
+         - name: storage | Wait for NSD configuration to be synced across cluster
+           wait_for:
+             timeout: 60
+
+         - name: storage | wait-nsd-active
+           shell: /usr/lpp/mmfs/bin/mmlsnsd -a -Y | grep -v HEADER | cut -d ':' -f 8
+           register: scale_existig_nsd_list
+           until:
+             - ((scale_existig_nsd_list.stdout_lines) | length) >= (scale_storage_nsddefs | unique | length)
+           retries: 12
+           delay: 20
+           changed_when: false
+      when: scale_storage_nsddefs | length > 0
+      run_once: true
 
 #
 # Create new filesystems
