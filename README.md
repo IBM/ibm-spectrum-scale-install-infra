@@ -1,3 +1,7 @@
+__Important__: You are viewing the `main` branch of this repository. If you've previously used the `master` branch in your own playbooks then you will need to make some changes in order to switch to the `main` branch. See [MIGRATING.md](MIGRATING.md) for details.
+
+* * *
+
 IBM Spectrum Scale (GPFS) Deployment using Ansible Roles
 ========================================================
 
