@@ -1,10 +1,10 @@
 # Migrating from master to main
 
-This Git repository has two branches: `master`, which is now stable, and `main`, which is where new functionality will be implemented. Your playbooks need to be adjusted when switching from one branch to the other, and these adjustments are outlined in this document.
+This Git repository has two branches: `master`, which is now stable, and `main`, which is where new functionality will be implemented. Your playbooks need to be adjusted when switching from one branch to the other — and these adjustments are outlined in this document.
 
 ## What's changing?
 
-A long term goal of this project is to make the code available through [Ansible Galaxy](https://galaxy.ansible.com/). It became clear that changes to the project's directory structure would be inevitable to follow the conventions imposed by Galaxy (i.e. [Collections format](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html)) — and this was taken as an opportunity to also rename all existing roles and some variables for consistency. See [#570](https://github.com/IBM/ibm-spectrum-scale-install-infra/pull/570), [#572](https://github.com/IBM/ibm-spectrum-scale-install-infra/pull/572), and [#590](https://github.com/IBM/ibm-spectrum-scale-install-infra/pull/590) for details.
+A long-term goal of this project is to publish the code through [Ansible Galaxy](https://galaxy.ansible.com/). It became clear that changes to the project's directory structure would be inevitable to follow the conventions imposed by Galaxy (i.e. [Collections format](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html)) — and this was taken as an opportunity to also rename all existing roles and some variables for consistency. See [#570](https://github.com/IBM/ibm-spectrum-scale-install-infra/pull/570), [#572](https://github.com/IBM/ibm-spectrum-scale-install-infra/pull/572), and [#590](https://github.com/IBM/ibm-spectrum-scale-install-infra/pull/590) for details.
 
 All playbooks using the Ansible roles provided by this project need to adapt this new naming scheme, in order to use the latest updates implemented in the `main` branch.
 
@@ -65,7 +65,7 @@ If you have existing playbooks which reference roles provided by this project, a
 $ ./migrate.sh playbook.yml
 ```
 
-Note that the script will create a backup of the file prior to making any changes. Further note that the script does not perform any kind of syntax checking — so you will need to manually verify that the resulting code is syntactically correct.
+Note that the script will create a backup of the file prior to making any changes. Further note that the script does not perform any kind of syntax checking, so you will need to manually verify that the resulting code is syntactically correct.
 
 ## What if I need help?
 
