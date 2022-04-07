@@ -7,6 +7,7 @@
 - name: Initialize
   set_fact:
    scale_zimon_url: ""
+   scale_zimon_collector_url: ""
 
 - name: install | zimon path
   set_fact:
@@ -31,7 +32,25 @@
 - name: install | zimon path
   set_fact:
     scale_zimon_url: 'zimon_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version >= '20'
+
+- name: install | zimon path
+  set_fact:
+    scale_zimon_collector_url: 'zimon_debs/ubuntu/'
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+
+- name: install | zimon path
+  set_fact:
+    scale_zimon_collector_url: 'zimon_debs/ubuntu/ubuntu20/'
+  when: 
+    - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+    - scale_version >= "5.1.4.0"
+
+- name: install | zimon path
+  set_fact:
+    scale_zimon_collector_url: 'zimon_debs/ubuntu/ubuntu22/'
+  when: 
+    - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '22'
 
 - name: install | zimon path
   set_fact:
@@ -59,8 +78,8 @@
 
 - name: install | Configure zimon APT repository
   apt_repository:
-    filename: spectrum-scale-zimon-debs
-    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ scale_zimon_url }} ./"
+    filename: "{{ item.key }}"
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ item.value }} ./"
     validate_certs: no
     state: present
     update_cache: yes
@@ -69,6 +88,9 @@
   when:
     - ansible_pkg_mgr == 'apt'
     - scale_install_repository_url != 'existing'
+  with_dict:
+    spectrum-scale-zimon-debs: "{{ scale_zimon_url }}"
+    spectrum-scale-zimon-collector-debs: "{{ scale_zimon_collector_url }}"
 
 - name: install | Configure ZIMon repository
   zypper_repository:
