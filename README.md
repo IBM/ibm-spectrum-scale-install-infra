@@ -161,7 +161,7 @@ Installation Instructions
   ```shell
   $ mkdir my_project
   $ cd my_project
-  $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git collections/ansible_collections/ibm/spectrum_scale
+  $ git clone -b main https://github.com/IBM/ibm-spectrum-scale-install-infra.git collections/ansible_collections/ibm/spectrum_scale
   ```
 
   Be sure to clone the project under the correct subdirectory:
