@@ -119,3 +119,39 @@
     name: yum-utils
     state: present
   when: ansible_pkg_mgr == 'yum'
+
+- block:  ## when: scale_install_prereqs_packages is defined
+    - name: prepare | Install prerequisite packages
+      yum:
+        name: "{{ scale_prereqs_package }}"
+        state: present
+        disable_excludes: all
+      when: ansible_pkg_mgr == 'yum'
+      register: scale_gpl_yum_result
+      retries: 10
+      until: scale_gpl_yum_result is success
+      delay: 20
+
+    - name: prepare | Install prerequisite packages
+      dnf:
+        name: "{{ scale_prereqs_package }}"
+        state: present
+        disable_excludes: all
+      when: ansible_pkg_mgr == 'dnf'
+      register: scale_gpl_dnf_result
+      retries: 10
+      until: scale_gpl_dnf_result is success
+      delay: 20
+
+    - name: prepare | Install prerequisite packages
+      apt:
+        name: "{{ scale_prereqs_package }}"
+        state: present
+      when: ansible_pkg_mgr == 'apt'
+
+    - name: prepare | Install prerequisite packages
+      zypper:
+        name: "{{ scale_prereqs_package }}"
+        state: present
+      when: ansible_pkg_mgr == 'zypper'
+  when: scale_install_prereqs_packages | bool

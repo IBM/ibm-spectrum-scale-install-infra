@@ -102,11 +102,11 @@
 
     - block:
          - debug:
-             msg: Wait for 60 second for NSD configuration to be synced across cluster. Please be patient...
+             msg: Wait for 240 second for NSD configuration to be synced across cluster. Please be patient...
 
          - name: storage | Wait for NSD configuration to be synced across cluster
            wait_for:
-             timeout: 60
+             timeout: 240
 
          - name: storage | wait-nsd-active
            shell: /usr/lpp/mmfs/bin/mmlsnsd -a -Y | grep -v HEADER | cut -d ':' -f 8

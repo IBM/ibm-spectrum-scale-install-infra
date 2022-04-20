@@ -96,6 +96,12 @@ scale_build_gplsrc_prereqs:
   - kernel-devel
   - make
 
+## List of optional prereq package to install
+scale_prereqs_package:
+  - numactl
+
+## List of optional prereq package to install flag
+scale_install_prereqs_packages: false
 
 ## Default cluster name
 scale_cluster_clustername: gpfs1.local
