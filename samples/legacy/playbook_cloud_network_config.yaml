@@ -1,0 +1,44 @@
+---
+# Playbook for deploying IBM Spectrum Scale (GPFS) sysctl config
+- hosts: all
+  any_errors_fatal: true
+  tasks:
+    - name: OS config | install python bindings
+      yum:
+        name:
+          - libselinux-python3
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+
+    - name: OS config | install python bindings
+      dnf:
+        name:
+          - libselinux-python3
+        state: present
+      when: ansible_pkg_mgr == 'dnf'    
+ 
+    - name: OS config | sysctl config value
+      sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        sysctl_set: yes
+        state: present
+        reload: yes
+      with_dict:
+        net.ipv4.tcp_max_syn_backlog: "65536"
+        net.ipv4.tcp_timestamps: "0"
+        net.ipv4.tcp_sack: "1"
+        net.core.netdev_max_backlog: "250000"
+        net.core.rmem_max: "16777216"
+        net.core.wmem_max: "16777216"
+        net.core.rmem_default: "16777216"
+        net.core.wmem_default: "16777216"
+        net.core.optmem_max: "16777216"
+        net.ipv4.tcp_rmem: "4096 87380 16777216"
+        net.ipv4.tcp_wmem: "4096 65536 16777216"
+        net.ipv4.tcp_low_latency: "1"
+        net.ipv4.tcp_adv_win_scale: "1"
+        net.core.somaxconn: "2048"
+        net.ipv4.neigh.eth0.gc_stale_time: "2000000"
+        net.ipv4.neigh.eth0.base_reachable_time_ms: "120000"
+        net.ipv4.neigh.eth0.mcast_solicit: "18"
