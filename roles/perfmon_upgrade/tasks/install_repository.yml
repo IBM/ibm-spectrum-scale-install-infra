@@ -38,19 +38,19 @@
 
 - name: install | zimon path
   set_fact:
-    scale_zimon_collector_url: 'zimon_debs/ubuntu/'
+    scale_zimon_url: 'zimon_debs/ubuntu/'
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 - name: install | zimon path
   set_fact:
-    scale_zimon_collector_url: 'zimon_debs/ubuntu/ubuntu20/'
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu20/'
   when:
     - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
     - scale_version >= "5.1.4.0"
 
 - name: install | zimon path
   set_fact:
-    scale_zimon_collector_url: 'zimon_debs/ubuntu/ubuntu22/'
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu22/'
   when:
     - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '22'
 
@@ -94,7 +94,6 @@
     - scale_install_repository_url != 'existing'
   with_dict:
     spectrum-scale-zimon-debs: "{{ scale_zimon_url }}"
-    spectrum-scale-zimon-collector-debs: "{{ scale_zimon_collector_url }}"
 
 - name: upgrade | Configure ZIMon repository
   zypper_repository:
