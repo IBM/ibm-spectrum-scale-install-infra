@@ -64,3 +64,62 @@
     msg: "item.scale_remotemount_storage_filesystem_name is not defined"
   when: item.scale_remotemount_storage_filesystem_name is undefined
   loop: "{{ scale_remotemount_filesystem_name }}"
+
+
+# This block is for systems with Scale GUI/RESTAPI on both Accessing cluster and Remote Cluster.
+#
+- block: # RESTAPI - when: scale_remotemount_client_no_gui == false
+    - name: Main | Storage Cluster (owner) | Check Connectivity to Storage Cluster GUI
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: yes
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+        method: GET
+        user: "{{ scale_remotemount_storage_gui_username }}"
+        password: "{{ scale_remotemount_storage_gui_password }}"
+        body_format: json
+        status_code:
+          - 200
+      register: storage_cluster_status
+      until:
+          - storage_cluster_status.status == 200
+      retries: 15
+      delay: 30
+      changed_when: false
+
+
+    - name: Main | Storage Cluster (owner) | Conenction Refused Storage Cluster
+      run_once: True
+      fail:
+        msg: "There is issues connection to GUI/RestAPI, http return code: {{ storage_cluster_status.status }}"
+      when:
+        - storage_cluster_status.status != 200
+
+    - name: Main | Client Cluster (access) | Check Connectivity to Client Cluster GUI
+      uri:
+        validate_certs: "{{ validate_certs_uri }}"
+        force_basic_auth: yes
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+        method: GET
+        user: "{{ scale_remotemount_client_gui_username }}"
+        password: "{{ scale_remotemount_client_gui_password }}"
+        body_format: json
+        status_code:
+          - 200
+      register: access_cluster_status
+      until:
+          - access_cluster_status.status == 200
+      retries: 15
+      delay: 30
+      changed_when: false
+
+    - name: Main | Client Cluster (access) | Conenction Refused Client Cluster
+      run_once: True
+      fail:
+        msg: "There is issues connection to GUI/RestAPI, http return code: {{ access_cluster_status.status }}"
+      when:
+        - access_cluster_status.status != 200
+
+  when:
+    - scale_remotemount_client_no_gui == false
+
