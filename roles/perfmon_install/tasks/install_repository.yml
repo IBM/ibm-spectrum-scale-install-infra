@@ -32,23 +32,18 @@
 - name: install | zimon path
   set_fact:
     scale_zimon_url: 'zimon_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version >= '20'
-
-- name: install | zimon path
-  set_fact:
-    scale_zimon_collector_url: 'zimon_debs/ubuntu/'
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 - name: install | zimon path
   set_fact:
-    scale_zimon_collector_url: 'zimon_debs/ubuntu/ubuntu20/'
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu20/'
   when: 
     - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
     - scale_version >= "5.1.4.0"
 
 - name: install | zimon path
   set_fact:
-    scale_zimon_collector_url: 'zimon_debs/ubuntu/ubuntu22/'
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu22/'
   when: 
     - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '22'
 
@@ -61,6 +56,16 @@
   set_fact:
     scale_zimon_url: 'zimon_rpms/sles15/'
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
+
+- name: install | remove existing zimon APT repository
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/apt/sources.list.d/spectrum-scale-pm-ganesha-debs.list
+  when:
+    - ansible_distribution in scale_ubuntu_distribution
+    - scale_version >= "5.1.4.0"
 
 - name: install | Configure ZIMon YUM repository
   yum_repository:
@@ -92,7 +97,6 @@
     - scale_install_repository_url != 'existing'
   with_dict:
     spectrum-scale-zimon-debs: "{{ scale_zimon_url }}"
-    spectrum-scale-zimon-collector-debs: "{{ scale_zimon_collector_url }}"
 
 - name: install | Configure ZIMon repository
   zypper_repository:
