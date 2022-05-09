@@ -384,7 +384,7 @@
           - 202
       register: daemonnodesname_uri_result
       run_once: True
-      when: scale_remotemount_storage_adminnodename is not true
+      when: not scale_remotemount_storage_adminnodename
 
     - name: "Client Cluster (access) | Check the result of adding the remote Storage Cluster with DeamonNodeName (JOB: {{ daemonnodesname_uri_result.json.jobs[0].jobId }})"
       uri:
@@ -399,7 +399,7 @@
       retries: "{{ restapi_retries_count }}"
       delay: "{{ restapi_retries_delay }}"
       run_once: True
-      when: scale_remotemount_storage_adminnodename is not true
+      when: not scale_remotemount_storage_adminnodename
   when:
     - (remote_clusters_results.status == 400) or (scale_remotemount_forceRun | bool)
 
