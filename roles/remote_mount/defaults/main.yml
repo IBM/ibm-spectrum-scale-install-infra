@@ -58,4 +58,4 @@ scale_remotemount_cleanup_remote_mount: false
 # Spectrum Scale uses the Deamon Node Name and the IP Attach to connect and run Cluster traffic. in most cases the admin network and deamon network is the same.
 # In case you have different AdminNode address and DeamonNode address and for some reason you want to use admin network, then you can set the variable: scale_remotemount_storage_adminnodename: true
 # Default = DeamonNodeName
-#scale_remotemount_storage_adminnodename: false
+scale_remotemount_storage_adminnodename: false
