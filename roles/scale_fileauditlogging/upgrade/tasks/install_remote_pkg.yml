@@ -89,11 +89,18 @@
   set_fact:
     scale_fal_url: 'gpfs_rpms/rhel/'
   when: ansible_distribution in scale_rhel_distribution
+  
+- name: upgrade | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - name: upgrade | file audit logging path
   set_fact:
     scale_fal_url: 'gpfs_debs/ubuntu/ubuntu20/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+  when:
+    - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+    - scale_version >= "5.1.4.0"
   
 - name: upgrade | file audit logging path
   set_fact:
