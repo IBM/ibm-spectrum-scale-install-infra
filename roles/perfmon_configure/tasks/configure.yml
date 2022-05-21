@@ -88,7 +88,7 @@
 - name: configure | Check before enable nodes for performance collection #TODO: Only checks first node for perfmon.
   vars:
     sensor_nodes: "{{ ansible_play_hosts | list }}"
-  shell: "/usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterNode |grep {{ sensor_nodes | first }} | cut -d ':' -f 14"
+  shell: "/usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterNode | grep {{ sensor_nodes | map('extract', hostvars, 'scale_daemon_nodename') | first }} | cut -d ':' -f 14"
   register: scale_zimon_conf_perfmon_check
   run_once: true
   failed_when: false
@@ -109,7 +109,7 @@
 - name: configure | Enable nodes for performance collection #TODO discuss: should it be dependent on scale_zimon_collector?
   vars:
     sensor_nodes: "{{ ansible_play_hosts | list }}"
-  command: /usr/lpp/mmfs/bin/mmchnode --perfmon -N {{ sensor_nodes | join(',') }}
+  command: /usr/lpp/mmfs/bin/mmchnode --perfmon -N {{ sensor_nodes | map('extract', hostvars, 'scale_daemon_nodename') | join(',') }}
   async: 45
   poll: 5
   register: scale_zimon_conf_enable_node_perfmon
