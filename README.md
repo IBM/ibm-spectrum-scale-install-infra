@@ -318,14 +318,33 @@ Note that [Core GPFS](roles/core) is the only mandatory role, all other roles ar
 - Configure Protocol Services (OBJECT) (see [samples/playbook_ces_object.yml](samples/playbook_ces_object.yml))
 - Configure Call Home (see [samples/playbook_callhome.yml](samples/playbook_callhome.yml))
 - Configure File Audit Logging (see [samples/playbook_fileauditlogging.yml](samples/playbook_fileauditlogging.yml))
-- Configure cluster with daemon and admin network (see samples/daemon_admin_network)
+- Configure cluster with daemon and admin network (see [samples/daemon_admin_network](samples/daemon_admin_network))
+- Configure remotely mounted filesystems (see [samples/playbook_remote_mount.yml](samples/playbook_remote_mount.yml))
+
 
 Cluster Membership
 ------------------
 
 All hosts in the play are configured as nodes in the same Spectrum Scale cluster. If you want to add hosts to an existing cluster then add at least one node from that existing cluster to the play.
 
-You can create multiple clusters by running multiple plays.
+You can create multiple clusters by running multiple plays. Note that you will need to [reload the inventory](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/meta_module.html) to clear dynamic groups added by the Spectrum Scale roles:
+
+```yaml
+- name: Create one cluster
+  hosts: cluster01
+  roles:
+    ...
+- name: Refresh inventory to clear dynamic groups
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - meta: refresh_inventory
+- name: Create another cluster
+  hosts: cluster02
+  roles:
+    ...
+```
 
 
 Limitations

@@ -328,8 +328,10 @@
       command: /usr/lpp/mmfs/bin/mmces service enable HDFS
 
     - name: Start Namenodes
-      shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn restart
-      register: start_nn_status
+      shell: /usr/lpp/mmfs/bin/mmces service start HDFS -N "{{ nn_items }}"
+      with_items: "{{ scale_hdfs_namenodes_list }}"
+      loop_control:
+        loop_var: nn_items
 
     - name: Check Namenodes running status
       shell: /usr/lpp/mmfs/hadoop/sbin/mmhdfs hdfs-nn status | grep 'namenode pid is' | wc -l

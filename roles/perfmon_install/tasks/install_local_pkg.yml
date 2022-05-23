@@ -138,6 +138,19 @@
 
 - name: install | zimon path
   set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu20/'
+  when:
+    - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+    - scale_version >= "5.1.4.0"
+
+- name: install | zimon path
+  set_fact:
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu22/'
+  when:
+    - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '22'
+
+- name: install | zimon path
+  set_fact:
     scale_zimon_url: 'zimon_rpms/sles12/'
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
 

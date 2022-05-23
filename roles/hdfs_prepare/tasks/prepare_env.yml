@@ -2,19 +2,36 @@
 - name:
   set_fact:
      transparency_33_enabled: "False"
-     transparency_version: "False"
+     transparency_322_enabled: "False"
+     transparency_version_33: "False"
+     transparency_version_322: "False"
 
 - name:
   shell: "echo $SCALE_HDFS_TRANSPARENCY_VERSION_33_ENABLE"
-  register: transparency_version
+  register: transparency_version_33
+  delegate_to: localhost
+  run_once: true
+
+- name:
+  shell: "echo $SCALE_HDFS_TRANSPARENCY_VERSION_322_ENABLE"
+  register: transparency_version_322
   delegate_to: localhost
   run_once: true
 
 - name:
   set_fact:
-    transparency_33_enabled: "{{ transparency_version.stdout|bool }}"
+    transparency_33_enabled: "{{ transparency_version_33.stdout|bool }}"
   when: 
-    - transparency_version.stdout is defined
-    - transparency_version.stdout|bool
+    - transparency_version_33.stdout is defined
+    - transparency_version_33.stdout|bool
+  delegate_to: localhost
+  run_once: true
+
+- name:
+  set_fact:
+    transparency_322_enabled: "{{ transparency_version_322.stdout|bool }}"
+  when: 
+    - transparency_version_322.stdout is defined
+    - transparency_version_322.stdout|bool
   delegate_to: localhost
   run_once: true
