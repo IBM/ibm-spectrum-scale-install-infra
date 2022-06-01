@@ -133,7 +133,7 @@
   when: scale_ces_disabled_nodes|length > 0 and 'SMB' in scale_service_list
 
 - import_role:
-   name: scale_object/node
+   name: ibm.spectrum_scale.obj_install
   when: scale_ces_disabled_nodes|length > 0 and 'OBJ' in scale_service_list
 
 - name: configure | Prepare ces nodes string
