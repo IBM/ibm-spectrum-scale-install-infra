@@ -11,6 +11,11 @@
 
 - name: install | nfs path
   set_fact:
+   scale_nfs_url: 'ganesha_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
+    
+- name: install | nfs path
+  set_fact:
    scale_nfs_url: 'ganesha_debs/ubuntu16/'
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
 
@@ -77,6 +82,11 @@
   set_fact:
    scale_zimon_url: 'zimon_rpms/rhel8/'
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: install | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
 
 - name: install | zimon path
   set_fact:
