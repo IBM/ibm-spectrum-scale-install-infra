@@ -5,7 +5,7 @@
 
 # Add pmswift rpm
 
-- block: ## when: inventory_hostname in scale_obj_nodes_list
+- block: ## when: inventory_hostname
     - name: upgrade | pmswift path
       set_fact:
         scale_obj_url: 'zimon_rpms/rhel8'
@@ -30,5 +30,3 @@
       set_fact:
         scale_install_all_packages: "{{ scale_install_all_packages + pmswift_package }}"
       when: scale_install_repository_url is undefined
-
-  when: inventory_hostname in scale_obj_nodes_list
