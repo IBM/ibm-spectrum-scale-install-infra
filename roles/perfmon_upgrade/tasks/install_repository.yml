@@ -220,7 +220,7 @@
             - pmswiftd
           when:
              - scale_pmswift_status.rc is defined and scale_pmswift_status.rc == 0
-      when:
+      when: 
          - (is_scale_pmswift_pkg_installed | bool)
 
     - name: upgrade | pmswift packages to list
@@ -228,6 +228,8 @@
          scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
       with_items:
           - "{{ scale_obj_sensors_packages }}"
-      when: (is_scale_pmswift_pkg_installed | bool)
+      when: 
+          - is_scale_pmswift_pkg_installed | bool
+          - scale_zimon_offline_upgrade is undefined
   when:
      - ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
