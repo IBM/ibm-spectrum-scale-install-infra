@@ -23,7 +23,7 @@
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_rpms/rhel8/'
+    scale_zimon_url: 'zimon_rpms/rhel9/'
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
 
 - name: upgrade | zimon path
