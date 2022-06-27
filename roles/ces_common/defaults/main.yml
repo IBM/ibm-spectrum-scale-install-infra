@@ -1,4 +1,10 @@
 ---
+## Spectrum Scale daemon nodename (defaults to node's hostname)
+scale_daemon_nodename: "{{ ansible_hostname }}"
+
+## Spectrum Scale admin nodename (defaults to node's hostname)
+scale_admin_nodename: "{{ scale_daemon_nodename }}"
+
 # Default variables for the IBM Spectrum Scale (NFS) role -
 # either edit this file or define your own variables to override the defaults
 # If ces groups is defined, scale_protocols in scale_clusterdefinition.json will look like below

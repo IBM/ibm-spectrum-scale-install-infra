@@ -7,6 +7,16 @@
    scale_service_list: []
    scale_ces_nodes: ""
 
+- name: check | Set default daemon nodename
+  set_fact:
+    scale_daemon_nodename: "{{ scale_daemon_nodename }}"
+  when: hostvars[inventory_hostname].scale_daemon_nodename is undefined
+
+- name: check | Set default admin nodename
+  set_fact:
+    scale_admin_nodename: "{{ scale_admin_nodename }}"
+  when: hostvars[inventory_hostname].scale_admin_nodename is undefined
+
 - name: configure | Collect status of cesSharedRoot
   command: "{{ scale_command_path }}mmlsconfig cesSharedRoot"
   register: scale_ces_status
