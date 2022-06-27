@@ -17,4 +17,3 @@ galaxy_info:
 
 dependencies:
   - ibm.spectrum_scale.obj_prepare
-  - ibm.spectrum_scale.ces_common
