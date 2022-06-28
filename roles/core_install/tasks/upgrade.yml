@@ -54,6 +54,11 @@
     scale_repo_gpfsversion: "{{ package_gpfs_version }}"
   when: scale_install_repository_url is defined
 
+- set_fact:
+    scale_vars_update: "{{ ansible_play_hosts|
+                           map('extract', hostvars, 'scale_install_needsupdate')|
+                           list }}"
+  run_once: true
 
 - block:  ## run_once: true
     - name: update | Check if any running node needs to be updated
@@ -67,6 +72,6 @@
           ######################################################################
       assert:
         that:
-          - true not in ansible_play_hosts | map('extract', hostvars, 'scale_install_needsupdate') | list
+          - "{{ 'True' not in scale_vars_update }}"
         msg: "{{ msg.split('\n') }}"
   run_once: true
