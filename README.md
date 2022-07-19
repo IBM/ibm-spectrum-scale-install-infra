@@ -1,3 +1,15 @@
+__Important__: You are viewing the `master` branch of this repository. This branch is now stable, all new functionality will be implemented in the `main` branch. Switching between these branches requires you to adjust your playbooks — detailed instructions are outlined in [MIGRATING.md](https://github.com/IBM/ibm-spectrum-scale-install-infra/blob/main/MIGRATING.md).
+
+If you are not ready to implement these changes just yet, then you can continue to consume the `master` branch. However, the default branch of the repository will change from `master` to `main`. To continue to consume the `master` branch, be sure to explicitly reference it when cloning the repository:
+
+```shell
+git clone -b master https://github.com/IBM/ibm-spectrum-scale-install-infra.git collections
+```
+
+See [Installation Instructions](#installation-instructions) for details.
+
+* * *
+
 IBM Spectrum Scale (GPFS) Deployment using Ansible Roles
 ========================================================
 
@@ -157,7 +169,7 @@ Installation Instructions
   ```shell
   $ mkdir my_project
   $ cd my_project
-  $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git collections/ansible_collections/ibm/spectrum_scale
+  $ git clone -b master https://github.com/IBM/ibm-spectrum-scale-install-infra.git collections/ansible_collections/ibm/spectrum_scale
   ```
 
   Be sure to clone the project under the correct subdirectory:
@@ -178,7 +190,7 @@ Installation Instructions
     Alternatively, you can clone the project repository and create your [Ansible playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html) inside the repository's directory structure:
 
       ```shell
-      $ git clone https://github.com/IBM/ibm-spectrum-scale-install-infra.git
+      $ git clone -b master https://github.com/IBM/ibm-spectrum-scale-install-infra.git
       $ cd ibm-spectrum-scale-install-infra
       ```
 
