@@ -39,6 +39,27 @@
         net.ipv4.tcp_low_latency: "1"
         net.ipv4.tcp_adv_win_scale: "1"
         net.core.somaxconn: "2048"
-        net.ipv4.neigh.default.gc_stale_time: "2000000"
-        net.ipv4.neigh.default.base_reachable_time_ms: "120000"
-        net.ipv4.neigh.default.mcast_solicit: "18"
+
+    - name: OS config | interface specific sysctl gc_stale_time config value
+      sysctl:
+        name: net.ipv4.neigh.{{ ansible_default_ipv4.interface }}.gc_stale_time
+        value: 2000000
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: OS config | interface specific sysctl base_reachable_time_ms value
+      sysctl:
+        name: net.ipv4.neigh.{{ ansible_default_ipv4.interface }}.base_reachable_time_ms
+        value: 120000
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: OS config | interface specific sysctl mcast_solicit value
+      sysctl:
+        name: net.ipv4.neigh.{{ ansible_default_ipv4.interface }}.mcast_solicit
+        value: 18
+        sysctl_set: yes
+        state: present
+        reload: yes
