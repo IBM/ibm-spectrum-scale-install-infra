@@ -71,9 +71,9 @@
 - block: # RESTAPI - when: scale_remotemount_client_no_gui == false
     - name: Main | Storage Cluster (owner) | Check Connectivity to Storage Cluster GUI
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: yes
-        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ storage_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
         method: GET
         user: "{{ scale_remotemount_storage_gui_username }}"
         password: "{{ scale_remotemount_storage_gui_password }}"
@@ -97,9 +97,9 @@
 
     - name: Main | Client Cluster (access) | Check Connectivity to Client Cluster GUI
       uri:
-        validate_certs: "{{ validate_certs_uri }}"
+        validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: yes
-        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ client_cluster_gui_port }}/{{ scalemgmt_endpoint }}/cluster
+        url: https://{{ scale_remotemount_client_gui_hostname }}:{{ scale_remotemount_client_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
         method: GET
         user: "{{ scale_remotemount_client_gui_username }}"
         password: "{{ scale_remotemount_client_gui_password }}"

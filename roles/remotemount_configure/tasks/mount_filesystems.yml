@@ -62,6 +62,7 @@
     status_code:
       - 200
       - 400
+      - 404
   register: remote_filesystem_results
   ignore_errors: true
   run_once: True
@@ -111,4 +112,4 @@
       delay: "{{ scale_remotemount_restapi_retries_delay }}"
       run_once: True
 
-  when: (remote_filesystem_results.status == 400)
+  when: (remote_filesystem_results.status == 400) or (remote_filesystem_results.status == 404)
