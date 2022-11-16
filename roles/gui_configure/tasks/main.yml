@@ -13,11 +13,22 @@
     - scale_gui_password_policy_change | bool
   tags: chpasswdpolicy
 
+- name: check | Check gui nodes if defined
+  add_host:
+    name: "{{ hostvars[item]['inventory_hostname'] }}"
+    groups: scale_gui_defined_listnodes
+  when:
+     - hostvars[item].scale_cluster_gui is defined
+     - (hostvars[item].scale_cluster_gui is defined and hostvars[item].scale_cluster_gui | bool)
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
 - import_tasks: users.yml
   when:
-    - scale_cluster_gui | bool
     - scale_gui_admin_user is defined
     - scale_gui_admin_hc_vault_user is not defined
+    - groups['scale_gui_defined_listnodes'] is defined and groups['scale_gui_defined_listnodes'] | length > 0
+  delegate_to: "{{ groups['scale_gui_defined_listnodes'].0 }}"
   tags: users
 
 - import_tasks: ldap.yml
