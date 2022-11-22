@@ -63,6 +63,8 @@
      scale_protocols: "{{ scale_protocols | default(omit) }}"
      scale_hdfs_cluster: "{{ scale_hdfs_cluster | default(omit) }}"
      scale_cluster_config: "{{ scale_cluster | default(omit) }}"
+     scale_user_created_nsddevices_file_path: "{{ scale_cluster.scale_user_created_nsddevices_file_path | default(omit) }}"
+     scale_user_defined_nsddevices_discovery: "{{ scale_cluster.scale_user_defined_nsddevices_discovery | default(false) }}"
     loop: "{{ node_details }}"
   tags:
   - scale_inventory

@@ -32,5 +32,10 @@ gpfs_cluster_system_profile:
 # user defined profile needs to be installed inside this directory
 scale_cluster_profile_system_path: /var/mmfs/etc/
 
+# user defined nsd device script needs to be installed inside this directory
+scale_user_created_nsddevices_systems_path: /var/mmfs/etc/nsddevices
+
+scale_user_defined_nsddevices_discovery: false
+
 # default mm command exection path
 scale_command_path: /usr/lpp/mmfs/bin/
