@@ -15,7 +15,16 @@
     name: gpfsgui
     state: started
     enabled: true
+    no_block: true
   when: scale_cluster_gui | bool
+
+# Verify GUI is up and running
+- name: Wait until gpfsgui is up and running
+  shell: "systemctl is-active gpfsgui"
+  register: systemctl_out
+  until: systemctl_out.stdout == "active"
+  retries: 10
+  delay: 20
 
 #
 # Initialize the GUI so that user dont need to wait and HTTPs certificate and be imported.
