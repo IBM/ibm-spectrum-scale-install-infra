@@ -19,11 +19,13 @@
 
 - name: install | Configure GPL module repository
   apt_repository:
-    name: spectrum-scale-gplbin
-    description: IBM Spectrum Scale (GPFS) GPL module
-    baseurl: "{{ scale_install_gplbin_repository_url }}"
-    gpgcheck: false
+    filename: spectrum-scale-gplbin
+    repo: "{{ scale_install_gplbin_repository_url }}"
+    validate_certs: no
     state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale (GPFS) GPL module
+    mode: 0777
   when:
     - ansible_pkg_mgr == 'apt'
     - scale_install_gplbin_repository_url is defined
@@ -33,9 +35,10 @@
   zypper_repository:
     name: spectrum-scale-gplbin
     description: IBM Spectrum Scale (GPFS) GPL module
-    baseurl: "{{ scale_install_gplbin_repository_url }}"
-    gpgcheck: false
+    repo: "{{ scale_install_gplbin_repository_url }}"
+    disable_gpg_check: yes
     state: present
+    overwrite_multiple: yes
   when:
     - ansible_pkg_mgr == 'zypper'
     - scale_install_gplbin_repository_url is defined
