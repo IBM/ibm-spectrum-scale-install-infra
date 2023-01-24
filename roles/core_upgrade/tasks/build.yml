@@ -29,8 +29,7 @@
 #
     - name: build | Compile GPL module
       shell: export LINUX_DISTRIBUTION={{ scale_build_distribution }} ; /usr/lpp/mmfs/bin/mmbuildgpl --quiet
-      args:
-        creates: /lib/modules/{{ ansible_kernel }}/extra/mmfs26.ko
+      register: scale_build_gpl
 
     - name: build | Stat GPL module
       stat:
