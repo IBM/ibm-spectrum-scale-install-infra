@@ -361,6 +361,7 @@
   with_items:
   - "{{ scale_install_gpfs_nfs_python.files }}"
   - "{{ scale_install_gpfs_nfs_doc.files }}"
+  - "{{ scale_install_gpfs_nfs_gpfs.files }}"
   when: ansible_distribution in scale_ubuntu_distribution
 
 - name: install | Add GPFS package to list

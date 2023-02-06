@@ -23,6 +23,13 @@
       changed_when: false
       failed_when: false
 
+    - name: configure | Find existing File audit logging filesystem(s)
+      shell:
+        cmd: "/usr/lpp/mmfs/bin/mmaudit all list -Y | grep -v HEADER | cut -d ':' -f 8 | uniq"
+      register: scale_existing_audit
+      changed_when: false
+      failed_when: false
+
     - name: configure | configure file audit logging
       vars:
         scale_fal_localspace_force: "{{ '--skip-local-space-check' if scale_fal_skip_localspace is defined else '' }}"
@@ -33,6 +40,7 @@
         {{ scale_fal_localspace_force }}
       register: scale_audit_command
       when:
+        - item not in scale_existing_audit.stdout_lines
         - scale_storage_fsdefs_audit is defined and scale_storage_fsdefs_audit | length >= 1
         - (scale_storage_fsparams_audit[item].scale_fal_enable is defined) and (scale_storage_fsparams_audit[item].scale_fal_enable | bool)
       with_items: "{{ scale_storage_fsdefs_audit }}"
