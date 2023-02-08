@@ -118,7 +118,7 @@
      when: ansible_distribution_major_version == '22'
   when:
      - ansible_distribution in scale_ubuntu_distribution
-     - scale_version >= "5.1.2.5" and scale_version <= "5.1.3.0"
+     - (scale_version >= "5.1.2.5" or scale_version >= "5.1.2.10") and scale_version <= "5.1.3.0"
 
 # Find smb rpms
 - block:  ## when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
