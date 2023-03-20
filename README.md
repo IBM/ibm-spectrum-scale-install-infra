@@ -1,6 +1,6 @@
-__Important__: You are viewing the `main` branch of this repository. If you've previously used the `master` branch in your own playbooks then you will need to make some changes in order to switch to the `main` branch. See [MIGRATING.md](MIGRATING.md) for details.
+**Important**: You are viewing the `main` branch of this repository. If you've previously used the `master` branch in your own playbooks then you will need to make some changes in order to switch to the `main` branch. See [MIGRATING.md](MIGRATING.md) for details.
 
-* * *
+---
 
 IBM Storage Scale (GPFS) Deployment using Ansible Roles
 =======================================================
@@ -23,21 +23,23 @@ Ansible project with multiple roles for installing and configuring IBM Storage S
 - [Disclaimer](#disclaimer)
 - [Copyright and License](#copyright-and-license)
 
-
 Features
 --------
 
 #### Infrastructure minimal tested configuration
+
 - [x] Pre-built infrastructure (using a static inventory file)
 - [ ] Dynamic inventory file
 
 #### OS support
+
 - [x] Support for RHEL 7 on x86_64, PPC64 and PPC64LE
 - [x] Support for RHEL 8 on x86_64 and PPC64LE
 - [x] Support for UBUNTU 20 on x86_64 and PPC64LE
 - [x] Support for SLES 15 on x86_64 and PPC64LE
 
 #### Common prerequisites
+
 - [x] Disable SELinux (`scale_prepare_disable_selinux: true`), by default false
 - [x] Disable firewall (`scale_prepare_disable_firewall: true`), by default true.
 - [ ] Disable firewall ports
@@ -154,7 +156,6 @@ Users need to have a basic understanding of the [Ansible concepts](https://docs.
 
   Repeat this process for all nodes to themselves and to all other nodes.
 
-
 Installation Instructions
 -------------------------
 
@@ -216,7 +217,7 @@ Installation Instructions
       - core_install
       - core_configure
       - core_verify
-  ```   
+  ```
 
   Again, this is just a minimal example. There are different installation methods available, each offering a specific set of options:
 
@@ -240,10 +241,10 @@ Installation Instructions
     ```shell
     $ cd samples/
     $ ./ansible.sh
-    ```   
+    ```
 
     > **Note:**
-    An advantage of using the automation script is that it will generate log files based on the date and the time in the `/tmp` directory.
+    > An advantage of using the automation script is that it will generate log files based on the date and the time in the `/tmp` directory.
 
 - **Playbook execution screen**
 
@@ -264,7 +265,7 @@ Installation Instructions
   ok: [scale04]
   ok: [scale05]
 
-  TASK [common : check | Check Spectrum Scale version]               
+  TASK [common : check | Check Spectrum Scale version]
   *********************************************************************************************************
   ok: [scale01]
   ok: [scale02]
@@ -287,7 +288,6 @@ Installation Instructions
   scale05                 : ok=0   changed=59    unreachable=0    failed=0    skipped=0   rescued=0    ignored=0
   ```
 
-
 Optional Role Variables
 -----------------------
 
@@ -304,7 +304,7 @@ Available Roles
 
 The following [roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) are available for you to reuse when assembling your own [playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html):
 
-- [Core GPFS](roles/core)*
+- [Core GPFS](roles/core)\*
 - [GPFS GUI](roles/gui)
 - [GPFS SMB](roles/smb)
 - [GPFS NFS](roles/nfs)
@@ -335,20 +335,19 @@ You can create multiple clusters by running multiple plays. Note that you will n
 ```yaml
 - name: Create one cluster
   hosts: cluster01
-  roles:
-    ...
+  roles: ...
+
 - name: Refresh inventory to clear dynamic groups
   hosts: localhost
   connection: local
   gather_facts: false
   tasks:
     - meta: refresh_inventory
+
 - name: Create another cluster
   hosts: cluster02
-  roles:
-    ...
+  roles: ...
 ```
-
 
 Limitations
 -----------
@@ -369,12 +368,10 @@ Reporting Issues and Feedback
 
 Please use the [issue tracker](https://github.com/IBM/ibm-spectrum-scale-install-infra/issues) to ask questions, report bugs and request features.
 
-
 Contributing Code
 -----------------
 
 We welcome contributions to this project, see [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
-
 
 Disclaimer
 ----------
