@@ -1,9 +1,9 @@
 ---
 - name: install | Install Scale object packages
   yum:
-   name: "{{ scale_install_all_packages }}"
-   state: present
-   disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+    name: "{{ scale_install_all_packages }}"
+    state: present
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
   when: inventory_hostname in scale_obj_nodes_list
 
 - name: install | Get installed spectrum-scale-object
@@ -11,12 +11,10 @@
   register: scale_package_status
   when: inventory_hostname in scale_obj_nodes_list
   ignore_errors: true
-  args:
-    warn: false
 
 - name: install | Check if spectrum-scale-object package is installed
   assert:
     that:
-    - scale_package_status.rc == 0
+      - scale_package_status.rc == 0
     fail_msg: "spectrum-scale-object is not installed on {{ ansible_hostname }}"
   when: inventory_hostname in scale_obj_nodes_list
