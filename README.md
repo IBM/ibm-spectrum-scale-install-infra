@@ -100,16 +100,14 @@ Minimal tested Versions
 The following Ansible versions are tested:
 
 - 2.9 and above
+- **Refer to the [Release Notes](https://github.com/IBM/ibm-spectrum-scale-install-infra/releases) for details**
 
-The following IBM Spectrum Scale versions are tested:
+The following IBM Storage Scale versions are tested:
 
-- 5.0.4.0
-- 5.0.4.1
-- 5.0.4.2
-- 5.0.5.X
-- 5.0.5.2 For CES (SMB and NFS)  
-- 5.1.0.0
-- 5.1.1.0 with Object
+- 5.0.4.0 and above
+- 5.0.5.2 and above for CES (SMB and NFS)
+- 5.1.1.0 and above for CES (Object)
+- **Refer to the [Release Notes](https://github.com/IBM/ibm-spectrum-scale-install-infra/releases) for details**
 
 Specific OS requirements:
 
