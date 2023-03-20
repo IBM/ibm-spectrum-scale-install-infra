@@ -2,10 +2,10 @@ __Important__: You are viewing the `main` branch of this repository. If you've p
 
 * * *
 
-IBM Spectrum Scale (GPFS) Deployment using Ansible Roles
-========================================================
+IBM Storage Scale (GPFS) Deployment using Ansible Roles
+=======================================================
 
-Ansible project with multiple roles for installing and configuring IBM Spectrum Scale (GPFS).
+Ansible project with multiple roles for installing and configuring IBM Storage Scale (GPFS) software defined storage.
 
 **Table of Contents**
 
@@ -47,14 +47,16 @@ Features
 - [x] Generate SSH key
 - [x] User must set up base OS repositories
 
-#### Core Spectrum Scale prerequisites
+#### Core IBM Storage Scale prerequisites
+
 - [x] Install yum-utils package
 - [x] Install gcc-c++, kernel-devel, make
 - [x] Install elfutils,elfutils-devel (RHEL8 specific)
 
-#### Core Spectrum Scale Cluster features
-- [x] Install core Spectrum Scale packages on Linux nodes
-- [x] Install Spectrum Scale license packages on Linux nodes
+#### Core IBM Storage Scale Cluster features
+
+- [x] Install core IBM Storage Scale packages on Linux nodes
+- [x] Install IBM Storage Scale license package on Linux nodes
 - [x] Compile or install pre-compiled Linux kernel extension (mmbuildgpl)
 - [x] Configure client and server license
 - [x] Assign default quorum (maximum 7 quorum nodes) if user has not defined in the inventory
@@ -70,21 +72,23 @@ Features
 - [x] Extend NSDs and file system
 - [x] Add disks to existing file systems
 
-#### Spectrum Scale Management GUI features
-- [x] Install Spectrum Scale management GUI packages on GUI designated nodes
-- [x] maximum 3 management GUI nodes to be configured
+#### IBM Storage Scale Management GUI features
+
+- [x] Install IBM Storage Scale management GUI packages on designated GUI nodes
 - [x] Install performance monitoring sensor packages on all Linux nodes
 - [x] Install performance monitoring packages on all GUI designated nodes
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
 
-#### Spectrum Scale Callhome features
-- [x] Install Spectrum Scale callhome packages on all cluster nodes
-- [x] Configure callhome
+#### IBM Storage Scale Call Home features
 
-#### Spectrum Scale CES (SMB and NFS) Protocol supported features (5.0.5.2)
-- [x] Install Spectrum Scale SMB or NFS on selected cluster nodes
-- [x] Install Spectrum Scale OBJECT on selected cluster nodes (5.1.1.0)
+- [x] Install IBM Storage Scale Call Home packages on all cluster nodes
+- [x] Configure Call Home
+
+#### IBM Storage Scale CES (SMB and NFS) Protocol supported features
+
+- [x] Install IBM Storage Scale SMB or NFS on selected cluster nodes (5.0.5.2 and above)
+- [x] Install IBM Storage Scale Object on selected cluster nodes (5.1.1.0 and above)
 - [x] CES IPV4 or IPV6 support
 - [x] CES interface mode support
 
@@ -129,15 +133,15 @@ Users need to have a basic understanding of the [Ansible concepts](https://docs.
 
   Note that [Python 3](https://docs.ansible.com/ansible/latest/reference_appendices/python_3_support.html) is required for certain functionality of this project to work. Ansible should automatically detect and use Python 3 on managed machines, refer to the [Ansible documentation](https://docs.ansible.com/ansible/latest/reference_appendices/python_3_support.html#using-python-3-on-the-managed-machines-with-commands-and-playbooks) for details and workarounds.
 
-- **Download Spectrum Scale packages**
+- **Download IBM Storage Scale packages**
 
   - A Developer Edition Free Trial is available at this site: https://www.ibm.com/account/reg/us-en/signup?formid=urx-41728
 
-  - Customers who have previously purchased Spectrum Scale can obtain entitled versions from IBM Fix Central. Visit https://www.ibm.com/support/fixcentral and search for 'IBM Spectrum Scale (Software defined storage)'.
+  - Customers who have previously purchased IBM Storage Scale can obtain entitled versions from IBM Fix Central. Visit https://www.ibm.com/support/fixcentral and search for 'IBM Storage Scale (Software defined storage)'.
 
-- **Create password-less SSH keys between all Spectrum Scale nodes in the cluster**
+- **Create password-less SSH keys between all nodes in the cluster**
 
-  A pre-requisite for installing Spectrum Scale is that password-less SSH must be configured among all nodes in the cluster. Password-less SSH must be configured and verified with [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name), hostname, and IP of every node to every node.
+  A pre-requisite for installing IBM Storage Scale is that password-less SSH must be configured among all nodes in the cluster. Password-less SSH must be configured and verified with [FQDN](https://en.wikipedia.org/wiki/Fully_qualified_domain_name), hostname, and IP of every node to every node.
 
   Example:
 
@@ -179,7 +183,7 @@ Installation Instructions
 
 - **Create Ansible inventory**
 
-  Define Spectrum Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `hosts`) in the following format:
+  Define IBM Storage Scale nodes in the [Ansible inventory](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) (e.g. `hosts`) in the following format:
 
   ```yaml
   # hosts:
@@ -223,7 +227,7 @@ Installation Instructions
 
   Refer to [VARIABLES.md](VARIABLES.md) for a full list of all supported configuration options.
 
-- **Run the playbook to install and configure the Spectrum Scale cluster**
+- **Run the playbook to install and configure the IBM Storage Scale cluster**
 
   - Using the `ansible-playbook` command:
 
@@ -292,9 +296,8 @@ Users can define [variables](https://docs.ansible.com/ansible/latest/user_guide/
 Additional functionality can be enabled by defining further variables. Browse the examples in the [samples/](samples/) directory to learn how to:
 
 - Configure storage and file systems (see [samples/playbook_storage.yml](samples/playbook_storage.yml))
-- Configure node classes and Spectrum Scale configuration attributes (see [samples/playbook_nodeclass.yml](samples/playbook_nodeclass.yml))
-- Deploy Spectrum Scale using JSON inventory (see [samples/playbook_json_ces.yml](samples/playbook_json_ces.yml))
-
+- Configure node classes and configuration attributes (see [samples/playbook_nodeclass.yml](samples/playbook_nodeclass.yml))
+- Deploy IBM Storage Scale using JSON inventory (see [samples/playbook_json_ces.yml](samples/playbook_json_ces.yml))
 
 Available Roles
 ---------------
@@ -325,9 +328,9 @@ Note that [Core GPFS](roles/core) is the only mandatory role, all other roles ar
 Cluster Membership
 ------------------
 
-All hosts in the play are configured as nodes in the same Spectrum Scale cluster. If you want to add hosts to an existing cluster then add at least one node from that existing cluster to the play.
+All hosts in the play are configured as nodes in the same IBM Storage Scale cluster. If you want to add hosts to an existing cluster then add at least one node from that existing cluster to the play.
 
-You can create multiple clusters by running multiple plays. Note that you will need to [reload the inventory](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/meta_module.html) to clear dynamic groups added by the Spectrum Scale roles:
+You can create multiple clusters by running multiple plays. Note that you will need to [reload the inventory](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/meta_module.html) to clear dynamic groups added by the IBM Storage Scale roles:
 
 ```yaml
 - name: Create one cluster
@@ -354,12 +357,12 @@ The roles in this project can (currently) be used to create new clusters or exte
 
 Furthermore, upgrades are not currently in scope of this role. Spectrum Scale supports rolling online upgrades (by taking down one node at a time), but this requires careful planning and monitoring and might require manual intervention in case of unforeseen problems.
 
+Furthermore, upgrades are not currently in scope of this role. IBM Storage Scale supports rolling online upgrades (by taking down one node at a time), but this requires careful planning and monitoring and might require manual intervention in case of unforeseen problems.
 
 Troubleshooting
 ---------------
 
-The roles in this project store configuration files in `/var/mmfs/tmp` on the first host in the play. These configuration files are kept to determine if definitions have changed since the previous run, and to decide if it's necessary to run certain Spectrum Scale commands (again). When experiencing problems one can simply delete these configuration files from `/var/mmfs/tmp` in order to clear the cache &mdash; doing so forces re-application of all definitions upon the next run. As a downside, the next run may take longer than expected as it might re-run unnecessary Spectrum Scale commands. This will automatically re-generate the cache.
-
+The roles in this project store configuration files in `/var/mmfs/tmp` on the first host in the play. These configuration files are kept to determine if definitions have changed since the previous run, and to decide if it's necessary to run certain IBM Storage Scale commands (again). When experiencing problems one can simply delete these configuration files from `/var/mmfs/tmp` in order to clear the cache — doing so forces re-application of all definitions upon the next run. As a downside, the next run may take longer than expected as it might re-run unnecessary IBM Storage Scale commands. This will automatically re-generate the cache.
 
 Reporting Issues and Feedback
 -----------------------------
