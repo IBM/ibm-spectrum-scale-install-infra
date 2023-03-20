@@ -300,14 +300,15 @@ Available Roles
 
 The following [roles](https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse_roles.html) are available for you to reuse when assembling your own [playbook](https://docs.ansible.com/ansible/latest/user_guide/playbooks.html):
 
-- [Core GPFS](roles/core)\*
-- [GPFS GUI](roles/gui)
-- [GPFS SMB](roles/smb)
-- [GPFS NFS](roles/nfs)
-- [GPFS OBJECT](roles/scale_object)
-- [GPFS HDFS](roles/scale_hdfs)
-- [GPFS Call Home](roles/callhome)
-- [GPFS File Audit Logging](roles/scale_fileauditlogging)
+- Core GPFS (`roles/core_*`)\*
+- GUI (`roles/gui_*`)
+- SMB (`roles/smb_*`)
+- NFS (`roles/nfs_*`)
+- Object (`roles/obj_*`)
+- HDFS (`roles/hdfs_*`)
+- Call Home (`roles/callhome_*`)
+- File Audit Logging (`roles/fal_*`)
+- ...
 
 Note that [Core GPFS](roles/core) is the only mandatory role, all other roles are optional. Each of the optional roles requires additional configuration variables. Browse the examples in the [samples/](samples/) directory to learn how to:
 
