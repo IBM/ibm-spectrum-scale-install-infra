@@ -41,12 +41,11 @@ Features
 #### Common prerequisites
 
 - [x] Disable SELinux (`scale_prepare_disable_selinux: true`), by default false
-- [x] Disable firewall (`scale_prepare_disable_firewall: true`), by default true.
-- [ ] Disable firewall ports
+- [x] Disable firewall (`scale_prepare_disable_firewall: true`), by default false.
 - [ ] Install and start NTP
 - [ ] Create /etc/hosts mappings
 - [ ] Open firewall ports
-- [x] Generate SSH key
+- [x] Generate SSH keys
 - [x] User must set up base OS repositories
 
 #### Core IBM Storage Scale prerequisites
@@ -62,23 +61,24 @@ Features
 - [x] Compile or install pre-compiled Linux kernel extension (mmbuildgpl)
 - [x] Configure client and server license
 - [x] Assign default quorum (maximum 7 quorum nodes) if user has not defined in the inventory
-- [x] Assign default manager nodes(all nodes will act as manager node) if user has not defined in the inventory
+- [x] Assign default manager nodes (all nodes will act as manager nodes) if user has not defined in the inventory
 - [x] Create new cluster (mmcrcluster -N /var/mmfs/tmp/NodeFile -C {{ scale_cluster_clustername }})
 - [x] Create cluster with profiles
-- [x] Create Cluster with daemon and admin network
+- [x] Create cluster with daemon and admin network
 - [x] Add new node into existing cluster
 - [x] Configure node classes
 - [x] Define configuration parameters based on node classes
 - [x] Configure NSDs and file system
 - [ ] Configure NSDs without file system
-- [x] Extend NSDs and file system
-- [x] Add disks to existing file systems
+- [x] Add NSDs
+- [x] Add disks to existing file system
 
 #### IBM Storage Scale Management GUI features
 
 - [x] Install IBM Storage Scale management GUI packages on designated GUI nodes
+- [x] Maximum 3 GUI nodes to be configured
 - [x] Install performance monitoring sensor packages on all Linux nodes
-- [x] Install performance monitoring packages on all GUI designated nodes
+- [x] Install performance monitoring collector on all designated GUI nodes
 - [x] Configure performance monitoring and collectors
 - [ ] Configure HA federated mode collectors
 
@@ -93,7 +93,6 @@ Features
 - [x] Install IBM Storage Scale Object on selected cluster nodes (5.1.1.0 and above)
 - [x] CES IPV4 or IPV6 support
 - [x] CES interface mode support
-
 
 Minimal tested Versions
 -----------------------
@@ -114,9 +113,8 @@ The following IBM Spectrum Scale versions are tested:
 
 Specific OS requirements:
 
-- For CES (SMB/NFS) on SLES15, Python 3 is required.
-- For CES (OBJECT) RhedHat 8.x is required.
-
+- For CES (SMB/NFS) on SLES15: Python 3 is required.
+- For CES (Object): RhedHat 8.x is required.
 
 Prerequisites
 -------------
@@ -318,12 +316,11 @@ Note that [Core GPFS](roles/core) is the only mandatory role, all other roles ar
 - Configure Graphical User Interface (GUI) (see [samples/playbook_gui.yml](samples/playbook_gui.yml))
 - Configure Protocol Services (SMB & NFS) (see [samples/playbook_ces.yml](samples/playbook_ces.yml))
 - Configure Protocol Services (HDFS) (see [samples/playbook_ces_hdfs.yml](samples/playbook_ces_hdfs.yml))
-- Configure Protocol Services (OBJECT) (see [samples/playbook_ces_object.yml](samples/playbook_ces_object.yml))
+- Configure Protocol Services (Object) (see [samples/playbook_ces_object.yml](samples/playbook_ces_object.yml))
 - Configure Call Home (see [samples/playbook_callhome.yml](samples/playbook_callhome.yml))
 - Configure File Audit Logging (see [samples/playbook_fileauditlogging.yml](samples/playbook_fileauditlogging.yml))
 - Configure cluster with daemon and admin network (see [samples/daemon_admin_network](samples/daemon_admin_network))
 - Configure remotely mounted filesystems (see [samples/playbook_remote_mount.yml](samples/playbook_remote_mount.yml))
-
 
 Cluster Membership
 ------------------
@@ -352,9 +349,7 @@ You can create multiple clusters by running multiple plays. Note that you will n
 Limitations
 -----------
 
-The roles in this project can (currently) be used to create new clusters or extend existing clusters. Similarly, new file systems can be created or extended. But this role does *not* remove existing nodes, disks, file systems or node classes. This is done on purpose &mdash; and this is also the reason why it can not be used, for example, to change the file system pool of a disk. Changing the pool requires you to remove and then re-add the disk from a file system, which is not currently in the scope of this role.
-
-Furthermore, upgrades are not currently in scope of this role. Spectrum Scale supports rolling online upgrades (by taking down one node at a time), but this requires careful planning and monitoring and might require manual intervention in case of unforeseen problems.
+The roles in this project can (currently) be used to create new clusters or extend existing clusters. Similarly, new file systems can be created or extended. But this project does _not_ remove existing nodes, disks, file systems or node classes. This is done on purpose — and this is also the reason why it can not be used, for example, to change the file system pool of a disk. Changing the pool requires you to remove and then re-add the disk from a file system, which is not currently in the scope of this project.
 
 Furthermore, upgrades are not currently in scope of this role. IBM Storage Scale supports rolling online upgrades (by taking down one node at a time), but this requires careful planning and monitoring and might require manual intervention in case of unforeseen problems.
 
@@ -376,10 +371,9 @@ We welcome contributions to this project, see [CONTRIBUTING.md](CONTRIBUTING.md)
 Disclaimer
 ----------
 
-Please note: all playbooks / modules / resources in this repo are released for use "AS IS" without any warranties of any kind, including, but not limited to their installation, use, or performance. We are not responsible for any damage or charges or data loss incurred with their use. You are responsible for reviewing and testing any scripts you run thoroughly before use in any production environment. This content is subject to change without notice.
-
+Please note: all roles / playbooks / modules / resources in this repository are released for use "AS IS" without any warranties of any kind, including, but not limited to their installation, use, or performance. We are not responsible for any damage or charges or data loss incurred with their use. You are responsible for reviewing and testing any scripts you run thoroughly before use in any production environment. This content is subject to change without notice.
 
 Copyright and License
 ---------------------
 
-Copyright IBM Corporation 2020, released under the terms of the [Apache License 2.0](LICENSE).
+Copyright IBM Corporation, released under the terms of the [Apache License 2.0](LICENSE).
