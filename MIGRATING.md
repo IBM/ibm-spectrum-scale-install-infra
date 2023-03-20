@@ -55,7 +55,7 @@ The following steps need to be taken in order to consume the `main` branch in yo
 
   Refer to the [name mapping table](#role-name-mapping-table) for a list of new role names.
 
-- Some variables have been renamed for consistency as well, but it's expected that these changes only affect very few users. See [#590](https://github.com/IBM/ibm-spectrum-scale-install-infra/pull/590) for details, and refer to [VARIABLESNEW.md](VARIABLESNEW.md) for a complete listing of all available variables.
+- Some variables have been renamed for consistency as well, but it's expected that these changes only affect very few users. See [#590](https://github.com/IBM/ibm-spectrum-scale-install-infra/pull/590) for details, and refer to [VARIABLES.md](VARIABLES.md) for a complete listing of all available variables.
 
 ## Role Name Mapping Table
 
