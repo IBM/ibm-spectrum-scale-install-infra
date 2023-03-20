@@ -23,6 +23,27 @@
           - item.ec is defined
           - item.blocksize is defined
           - item.Size is defined
+          - item.da is not defined
+
+      - name: create | Define Vdiskset
+        vars:
+          current_vs: "{{ item.vdisk | default('vs_' + (item.rg | regex_replace('\\W', '_')) | basename) }}"
+          current_rg: "{{ item.rg }}"
+          current_code: "{{ item.ec }}"
+          current_bs: "{{ item.blocksize }}"
+          current_size: "{{ item.Size }}"
+          extra_option: "{{ item.da }}"
+        command: "{{ scale_command_path }}mmvdisk vs define --vs {{ current_vs }} --rg {{ current_rg }} --code {{ current_code }} --bs {{ current_bs }} --ss {{ current_size }} --da {{ extra_option }}"
+        register: scale_vs_define
+        failed_when: scale_vs_define.rc != 0
+        when:
+          - current_vs not in scale_existing_vs.stdout_lines
+          - item.vdisk is defined
+          - item.rg is defined
+          - item.ec is defined
+          - item.blocksize is defined
+          - item.Size is defined
+          - item.da is defined
 
       - name: create | Create Vdiskset
         vars:
