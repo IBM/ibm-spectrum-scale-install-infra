@@ -15,7 +15,7 @@
 
 - name: check | Check gui nodes if defined
   add_host:
-    name: "{{ hostvars[item]['inventory_hostname'] }}"
+    name: "{{ item }}"
     groups: scale_gui_defined_listnodes
   when:
      - hostvars[item].scale_cluster_gui is defined
