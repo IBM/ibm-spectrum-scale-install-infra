@@ -102,6 +102,16 @@
   include: zypper/set_vars.yml
   when: ansible_distribution in scale_sles_distribution
 
+- name: check | Storage Scale GPG key
+  set_fact:
+    scale_gpg_key_name: "Storage_Scale_public_key.pgp"
+  when: scale_version is defined and  scale_version >= "5.1.8.0"
+
+- name: check | Storage Scale GPG key
+  set_fact:
+    scale_gpg_key_name: "SpectrumScale_public_key.pgp"
+  when: scale_version is defined and scale_version == "5.1.9.0"
+
 # Copy and import gpg key on RHEL and SLES if gpfs version >= 5.0.5.0
 - block:
     - name: check | Copy key
@@ -112,7 +122,7 @@
 
     - rpm_key:
         state: present
-        key: "{{ scale_gpgKey_dest }}/SpectrumScale_public_key.pgp"
+        key: "{{ scale_gpgKey_dest }}/{{ scale_gpg_key_name }}"
   when: ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
     and scale_enable_gpg_check and scale_version >= "5.0.5.0"
     and scale_install_repository_url is defined)
