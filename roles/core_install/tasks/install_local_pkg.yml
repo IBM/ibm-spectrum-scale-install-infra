@@ -110,7 +110,7 @@
 
   - rpm_key:
      state: present
-     key: "{{ scale_gpgKey_dest }}SpectrumScale_public_key.pgp"
+     key: "{{ scale_gpgKey_dest }}{{ scale_gpg_key_name }}"
   when: ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
          and scale_enable_gpg_check and scale_version >= "5.0.5.0")
 
