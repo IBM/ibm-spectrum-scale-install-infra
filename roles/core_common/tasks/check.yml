@@ -107,11 +107,6 @@
     scale_gpg_key_name: "Storage_Scale_public_key.pgp"
   when: scale_version is defined and  scale_version >= "5.1.8.0"
 
-- name: check | Storage Scale GPG key
-  set_fact:
-    scale_gpg_key_name: "SpectrumScale_public_key.pgp"
-  when: scale_version is defined and scale_version == "5.1.9.0"
-
 # Copy and import gpg key on RHEL and SLES if gpfs version >= 5.0.5.0
 - block:
     - name: check | Copy key
