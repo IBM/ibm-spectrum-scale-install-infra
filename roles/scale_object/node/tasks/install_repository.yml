@@ -9,7 +9,7 @@
      scale_gpg_key_path:
         - "{{ scale_gpgKey_repository_obj_src }}"
         - "{{ scale_gpgKey_repository_src }}"
-  when: scale_version >= "5.1.2.2"
+  when: scale_version >= "5.1.2.2" or scale_version >= "5.1.2.10"
 
 - name: install | configure object YUM repository
   yum_repository:
