@@ -1,0 +1,11 @@
+---
+# Creating tenant for the compute cluster
+
+# Make default variables available in hostvars
+
+- name: "************************ Creating Tenant for the Compute Cluster ************************"
+  command: mmkeyserv tenant add ClusterTenant1 --server "{{ server_name }}" --server-pwd "{{ password_file }}"
+  register: create_tenant_output
+  debug:
+    var: create_tenant_output.stdout_lines
+  run_once: true

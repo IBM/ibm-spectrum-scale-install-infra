@@ -1,0 +1,12 @@
+---
+# Adding SKLM Key servers for encryption 
+
+# Make default variables available in hostvars
+
+- name: "************************ Adding SKLM Key Server ************************"
+  shell: |
+    echo -e "yes" | mmkeyserv server add "{{ server_name }}" --server-pwd "{{ password_file }}"
+  register: add_keyserver_output
+  debug:
+    var: add_keyserver_output.stdout_lines
+  run_once: true

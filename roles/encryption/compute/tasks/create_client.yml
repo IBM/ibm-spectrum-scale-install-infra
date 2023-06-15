@@ -1,0 +1,12 @@
+---
+# Creating client for the compute cluster
+
+# Make default variables available in hostvars
+
+- name: "************************ Creating Client for the Compute Cluster ************************"
+  shell: |
+        echo -e "not_null\nnot_null" | mmkeyserv client create "{{ client_name }}" --server "{{ server_name }}" --server-pwd "{{ password_file }}"
+  register: create_client_output
+  debug:
+    var: create_client_output.stdout_lines
+  run_once: true

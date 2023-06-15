@@ -1,0 +1,38 @@
+---
+# Enabling Encryption for IBM Spectrum Scale (GPFS) using SKLM
+
+# Import the 'check_filesystem.yml' task for checking the filesystem in the compute cluster.
+
+- import_tasks: check_filesystem
+  when:
+    - encryption | bool
+  tags: encryption
+
+# Import the 'add_sklm_keyserver.yml' task for adding the key server to compute cluster.
+# is enabled when encryption
+
+- import_tasks: add_sklm_keyserver.yml
+  when:
+    - encryption | bool
+  tags: encryption
+
+# Import the 'create_tenant.yml' task for creating a tenant to the keyserver for compute cluster.
+
+- import_tasks: create_tenant.yml
+  when:
+    - encryption | bool
+  tags: encryption
+
+# Import the 'create_client.yml' task for creating a client to the keyserver for compute cluster.
+
+- import_tasks: create_client.yml
+  when:
+    - encryption | bool
+  tags: encryption
+
+# Import the 'register_client.yml' task for registerin the client to the tenant.
+
+- import_tasks: register_client.yml
+  when:
+    - encryption | bool
+  tags: encryption

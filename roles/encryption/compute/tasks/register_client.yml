@@ -1,0 +1,11 @@
+---
+# Registering the client to the created tenant for the compute cluster
+
+# Make default variables available in hostvars
+
+- name: "************************ Registering the Client to the tenant ************************"
+  command: mmkeyserv client register "{{ client_name }}" --rkm-id rkm_ClusterTenant1 --tenant ClusterTenant1 --server-pwd "{{ password_file }}"
+  register: register_client_output
+  debug:
+    var: register_client_output.stdout_lines
+  run_once: true
