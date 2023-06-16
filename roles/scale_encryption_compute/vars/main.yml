@@ -1,4 +1,2 @@
-server_name: ""
-password_file: "/opt/sklm/.sklm_pwd"
 policy_dir: "/opt/sklm/encryption_policy.pol"
 client_name: "ComputeClient"

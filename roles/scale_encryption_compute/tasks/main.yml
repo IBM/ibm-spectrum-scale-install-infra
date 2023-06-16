@@ -3,7 +3,7 @@
 
 # Import the 'check_filesystem.yml' task for checking the filesystem in the compute cluster.
 
-- import_tasks: check_filesystem
+- import_tasks: check_filesystem.yml
   when:
     - encryption | bool
   tags: encryption

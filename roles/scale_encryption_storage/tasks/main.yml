@@ -3,7 +3,7 @@
 
 # Import the 'check_filesystem.yml' task for checking the filesystem in the storage cluster.
 
-- import_tasks: check_filesystem
+- import_tasks: check_filesystem.yml
   when:
     - encryption | bool
   tags: encryption
@@ -11,7 +11,7 @@
 # Import the 'add_sklm_keyserver.yml' task for adding the key server to storage cluster.
 # is enabled when encryption
 
-- import_tasks: enc_storage_cluster.yml
+- import_tasks: add_sklm_keyserver.yml
   when:
     - encryption | bool
   tags: encryption
