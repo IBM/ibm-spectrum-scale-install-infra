@@ -3,7 +3,7 @@
 
 # Make default variables available in hostvars
 
-- name: "************************ Registering the Client to the tenant ************************"
+- name: "************************ Registering the Storage Client to the tenant ************************"
   command: mmkeyserv client register "{{ client_name }}" --rkm-id rkm_ClusterTenant1 --tenant ClusterTenant1 --server-pwd "{{ password_file }}"
   register: register_client_output
   debug:

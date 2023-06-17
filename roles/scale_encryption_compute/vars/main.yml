@@ -1,2 +1,3 @@
-policy_dir: "/opt/sklm/encryption_policy.pol"
+sklm_dir: "/opt/sklm"
 client_name: "ComputeClient"
+password_file: "{{ sklm_dir }}/.sklm_pass"

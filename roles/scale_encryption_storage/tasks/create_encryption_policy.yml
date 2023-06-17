@@ -3,15 +3,6 @@
 
 # Make default variables available in hostvars
 
-- name: "************************ Creating Directory for the Encryption Policy ************************"
-  file:
-    path: "{{ policy_dir }}"
-    state: directory
-  register: create_dir_output
-  debug:
-    var: create_dir_output.stdout_lines
-  run_once: true  
-
 - name: "************************ Creating Encryption Policy with the Master Key and RKM_ID ************************"
   shell: |
     echo "RULE 'p1' SET POOL 'system' /* one placement rule is required at all times */
@@ -20,7 +11,7 @@
     WHERE NAME LIKE '%'
     RULE 'simpleEncRule' ENCRYPTION 'E1' IS
     ALGO 'DEFAULTNISTSP800131A'
-    KEYS('{{ master_key_output.stdout }}:rkm_ClusterTenant1')" > "{{ policy_dir }}/policy.pol"
+    KEYS('{{ master_key_output.stdout }}:rkm_ClusterTenant1')" > "{{ sklm_dir }}/encryption_policy.pol"
   args:
   executable: /bin/bash  
   register: create_policy_output

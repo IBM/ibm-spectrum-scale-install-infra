@@ -36,3 +36,10 @@
   when:
     - encryption | bool
   tags: encryption
+
+# Import the 'cleanup_secrets.yml' task for cleaning the security credentials stored locally.
+
+- import_tasks: cleanup_secrets.yml
+  when:
+    - encryption | bool
+  tags: encryption
