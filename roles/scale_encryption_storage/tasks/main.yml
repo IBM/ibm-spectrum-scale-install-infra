@@ -1,5 +1,5 @@
 ---
-# Enabling Encryption for IBM Spectrum Scale (GPFS) using SKLM
+# Enabling Encryption for IBM Spectrum Scale (GPFS) using SGKLM - Security Guardium Lifecycle Manager
 
 # Import the 'check_filesystem.yml' task for checking the filesystem in the storage cluster.
 
