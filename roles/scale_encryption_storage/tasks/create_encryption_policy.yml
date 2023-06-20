@@ -15,6 +15,7 @@
   args:
   executable: /bin/bash  
   register: create_policy_output
-  debug:
-    var: create_policy_output.stdout_lines
-  run_once: true  
+  run_once: true
+
+- debug:
+    var: create_policy_output.stdout_lines  

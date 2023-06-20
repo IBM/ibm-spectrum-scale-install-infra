@@ -6,6 +6,8 @@
 - name: "************************ Creating Tenant for the Compute Cluster ************************"
   command: mmkeyserv tenant add ClusterTenant1 --server "{{ scale_encryption_servers[0] }}" --server-pwd "{{ password_file }}"
   register: create_tenant_output
-  debug:
-    var: create_tenant_output.stdout_lines
   run_once: true
+
+- debug:
+    var: create_tenant_output.stdout_lines
+  

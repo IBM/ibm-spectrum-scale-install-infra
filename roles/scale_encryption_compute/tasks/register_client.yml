@@ -6,6 +6,7 @@
 - name: "************************ Registering the Compute Client to the tenant ************************"
   command: mmkeyserv client register "{{ client_name }}" --rkm-id rkm_ClusterTenant1 --tenant ClusterTenant1 --server-pwd "{{ password_file }}"
   register: register_client_output
-  debug:
-    var: register_client_output.stdout_lines
   run_once: true
+
+- debug:
+    var: register_client_output.stdout_lines
