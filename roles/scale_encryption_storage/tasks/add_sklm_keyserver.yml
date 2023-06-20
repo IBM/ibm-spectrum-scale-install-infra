@@ -1,5 +1,5 @@
 ---
-# Adding SKLM Key servers for encryption to storage cluster
+# Adding SGKLM Key servers for encryption to storage cluster
 
 # Make default variables available in hostvars
 
