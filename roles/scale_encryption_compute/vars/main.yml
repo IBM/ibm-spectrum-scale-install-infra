@@ -1,0 +1,10 @@
+#Variables for static values
+
+#Directory to store SKLM files
+sklm_dir: "/opt/sklm"
+
+#Client name for the Compute Cluster which has to be unique
+client_name: "ComputeClient"
+
+#Password file for performing Encryption operations
+password_file: "{{ sklm_dir }}/.sklm_pass"

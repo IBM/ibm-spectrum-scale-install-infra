@@ -1,0 +1,31 @@
+---
+# Adding SGKLM Key servers for encryption to storage cluster
+
+# Make default variables available in hostvars
+
+- name: "************************ Creating Directory for the Encryption requirements to store passwords and policies ************************"
+  file:
+    path: "{{ sklm_dir }}"
+    state: directory
+  register: create_dir_output
+  run_once: true
+
+- debug:
+    var: create_dir_output.stdout_lines
+
+- name: "************************ Storing the password of Admin user for non-interactive execution ************************"
+  lineinfile:
+    dest: "{{ sklm_dir }}/.sklm_pass"
+    create: true
+    line: "{{ scale_encryption_admin_password }}"
+    mode: "0600"
+  run_once: true
+
+- name: "************************ Adding SKLM Key Server ************************"
+  shell: |
+    echo -e "yes" | mmkeyserv server add "{{ scale_encryption_servers[0] }}" --backup {% if scale_encryption_servers|length > 1 %}"{{ scale_encryption_servers[1:] | join(',') }}"{% endif %} --server-pwd "{{ password_file }}"
+  register: add_keyserver_output
+  run_once: true
+
+- debug:
+    var: add_keyserver_output.stdout_lines

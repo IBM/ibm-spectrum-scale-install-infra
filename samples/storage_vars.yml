@@ -1,0 +1,34 @@
+---
+#
+# saples/vars/storage_vars.yml
+#
+
+# Refer to `man mmchfs` and `man mmchnsd` man pages for a description of these
+# storage parameters. The `filesystem` parameter is mandatory, `servers`, and
+# the `device` parameter is mandatory for each of the file system's `disks`. All
+# other file system and disk parameters are optional.
+
+scale_storage:
+  - filesystem: gpfs01
+    blockSize: 4M
+    defaultMetadataReplicas: 2
+    defaultDataReplicas: 2
+    numNodes: 16
+    automaticMountOption: true
+    defaultMountPoint: /mnt/gpfs01
+    encryption_servrs: KEY_Server_IP
+    encryption_status: True/False
+    encryption_admin_pwd: PASSWORD of Keyserver Admin user
+    disks:
+      - device: /dev/sdb
+        nsd: nsd_1
+        servers: scale01
+        failureGroup: 10
+        usage: metadataOnly
+        pool: system
+      - device: /dev/sdc
+        nsd: nsd_2
+        servers: scale01
+        failureGroup: 10
+        usage: dataOnly
+        pool: data

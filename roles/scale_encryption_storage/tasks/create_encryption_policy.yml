@@ -1,0 +1,21 @@
+---
+# Creating encryption policy using master key
+
+# Make default variables available in hostvars
+
+- name: "************************ Creating Encryption Policy with the Master Key and RKM_ID ************************"
+  shell: |
+    echo "RULE 'p1' SET POOL 'system' /* one placement rule is required at all times */
+    RULE 'Encrypt all files in file system with rule E1'
+    SET ENCRYPTION 'E1'
+    WHERE NAME LIKE '%'
+    RULE 'simpleEncRule' ENCRYPTION 'E1' IS
+    ALGO 'DEFAULTNISTSP800131A'
+    KEYS('{{ master_key_output.stdout }}:rkm_ClusterTenant1')" > "{{ sklm_dir }}/encryption_policy.pol"
+  args:
+  executable: /bin/bash  
+  register: create_policy_output
+  run_once: true
+
+- debug:
+    var: create_policy_output.stdout_lines  
