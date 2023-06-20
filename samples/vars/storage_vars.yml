@@ -16,6 +16,9 @@ scale_storage:
     numNodes: 16
     automaticMountOption: true
     defaultMountPoint: /mnt/gpfs01
+    encryption_servrs: KEY_Server_IP
+    encryption_status: True/False
+    encryption_admin_pwd: PASSWORD of Keyserver Admin user
     disks:
       - device: /dev/sdb
         nsd: nsd_1
