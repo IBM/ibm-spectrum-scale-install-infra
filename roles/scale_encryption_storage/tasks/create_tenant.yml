@@ -10,4 +10,3 @@
 
 - debug:
     var: create_tenant_output.stdout_lines
-  
