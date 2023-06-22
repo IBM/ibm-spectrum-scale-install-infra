@@ -11,9 +11,7 @@
     WHERE NAME LIKE '%'
     RULE 'simpleEncRule' ENCRYPTION 'E1' IS
     ALGO 'DEFAULTNISTSP800131A'
-    KEYS('{{ master_key_output.stdout }}:rkm_ClusterTenant1')" > "{{ sklm_dir }}/encryption_policy.pol"
-  args:
-  executable: /bin/bash  
+    KEYS('{{ master_key_output.stdout }}:rkm_ClusterTenant1')" > "{{ sklm_dir }}/encryption_policy.pol" 
   register: create_policy_output
   run_once: true
 
