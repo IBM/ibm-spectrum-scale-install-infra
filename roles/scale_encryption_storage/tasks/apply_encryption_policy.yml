@@ -1,0 +1,12 @@
+---
+# Applying encryption policy to the filesystem
+
+# Make default variables available in hostvars
+
+- name: "************************ Applying the Encryption Policy to the Filesystem ************************"
+  command: mmchpolicy fs1 "{{ sklm_dir }}/encryption_policy.pol"
+  register: apply_pol_output
+  run_once: true
+
+- debug:
+    var: apply_pol_output.stdout_lines

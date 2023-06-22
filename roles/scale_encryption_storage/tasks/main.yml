@@ -1,0 +1,66 @@
+---
+# Enabling Encryption for IBM Spectrum Scale (GPFS) using SGKLM - Security Guardium Lifecycle Manager
+
+# Import the 'check_filesystem.yml' task for checking the filesystem in the storage cluster.
+
+- import_tasks: check_filesystem.yml
+  when:
+    - scale_encryption_enabled | bool
+  tags: encryption
+
+# Import the 'add_sklm_keyserver.yml' task for adding the key server to storage cluster.
+# is enabled when encryption
+
+- import_tasks: add_sklm_keyserver.yml
+  when:
+    - scale_encryption_enabled | bool
+  tags: encryption
+
+# Import the 'create_tenant.yml' task for creating a tenant to the keyserver for storage cluster.
+
+- import_tasks: create_tenant.yml
+  when:
+    - scale_encryption_enabled | bool
+  tags: encryption
+
+# Import the 'create_client.yml' task for creating a client to the keyserver for storage cluster.
+
+- import_tasks: create_client.yml
+  when:
+    - scale_encryption_enabled | bool
+  tags: encryption
+
+# Import the 'register_client.yml' task for registerin the client to the tenant.
+
+- import_tasks: register_client.yml
+  when:
+    - scale_encryption_enabled | bool
+  tags: encryption
+
+# Import the 'create_master_key.yml' task for creating the master key for encrypting the filesystem.
+
+- import_tasks: create_master_key.yml
+  when:
+    - scale_encryption_enabled | bool
+  tags: encryption
+
+# Import the 'create_encryption_policy.yml' task for creating a policy using the master key for encrypting the filesystem.
+
+- import_tasks: create_encryption_policy.yml
+  when:
+    - scale_encryption_enabled | bool
+  tags: encryption
+
+# Import the 'apply_encryption_policy.yml' task for applying the encryption policy to the filesystem.
+
+- import_tasks: apply_encryption_policy.yml
+  when:
+    - scale_encryption_enabled | bool
+  tags: encryption
+
+# Import the 'cleanup_secrets.yml' task for cleaning the security credentials stored locally.
+
+- import_tasks: cleanup_secrets.yml
+  when:
+    - scale_encryption_enabled | bool
+  tags: encryption

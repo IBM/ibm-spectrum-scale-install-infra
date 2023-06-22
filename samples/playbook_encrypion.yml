@@ -1,0 +1,22 @@
+---
+#
+# samples/playbook_encryption.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster with encryption.
+# Additional variables need to be defined for this, it
+# is recommended to use Ansible group variables for this purpose:
+# https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
+
+# Sample definitions can be found in samples/vars/storage_vars.yml
+
+- hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
+  vars:
+    - scale_version: 5.0.4.0
+    - scale_install_localpkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
+  pre_tasks:
+    - include_vars: storage_vars.yml
+  roles:
+    - { role: scale_encryption_storage, when: scale_encryption_enabled }
