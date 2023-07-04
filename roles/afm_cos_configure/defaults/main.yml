@@ -1,0 +1,33 @@
+---
+# Default variables for the IBM Spectrum Scale AFM Cos Configure role -
+
+#"scale_afm_cos_bucket_params": [
+#       {
+#         "bucket": "test",
+#         "akey": "12345",
+#         "skey": "1234344",
+#        },
+#        {
+#         "bucket": "test1",
+#         "akey": "12345",
+#         "skey": "123456",
+#        },
+#]
+
+#"scale_afm_cos_filesets_params": [
+#       {
+#         "filesystem": "fs1",
+#         "fileset": "afmfileset1",
+#         "endpoint": "https://s3.ap.cloud-object-storage.appdomain.cloud:443/bucket-afm1", 
+#         "bucket": "bucket-afm1",
+#         "mode": "SW",
+#        },
+#        {
+#         "filesystem": "fs1",
+#         "fileset": "afmfileset2",
+#         "endpoint": "https://s3.ap.cloud-object-storage.appdomain.cloud:443/bucket-afm2",
+#         "bucket": "bucket-afm2",
+#         "mode": "SW"
+#        }
+#]
+
