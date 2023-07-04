@@ -337,7 +337,6 @@
     assert:
      that: scale_install_gpfs_nfs_pm.matched > 0
      msg: "No GPFS utils (gpfs.pm-ganesha) package found {{ nfs_extracted_path }}/{{ scale_zimon_url }}gpfs.pm-ganesha*"
-  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_ubuntu_distribution
 
 - block:  ## when: host is defined as a protocol node
 
@@ -371,7 +370,6 @@
    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
   with_items:
   - "{{ scale_install_gpfs_nfs_pm.files }}"
-  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_ubuntu_distribution
 
 - block:
   - name: initialize
