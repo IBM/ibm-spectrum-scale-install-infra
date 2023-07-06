@@ -10,11 +10,15 @@
   when: hostvars[item]['scale_cluster_gateway'] is defined and hostvars[item]['scale_cluster_gateway']|bool
   with_items:
    - "{{ ansible_play_hosts }}"
-  delegate_to: localhost
   run_once: true
 
 - name: configure | Enabling AFM gateway
-  command: "{{ scale_command_path }}mmchnode -N {{ scale_gateway_nodes[1:] }} --gateway"
+  command: "{{ scale_command_path }}mmchnode -N {{ scale_gateway_nodes | join(',') }} --gateway"
   when: scale_gateway_nodes|length > 0
+  register: result_gateway
   delegate_to: "{{ scale_gateway_nodes.0 }}"
   run_once: true
+
+- debug:
+    msg: "{{ result_gateway.cmd }}"
+  when: result_gateway.cmd is defined

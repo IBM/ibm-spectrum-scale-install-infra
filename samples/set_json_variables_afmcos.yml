@@ -35,6 +35,8 @@
      scale_afm_cos_filesets_params: "{{ scale_afm_cos_filesets_params | default(omit) }}"
      scale_afm_cos_bucket_params: "{{ scale_afm_cos_bucket_params | default(omit) }}"
      scale_admin_node: "{{ item.is_admin_node | default('true') }}"
+     scale_daemon_nodename: "{{ item.scale_daemon_nodename | default(omit) }}"
+     scale_cluster_gateway: "{{ item.scale_cluster_gateway | default(false) }}"
      scale_cluster_config: "{{ scale_cluster | default(omit) }}"
     loop: "{{ node_details }}"
   tags:

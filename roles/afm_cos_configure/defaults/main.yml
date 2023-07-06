@@ -1,5 +1,7 @@
 ---
 # Default variables for the IBM Spectrum Scale AFM Cos Configure role -
+## Spectrum Scale daemon nodename (defaults to node's hostname)
+scale_daemon_nodename: "{{ ansible_hostname }}"
 
 #"scale_afm_cos_bucket_params": [
 #       {
