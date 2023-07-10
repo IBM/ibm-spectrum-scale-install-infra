@@ -55,7 +55,7 @@
 - name: Import a gpg key from a file
   rpm_key:
     state: present
-    key: "{{ dir_path }}/SpectrumScale_public_key.pgp"
+    key: "{{ dir_path }}/{{ scale_gpg_key_name }}"
   when:
       - ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
          and scale_enable_gpg_check and scale_version >= "5.0.5.0")
@@ -64,7 +64,7 @@
 - name: Import a gpg key from a file
   rpm_key:
     state: present
-    key: "{{ scale_gpgkey_path }}/SpectrumScale_public_key.pgp"
+    key: "{{ scale_gpgkey_path }}/{{ scale_gpg_key_name }}"
   when:
       - ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
          and scale_enable_gpg_check and scale_version >= "5.0.5.0")

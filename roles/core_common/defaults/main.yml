@@ -35,3 +35,5 @@ scale_install_localpkg_tmpdir_path: /tmp
 ## Enable/disable gpg key flag
 scale_enable_gpg_check: true
 
+## Storage Scale GPG key filename
+scale_gpg_key_name: "SpectrumScale_public_key.pgp"

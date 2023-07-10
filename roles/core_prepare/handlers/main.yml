@@ -23,11 +23,7 @@
   ignore_errors: true
 
 - name: wait-for-server
-  wait_for:
-    host: "{{ ansible_default_ipv4.address }}"
-    port: 22
-    state: started
+  wait_for_connection:
     delay: 45
     timeout: 300
   delegate_to: localhost
-# handlers file for precheck

@@ -88,16 +88,21 @@
 
 # set dynamic variable based on supported OS
 - name: check | Set variables based on yum/dnf based OS
-  include: yum/set_vars.yml
+  include_tasks: yum/set_vars.yml
   when: ansible_distribution in scale_rhel_distribution
 
 - name: check | Set variables based on apt based os
-  include: apt/set_vars.yml
+  include_tasks: apt/set_vars.yml
   when: ansible_distribution in scale_ubuntu_distribution
 
 - name: check | Set variables based on zypper based OS
-  include: zypper/set_vars.yml
+  include_tasks: zypper/set_vars.yml
   when: ansible_distribution in scale_sles_distribution
+
+- name: check | Storage Scale GPG key
+  set_fact:
+    scale_gpg_key_name: "Storage_Scale_public_key.pgp"
+  when: scale_version is defined and  scale_version >= "5.1.8.0"
 
 # Copy and import gpg key on RHEL and SLES if gpfs version >= 5.0.5.0
 - block:
@@ -109,8 +114,7 @@
 
     - rpm_key:
         state: present
-        key: "{{ scale_gpgKey_dest }}/SpectrumScale_public_key.pgp"
-  when:
-    ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
+        key: "{{ scale_gpgKey_dest }}/{{ scale_gpg_key_name }}"
+  when: ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
     and scale_enable_gpg_check and scale_version >= "5.0.5.0"
     and scale_install_repository_url is defined)
