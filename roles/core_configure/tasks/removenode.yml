@@ -1,7 +1,7 @@
 ---
 - name: delete | Initialize delete nodes
   add_host:
-    name: "{{ hostvars[item]['ansible_fqdn'] }}"
+    name: "{{ item }}"
     groups: scale_remove_nodes
   when:
     - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'absent'
@@ -29,7 +29,7 @@
 
     - name: delete | Set delete node
       set_fact:
-        delete_nodes: "{{ groups['scale_remove_nodes'] | list }}"
+        delete_nodes: "{{ groups['scale_remove_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
 
     - name: delete | Delete an IBM Spectrum Scale Node from Cluster
       ibm_spectrumscale_node:

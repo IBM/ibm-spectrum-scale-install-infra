@@ -2,7 +2,7 @@
 
 - name: check | Check gui node
   add_host:
-    name: "{{ hostvars[item]['ansible_fqdn'] }}"
+    name: "{{ item }}"
     groups: scale_gui_nodes
   when:
      - hostvars[item].scale_cluster_gui is defined
@@ -34,7 +34,7 @@
 - block:
    - name: check | initialize existing gui nodes
      set_fact:
-       inventory_gui_nodes: "{{ groups['scale_gui_nodes'] | list }}"
+       inventory_gui_nodes: "{{ groups['scale_gui_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
        existing_gui_nodes: "{{ scale_config_existing_guinode.stdout.split(',') }}"
      when:
        - scale_config_existing_guinode.stdout_lines | length > 0
