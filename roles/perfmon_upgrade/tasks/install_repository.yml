@@ -146,8 +146,6 @@
   register: is_collector_package_installed
   failed_when: no
   changed_when: no
-  args:
-    warn: false
   when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
 
 - name: upgrade | Set if gpfs collector package is installed
@@ -162,8 +160,6 @@
   register: is_collector_apt_package_installed
   failed_when: no
   changed_when: no
-  args:
-    warn: false
   when: ansible_pkg_mgr == 'apt'
 
 - name: upgrade | Set if gpfs collector installed
@@ -194,8 +190,6 @@
       register: is_pmwift_package_installed
       failed_when: no
       changed_when: no
-      args:
-          warn: false
       when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
 
     - name: upgrade | Set if pmswift installed

@@ -9,16 +9,12 @@
 
 - name: update | Find current gpfs version
   shell: rpm -q gpfs.base --queryformat '%{VERSION}-%{RELEASE}\n'
-  args:
-    warn: false
   register: scale_current_version_gpfs
   changed_when: false
   failed_when: false
 
 - name: update | Find available version
   shell: rpm -qp "{{ scale_gpfs_path_url }}/gpfs.base-*.{{ scale_architecture }}.rpm" --qf '%{VERSION}-%{RELEASE}\n'
-  args:
-    warn: false
   register: scale_repo_gpfsversion
   when: scale_install_repository_url is undefined
   changed_when: false

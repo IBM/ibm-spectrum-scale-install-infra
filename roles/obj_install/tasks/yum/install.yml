@@ -11,8 +11,6 @@
   register: scale_package_status
   when: inventory_hostname in scale_obj_nodes_list
   ignore_errors: true
-  args:
-    warn: false
 
 - name: install | Check if spectrum-scale-object package is installed
   assert:

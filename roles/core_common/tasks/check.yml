@@ -19,8 +19,6 @@
         - name: check | Find available scale version
           shell: rpm -qp "{{ scale_install_directory_pkg_path }}/gpfs.base-*.{{ scale_architecture }}.rpm"
                  --qf '%{VERSION}.%{RELEASE}\n' | cut -d '.' -f -4
-          args:
-             warn: false
           register: scale_gpfsversion
           changed_when: false
 
@@ -42,8 +40,6 @@
 
         - name: check | Find available scale version
           shell: "echo {{ scale_package }} | cut -d '-' -f 2"
-          args:
-           warn: false
           register: scale_se_gpfsversion
           changed_when: false
 

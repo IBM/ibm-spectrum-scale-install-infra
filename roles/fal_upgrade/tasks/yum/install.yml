@@ -9,8 +9,6 @@
       register: gpfslibrdkafka_installed
       ignore_errors: true
       failed_when: false
-      args:
-        warn: false
 
     - name: upgrade | Set if gpfs librdkafka installed
       set_fact:
