@@ -10,10 +10,17 @@
           - item.fileset is defined
 
       - name: create | Find existing Bucket(s)
-        shell: mmafmcoskeys all get --report | grep -v HEADER | cut -d '=' -f 1 | uniq
+        shell: mmafmcoskeys all get --report | grep -v HEADER | cut -d ':' -f 1 | uniq
         register: scale_existing_bucket
         changed_when: false
         failed_when: false
+
+      - debug:
+           msg: "{{scale_existing_bucket.stdout_lines}}"
+        changed_when: false
+        failed_when: false
+        when:
+           - scale_existing_bucket.stdout_lines is defined
 
       - name: create | Initialize
         set_fact:
@@ -45,7 +52,9 @@
           - not "enabled" in scale_existing_afmcos.stdout_lines
           - item.filesystem is defined
           - item.fileset is defined
-         
+
+      - debug:
+          msg: "{{scale_afm_cos_define}}"        
       - name: configure | FM cos configuration
         debug:
           msg: AFM cos configured. 
