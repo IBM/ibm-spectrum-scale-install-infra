@@ -17,6 +17,10 @@
 
       - debug:
            msg: "{{scale_existing_bucket.stdout_lines}}"
+        changed_when: false
+        failed_when: false
+        when:
+           - scale_existing_bucket.stdout_lines is defined
 
       - name: create | Initialize
         set_fact:
