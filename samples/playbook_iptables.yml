@@ -1,0 +1,73 @@
+---
+# sample/playbook_iptables.yml
+# 
+# playbook sample for updating the iptables on bastion server for 
+# gui access.
+
+# This file is mandatory to import and it will load inventory variables form
+# vars/scale_clusterdefinition.json
+# - import_playbook: "set_json_variables.yml"
+
+- hosts: scale_node
+  remote_user: {{ scale_jump_host_user }}
+  tasks:
+    - name: Enable IP forwarding
+      become: yes
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        state: present
+
+    - name: Create DNAT rule
+      become: yes
+      iptables:
+        chain: PREROUTING
+        table: nat
+        protocol: tcp
+        rule_num: 1
+        jump: DNAT
+        destination_port: {{ scale_forwarding_port }}
+        to_destination: {{ scale_gui_node }}:{{ scale_gui_port  }} 
+        state: present
+      register: result
+
+    - name: Debug create DNAT result
+      debug:
+        var: result
+
+    - name: Create MASQUERADE rule
+      become: yes
+      iptables:
+        chain: POSTROUTING
+        table: nat
+        protocol: tcp
+        rule_num: 2
+        jump: MASQUERADE
+        destination_port: {{ scale_gui_port }}
+        destination: {{ scale_gui_node }}
+        state: present
+      register: result
+
+    - name: Debug create MASQUERADE result
+      debug:
+        var: result
+
+    - name: Create MASQUERADE rule for all traffic
+      become: yes
+      register: result
+      iptables:
+        chain: POSTROUTING
+        table: nat
+        rule_num: 3
+        jump: MASQUERADE
+        state: present
+
+    - name: Debug create MASQUERADE all result
+      debug:
+        var: result
+
+  handlers:
+    - name: Save IPtables rules
+      ansible.builtin.command: /sbin/service iptables save
+      become: yes
+      changed_when: false

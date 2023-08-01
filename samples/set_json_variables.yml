@@ -5,65 +5,69 @@
   connection: local
 
   tasks:
-  - name: Read all intermediate output from Resource Details
-    include_vars:
-       file: vars/scale_clusterdefinition.json
-    register: scale_json
-    when: scale_cluster_definition_path is not defined
+    - name: Read all intermediate output from Resource Details
+      include_vars:
+        file: vars/scale_clusterdefinition.json
+      register: scale_json
+      when: scale_cluster_definition_path is not defined
 
-  - name: Read all intermediate output from defined Resource Details
-    include_vars:
-       file: "{{ scale_cluster_definition_path }}"
-    register: scale_json_defined
-    when: scale_cluster_definition_path is defined
+    - name: Read all intermediate output from defined Resource Details
+      include_vars:
+        file: "{{ scale_cluster_definition_path }}"
+      register: scale_json_defined
+      when: scale_cluster_definition_path is defined
 
-  - name: Check valid json file
-    assert:
-      that: scale_json.failed == false
-      msg: >-
-        scale_clusterdefinition.json is not present in the
-        vars directory. Make sure that this file is present
-        in the vars directory along with all required
-        Ansible scale inventory.
-    when: scale_json.failed is defined
+    - name: Check valid json file
+      assert:
+        that: scale_json.failed == false
+        msg: >-
+          scale_clusterdefinition.json is not present in the
+          vars directory. Make sure that this file is present
+          in the vars directory along with all required
+          Ansible scale inventory.
+      when: scale_json.failed is defined
 
-  - name: Pass all inputs related to creating Spectrum Scale cluster to all nodes
-    add_host:
-     name: "{{ item.fqdn }}"
-     groups: scale_node
-     scale_storage: "{{ scale_storage | default(omit) }}"
-     scale_cluster_quorum: "{{ item.is_quorum_node | default(false) }}"
-     scale_cluster_manager: "{{ item.is_manager_node | default(false) }}"
-     scale_cluster_gui: "{{ item.is_gui_server | default(false) }}"
-     scale_zimon_collector: "{{ item.is_collector_node | default(false) }}"
-     scale_nsd_server: "{{ item.is_nsd_server | default(false) }}"
-     state: "{{ item.state | default('present') }}"
-     scale_admin_node: "{{ item.is_admin_node | default('true') }}"
-     scale_nodeclass: "{{ item.scale_nodeclass | default(omit) }}"
-     scale_config: "{{ scale_config | default(omit) }}"
-     ansible_ssh_private_key_file: "{{ item.ansible_ssh_private_key_file | default(omit) }}"
-     scale_cluster_clustername: "{{ scale_cluster.scale_cluster_name | default('gpfs1.local') }}"
-     scale_cluster_profile_name: "{{ scale_cluster.scale_cluster_profile_name | default(omit) }}"
-     scale_cluster_profile_dir_path: "{{ scale_cluster.scale_cluster_profile_dir_path | default(omit) }}"
-     scale_service_gui_start: "{{ scale_cluster.scale_service_gui_start | default(true) }}"
-     scale_gui_admin_user: "{{ scale_cluster.scale_gui_admin_user | default(omit) }}"
-     scale_gui_admin_password: "{{ scale_cluster.scale_gui_admin_password | default(omit) }}"
-     scale_gui_admin_role: "{{ scale_cluster.scale_gui_admin_role | default(omit) }}"
-     scale_remotemount_client_gui_username: "{{ scale_remotemount.client_gui_username | default(omit) }}"
-     scale_remotemount_client_gui_password: "{{ scale_remotemount.client_gui_password | default(omit) }}"
-     scale_remotemount_client_gui_hostname: "{{ scale_remotemount.client_gui_hostname | default(omit) }}"
-     scale_remotemount_client_filesystem_name: "{{ scale_remotemount.client_filesystem_name | default(omit) }}"
-     scale_remotemount_client_remotemount_path: "{{ scale_remotemount.client_remotemount_path | default(omit) }}"
-     scale_remotemount_storage_gui_username: "{{ scale_remotemount.storage_gui_username | default(omit) }}"
-     scale_remotemount_storage_gui_password: "{{ scale_remotemount.storage_gui_password | default(omit) }}"
-     scale_remotemount_storage_gui_hostname: "{{ scale_remotemount.storage_gui_hostname | default(omit) }}"
-     scale_remotemount_storage_filesystem_name: "{{ scale_remotemount.storage_filesystem_name | default(omit) }}"
-     scale_sync_replication_config: "{{ scale_cluster.scale_sync_replication_config | default(false) }}"
-     scale_protocol_node: "{{ item.is_protocol_node | default(false) }}"
-     scale_callhome_params: "{{ scale_callhome_params | default(omit) }}"
-     scale_protocols: "{{ scale_protocols | default(omit) }}"
-     scale_hdfs_cluster: "{{ scale_hdfs_cluster | default(omit) }}"
-     scale_cluster_config: "{{ scale_cluster | default(omit) }}"
-    loop: "{{ node_details }}"
+    - name: Pass all inputs related to creating Spectrum Scale cluster to all nodes
+      add_host:
+        name: "{{ item.fqdn }}"
+        groups: scale_node
+        scale_storage: "{{ scale_storage | default(omit) }}"
+        scale_cluster_quorum: "{{ item.is_quorum_node | default(false) }}"
+        scale_cluster_manager: "{{ item.is_manager_node | default(false) }}"
+        scale_cluster_gui: "{{ item.is_gui_server | default(false) }}"
+        scale_zimon_collector: "{{ item.is_collector_node | default(false) }}"
+        scale_nsd_server: "{{ item.is_nsd_server | default(false) }}"
+        state: "{{ item.state | default('present') }}"
+        scale_admin_node: "{{ item.is_admin_node | default('true') }}"
+        scale_nodeclass: "{{ item.scale_nodeclass | default(omit) }}"
+        scale_config: "{{ scale_config | default(omit) }}"
+        ansible_ssh_private_key_file: "{{ item.ansible_ssh_private_key_file | default(omit) }}"
+        scale_cluster_clustername: "{{ scale_cluster.scale_cluster_name | default('gpfs1.local') }}"
+        scale_cluster_profile_name: "{{ scale_cluster.scale_cluster_profile_name | default(omit) }}"
+        scale_cluster_profile_dir_path: "{{ scale_cluster.scale_cluster_profile_dir_path | default(omit) }}"
+        scale_service_gui_start: "{{ scale_cluster.scale_service_gui_start | default(true) }}"
+        scale_gui_admin_user: "{{ scale_cluster.scale_gui_admin_user | default(omit) }}"
+        scale_gui_admin_password: "{{ scale_cluster.scale_gui_admin_password | default(omit) }}"
+        scale_gui_admin_role: "{{ scale_cluster.scale_gui_admin_role | default(omit) }}"
+        scale_remotemount_client_gui_username: "{{ scale_remotemount.client_gui_username | default(omit) }}"
+        scale_remotemount_client_gui_password: "{{ scale_remotemount.client_gui_password | default(omit) }}"
+        scale_remotemount_client_gui_hostname: "{{ scale_remotemount.client_gui_hostname | default(omit) }}"
+        scale_remotemount_client_filesystem_name: "{{ scale_remotemount.client_filesystem_name | default(omit) }}"
+        scale_remotemount_client_remotemount_path: "{{ scale_remotemount.client_remotemount_path | default(omit) }}"
+        scale_remotemount_storage_gui_username: "{{ scale_remotemount.storage_gui_username | default(omit) }}"
+        scale_remotemount_storage_gui_password: "{{ scale_remotemount.storage_gui_password | default(omit) }}"
+        scale_remotemount_storage_gui_hostname: "{{ scale_remotemount.storage_gui_hostname | default(omit) }}"
+        scale_remotemount_storage_filesystem_name: "{{ scale_remotemount.storage_filesystem_name | default(omit) }}"
+        scale_sync_replication_config: "{{ scale_cluster.scale_sync_replication_config | default(false) }}"
+        scale_protocol_node: "{{ item.is_protocol_node | default(false) }}"
+        scale_callhome_params: "{{ scale_callhome_params | default(omit) }}"
+        scale_protocols: "{{ scale_protocols | default(omit) }}"
+        scale_hdfs_cluster: "{{ scale_hdfs_cluster | default(omit) }}"
+        scale_cluster_config: "{{ scale_cluster | default(omit) }}"
+        scale_gui_node: "{{ scale_cluster.scale_gui_node | default(omit) }}"
+        scale_gui_port: "{{ scale_cluster.scale_gui_port | default(omit) }}"
+        scale_forwarding_port: "{{ scale_cluster.scale_forwarding_port | default(omit) }}"
+        scale_jump_host_user: "{{ scale_cluster.scale_jump_host_user | default(omit) }}"
+      loop: "{{ node_details }}"
   tags:
-  - scale_inventory
+    - scale_inventory
