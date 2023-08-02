@@ -47,6 +47,7 @@
     file_type: file
   delegate_to: "{{ scale_encryption_servers[0] }}"
   register: files_result
+  run_once: true
 
 - name: Sort files by creation time
   set_fact:

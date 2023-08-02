@@ -13,6 +13,7 @@
       password: "{{ scale_encryption_admin_password }}"
     validate_certs: no
   register: login_response
+  run_once: true
 
 - name: Extract UserAuthId from login response
   set_fact:
@@ -38,6 +39,7 @@
       replication.Incremental.CheckFrequency: "600"
     validate_certs: no
   register: master_replication_response
+  run_once: true
 
 - debug:
      var: master_replication_response.json

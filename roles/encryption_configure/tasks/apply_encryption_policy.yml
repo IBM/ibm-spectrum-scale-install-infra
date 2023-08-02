@@ -2,11 +2,19 @@
 # Applying encryption policy to the filesystem
 
 # Make default variables available in hostvars
-
-- name: "************************ Encryption | Applying policy to the filesystem ************************"
+- name: "************************ Encryption | Applying encryption policy to the filesystem ************************"
   command: mmchpolicy fs1 "{{ sklm_dir }}/encryption_policy.pol"
-  register: apply_pol_output
+  when: "{{ scale_encryption_folder }}" | length == 0
+  register: apply_pol_fs_output
   run_once: true
-
 - debug:
-    var: apply_pol_output.stdout_lines
+    var: apply_pol_fs_output.json
+
+- name: "************************ Encryption | Applying encryption policy to Folders ************************"
+  command: mmapplypolicy "{{ item }}" "{{ sklm_dir }}/encryption_policy.pol"
+  with_items: "{{ scale_encryption_folder }}"
+  when: "{{ scale_encryption_folder }}" | length > 0
+  register: apply_pol_dir_output
+  run_once: true
+- debug:
+    var: apply_pol_dir_output.json

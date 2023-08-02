@@ -14,6 +14,7 @@
       password: "{{ scale_encryption_admin_password }}"
     validate_certs: no
   register: login_response
+  run_once: true
 
 - name: Extract UserAuthId from login response
   set_fact:
@@ -41,6 +42,7 @@
       algorithm: "RSA"
     validate_certs: no
   register: certificate_creation
+  run_once: true
 
 - debug:
     var: certificate_creation.json

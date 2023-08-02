@@ -14,6 +14,7 @@
       password: "{{ scale_encryption_admin_password }}"
     validate_certs: no
   register: login_response
+  run_once: true
 
 - name: Extract UserAuthId from login response
   set_fact:
@@ -32,6 +33,7 @@
       config.keystore.ssl.certalias: "{{ scale_cluster_clustername }}"
     validate_certs: no
   register: cert_alias_response
+  run_once: true
 
 -  debug:
     var: cert_alias_response.json
