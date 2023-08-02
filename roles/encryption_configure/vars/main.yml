@@ -8,5 +8,3 @@ tenant_name: "{{ scale_cluster_clustername | regex_replace('[^A-Za-z0-9]', '') }
 
 #Password file for performing Encryption operations
 password_file: "{{ sgklm_dir }}/.sgklm_pass"
-
-
