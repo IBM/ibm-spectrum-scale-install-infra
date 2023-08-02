@@ -1,0 +1,58 @@
+---
+
+    # Enabling Encryption for IBM Spectrum Scale (GPFS) using SGKLM - Security Guardium Lifecycle Manager
+    # Below are the preparation tasks on the Keyservers for setting replication,creating Cert.
+
+        # Import the 'setup_encryption_env.yml' task for creating required folders for storing secret files for SGKLM.
+        - import_tasks: setup_encryption_env.yml
+
+        # Import the 'create_ssl_certificate.yml' task for Creating certificate for SGKLM.
+        - import_tasks: create_ssl_certificate.yml
+
+        # Import the 'connection_wait.yml' task for making the play wait to avoid connection refuse error due to concurrent requests.
+        - import_tasks: connection_wait.yml
+
+        # Import the 'create_ssl_cert_alias.yml' task for creating an alias to the SSL certificate.
+        - import_tasks: create_ssl_cert_alias.yml
+
+        # Import the 'create_master_backup.yml' task for creating a backup from the master server.
+        - import_tasks: create_master_backup.yml
+
+        # Import the 'copy_master_backup_clone.yml' task for copying the backup to the clone servers.
+        - import_tasks: copy_master_backup_clone.yml
+
+        # Import the 'restoration_master_backup_clone.yml' task for restoring the backup on the clone servers.
+        - include_tasks: restoration_master_backup_clone.yml
+          loop: "{{ scale_encryption_servers[1:] }}"
+          loop_control:
+            loop_var: server
+
+        # Import the 'connection_wait.yml' task for making the play wait to avoid connection refuse error due to concurrent requests.
+        - import_tasks: connection_wait.yml
+
+        # Import the 'create_clone_replication.yml' task for configuring replication and starting it on the clone servers
+        - include_tasks: create_clone_replication.yml
+          loop: "{{ scale_encryption_servers[1:] }}"
+          loop_control:
+            loop_var: server
+
+        # Import the 'create_master_replication.yml' task for configuring replication on the master server
+        - include_tasks: create_master_replication.yml
+          loop: "{{ scale_encryption_servers[1:] }}"
+          loop_control:
+            loop_var: server
+
+        # Import the 'start_master_replication.yml' task for starting the replication server on the master
+        - import_tasks: start_master_replication.yml
+        
+        # Import the 'connection_wait.yml' task for making the play wait to avoid connection refuse error due to concurrent requests.
+        - import_tasks: connection_wait.yml
+
+        # Import the 'initiate_master_replication.yml' task for initiating the replication from the master to the clone servers
+        - include_tasks: initiate_master_replication.yml
+          loop: "{{ scale_encryption_servers[1:] }}"
+          loop_control:
+            loop_var: server
+
+        # Import the 'cleanup_secrets.yml' task for cleaning the security credentials stored locally.
+        - import_tasks: cleanup_secrets.yml

@@ -1,0 +1,55 @@
+#Creation of replication on the clone servers and starting the replication
+
+- block:
+    - name: "************************ Encryption | Clone Replication | Login ************************"
+      uri:
+        url: "https://{{ server }}:9443/SKLM/rest/v1/ckms/login"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+        body_format: json
+        body:
+          userid: "SKLMAdmin"
+          password: "{{ scale_encryption_admin_password }}"
+        validate_certs: no
+      register: login_response
+
+    - name: Extract UserAuthId from login response
+      set_fact:
+        user_auth_id: "{{ login_response.json.UserAuthId }}"
+
+    - name: "************************ Encryption | Clone Replication | Configuring ************************"
+      uri:
+        url: "https://{{ server }}:9443/SKLM/rest/v1/replicationConfigProperties"
+        method: PUT
+        headers:
+          accept: "application/json"
+          Content-Type: "application/json"
+          Authorization: "SKLMAuth userAuthId={{ user_auth_id }}"
+        body_format: json
+        body:
+          replication.role: "clone"
+          backup.TLSCertAlias: "test"
+          restore.ListenPort: "2222"
+          replication.MasterListenPort: "1111"
+        validate_certs: no
+      register: replication_response
+
+    - debug:
+        var: replication_response.json
+
+    - name: "************************ Encryption | Clone Replication | Start Replication ************************"
+      uri:
+        url: "https://{{ server }}:9443/SKLM/rest/v1/replicate/start"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+          Authorization: "SKLMAuth userAuthId={{ user_auth_id }}"
+        body_format: json
+        validate_certs: no
+      register: replication_start
+
+    - debug:
+        var: replication_start.json

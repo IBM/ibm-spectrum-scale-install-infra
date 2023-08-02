@@ -1,0 +1,18 @@
+#Static Variables for Encryption
+
+#Directory to store SGKLM files
+sgklm_dir: "/opt/sgklm"
+
+#Backup Directory for SGKLM
+sgklm_backup_dir: "/opt/IBM/WebSphere/Liberty/products/sklm/data"
+
+#Private key path for accessing the SGKLM servers
+ansible_ssh_private_key_file: "{{ scale_encryption_ssh_key_file }}"
+
+#SGKLM User
+sgklm_user: "klmdb411"
+
+#Password file for performing Encryption operations
+password_file: "{{ sgklm_dir }}/.sgklm_pass"
+
+

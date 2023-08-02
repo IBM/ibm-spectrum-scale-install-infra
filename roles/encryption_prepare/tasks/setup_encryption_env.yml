@@ -1,0 +1,20 @@
+---
+# Creating directory and storing password for non-interactive deployment for SGKLM
+
+- name: "************************ Encryption | SGKLM Directory | Creation  ************************"
+  file:
+    path: "{{ sgklm_dir }}"
+    state: directory
+  register: create_dir_output
+  run_once: true
+
+- debug:
+    var: create_dir_output.stdout_lines
+
+- name: "************************ Encryption | SGKLM Password File | Creation ************************"
+  lineinfile:
+    dest: "{{ sgklm_dir }}/.sgklm_pass"
+    create: true
+    line: "{{ scale_encryption_admin_password }}"
+    mode: "0600"
+  run_once: true

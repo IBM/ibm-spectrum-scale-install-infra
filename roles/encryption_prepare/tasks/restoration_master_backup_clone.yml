@@ -1,0 +1,37 @@
+---
+# Restoring the Master backup on the clone key servers
+
+- block:
+    - name: "************************ Encryption | Master Backup Restoration | Login ************************"
+      uri:
+        url: "https://{{ server }}:9443/SKLM/rest/v1/ckms/login"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+        body_format: json
+        body:
+          userid: "SKLMAdmin"
+          password: "{{ scale_encryption_admin_password }}"
+        validate_certs: no
+      register: login_response
+
+    - name: Extract UserAuthId from login response
+      set_fact:
+        user_auth_id: "{{ login_response.json.UserAuthId }}"
+
+    - name: "************************ Encryption | Master Backup Restoration | Restore on Clone ************************"
+      uri:
+        url: "https://{{ server }}:9443/SKLM/rest/v1/ckms/restore"
+        method: POST
+        headers:
+          Content-Type: application/json
+          Accept: application/json
+          Authorization: "SKLMAuth userAuthId={{ user_auth_id }}"
+          Accept-Language: en
+        body_format: json
+        body:
+          backupFilePath: "{{ sgklm_backup_dir }}/{{ master_backup_jar_file }}"
+          password: "{{ scale_encryption_admin_password }}"
+        validate_certs: no
+      register: restore_status.json

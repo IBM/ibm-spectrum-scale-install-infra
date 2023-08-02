@@ -1,0 +1,61 @@
+#Creation of Master Backup
+#Saving the initated backup filename for restorations
+
+---
+- name: "************************ Encryption | Master Backup | Login ************************"
+  uri:
+    url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/ckms/login"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    body_format: json
+    body:
+      userid: "SKLMAdmin"
+      password: "{{ scale_encryption_admin_password }}"
+    validate_certs: no
+  register: login_response
+
+- name: Extract UserAuthId from login response
+  set_fact:
+    user_auth_id: "{{ login_response.json.UserAuthId }}"
+
+- name: "************************ Encryption | Master Bacup | Initiate Backup ************************"
+  uri:
+    url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/ckms/backups"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Authorization: "SKLMAuth userAuthId={{ user_auth_id }}"
+      Accept-Language: en
+    body_format: json
+    body:
+      password: "{{ scale_encryption_admin_password }}"
+      replica: "y"
+    validate_certs: no
+  register: master_backup_response
+  run_once: true
+
+- debug:
+    var: master_backup_response.json
+
+
+- name: "************************ Encryption | Master Bacup | File ************************"
+  find:
+    paths: "{{ sgklm_backup_dir }}"
+    file_type: file
+  delegate_to: "{{ scale_encryption_servers[0] }}"
+  register: files_result
+
+- name: Sort files by creation time
+  set_fact:
+    sorted_files: "{{ files_result.files | sort(attribute='ctime') }}"
+
+- name: Get the name of the latest created file
+  set_fact:
+    master_backup_jar_file: "{{ sorted_files[-1].path | basename }}"
+
+- name: "************************ Encryption | Master Bacup | File name ************************"
+  debug:
+    var: master_backup_jar_file

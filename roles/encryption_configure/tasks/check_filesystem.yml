@@ -1,0 +1,15 @@
+---
+# Checking the filesystem is mounted or not
+
+# Make default variables available in hostvars
+
+- name: "************************ Encryption | Filesystem | Check ************************"
+  command: mount | grep "{{ item }}"
+  register: mount_output
+  changed_when: false
+  failed_when: false
+  with_items:
+    - fs1
+
+- debug:
+    msg: "Filesystem fs1 is {{ 'mounted' if mount_output.results[0].stdout else 'not mounted' }}"

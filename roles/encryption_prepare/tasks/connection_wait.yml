@@ -1,0 +1,8 @@
+---
+# Pausing play to avoid connection refuse on concurrent tasks
+
+# Make default variables available in hostvars
+
+- name: "************************ Encryption Connection Reset for Next Task ************************"
+  pause:
+    seconds: 60
