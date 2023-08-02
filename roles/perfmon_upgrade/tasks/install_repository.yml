@@ -6,67 +6,67 @@
 #
 - name: Initialize
   set_fact:
-   scale_zimon_url: ""
-   scale_zimon_collector_url: ""
-   is_scale_collector_pkg_installed: false
-   is_scale_pmswift_pkg_installed: false
+    scale_zimon_url: ""
+    scale_zimon_collector_url: ""
+    is_scale_collector_pkg_installed: false
+    is_scale_pmswift_pkg_installed: false
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_rpms/rhel7/'
+    scale_zimon_url: "zimon_rpms/rhel7/"
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_rpms/rhel8/'
+    scale_zimon_url: "zimon_rpms/rhel8/"
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_rpms/rhel9/'
+    scale_zimon_url: "zimon_rpms/rhel9/"
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu16/'
+    scale_zimon_url: "zimon_debs/ubuntu/ubuntu16/"
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu18/'
+    scale_zimon_url: "zimon_debs/ubuntu/ubuntu18/"
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/'
+    scale_zimon_url: "zimon_debs/ubuntu/"
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version >= '20'
 
 - name: install | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/'
+    scale_zimon_url: "zimon_debs/ubuntu/"
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
 - name: install | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu20/'
+    scale_zimon_url: "zimon_debs/ubuntu/ubuntu20/"
   when:
     - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
     - scale_version >= "5.1.4.0"
 
 - name: install | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu22/'
+    scale_zimon_url: "zimon_debs/ubuntu/ubuntu22/"
   when:
     - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '22'
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_rpms/sles12/'
+    scale_zimon_url: "zimon_rpms/sles12/"
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_rpms/sles15/'
+    scale_zimon_url: "zimon_rpms/sles15/"
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
 
 - name: install | remove existing zimon APT repository
@@ -96,7 +96,7 @@
 
 - name: upgrade | Configure zimon APT repository
   apt_repository:
-    filename: "{{ item.key }}" 
+    filename: "{{ item.key }}"
     repo: "deb [trusted=yes] {{ scale_install_repository_url }}{{ item.value }} ./"
     validate_certs: no
     state: present
@@ -146,32 +146,28 @@
   register: is_collector_package_installed
   failed_when: no
   changed_when: no
-  args:
-    warn: false
   when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
 
 - name: upgrade | Set if gpfs collector package is installed
   set_fact:
     is_scale_collector_pkg_installed: true
   when:
-     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
-     - is_collector_package_installed.rc == 0
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf' or ansible_pkg_mgr == 'zypper'
+    - is_collector_package_installed.rc == 0
 
 - name: upgrade | Check if gpfs collector package is installed
   shell: dpkg -l | grep gpfs.gss.pmcollector | awk "{print $1}" |  grep ii
   register: is_collector_apt_package_installed
   failed_when: no
   changed_when: no
-  args:
-    warn: false
   when: ansible_pkg_mgr == 'apt'
 
 - name: upgrade | Set if gpfs collector installed
   set_fact:
     is_scale_collector_pkg_installed: true
   when:
-     - ansible_pkg_mgr == 'apt'
-     - is_collector_apt_package_installed.rc == 0
+    - ansible_pkg_mgr == 'apt'
+    - is_collector_apt_package_installed.rc == 0
 #
 # Add GUI packages
 #
@@ -194,15 +190,13 @@
       register: is_pmwift_package_installed
       failed_when: no
       changed_when: no
-      args:
-          warn: false
       when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
 
     - name: upgrade | Set if pmswift installed
       set_fact:
-          is_scale_pmswift_pkg_installed: true
+        is_scale_pmswift_pkg_installed: true
       when:
-         - is_pmwift_package_installed.rc == 0
+        - is_pmwift_package_installed.rc == 0
 
     - block:
         - name: check | Collect status of pmswiftd
@@ -219,17 +213,17 @@
           with_items:
             - pmswiftd
           when:
-             - scale_pmswift_status.rc is defined and scale_pmswift_status.rc == 0
-      when: 
-         - (is_scale_pmswift_pkg_installed | bool)
+            - scale_pmswift_status.rc is defined and scale_pmswift_status.rc == 0
+      when:
+        - (is_scale_pmswift_pkg_installed | bool)
 
     - name: upgrade | pmswift packages to list
       set_fact:
-         scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+        scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
       with_items:
-          - "{{ scale_obj_sensors_packages }}"
-      when: 
-          - is_scale_pmswift_pkg_installed | bool
-          - scale_zimon_offline_upgrade is undefined
+        - "{{ scale_obj_sensors_packages }}"
+      when:
+        - is_scale_pmswift_pkg_installed | bool
+        - scale_zimon_offline_upgrade is undefined
   when:
-     - ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+    - ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
