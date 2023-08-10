@@ -12,7 +12,11 @@ ansible_ssh_private_key_file: "{{ scale_encryption_ssh_key_file }}"
 #SGKLM User
 sgklm_user: "klmdb411"
 
-#Password file for performing Encryption operations
-password_file: "{{ sgklm_dir }}/.sgklm_pass"
+#Admin password for SGKLM
+scale_encryption_admin_password: "{{ scale_encryption_admin_password }}"
 
+#List of encryption key servers:
+scale_encryption_servers: "{{ scale_encryption_servers_list }}"
 
+#Scale Encryption Admin username
+scale_encryption_admin_username: "{{ scale_encryption_admin_user }}"

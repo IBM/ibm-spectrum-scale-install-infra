@@ -10,11 +10,3 @@
 
 - debug:
     var: create_dir_output.stdout_lines
-
-- name: "************************ Encryption | SGKLM Password File | Creation ************************"
-  lineinfile:
-    dest: "{{ sgklm_dir }}/.sgklm_pass"
-    create: true
-    line: "{{ scale_encryption_admin_password }}"
-    mode: "0600"
-  run_once: true

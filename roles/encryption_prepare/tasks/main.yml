@@ -3,6 +3,12 @@
     # Enabling Encryption for IBM Spectrum Scale (GPFS) using SGKLM - Security Guardium Lifecycle Manager
     # Below are the preparation tasks on the Keyservers for setting replication,creating Cert.
 
+        # Import the 'admin_password_reset.yml' task for restoring the backup on the clone servers.
+        - include_tasks: admin_password_reset.yml
+          loop: "{{ scale_encryption_servers }}"
+          loop_control:
+            loop_var: server
+
         # Import the 'setup_encryption_env.yml' task for creating required folders for storing secret files for SGKLM.
         - import_tasks: setup_encryption_env.yml
 
