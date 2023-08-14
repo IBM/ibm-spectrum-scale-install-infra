@@ -19,27 +19,30 @@
   set_fact:
     user_auth_id: "{{ login_response.json.UserAuthId }}"  
 
+- name: Extract UserAuthId from login response
+  set_fact:
+    user_auth_id: "{{ login_response.json.UserAuthId }}"
+
 - name: "************************ Encryption | Master Replication | Configuring ************************"
-  uri:
-    url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/replicationConfigProperties"
-    method: PUT
-    headers:
-      Content-Type: "application/json"
-      Authorization: "SKLMAuth userAuthId={{ user_auth_id }}"
-    body_format: json
-    body:
-      replication.role: "master"
-      backup.EncryptionPassword: "{{ scale_encryption_admin_password }}"
-      backup.TLSCertAlias: "{{ scale_cluster_clustername }}"
-      backup.ClientIP1: "{{ server }}"
-      backup.ClientPort1: "2222"
-      replication.MasterListenPort: "1111"
-      backup.CheckFrequency: "60"
-      replication.Incremental.Enable: "true"
-      replication.Incremental.CheckFrequency: "600"
-    validate_certs: no
-  register: master_replication_response
+  shell: |
+    curl -X PUT -H "Content-Type: application/json" \
+    -H "Authorization: SKLMAuth userAuthId={{ user_auth_id }}" \
+    -d '{
+      "replication.role": "master",
+      "backup.EncryptionPassword": "{{ scale_encryption_admin_password }}",
+      "backup.TLSCertAlias": "{{ scale_cluster_clustername }}",
+      "backup.ClientIP{{ server.0 + 1 }}": "{{ server[1] }}",
+      "backup.ClientPort{{ server.0 + 1 }}": "2222",
+      "replication.MasterListenPort": "1111",
+      "backup.CheckFrequency": "60",
+      "replication.Incremental.Enable": "true",
+      "replication.Incremental.CheckFrequency": "600"
+    }' \
+    -k "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/replicationConfigProperties"
+  args:
+    executable: /bin/bash
+  register: master_replication_responses
   run_once: true
 
 - debug:
-     var: master_replication_response.json
+    var: master_replication_responses.json

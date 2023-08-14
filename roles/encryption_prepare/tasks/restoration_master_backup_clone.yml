@@ -34,4 +34,6 @@
           backupFilePath: "{{ sgklm_backup_dir }}/{{ master_backup_jar_file }}"
           password: "{{ scale_encryption_admin_password }}"
         validate_certs: no
-      register: restore_status.json
+      register: restore_status
+    - debug:
+        var: restore_status.json
