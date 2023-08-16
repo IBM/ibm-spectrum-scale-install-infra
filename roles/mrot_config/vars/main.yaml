@@ -1,0 +1,5 @@
+# Static Variables for MROT
+
+# Interface names
+pri_interface_name: "eth0"
+sec_interface_name: "eth1"

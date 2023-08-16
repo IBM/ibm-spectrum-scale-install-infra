@@ -1,0 +1,71 @@
+---
+
+# Common task which will run on all nodes.
+
+- name: Check passwordless SSH on all scale inventory hosts
+  shell: ssh {{ ansible_ssh_common_args }} -i /opt/IBM/ibm-spectrumscale-cloud-deploy/compute_key/id_rsa root@{{ inventory_hostname }} "echo PASSWDLESS_SSH_ENABLED"
+  register: result
+  until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
+  retries: 60
+  delay: 10
+
+# To check and set arp_filter on cluster nodes.
+
+- name: check | Check if arp_filter is not set
+  shell: sysctl net.ipv4.conf.default.arp_filter net.ipv4.conf.all.arp_filter
+  register: arp_filter_status
+  changed_when: false
+
+- name: cluster | Set arp_filter
+  shell: |
+    sysctl -w net.ipv4.conf.default.arp_filter=1
+    sysctl -w net.ipv4.conf.all.arp_filter=1
+  when: arp_filter_status.stdout_lines[0] == "net.ipv4.conf.default.arp_filter = 0" and arp_filter_status.stdout_lines[1] == "net.ipv4.conf.all.arp_filter = 0"
+  ignore_errors: yes
+
+# To get ip address of primary and secondary interface on cluster nodes.
+
+- name: cluster | Get primary IP address
+  shell: ip addr show {{ pri_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
+  register: primary_ip
+
+- name: cluster | Get secondary IP address
+  shell: ip addr show {{ sec_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
+  register: secondary_ip
+
+# To extract network address of storage and compute cluster.
+
+- name: cluster | Extract compute network address
+  shell: echo "{{ compute_subnet_cidr }}" | awk -F'/' '{print $1}'
+  register: compute_network_addr
+
+- name: cluster | Extract storage network address
+  shell: echo "{{ storage_subnet_cidr }}" | awk -F'/' '{print $1}'
+  register: storage_network_addr
+
+# To check and install NetworkManager-dispatcher-routing-rules on cluster nodes and post that enable and start it.
+
+- name: check | Check if NetworkManager-dispatcher-routing-rules is installed
+  shell: rpm -q NetworkManager-dispatcher-routing-rules
+  register: nm_dispatcher_installed
+  ignore_errors: yes
+  failed_when: nm_dispatcher_installed.rc == 2
+
+- name: install | Install NetworkManager-dispatcher-routing-rules if not installed
+  yum:
+    name: NetworkManager-dispatcher-routing-rules
+    state: present
+  register: nmd_installed
+  when: nm_dispatcher_installed.rc != 0
+
+- name: install | Enable NetworkManager-dispatcher service
+  service:
+    name: NetworkManager-dispatcher
+    enabled: yes
+  when: nmd_installed.changed == true
+
+- name: install | Start NetworkManager-dispatcher service
+  service:
+    name: NetworkManager-dispatcher
+    state: started
+  when: nmd_installed.changed == true
