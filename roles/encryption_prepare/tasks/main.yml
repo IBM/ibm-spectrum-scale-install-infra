@@ -38,13 +38,13 @@
 
         # Import the 'create_clone_replication.yml' task for configuring replication and starting it on the clone servers
         - include_tasks: create_clone_replication.yml
-          with_indexed_items: "{{ scale_encryption_servers[1:] }}"
+          loop: "{{ scale_encryption_servers[1:] }}"
           loop_control:
             loop_var: server
 
         # Import the 'create_master_replication.yml' task for configuring replication on the master server
         - include_tasks: create_master_replication.yml
-          loop: "{{ scale_encryption_servers[1:] }}"
+          with_indexed_items: "{{ scale_encryption_servers[1:] }}"
           loop_control:
             loop_var: server
 
