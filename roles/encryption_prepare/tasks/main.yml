@@ -11,6 +11,7 @@
           loop: "{{ scale_encryption_servers }}"
           loop_control:
             loop_var: server
+          when: password_update_stat.stat.exists == False
 
         # Import the 'create_ssl_certificate.yml' task for Creating certificate for SGKLM.
         - import_tasks: create_ssl_certificate.yml

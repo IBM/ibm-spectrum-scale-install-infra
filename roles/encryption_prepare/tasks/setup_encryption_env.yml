@@ -10,3 +10,8 @@
 
 - debug:
     var: create_dir_output.stdout_lines
+
+- name: Status of the admin password update
+  ansible.builtin.stat:
+    path: "{{ sgklm_dir }}/password_update_success"
+  register: password_update_stat
