@@ -2,13 +2,6 @@
 
 # Common task which will run on all nodes.
 
-- name: Check passwordless SSH on all scale inventory hosts
-  shell: ssh {{ ansible_ssh_common_args }} -i /opt/IBM/ibm-spectrumscale-cloud-deploy/compute_key/id_rsa root@{{ inventory_hostname }} "echo PASSWDLESS_SSH_ENABLED"
-  register: result
-  until: result.stdout.find("PASSWDLESS_SSH_ENABLED") != -1
-  retries: 60
-  delay: 10
-
 # To check and set arp_filter on cluster nodes.
 
 - name: check | Check if arp_filter is not set
