@@ -19,11 +19,11 @@
 # To get ip address of primary and secondary interface on cluster nodes.
 
 - name: cluster | Get primary IP address
-  shell: ip addr show {{ pri_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
+  shell: ip addr show {{ scale_pri_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
   register: primary_ip
 
 - name: cluster | Get secondary IP address
-  shell: ip addr show {{ sec_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
+  shell: ip addr show {{ scale_sec_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
   register: secondary_ip
 
 # To extract network address of storage and compute cluster.
@@ -38,27 +38,41 @@
 
 # To check and install NetworkManager-dispatcher-routing-rules on cluster nodes and post that enable and start it.
 
-- name: check | Check if NetworkManager-dispatcher-routing-rules is installed
-  shell: rpm -q NetworkManager-dispatcher-routing-rules
-  register: nm_dispatcher_installed
-  ignore_errors: yes
-  failed_when: nm_dispatcher_installed.rc == 2
+- name: Get RHEL version
+  shell: cat /etc/redhat-release | grep -oE '[0-9]+\.[0-9]+' | head -1
+  register: rhel_version_output
 
-- name: install | Install NetworkManager-dispatcher-routing-rules if not installed
-  yum:
-    name: NetworkManager-dispatcher-routing-rules
-    state: present
-  register: nmd_installed
-  when: nm_dispatcher_installed.rc != 0
+- debug: 
+    var: rhel_version_output.stdout_lines[0]
 
-- name: install | Enable NetworkManager-dispatcher service
-  service:
-    name: NetworkManager-dispatcher
-    enabled: yes
-  when: nmd_installed.changed == true
+- name: Parse RHEL version
+  set_fact:
+    rhel_version: "{{ rhel_version_output.stdout_lines[0] }}"
 
-- name: install | Start NetworkManager-dispatcher service
-  service:
-    name: NetworkManager-dispatcher
-    state: started
-  when: nmd_installed.changed == true
+- name: Install tasks block for RHEL
+  block:
+    - name: Check | Check if NetworkManager-dispatcher-routing-rules is installed
+      shell: rpm -q NetworkManager-dispatcher-routing-rules
+      register: nm_dispatcher_installed
+      ignore_errors: yes
+      failed_when: nm_dispatcher_installed.rc == 2
+
+    - name: Install | Install NetworkManager-dispatcher-routing-rules if not installed
+      yum:
+        name: NetworkManager-dispatcher-routing-rules
+        state: present
+      register: nmd_installed
+      when: nm_dispatcher_installed.rc != 0
+
+    - name: Install | Enable NetworkManager-dispatcher service
+      service:
+        name: NetworkManager-dispatcher
+        enabled: yes
+      when: nmd_installed.changed == true
+
+    - name: Install | Start NetworkManager-dispatcher service
+      service:
+        name: NetworkManager-dispatcher
+        state: started
+      when: nmd_installed.changed == true
+  when: rhel_version in ["7.9", "8.6"] and 'RedHat' in ansible_facts.distribution

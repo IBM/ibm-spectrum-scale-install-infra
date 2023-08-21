@@ -3,38 +3,38 @@
 # Task to check and add custom routing tables on cluster nodes.
 
 - name: check | Check if custom routing tables exist
-  shell: grep -q 'subnet_{{ item.network_addr_1 }}_{{ pri_interface_name }}' /etc/iproute2/rt_tables && grep -q 'subnet_{{ item.network_addr_2 }}_{{ sec_interface_name }}' /etc/iproute2/rt_tables
+  shell: grep -q 'subnet_{{ item.network_addr_1 }}_{{ scale_pri_interface_name }}' /etc/iproute2/rt_tables && grep -q 'subnet_{{ item.network_addr_2 }}_{{ scale_sec_interface_name }}' /etc/iproute2/rt_tables
   register: routing_table_exists
   ignore_errors: yes
   with_items: "{{ variable_sets }}"
   failed_when: routing_table_exists.rc == 2
 
 - debug: 
-    var: routing_table_exists.results[0].rc
+    var: routing_table_exists.results[0].cmd
 
 - name: configure | Custom routing tables
   shell: |
-    echo "200 subnet_{{ item.network_addr_1 }}_{{ pri_interface_name }}" >> /etc/iproute2/rt_tables
-    echo "201 subnet_{{ item.network_addr_2 }}_{{ sec_interface_name }}" >> /etc/iproute2/rt_tables
+    echo "200 subnet_{{ item.network_addr_1 }}_{{ scale_pri_interface_name }}" >> /etc/iproute2/rt_tables
+    echo "201 subnet_{{ item.network_addr_2 }}_{{ scale_sec_interface_name }}" >> /etc/iproute2/rt_tables
   with_items: "{{ variable_sets }}"
   when: routing_table_exists.results[0].rc != 0
 
 # Task to check and add custom IP rules on cluster nodes.
 
 - name: check | Check if custom IP rules exist
-  shell: ip rule show | grep -q "lookup subnet_{{ item.network_addr_1 }}_{{ pri_interface_name }}" && ip rule show | grep -q "lookup subnet_{{ item.network_addr_2 }}_{{ sec_interface_name }}"
+  shell: ip rule show | grep -q "lookup subnet_{{ item.network_addr_1 }}_{{ scale_pri_interface_name }}" && ip rule show | grep -q "lookup subnet_{{ item.network_addr_2 }}_{{ scale_sec_interface_name }}"
   register: custom_ip_rules_exist
   ignore_errors: yes
   with_items: "{{ variable_sets }}"
   failed_when: custom_ip_rules_exist.rc == 2
 
 - debug: 
-    var: custom_ip_rules_exist.results[0].rc
+    var: custom_ip_rules_exist.results[0].cmd
 
 - name: configure | Custom IP rules ### This will work only when compute and storgae has multiple interfaces is that ok ??
   shell: |
-    echo "from {{ item.primary_ip }}/32 table subnet_{{ item.network_addr_1 }}_{{ pri_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ pri_interface_name }}
-    echo "from {{ item.secondary_ip }}/32 table subnet_{{ item.network_addr_2 }}_{{ sec_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ sec_interface_name }}
+    echo "from {{ item.primary_ip }}/32 table subnet_{{ item.network_addr_1 }}_{{ scale_pri_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ scale_pri_interface_name }}
+    echo "from {{ item.secondary_ip }}/32 table subnet_{{ item.network_addr_2 }}_{{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ scale_sec_interface_name }}
   with_items: "{{ variable_sets }}"
   when: custom_ip_rules_exist.results[0].rc != 0
 
@@ -42,20 +42,20 @@
 
 - name: check | Check if custom IP routes exist
   shell: |
-    ip route show table subnet_{{ item.network_addr_1 }}_{{ pri_interface_name }} | grep -q "{{ item.subnet_cidr_1 }}"
-    ip route show table subnet_{{ item.network_addr_2 }}_{{ sec_interface_name }} | grep -q "{{ item.subnet_cidr_2 }}"
+    ip route show table subnet_{{ item.network_addr_1 }}_{{ scale_pri_interface_name }} | grep -q "{{ item.subnet_cidr_1 }}"
+    ip route show table subnet_{{ item.network_addr_2 }}_{{ scale_sec_interface_name }} | grep -q "{{ item.subnet_cidr_2 }}"
   register: custom_ip_routes_exist
   ignore_errors: yes
   with_items: "{{ variable_sets }}"
   failed_when: custom_ip_routes_exist.rc == 2
 
 - debug: 
-    var: custom_ip_routes_exist.results[0].rc
+    var: custom_ip_routes_exist.results[0].cmd
 
 - name: configure | Custom IP routes
   shell: |
-    echo "{{ item.subnet_cidr_1 }} dev {{ pri_interface_name }} table subnet_{{ item.network_addr_1 }}_{{ pri_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ pri_interface_name }}
-    echo "{{ item.subnet_cidr_2 }} dev {{ sec_interface_name }} table subnet_{{ item.network_addr_2 }}_{{ sec_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ sec_interface_name }}
+    echo "{{ item.subnet_cidr_1 }} dev {{ scale_pri_interface_name }} table subnet_{{ item.network_addr_1 }}_{{ scale_pri_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_pri_interface_name }}
+    echo "{{ item.subnet_cidr_2 }} dev {{ scale_sec_interface_name }} table subnet_{{ item.network_addr_2 }}_{{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_sec_interface_name }}
   with_items: "{{ variable_sets }}"
   when: custom_ip_routes_exist.results[0].rc != 0
 

@@ -4,10 +4,13 @@
 
 - name: configure | Check if logical subnet is already configured
   shell: |
-    mmlsconfig | grep -q subnets
+    /usr/lpp/mmfs/bin/mmlsconfig -Y | grep -q subnets
   register: logical_subnets_exist
   ignore_errors: yes 
   failed_when: logical_subnets_exist.rc == 2
+
+- debug: 
+    var: logical_subnets_exist.cmd
 
 # Configure logical subnet on cluster
 
@@ -40,8 +43,3 @@
   retries: 60
   delay: 60
   when: is_admin_node | default(false) == true and scale_cluster_type == 'storage' and started_gpfs_cluster.changed == true
-
-# - name: Debug FILESYSTEM status
-#   debug:
-#     msg: "FILESYSTEM status: {{ filesystem_started.stdout }}"
-#   when: is_admin_node | default(false) == true and scale_cluster_type == 'storage' and started_gpfs_cluster.changed == true and filesystem_started is defined
