@@ -1,10 +1,10 @@
 #Static Variables for Encryption
 
-#Directory to store SGKLM files
-sgklm_dir: "/opt/sgklm"
+#Directory to store GKLM files
+gklm_dir: "/opt/gklm"
 
 #Tenant name
 tenant_name: "{{ scale_cluster_clustername | regex_replace('[^A-Za-z0-9]', '') }}"
 
 #Password file for performing Encryption operations
-password_file: "{{ sgklm_dir }}/.sgklm_pass"
+password_file: "{{ gklm_dir }}/.gklm_pass"

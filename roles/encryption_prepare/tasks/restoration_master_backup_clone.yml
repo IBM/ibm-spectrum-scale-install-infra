@@ -11,7 +11,7 @@
           Accept: application/json
         body_format: json
         body:
-          userid: "SKLMAdmin"
+          userid: "{{ scale_encryption_admin_username }}"
           password: "{{ scale_encryption_admin_password }}"
         validate_certs: no
       register: login_response
@@ -31,7 +31,7 @@
           Accept-Language: en
         body_format: json
         body:
-          backupFilePath: "{{ sgklm_backup_dir }}/{{ master_backup_jar_file }}"
+          backupFilePath: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
           password: "{{ scale_encryption_admin_password }}"
         validate_certs: no
       register: restore_status

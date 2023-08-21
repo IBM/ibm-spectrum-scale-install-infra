@@ -3,7 +3,7 @@
 
 - name: "************************ Encryption | Copy Master Backup ************************"
   fetch:
-    src: "{{ sgklm_backup_dir }}/{{ master_backup_jar_file }}"
+    src: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
     dest: "/tmp/{{ master_backup_jar_file }}"
     flat: yes
     fail_on_missing: yes
@@ -13,7 +13,7 @@
 - name: "************************ Encryption | Copy Master Backup to Clone ************************"
   copy:
     src: "/tmp/{{ master_backup_jar_file }}"
-    dest: "{{ sgklm_backup_dir }}/{{ master_backup_jar_file }}"
+    dest: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
   delegate_to: "{{ item }}"
   with_items: "{{ scale_encryption_servers }}"
   when: inventory_hostname != scale_encryption_servers[0]
@@ -21,8 +21,8 @@
 
 - name: "************************ Encryption | Change Backup file permission ************************"
   ansible.builtin.file:
-    path: "{{ sgklm_backup_dir }}/{{ master_backup_jar_file }}"
-    owner: "{{ sgklm_user }}"
+    path: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
+    owner: "{{ gklm_user }}"
   become: true
   delegate_to: "{{ item }}"
   with_items: "{{ scale_encryption_servers }}"

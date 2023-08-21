@@ -1,5 +1,5 @@
 ---
-    # Enabling Encryption for IBM Spectrum Scale (GPFS) using SGKLM - Security Guardium Lifecycle Manager
+    # Enabling Encryption for IBM Spectrum Scale (GPFS) using GKLM - Security Guardium Lifecycle Manager
 
     - name: Executing common tasks on the cluster
       block:
@@ -30,7 +30,7 @@
         - (is_admin_node == True and scale_cluster_type == "storage") or
           (is_admin_node == True and scale_cluster_type == "combined")
 
-    - name: Cleaning Secrets across cluster
+    - name: Cleaning Stored Secrets across cluster
       block:
         # Import the 'cleanup_secrets.yml' task for cleaning the security credentials stored locally.
         - import_tasks: cleanup_secrets.yml

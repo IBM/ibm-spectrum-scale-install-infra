@@ -3,27 +3,8 @@
 
 # Make default variables available in hostvars
 - name: "************************ Encryption | Applying encryption policy to the filesystem ************************"
-  command: mmchpolicy fs1 "{{ sklm_dir }}/encryption_policy.pol"
-  when: "{{ scale_encryption_folder }}" | length == 0
+  command: mmchpolicy fs1 "{{ gklm_dir }}/encryption_policy.pol"
   register: apply_pol_fs_output
   run_once: true
 - debug:
     var: apply_pol_fs_output.json
-
-- name: "************************ Encryption | Creating Folders on the Filesystem ************************"
-  file:
-    path: "{{ scale_cluster_filesystem_mountpoint }}/{{ item }}"
-    state: directory
-    mode: "0755"
-  with_items: "{{ scale_encryption_folder }}"
-  when: scale_encryption_folder | length > 0
-  run_once: true
-
-- name: "************************ Encryption | Applying encryption policy to Folders ************************"
-  command: mmapplypolicy "{{ item }}" "{{ sklm_dir }}/encryption_policy.pol"
-  with_items: "{{ scale_encryption_folder }}"
-  when: "{{ scale_encryption_folder }}" | length > 0
-  register: apply_pol_dir_output
-  run_once: true
-- debug:
-    var: apply_pol_dir_output.json

@@ -10,7 +10,7 @@
           Accept: application/json
         body_format: json
         body:
-          userid: "SKLMAdmin"
+          userid: "{{ scale_encryption_admin_username }}"
           password: "{{ scale_encryption_admin_password }}"
         validate_certs: no
       register: login_response
