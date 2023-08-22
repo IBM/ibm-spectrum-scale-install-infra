@@ -137,6 +137,7 @@ Connection details:
 
 In the mmlsconfig output, the subnets parameter is found in list of configuration parameters.
 
-```subnets 10.241.1.0/scale-cluster.strgscale.com;scale-cluster.compscale.com
+```
+subnets 10.241.1.0/scale-cluster.strgscale.com;scale-cluster.compscale.com
 ```
 

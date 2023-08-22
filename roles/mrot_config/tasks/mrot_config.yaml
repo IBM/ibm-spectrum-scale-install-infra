@@ -31,7 +31,7 @@
 - debug: 
     var: custom_ip_rules_exist.results[0].cmd
 
-- name: configure | Custom IP rules ### This will work only when compute and storgae has multiple interfaces is that ok ??
+- name: configure | Custom IP rules
   shell: |
     echo "from {{ item.primary_ip }}/32 table subnet_{{ item.network_addr_1 }}_{{ scale_pri_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ scale_pri_interface_name }}
     echo "from {{ item.secondary_ip }}/32 table subnet_{{ item.network_addr_2 }}_{{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ scale_sec_interface_name }}
