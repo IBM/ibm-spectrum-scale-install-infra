@@ -1,0 +1,45 @@
+---
+
+# Check if Logical subnet config already exists
+
+- name: configure | Check if logical subnet is already configured
+  shell: |
+    /usr/lpp/mmfs/bin/mmlsconfig -Y | grep -q subnets
+  register: logical_subnets_exist
+  ignore_errors: yes 
+  failed_when: logical_subnets_exist.rc == 2
+
+- debug: 
+    var: logical_subnets_exist.cmd
+
+# Configure logical subnet on cluster
+
+- name: configure | Logical subnet using mmchconfig
+  command: mmchconfig subnets='{{ storage_network_addr.stdout_lines[0] }}/{{ scale_cluster_clustername }};{{ opposit_cluster_clustername }}'
+  register: logical_subnet_configured
+  when: logical_subnets_exist.rc != 0
+
+# Do shutdown the gpfs cluster
+
+- name: cluster | Shutdown gpfs cluster 
+  command: mmshutdown -a
+  register: shutdown_gpfs_cluster
+  when: logical_subnet_configured.changed == true
+
+- name: Wait for 10-second 
+  pause:
+    seconds: 10
+  when: logical_subnet_configured.changed == true
+
+- name: cluster | Startup gpfs cluster
+  command: mmstartup -a
+  register: started_gpfs_cluster
+  when: shutdown_gpfs_cluster.changed == true
+
+- name: Wait until FILESYSTEM comes up
+  shell: "mmhealth cluster show -Y | grep FILESYSTEM | cut -d ':' -f 12"
+  register: filesystem_started
+  until: filesystem_started.stdout == "1"
+  retries: 60
+  delay: 60
+  when: is_admin_node | default(false) == true and scale_cluster_type == 'storage' and started_gpfs_cluster.changed == true
