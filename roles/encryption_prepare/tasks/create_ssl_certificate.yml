@@ -1,0 +1,48 @@
+---
+# Creating SSL Certificate Alias for KeyServer
+
+- name: "************************ Encryption | SSL Certificate | Login ************************"
+  uri:
+    url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/ckms/login"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    body_format: json
+    body:
+      userid: "{{ scale_encryption_admin_username }}"
+      password: "{{ scale_encryption_admin_password }}"
+    validate_certs: no
+  register: login_response
+  run_once: true
+
+- name: Extract UserAuthId from login response
+  set_fact:
+    user_auth_id: "{{ login_response.json.UserAuthId }}"
+
+- name: "************************ Encryption | SSL Certificate | Certificate Creation ************************"
+  uri:
+    url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/certificates"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Authorization: "SKLMAuth userAuthId={{ user_auth_id }}"
+      Accept-Language: en
+    body_format: json
+    body:
+      type: "selfsigned"
+      alias: "{{ scale_cluster_clustername }}"
+      cn: "{{ scale_cluster_clustername }}"
+      ou: "Operation"
+      o: "{{ scale_cluster_clustername }}"
+      usage: "SSLSERVER"
+      country: "US"
+      validity: "1095"
+      algorithm: "RSA"
+    validate_certs: no
+  register: certificate_creation
+  run_once: true
+
+- debug:
+    var: certificate_creation.json

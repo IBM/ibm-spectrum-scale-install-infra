@@ -1,0 +1,10 @@
+---
+# Applying encryption policy to the filesystem
+
+# Make default variables available in hostvars
+- name: "************************ Encryption | Applying encryption policy to the filesystem ************************"
+  command: mmchpolicy fs1 "{{ gklm_dir }}/encryption_policy.pol"
+  register: apply_pol_fs_output
+  run_once: true
+- debug:
+    var: apply_pol_fs_output.json
