@@ -17,7 +17,7 @@
 
     - name: "************************ Encryption | Initiate Replication| On Clone Servers ************************"
       uri:
-        url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/replicate/start"
+        url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/replicate/now"
         method: POST
         headers:
           Content-Type: application/json
