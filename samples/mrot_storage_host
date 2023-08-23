@@ -1,0 +1,20 @@
+[scale_nodes]
+scale-cluster-storage-1.strgscale.com scale_cluster_quorum=True scale_cluster_manager=True scale_cluster_gui=True scale_zimon_collector=True is_nsd_server=True is_admin_node=True ansible_user=root ansible_ssh_private_key_file=/opt/IBM/ibm-spectrumscale-cloud-deploy/storage_key/id_rsa ansible_python_interpreter=/usr/bin/python3 scale_nodeclass=storagenodegrp scale_daemon_nodename=scale-cluster-storage-1 ansible_ssh_common_args=
+scale-cluster-storage-2.strgscale.com scale_cluster_quorum=True scale_cluster_manager=True scale_cluster_gui=False scale_zimon_collector=True is_nsd_server=True is_admin_node=False ansible_user=root ansible_ssh_private_key_file=/opt/IBM/ibm-spectrumscale-cloud-deploy/storage_key/id_rsa ansible_python_interpreter=/usr/bin/python3 scale_nodeclass=storagenodegrp scale_daemon_nodename=scale-cluster-storage-2 ansible_ssh_common_args=
+scale-cluster-storage-3.strgscale.com scale_cluster_quorum=True scale_cluster_manager=False scale_cluster_gui=False scale_zimon_collector=False is_nsd_server=True is_admin_node=False ansible_user=root ansible_ssh_private_key_file=/opt/IBM/ibm-spectrumscale-cloud-deploy/storage_key/id_rsa ansible_python_interpreter=/usr/bin/python3 scale_nodeclass=storagenodegrp scale_daemon_nodename=scale-cluster-storage-3 ansible_ssh_common_args=
+scale-cluster-storage-4.strgscale.com scale_cluster_quorum=False scale_cluster_manager=False scale_cluster_gui=False scale_zimon_collector=False is_nsd_server=True is_admin_node=False ansible_user=root ansible_ssh_private_key_file=/opt/IBM/ibm-spectrumscale-cloud-deploy/storage_key/id_rsa ansible_python_interpreter=/usr/bin/python3 scale_nodeclass=storagenodegrp scale_daemon_nodename=scale-cluster-storage-4 ansible_ssh_common_args=
+[all:vars]
+scale_version = 5.1.8.1
+scale_cluster_clustername = scale-cluster.strgscale.com
+scale_cluster_type = storage
+scale_service_gui_start = True
+scale_gui_admin_user = admin
+scale_gui_admin_password = Scale@12345
+scale_gui_admin_role = Administrator
+scale_sync_replication_config = False
+scale_cluster_profile_name = storagesncparams
+scale_cluster_profile_dir_path = /opt/IBM/ibm-spectrumscale-cloud-deploy
+enable_mrot = True
+storage_subnet_cidr = 10.241.1.0/24
+compute_subnet_cidr = 10.241.0.0/24
+opposit_cluster_clustername = scale-cluster.compscale.com

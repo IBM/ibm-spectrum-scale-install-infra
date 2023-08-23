@@ -1,0 +1,191 @@
+---
+
+- name: Configure MROT and Logical subnet
+  hosts: scale_nodes
+  any_errors_fatal: true
+  vars:
+    scale_pri_interface_name: eth0
+    scale_sec_interface_name: eth1
+  tasks:
+
+  # To check and set arp_filter on cluster nodes.
+
+  - name: check | Check if arp_filter is not set
+    shell: sysctl net.ipv4.conf.default.arp_filter net.ipv4.conf.all.arp_filter
+    register: arp_filter_status
+    changed_when: false
+
+  - name: cluster | Set arp_filter
+    shell: |
+      sysctl -w net.ipv4.conf.default.arp_filter=1
+      sysctl -w net.ipv4.conf.all.arp_filter=1
+    when: arp_filter_status.stdout_lines[0] == "net.ipv4.conf.default.arp_filter = 0" and arp_filter_status.stdout_lines[1] == "net.ipv4.conf.all.arp_filter = 0"
+    ignore_errors: yes
+
+  # To get ip address of primary and secondary interface on cluster nodes.
+
+  - name: cluster | Get primary IP address
+    shell: ip addr show {{ scale_pri_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
+    register: primary_ip
+
+  - name: cluster | Get secondary IP address
+    shell: ip addr show {{ scale_sec_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
+    register: secondary_ip
+
+  # To extract network address of storage and compute cluster.
+
+  - name: cluster | Extract compute network address
+    shell: echo "{{ compute_subnet_cidr }}" | awk -F'/' '{print $1}'
+    register: compute_network_addr
+
+  - name: cluster | Extract storage network address
+    shell: echo "{{ storage_subnet_cidr }}" | awk -F'/' '{print $1}'
+    register: storage_network_addr
+
+  # To check and install NetworkManager-dispatcher-routing-rules on cluster nodes and post that enable and start it.
+
+  - name: Get RHEL version
+    shell: cat /etc/redhat-release | grep -oE '[0-9]+\.[0-9]+' | head -1
+    register: rhel_version_output
+
+  - debug: 
+      var: rhel_version_output.stdout_lines[0]
+
+  - name: Parse RHEL version
+    set_fact:
+      rhel_version: "{{ rhel_version_output.stdout_lines[0] }}"
+
+  - name: Install tasks block for RHEL
+    block:
+      - name: Check | Check if NetworkManager-dispatcher-routing-rules is installed
+        shell: rpm -q NetworkManager-dispatcher-routing-rules
+        register: nm_dispatcher_installed
+        ignore_errors: yes
+        failed_when: nm_dispatcher_installed.rc == 2
+
+      - name: Install | Install NetworkManager-dispatcher-routing-rules if not installed
+        yum:
+          name: NetworkManager-dispatcher-routing-rules
+          state: present
+        register: nmd_installed
+        when: nm_dispatcher_installed.rc != 0
+
+      - name: Install | Enable NetworkManager-dispatcher service
+        service:
+          name: NetworkManager-dispatcher
+          enabled: yes
+        when: nmd_installed.changed == true
+
+      - name: Install | Start NetworkManager-dispatcher service
+        service:
+          name: NetworkManager-dispatcher
+          state: started
+        when: nmd_installed.changed == true
+    when: rhel_version in ["7.9", "8.6"] and 'RedHat' in ansible_facts.distribution
+
+  # Task to check and add custom routing tables on cluster nodes.
+
+  - name: check | Check if custom routing tables exist
+    shell: grep -q 'subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }}' /etc/iproute2/rt_tables && grep -q 'subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }}' /etc/iproute2/rt_tables
+    register: routing_table_exists
+    ignore_errors: yes
+    failed_when: routing_table_exists.rc == 2
+
+  - debug: 
+      var: routing_table_exists.rc
+
+  - name: configure | Custom routing tables
+    shell: |
+      echo "200 subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }}" >> /etc/iproute2/rt_tables
+      echo "201 subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }}" >> /etc/iproute2/rt_tables
+    when: routing_table_exists.rc != 0
+
+  # Task to check and add custom IP rules on cluster nodes.
+
+  - name: check | Check if custom IP rules exist
+    shell: ip rule show | grep -q "lookup subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }}" && ip rule show | grep -q "lookup subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }}"
+    register: custom_ip_rules_exist
+    ignore_errors: yes
+    failed_when: custom_ip_rules_exist.rc == 2
+
+  - debug: 
+      var: custom_ip_rules_exist.rc
+
+  - name: configure | Custom IP rules
+    shell: |
+      echo "from {{ primary_ip.stdout }}/32 table subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ scale_pri_interface_name }}
+      echo "from {{ secondary_ip.stdout }}/32 table subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ scale_sec_interface_name }}
+    when: custom_ip_rules_exist.rc != 0
+
+  # Task to check and add custom IP routes on cluster nodes.
+
+  - name: check | Check if custom IP routes exist
+    shell: |
+      ip route show table subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }} | grep -q "{{ storage_subnet_cidr }}"
+      ip route show table subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }} | grep -q "{{ storage_subnet_cidr }}"
+    register: custom_ip_routes_exist
+    ignore_errors: yes
+    failed_when: custom_ip_routes_exist.rc == 2
+
+  - debug: 
+      var: custom_ip_routes_exist.rc
+
+  - name: configure | Custom IP routes
+    shell: |
+      echo "{{ storage_subnet_cidr }} dev {{ scale_pri_interface_name }} table subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_pri_interface_name }}
+      echo "{{ storage_subnet_cidr }} dev {{ scale_sec_interface_name }} table subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_sec_interface_name }}
+    when: custom_ip_routes_exist.rc != 0
+
+  # Task to check and Restart NetworkManager service on cluster nodes.
+
+  - name: configure | Restart NetworkManager service
+    service:
+      name: NetworkManager
+      state: restarted
+    when: routing_table_exists.rc != 0 or custom_ip_rules_exist.rc != 0 or custom_ip_routes_exist.rc != 0
+
+  # Check if Logical subnet config already exists
+
+  - name: configure | Check if logical subnet is already configured
+    shell: |
+      /usr/lpp/mmfs/bin/mmlsconfig -Y | grep -q subnets
+    register: logical_subnets_exist
+    ignore_errors: yes
+    failed_when: logical_subnets_exist.rc == 2
+    when: is_admin_node | default(false) == true
+
+  - debug: 
+      var: logical_subnets_exist.cmd
+    when: is_admin_node | default(false) == true
+
+  # Configure logical subnet on cluster
+
+  - name: configure | Logical subnet using mmchconfig
+    command: mmchconfig subnets='{{ storage_network_addr.stdout }}/{{ scale_cluster_clustername }};{{ opposit_cluster_clustername }}'
+    register: logical_subnet_configured
+    when: is_admin_node | default(false) == true and logical_subnets_exist.rc != 0
+
+  # Do shutdown the gpfs cluster
+
+  - name: cluster | Shutdown gpfs cluster 
+    command: mmshutdown -a
+    register: shutdown_gpfs_cluster
+    when: is_admin_node | default(false) == true and logical_subnet_configured.changed == true
+
+  - name: Wait for 10-second 
+    pause:
+      seconds: 10
+    when: is_admin_node | default(false) == true and logical_subnet_configured.changed == true
+
+  - name: cluster | Startup gpfs cluster
+    command: mmstartup -a
+    register: started_gpfs_cluster
+    when: is_admin_node | default(false) == true and shutdown_gpfs_cluster.changed == true
+
+  - name: Wait until FILESYSTEM comes up
+    shell: "mmhealth cluster show -Y | grep FILESYSTEM | cut -d ':' -f 12"
+    register: filesystem_started
+    until: filesystem_started.stdout == "1"
+    retries: 60
+    delay: 60
+    when: is_admin_node | default(false) == true and scale_cluster_type == 'storage' and started_gpfs_cluster.changed == true
