@@ -38,12 +38,14 @@
 
 # To check and install NetworkManager-dispatcher-routing-rules on cluster nodes and post that enable and start it.
 
-- name: Debug | Display distribution and version
+- name: debug | Display OS distribution
   debug:
-    var: item
-  with_items:
-    - ansible_distribution
-    - ansible_distribution_version
+    var: ansible_distribution
+
+- name: debug | Display OS version
+  debug:
+    var: ansible_distribution_version
+
 
 - name: Install tasks block for RHEL
   block:
