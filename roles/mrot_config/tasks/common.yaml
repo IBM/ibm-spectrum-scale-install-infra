@@ -38,16 +38,12 @@
 
 # To check and install NetworkManager-dispatcher-routing-rules on cluster nodes and post that enable and start it.
 
-- name: Get RHEL version
-  shell: cat /etc/redhat-release | grep -oE '[0-9]+\.[0-9]+' | head -1
-  register: rhel_version_output
-
-- debug: 
-    var: rhel_version_output.stdout_lines[0]
-
-- name: Parse RHEL version
-  set_fact:
-    rhel_version: "{{ rhel_version_output.stdout_lines[0] }}"
+- name: Debug | Display distribution and version
+  debug:
+    var: item
+  with_items:
+    - ansible_distribution
+    - ansible_distribution_version
 
 - name: Install tasks block for RHEL
   block:
@@ -75,4 +71,6 @@
         name: NetworkManager-dispatcher
         state: started
       when: nmd_installed.changed == true
-  when: rhel_version in ["7.9", "8.6"] and 'RedHat' in ansible_facts.distribution
+  when:
+    - ansible_distribution in scale_rhel_distribution
+    - ansible_distribution_version in scale_rhel_version
