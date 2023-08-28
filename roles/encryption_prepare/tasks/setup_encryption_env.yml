@@ -1,0 +1,17 @@
+---
+# Creating directory and storing password for non-interactive deployment for GKLM
+
+- name: "************************ Encryption | GKLM Directory | Creation  ************************"
+  file:
+    path: "{{ gklm_dir }}"
+    state: directory
+  register: create_dir_output
+  run_once: true
+
+- debug:
+    var: create_dir_output.stdout_lines
+
+- name: Status of the admin password update
+  ansible.builtin.stat:
+    path: "{{ gklm_dir }}/password_update_success"
+  register: password_update_stat

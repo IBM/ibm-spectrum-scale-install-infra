@@ -1,0 +1,9 @@
+- name: "************************ Encryption | Host Entry | Removing GKLM Servers ************************"
+  lineinfile:
+    path: /etc/hosts  
+    state: absent
+    regexp: "{{ item.0 }} {{ item.1 }}"
+  with_together:
+    - "{{ scale_encryption_servers }}"
+    - "{{ scale_encryption_servers_dns }}"
+  when: scale_encryption_servers is defined and scale_encryption_servers_dns is defined and scale_encryption_servers | length > 0 and scale_encryption_servers_dns | length > 0

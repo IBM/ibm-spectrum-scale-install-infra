@@ -1,0 +1,12 @@
+---
+# Checking the filesystem is mounted or not
+
+# Make default variables available in hostvars
+
+- name: "************************ Encryption | Filesystem | Check ************************"
+  shell: mount | grep -q "fs1" && echo "mounted" || echo "not mounted"
+  register: mount_status
+  changed_when: false
+
+- debug:
+    msg: "Filesystem is {{ mount_status.stdout }}"
