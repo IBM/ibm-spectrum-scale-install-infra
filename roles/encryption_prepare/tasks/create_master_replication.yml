@@ -1,6 +1,6 @@
 #Setting up replication on the Master server
 
-- name: "************************ Encryption | Master Replication | Login ************************"
+- name: Encryption | Master Replication | Login
   uri:
     url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/ckms/login"
     method: POST
@@ -23,7 +23,7 @@
   set_fact:
     user_auth_id: "{{ login_response.json.UserAuthId }}"
 
-- name: "************************ Encryption | Master Replication | Configuring ************************"
+- name: Encryption | Master Replication | Configuring
   shell: |
     curl -X PUT -H "Content-Type: application/json" \
     -H "Authorization: SKLMAuth userAuthId={{ user_auth_id }}" \

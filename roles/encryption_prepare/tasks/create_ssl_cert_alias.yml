@@ -1,7 +1,7 @@
 ---
 # Creating SSL Certificate Alias for KeyServer
 
-- name: "************************ Encryption | SSL Certificate Alias | Login ************************"
+- name: Encryption | SSL Certificate Alias | Login
   uri:
     url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/ckms/login"
     method: POST
@@ -20,7 +20,7 @@
   set_fact:
     user_auth_id: "{{ login_response.json.UserAuthId }}"
 
-- name: "************************ Encryption | SSL Certificate | Alias Creation ************************"
+- name: Encryption | SSL Certificate | Alias Creation
   uri:
     url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/configProperties"
     method: PUT

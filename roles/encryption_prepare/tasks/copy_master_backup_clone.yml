@@ -1,7 +1,7 @@
 ---
 # Sharing the master backup across all clones
 
-- name: "************************ Encryption | Copy Master Backup ************************"
+- name: Encryption | Copy Master Backup
   fetch:
     src: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
     dest: "/tmp/{{ master_backup_jar_file }}"
@@ -10,7 +10,7 @@
   delegate_to: "{{ scale_encryption_servers[0] }}"
   run_once: true
 
-- name: "************************ Encryption | Copy Master Backup to Clone ************************"
+- name: Encryption | Copy Master Backup to Clone
   copy:
     src: "/tmp/{{ master_backup_jar_file }}"
     dest: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
@@ -19,7 +19,7 @@
   when: inventory_hostname != scale_encryption_servers[0]
   run_once: true
 
-- name: "************************ Encryption | Change Backup file permission ************************"
+- name: Encryption | Change Backup file permission
   ansible.builtin.file:
     path: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
     owner: "{{ gklm_user }}"

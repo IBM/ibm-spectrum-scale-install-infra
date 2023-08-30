@@ -3,7 +3,7 @@
 
 # Make default variables available in hostvars
 
-- name: "************************ Encryption | Creating Encryption Policy ************************"
+- name: Encryption | Creating Encryption Policy
   shell: |
     echo "RULE 'p1' SET POOL 'system' /* one placement rule is required at all times */
     RULE 'Encrypt all files in file system with rule E1'

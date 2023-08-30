@@ -2,7 +2,7 @@
 # Restoring the Master backup on the clone key servers
 
 - block:
-    - name: "************************ Encryption | Master Backup Restoration | Login ************************"
+    - name: Encryption | Master Backup Restoration | Login
       uri:
         url: "https://{{ server }}:9443/SKLM/rest/v1/ckms/login"
         method: POST
@@ -20,7 +20,7 @@
       set_fact:
         user_auth_id: "{{ login_response.json.UserAuthId }}"
 
-    - name: "************************ Encryption | Master Backup Restoration | Restore on Clone ************************"
+    - name: Encryption | Master Backup Restoration | Restore on Clone
       uri:
         url: "https://{{ server }}:9443/SKLM/rest/v1/ckms/restore"
         method: POST

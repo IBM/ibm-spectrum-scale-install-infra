@@ -3,6 +3,6 @@
 
 # Make default variables available in hostvars
 
-- name: "************************ Encryption Connection Reset for Next Task ************************"
+- name: Encryption Connection Reset for Next Task
   pause:
     seconds: 60

@@ -1,7 +1,7 @@
 #Creation of replication on the clone servers and starting the replication
 
 - block:
-    - name: "************************ Encryption | Clone Replication | Login ************************"
+    - name: Encryption | Clone Replication | Login
       uri:
         url: "https://{{ server }}:9443/SKLM/rest/v1/ckms/login"
         method: POST
@@ -20,7 +20,7 @@
       set_fact:
         user_auth_id: "{{ login_response.json.UserAuthId }}"
 
-    - name: "************************ Encryption | Clone Replication | Configuring ************************"
+    - name: Encryption | Clone Replication | Configuring
       uri:
         url: "https://{{ server }}:9443/SKLM/rest/v1/replicationConfigProperties"
         method: PUT
@@ -41,7 +41,7 @@
     - debug:
         var: replication_response.json
 
-    - name: "************************ Encryption | Clone Replication | Start Replication ************************"
+    - name: Encryption | Clone Replication | Start Replication
       uri:
         url: "https://{{ server }}:9443/SKLM/rest/v1/replicate/start"
         method: POST

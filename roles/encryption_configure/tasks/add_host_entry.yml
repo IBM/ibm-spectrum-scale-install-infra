@@ -1,8 +1,8 @@
-- name: "************************ Encryption | Host Entry | GKLM Servers DNS ************************"
+- name: Encryption | Host Entry | GKLM Servers DNS
   debug:
     var: scale_encryption_servers_dns
 
-- name: "************************ Encryption | Host Entry | Adding GKLM Servers ************************"
+- name: Encryption | Host Entry | Adding GKLM Servers
   lineinfile:
     path: /etc/hosts  
     line: "{{ item.0 }} {{ item.1 }}"

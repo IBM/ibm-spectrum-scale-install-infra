@@ -1,6 +1,6 @@
 #Creation of replication on the clone servers and starting the replication
 
-- name: "************************ Encryption | Master Replication | Login ************************"
+- name: Encryption | Master Replication | Login
   uri:
     url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/ckms/login"
     method: POST
@@ -15,7 +15,7 @@
   register: login_response
   run_once: true
 
-- name: "************************ Encryption | Master Replication| Start Server ************************"
+- name: Encryption | Master Replication| Start Server
   uri:
     url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/replicate/start"
     method: POST

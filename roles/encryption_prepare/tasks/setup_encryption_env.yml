@@ -1,7 +1,7 @@
 ---
 # Creating directory and storing password for non-interactive deployment for GKLM
 
-- name: "************************ Encryption | GKLM Directory | Creation  ************************"
+- name: Encryption | GKLM Directory | Creation 
   file:
     path: "{{ gklm_dir }}"
     state: directory

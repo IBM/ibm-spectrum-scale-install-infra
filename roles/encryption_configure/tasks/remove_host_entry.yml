@@ -1,4 +1,4 @@
-- name: "************************ Encryption | Host Entry | Removing GKLM Servers ************************"
+- name: Encryption | Host Entry | Removing GKLM Servers
   lineinfile:
     path: /etc/hosts  
     state: absent

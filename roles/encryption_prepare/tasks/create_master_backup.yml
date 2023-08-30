@@ -2,7 +2,7 @@
 #Saving the initated backup filename for restorations
 
 ---
-- name: "************************ Encryption | Master Backup | Login ************************"
+- name: Encryption | Master Backup | Login
   uri:
     url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/ckms/login"
     method: POST
@@ -20,7 +20,7 @@
   set_fact:
     user_auth_id: "{{ login_response.json.UserAuthId }}"
 
-- name: "************************ Encryption | Master Bacup | Initiate Backup ************************"
+- name: Encryption | Master Bacup | Initiate Backup
   uri:
     url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/ckms/backups"
     method: POST
@@ -41,7 +41,7 @@
     var: master_backup_response.json
 
 
-- name: "************************ Encryption | Master Bacup | File ************************"
+- name: Encryption | Master Bacup | File
   find:
     paths: "{{ gklm_backup_dir }}"
     file_type: file
@@ -57,6 +57,6 @@
   set_fact:
     master_backup_jar_file: "{{ sorted_files[-1].path | basename }}"
 
-- name: "************************ Encryption | Master Bacup | File name ************************"
+- name: Encryption | Master Bacup | File name
   debug:
     var: master_backup_jar_file

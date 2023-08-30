@@ -3,7 +3,7 @@
 
 # Make default variables available in hostvars
 
-- name: "************************ Encryption | Creating Client ************************"
+- name: Encryption | Creating Client
   shell: |
         echo -e "not_null\nnot_null" | mmkeyserv client create "{{ scale_cluster_profile_name | replace('sncparams', '') }}" --server "{{ scale_encryption_servers[0] }}" --server-pwd "{{ password_file }}"
   register: create_client_output
