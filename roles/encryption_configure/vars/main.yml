@@ -4,7 +4,7 @@
 gklm_dir: "/opt/gklm"
 
 #Tenant name
-tenant_name: "{{ scale_cluster_clustername | regex_replace('[^A-Za-z0-9]', '') }}"
+tenant_name: "{{ scale_cluster_clustername.split('.')[0] | regex_replace('-', '') | lower }}"
 
 #Password file for performing Encryption operations
 password_file: "{{ gklm_dir }}/.gklm_pass"
