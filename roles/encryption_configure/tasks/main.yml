@@ -7,8 +7,8 @@
         - import_tasks: check_filesystem.yml
         # Import the 'add_host_entry.yml' task for adding the keyservers to the host file of the cluster.
         - import_tasks: add_host_entry.yml
-        # Import the 'add_sklm_keyserver.yml' task for adding the key server to the cluster
-        - import_tasks: add_sklm_keyserver.yml
+        # Import the 'add_gklm_keyserver.yml' task for adding the key server to the cluster
+        - import_tasks: add_gklm_keyserver.yml
         # Import the 'create_tenant.yml' task for creating a tenant to the keyserver for cluster.
         - import_tasks: create_tenant.yml
         # Import the 'create_client.yml' task for creating a client to the keyserver for cluster.
