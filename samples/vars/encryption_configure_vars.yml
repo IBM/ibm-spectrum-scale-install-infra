@@ -1,0 +1,10 @@
+#Static Variables for Encryption
+
+#Directory to store GKLM files
+gklm_dir: "/opt/gklm"
+
+#Tenant name
+tenant_name: "testscale"
+
+#Password file for performing Encryption operations
+password_file: "/opt/gklm/.gklm_pass"

@@ -1,0 +1,27 @@
+#Static Variables for Encryption
+
+#Directory to store GKLM files
+gklm_dir: "/opt/gklm"
+
+#Backup Directory for GKLM
+gklm_backup_dir: "/opt/IBM/WebSphere/Liberty/products/sklm/data"
+
+#Default GKLM User for DB2
+gklm_user: "klmdb411"
+
+#Dynamic Variables for Encryption based on users input
+
+#Private key path for accessing the GKLM servers
+ansible_ssh_private_key_file: "/root/.ssh/id_rsa"
+
+#Resource name
+scale_cluster_clustername: "test-scale"
+
+#Admin password for GKLM
+scale_encryption_admin_password: "SKLMAdmin@123"
+
+#List of encryption key servers:
+scale_encryption_servers: ['10.241.1.10','10.241.1.11','10.241.1.12']
+
+#Scale Encryption Admin username
+scale_encryption_admin_username: "SKLMAdmin"

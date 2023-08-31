@@ -8,12 +8,10 @@
 # is recommended to use Ansible group variables for this purpose:
 # https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
 
-- hosts: cluster01
+- hosts: localhost
   collections:
     - ibm.spectrum_scale
-  vars:
-    - scale_version: 5.0.4.0
-    - scale_install_localpkg_path: /root/Spectrum_Scale_Standard-5.0.4.0-x86_64-Linux-install
+  pre_tasks:
+    - include_vars: encryption_prepare_vars.yml    
   roles:
     - encryption_prepare
-    - encryption_configure
