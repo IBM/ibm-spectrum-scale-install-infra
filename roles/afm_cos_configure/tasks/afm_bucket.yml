@@ -30,10 +30,6 @@
           - item.akey is defined
           - item.skey is defined
      
-      - debug:
-          msg: scale_afm_cos_define.cmd
-        when: scale_afm_cos_define.cmd is defined
- 
       - name: configure | Set the access key and secret key for new/existing bucket as below at gateway node
         command: "{{ scale_command_path }}mmafmcoskeys  {{ item.bucket }}:{{ item.Region  }}@{{ item.Server }} set  --keyfile {{ item.KeyfilePath }}"
         register: scale_afm_cos_define
