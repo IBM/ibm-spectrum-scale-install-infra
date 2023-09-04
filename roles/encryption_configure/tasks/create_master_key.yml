@@ -1,0 +1,9 @@
+---
+# Creating Master key for encryption
+
+# Make default variables available in hostvars
+
+- name: Encryption | Creating Master Key
+  command: mmkeyserv key create --server "{{ scale_encryption_servers[0] }}" --tenant "{{ tenant_name }}" --server-pwd "{{ password_file }}"
+  register: master_key_output
+  run_once: true

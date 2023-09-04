@@ -1,0 +1,17 @@
+---
+#
+# samples/playbook_encryption.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster with encryption.
+# Additional variables need to be defined for this, it
+# is recommended to use Ansible group variables for this purpose:
+# https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
+
+- hosts: localhost
+  collections:
+    - ibm.spectrum_scale
+  pre_tasks:
+    - include_vars: encryption_prepare_vars.yml    
+  roles:
+    - encryption_prepare
