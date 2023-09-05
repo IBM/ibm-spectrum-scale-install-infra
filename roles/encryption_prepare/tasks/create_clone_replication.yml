@@ -31,9 +31,9 @@
         body_format: json
         body:
           replication.role: "clone"
-          backup.TLSCertAlias: "test"
-          restore.ListenPort: "2222"
-          replication.MasterListenPort: "1111"
+          backup.TLSCertAlias: "{{ scale_cluster_clustername }}"
+          restore.ListenPort: "{{ clone_replication_port }}"
+          replication.MasterListenPort: "{{ master_replication_port }}"
         validate_certs: no
       register: replication_response
       run_once: true

@@ -36,10 +36,10 @@
       cn: "{{ scale_cluster_clustername }}"
       ou: "Operation"
       o: "{{ scale_cluster_clustername }}"
-      usage: "SSLSERVER"
-      country: "US"
-      validity: "1095"
-      algorithm: "RSA"
+      usage: "{{ scale_encryption_server_usage }}"
+      country: "{{ ssl_cert_usage_country }}"
+      validity: "{{ ssl_cert_validity }}"
+      algorithm: "{{ ssl_cert_algorithm }}"
     validate_certs: no
   register: certificate_creation
   run_once: true

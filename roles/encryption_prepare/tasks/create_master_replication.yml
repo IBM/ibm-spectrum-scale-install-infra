@@ -32,8 +32,8 @@
       "backup.EncryptionPassword": "{{ scale_encryption_admin_password }}",
       "backup.TLSCertAlias": "{{ scale_cluster_clustername }}",
       "backup.ClientIP{{ server.0 + 1 }}": "{{ server[1] }}",
-      "backup.ClientPort{{ server.0 + 1 }}": "2222",
-      "replication.MasterListenPort": "1111",
+      "backup.ClientPort{{ server.0 + 1 }}": "{{ clone_replication_port }}",
+      "replication.MasterListenPort": "{{ master_replication_port }}",
       "backup.CheckFrequency": "60",
       "replication.Incremental.Enable": "true",
       "replication.Incremental.CheckFrequency": "600"
