@@ -16,9 +16,9 @@
         # Import the 'register_client.yml' task for registerin the client to the tenant.
         - import_tasks: register_client.yml
       when: 
-        - (is_admin_node == True and scale_cluster_type == "storage") or 
-          (is_admin_node == True and scale_cluster_type == "compute") or
-          (is_admin_node == True and scale_cluster_type == "combined")
+        - scale_cluster_type == "storage" or 
+          scale_cluster_type == "compute" or
+          scale_cluster_type == "combined"
 
     - name: Executing specific tasks on the cluster
       block:
@@ -29,8 +29,8 @@
         # Import the 'apply_encryption_policy.yml' task for applying the encryption policy to the filesystem.
         - import_tasks: apply_encryption_policy.yml
       when:
-        - (is_admin_node == True and scale_cluster_type == "storage") or
-          (is_admin_node == True and scale_cluster_type == "combined")
+        - scale_cluster_type == "storage" or
+          scale_cluster_type == "combined"
 
     - name: Cleaning Stored Secrets across cluster
       block:
@@ -39,6 +39,6 @@
         # Import the 'remove_host_entry.yml' task for removing the keyservers which are added to the host file as a pre-task.
         - import_tasks: remove_host_entry.yml
       when: 
-        - (is_admin_node == True and scale_cluster_type == "storage") or 
-          (is_admin_node == True and scale_cluster_type == "compute") or
-          (is_admin_node == True and scale_cluster_type == "combined")
+        - scale_cluster_type == "storage" or 
+          scale_cluster_type == "compute" or
+          scale_cluster_type == "combined"
