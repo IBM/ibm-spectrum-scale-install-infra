@@ -1,0 +1,45 @@
+#Static Variables for Encryption
+
+#Directory to store GKLM files
+gklm_dir: "/opt/gklm"
+
+#Backup Directory for GKLM
+gklm_backup_dir: "/opt/IBM/WebSphere/Liberty/products/sklm/data"
+
+#Default GKLM User for DB2
+gklm_user: "klmdb411"
+
+#Dynamic Variables for Encryption based on users input
+
+#Private key path for accessing the GKLM servers
+ansible_ssh_private_key_file: "{{ scale_encryption_ssh_key_file }}"
+
+#Resource name
+scale_cluster_clustername: "{{ scale_cluster_clustername }}"
+
+#Admin password for GKLM
+scale_encryption_admin_password: "{{ scale_encryption_admin_password }}"
+
+#List of encryption key servers:
+scale_encryption_servers: "{{ scale_encryption_servers_list }}"
+
+#Scale Encryption Admin username
+scale_encryption_admin_username: "{{ scale_encryption_admin_user }}"
+
+#SSL Certificate usage, SSLSERVER for Key server
+scale_encryption_server_usage: "SSLSERVER"
+
+#SSL Certificate attribute for the country selection
+ssl_cert_usage_country: "US"
+
+#SSL Certificate validity. Default is 3 years 
+ssl_cert_validity: "1095"
+
+#SSL Certificate Algorithm
+ssl_cert_algorithm: "RSA"
+
+#Master Replication Port
+master_replication_port: "1111"
+
+#Clone Replication Port
+clone_replication_port: "2222"

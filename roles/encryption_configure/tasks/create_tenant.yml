@@ -1,0 +1,12 @@
+---
+# Creating tenant for the storage cluster
+
+# Make default variables available in hostvars
+
+- name: Encryption | Creating Tenant
+  command: mmkeyserv tenant add "{{ tenant_name }}" --server "{{ scale_encryption_servers[0] }}" --server-pwd "{{ password_file }}"
+  register: create_tenant_output
+  run_once: true
+
+- debug:
+    var: create_tenant_output.stdout_lines
