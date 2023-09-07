@@ -1,0 +1,65 @@
+---
+# Playbook for deploying IBM Spectrum Scale (GPFS) sysctl config
+- hosts: all
+  any_errors_fatal: true
+  tasks:
+    - name: OS config | install python bindings
+      yum:
+        name:
+          - libselinux-python3
+        state: present
+      when: ansible_pkg_mgr == 'yum'
+
+    - name: OS config | install python bindings
+      dnf:
+        name:
+          - libselinux-python3
+        state: present
+      when: ansible_pkg_mgr == 'dnf'    
+ 
+    - name: OS config | sysctl config value
+      sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        sysctl_set: yes
+        state: present
+        reload: yes
+      with_dict:
+        net.ipv4.tcp_max_syn_backlog: "65536"
+        net.ipv4.tcp_timestamps: "0"
+        net.ipv4.tcp_sack: "1"
+        net.core.netdev_max_backlog: "250000"
+        net.core.rmem_max: "16777216"
+        net.core.wmem_max: "16777216"
+        net.core.rmem_default: "16777216"
+        net.core.wmem_default: "16777216"
+        net.core.optmem_max: "16777216"
+        net.ipv4.tcp_rmem: "4096 87380 16777216"
+        net.ipv4.tcp_wmem: "4096 65536 16777216"
+        net.ipv4.tcp_low_latency: "1"
+        net.ipv4.tcp_adv_win_scale: "1"
+        net.core.somaxconn: "2048"
+
+    - name: OS config | interface specific sysctl gc_stale_time config value
+      sysctl:
+        name: net.ipv4.neigh.{{ ansible_default_ipv4.interface }}.gc_stale_time
+        value: 2000000
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: OS config | interface specific sysctl base_reachable_time_ms value
+      sysctl:
+        name: net.ipv4.neigh.{{ ansible_default_ipv4.interface }}.base_reachable_time_ms
+        value: 120000
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: OS config | interface specific sysctl mcast_solicit value
+      sysctl:
+        name: net.ipv4.neigh.{{ ansible_default_ipv4.interface }}.mcast_solicit
+        value: 18
+        sysctl_set: yes
+        state: present
+        reload: yes
