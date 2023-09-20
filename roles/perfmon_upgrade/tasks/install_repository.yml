@@ -194,7 +194,7 @@
 
     - name: upgrade | Set if pmswift installed
       set_fact:
-        is_scale_pmswift_pkg_installed: true
+        is_scale_pmswift_pkg_installed: false
       when:
         - is_pmwift_package_installed.rc == 0
 
@@ -227,3 +227,4 @@
         - scale_zimon_offline_upgrade is undefined
   when:
     - ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+    - is_scale_pmswift_pkg_installed | bool
