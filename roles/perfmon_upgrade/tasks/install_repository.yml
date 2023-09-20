@@ -194,7 +194,7 @@
 
     - name: upgrade | Set if pmswift installed
       set_fact:
-        is_scale_pmswift_pkg_installed: true
+        is_scale_pmswift_pkg_installed: false
       when:
         - is_pmwift_package_installed.rc == 0
 
