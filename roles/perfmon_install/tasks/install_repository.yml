@@ -139,14 +139,14 @@
     scale_zimon_collector_packages: "{{ scale_zimon_collector_packages_arm }}"
   when: 
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-    - ansible_architecture == "arm64"
+    - ansible_architecture == "aarch64"
 
 - name: install | package methods on arm arch
   set_fact:
     scale_zimon_collector_packages: "{{ scale_zimon_collector_packages_ubuntususe_arm }}"
   when: 
     - ansible_pkg_mgr == 'apt' or ansible_pkg_mgr == 'zypper'
-    - ansible_architecture == "arm64"
+    - ansible_architecture == "aarch64"
 
 #
 # Add GUI packages
