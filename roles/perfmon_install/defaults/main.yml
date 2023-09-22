@@ -35,6 +35,13 @@ scale_zimon_collector_packages_suse:
 scale_zimon_sensors_packages_suse:
  - gpfs.gss.pmsensors
 
+## List of arm collector packages to install on GUI collector nodes
+scale_zimon_collector_packages_arm:
+  - gpfs.gss.pmcollector*el{{ ansible_distribution_major_version }}.{{ scale_architecture }}
+
+scale_zimon_collector_packages_ubuntususe_arm:
+  - gpfs.gss.pmcollector
+
 ## Node's default GUI collector role -
 ## you'll likely want to define per-node roles in your inventory
 scale_zimon_collector: false
