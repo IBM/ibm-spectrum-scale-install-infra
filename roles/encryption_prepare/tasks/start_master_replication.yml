@@ -1,0 +1,32 @@
+#Creation of replication on the clone servers and starting the replication
+
+- name: Encryption | Master Replication | Login
+  uri:
+    url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/ckms/login"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    body_format: json
+    body:
+      userid: "{{ scale_encryption_admin_username }}"
+      password: "{{ scale_encryption_admin_password }}"
+    validate_certs: no
+  register: login_response
+  run_once: true
+
+- name: Encryption | Master Replication| Start Server
+  uri:
+    url: "https://{{ scale_encryption_servers[0] }}:9443/SKLM/rest/v1/replicate/start"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Authorization: "SKLMAuth userAuthId={{ login_response.json.UserAuthId }}"
+    body_format: json
+    validate_certs: no
+  register: master_replication_start
+  run_once: true
+
+- debug:
+    var: master_replication_start.json

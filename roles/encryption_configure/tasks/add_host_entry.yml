@@ -1,0 +1,13 @@
+- name: Encryption | Host Entry | GKLM Servers DNS
+  debug:
+    var: scale_encryption_servers_dns
+
+- name: Encryption | Host Entry | Adding GKLM Servers
+  lineinfile:
+    path: /etc/hosts  
+    line: "{{ item.0 }} {{ item.1 }}"
+  with_together:
+    - "{{ scale_encryption_servers }}"
+    - "{{ scale_encryption_servers_dns }}"
+  when: scale_encryption_servers is defined and scale_encryption_servers_dns is defined and scale_encryption_servers | length > 0 and scale_encryption_servers_dns | length > 0
+

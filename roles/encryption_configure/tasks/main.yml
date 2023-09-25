@@ -1,0 +1,44 @@
+---
+    # Enabling Encryption for IBM Spectrum Scale (GPFS) using GKLM - Security Guardium Lifecycle Manager
+
+    - name: Executing common tasks on the cluster
+      block:
+        # Import the 'check_filesystem.yml' task for checking the filesystem in the cluster.
+        - import_tasks: check_filesystem.yml
+        # Import the 'add_host_entry.yml' task for adding the keyservers to the host file of the cluster.
+        - import_tasks: add_host_entry.yml
+        # Import the 'add_gklm_keyserver.yml' task for adding the key server to the cluster
+        - import_tasks: add_gklm_keyserver.yml
+        # Import the 'create_tenant.yml' task for creating a tenant to the keyserver for cluster.
+        - import_tasks: create_tenant.yml
+        # Import the 'create_client.yml' task for creating a client to the keyserver for cluster.
+        - import_tasks: create_client.yml
+        # Import the 'register_client.yml' task for registerin the client to the tenant.
+        - import_tasks: register_client.yml
+      when: 
+        - scale_cluster_type == "storage" or 
+          scale_cluster_type == "compute" or
+          scale_cluster_type == "combined"
+
+    - name: Executing specific tasks on the cluster
+      block:
+        # Import the 'create_master_key.yml' task for creating the master key for encrypting the filesystem.
+        - import_tasks: create_master_key.yml
+        # Import the 'create_encryption_policy.yml' task for creating a policy using the master key for encrypting the filesystem.
+        - import_tasks: create_encryption_policy.yml
+        # Import the 'apply_encryption_policy.yml' task for applying the encryption policy to the filesystem.
+        - import_tasks: apply_encryption_policy.yml
+      when:
+        - scale_cluster_type == "storage" or
+          scale_cluster_type == "combined"
+
+    - name: Cleaning Stored Secrets across cluster
+      block:
+        # Import the 'cleanup_secrets.yml' task for cleaning the security credentials stored locally.
+        - import_tasks: cleanup_secrets.yml
+        # Import the 'remove_host_entry.yml' task for removing the keyservers which are added to the host file as a pre-task.
+        - import_tasks: remove_host_entry.yml
+      when: 
+        - scale_cluster_type == "storage" or 
+          scale_cluster_type == "compute" or
+          scale_cluster_type == "combined"
