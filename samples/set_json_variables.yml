@@ -64,11 +64,6 @@
      scale_protocols: "{{ scale_protocols | default(omit) }}"
      scale_hdfs_cluster: "{{ scale_hdfs_cluster | default(omit) }}"
      scale_cluster_config: "{{ scale_cluster | default(omit) }}"
-     scale_gui_node: "{{ scale_cluster.scale_gui_node | default(omit) }}"
-     scale_gui_port: "{{ scale_cluster.scale_gui_port | default(omit) }}"
-     scale_forwarding_port: "{{ scale_cluster.scale_forwarding_port | default(omit) }}"
-     scale_jump_host_user: "{{ scale_cluster.scale_jump_host_user | default(omit) }}" 
-
     loop: "{{ node_details }}"
   tags:
   - scale_inventory
