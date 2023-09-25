@@ -1,0 +1,156 @@
+---
+# sample/playbook_iptables.yml
+#
+# playbook sample for updating the iptables on bastion server for
+# gui access.
+
+# This file is mandatory to import and it will load inventory variables form
+# vars/gui_access_clusterdefinition.json
+- import_playbook: "set_json_variables_gui.yml"
+
+- hosts: scale_node
+  remote_user: "{{ scale_jump_host_user }}"
+  tasks:
+    - name: Install iptables on RHEL/CentOS/Amazon/Ubuntu
+      become: yes
+      yum:
+        name: iptables
+        state: present
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS" or ansible_distribution == "Amazon" or ansible_distribution == "Ubuntu"
+      register: result
+
+    - name: Debug Install iptables
+      debug:
+        var: result
+
+    - name: Install iptables-persistent on Ubuntu
+      become: yes
+      apt:
+        name: iptables-persistent
+        state: present
+      when: ansible_distribution == "Ubuntu"
+      register: result
+
+    - name: Debug Install iptables-persistent on Ubuntu
+      debug:
+        var: result
+
+    - name: Install iptables-services on RHEL/CentOS
+      become: yes
+      package:
+        name: iptables-services
+        state: present
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS" 
+      register: result
+
+    - name: Debug Install iptables-services
+      debug:
+        var: result
+
+    - name: Enable IP forwarding
+      become: yes
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        state: present
+
+    - name: Create DNAT rule
+      become: yes
+      iptables:
+        chain: PREROUTING
+        table: nat
+        protocol: tcp
+        rule_num: 1
+        jump: DNAT
+        destination_port: "{{ scale_forwarding_port }}"
+        to_destination: "{{ scale_gui_node }}:{{ scale_gui_port }}"
+        state: present
+      register: result
+
+    - name: Debug create DNAT result
+      debug:
+        var: result
+
+    - name: Create MASQUERADE rule
+      become: yes
+      iptables:
+        chain: POSTROUTING
+        table: nat
+        protocol: tcp
+        rule_num: 2
+        jump: MASQUERADE
+        destination_port: "{{ scale_gui_port }}"
+        destination: "{{ scale_gui_node }}"
+        state: present
+      register: result
+
+    - name: Debug create MASQUERADE result
+      debug:
+        var: result
+
+    - name: Create MASQUERADE rule for all traffic
+      become: yes
+      register: result
+      iptables:
+        chain: POSTROUTING
+        table: nat
+        rule_num: 3
+        jump: MASQUERADE
+        state: present
+
+    - name: Debug create MASQUERADE all result
+      debug:
+        var: result
+
+    - name: Save IPtables rules on Amazon
+      ansible.builtin.command: /sbin/service iptables save
+      become: yes
+      when: ansible_distribution == "Amazon"
+      register: result
+
+    - name: Debug Save iptables rules on Amazon
+      debug:
+        var: result
+
+    - name: Save iptables rules on RHEL/CentOS/Ubuntu
+      become: yes
+      command: iptables-save > /etc/iptables/rules.v4
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS" or ansible_distribution == "Ubuntu"
+      register: result
+
+    - name: Debug Save iptables rules
+      debug:
+        var: result
+
+    - name: Start and enable iptables on RHEL/CentOS
+      become: yes
+      systemd:
+        name: iptables
+        state: started
+        enabled: yes
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS"
+      register: result
+
+    - name: Debug Start and enable iptables on RHEL/CentOS
+      debug:
+        var: result
+    
+    - name: Restart iptables service on Ubuntu
+      systemd:
+        name: netfilter-persistent
+        state: restarted
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Debug iptables restart on Ubuntu
+      debug:
+        var: result
+
+    - name: Restart IPtables on Amazon
+      ansible.builtin.command: /sbin/service iptables restart
+      become: yes
+      when: ansible_distribution == "Amazon"
+      register: result
+
+    - name: Debug Restart IPtables on Amazon
+      debug:
+        var: result

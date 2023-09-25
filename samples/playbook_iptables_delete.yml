@@ -1,0 +1,82 @@
+---
+# sample/playbook_iptables.yml
+# 
+# playbook sample for deleting the iptables rules on bastion server for 
+# gui access.
+
+# This file is mandatory to import and it will load inventory variables form
+# vars/gui_access_clusterdefinition.json
+- import_playbook: "set_json_variables_gui.yml"
+
+- hosts: scale_node
+  remote_user: "{{ scale_jump_host_user }}"
+  become: yes
+  name: Delete an iptables rule
+  tasks: 
+    - name: Delete DNAT iptables rule
+      iptables:
+        chain: PREROUTING
+        table: nat
+        protocol: tcp
+        jump: DNAT
+        destination_port: "{{ scale_forwarding_port }}"
+        to_destination: "{{ scale_gui_node }}:{{ scale_gui_port }}"
+        state: absent
+      register: result
+
+    - name: Debug delete a iptables rule
+      debug:
+        var: result
+
+    - name: Save IPtables rules on Amazon
+      ansible.builtin.command: /sbin/service iptables save
+      become: yes
+      when: ansible_distribution == "Amazon"
+      register: result
+
+    - name: Debug Save iptables rules on Amazon
+      debug:
+        var: result
+
+    - name: Save iptables rules on RHEL/CentOS/Ubuntu
+      become: yes
+      command: iptables-save > /etc/iptables/rules.v4
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS" or ansible_distribution == "Ubuntu"
+      register: result
+
+    - name: Debug Save iptables rules on RHEL/CentOS/Ubuntu
+      debug:
+        var: result
+
+    - name: Start and enable iptables on RHEL/CentOS
+      become: yes
+      systemd:
+        name: iptables
+        state: started
+        enabled: yes
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS"
+      register: result
+
+    - name: Debug Start and enable iptables on RHEL/CentOS
+      debug:
+        var: result
+    
+    - name: Restart IPtables service on Ubuntu
+      systemd:
+        name: netfilter-persistent
+        state: restarted
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Debug iptables restart on Ubuntu
+      debug:
+        var: result
+
+    - name: Restart IPtables on Amazon
+      ansible.builtin.command: /sbin/service iptables restart
+      become: yes
+      when: ansible_distribution == "Amazon"
+      register: result
+
+    - name: Debug Restart IPtables on Amazon
+      debug:
+        var: result
