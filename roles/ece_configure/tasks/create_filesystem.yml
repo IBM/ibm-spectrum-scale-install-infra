@@ -3,12 +3,28 @@
     - name: create | Initialize
       set_fact:
          extra_option_flag: ""
+         extra_option_mount: ""
 
     - name: create | Set mmcrfs option if it is defined
       set_fact:
           extra_option_flag: "{{ extra_option_flag }}{{ item.mmcrfs }}"
       when:
          - item.mmcrfs is defined
+
+    - name: create | Set mount point if it is defined
+      set_fact:
+          extra_option_mount: "{{ extra_option_mount }} -T {{ item.mount_point }}"
+      when:
+        - item.mmcrfs is defined
+        - item.mount_point is defined
+        - "{{'-T' not in item.mmcrfs }}"
+
+    - name: create | Set mount point if it is defined
+      set_fact:
+          extra_option_mount: "-T {{ item.mount_point }}"
+      when:
+        - item.mmcrfs is not defined
+        - item.mount_point is defined
 
     - name: create | Find existing filesystem(s)
       shell: /usr/lpp/mmfs/bin/mmvdisk fs list -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
@@ -17,14 +33,13 @@
       failed_when: false
 
     - name: create | Create filesystem
-      command: "{{ scale_command_path }}mmvdisk fs create --fs {{ item.filesystem }} --vs {{ item.vs }} --mmcrfs -T {{ item.mount_point }} {{ extra_option_flag }}"
+      command: "{{ scale_command_path }}mmvdisk fs create --fs {{ item.filesystem }} --vs {{ item.vs }} --mmcrfs {{ extra_option_mount }} {{ extra_option_flag }}"
       register: scale_fs_create
       failed_when: scale_fs_create.rc != 0
       when:
         - item.filesystem not in scale_existing_fs.stdout_lines
         - item.filesystem is defined
         - item.vs
-        - item.mount_point
 
     - debug:
          msg: "{{scale_fs_create.cmd}}"
