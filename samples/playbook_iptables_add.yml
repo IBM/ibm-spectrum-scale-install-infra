@@ -1,5 +1,5 @@
 ---
-# sample/playbook_iptables.yml
+# sample/playbook_iptables_add.yml
 #
 # playbook sample for updating the iptables on bastion server for
 # gui access.
@@ -10,40 +10,57 @@
 
 - hosts: scale_node
   remote_user: "{{ scale_jump_host_user }}"
+  gather_facts: yes
+  vars:
+    ansible_timeout: 300
   tasks:
     - name: Install iptables on RHEL/CentOS/Amazon/Ubuntu
       become: yes
-      yum:
+      package:
         name: iptables
         state: present
-      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS" or ansible_distribution == "Amazon" or ansible_distribution == "Ubuntu"
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS" or ansible_distribution == "Amazon"
       register: result
 
-    - name: Debug Install iptables
+    - name: Debug Install iptables on RHEL/CentOS/Amazon
       debug:
         var: result
 
-    - name: Install iptables-persistent on Ubuntu
+    - name: Install iptables-services package on RHEL/CentOS
       become: yes
-      apt:
-        name: iptables-persistent
-        state: present
-      when: ansible_distribution == "Ubuntu"
-      register: result
-
-    - name: Debug Install iptables-persistent on Ubuntu
-      debug:
-        var: result
-
-    - name: Install iptables-services on RHEL/CentOS
-      become: yes
-      package:
+      dnf:
         name: iptables-services
         state: present
-      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS" 
       register: result
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS"
 
-    - name: Debug Install iptables-services
+    - name: Debug Install iptables-services package on RHEL/CentOS
+      debug:
+        var: result
+
+    - name: Stop and disable firewalld on RHEL/CentOS
+      become: yes
+      systemd:
+        name: firewalld
+        state: stopped
+        enabled: no
+      register: result
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS"
+
+    - name: Debug Stop and disable firewalld on RHEL/CentOS
+      debug:
+        var: result
+
+    - name: Start and enable iptables on RHEL/CentOS
+      become: yes
+      systemd:
+        name: iptables
+        state: started
+        enabled: yes
+      register: result
+      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS"
+
+    - name: Debug Start and enable iptables on RHEL/CentOS
       debug:
         var: result
 
@@ -53,6 +70,11 @@
         name: net.ipv4.ip_forward
         value: 1
         state: present
+      register: result
+
+    - name: Debug Enable IP forwarding
+      debug:
+        var: result
 
     - name: Create DNAT rule
       become: yes
@@ -102,9 +124,20 @@
       debug:
         var: result
 
-    - name: Save IPtables rules on Amazon
-      ansible.builtin.command: /sbin/service iptables save
+    - name: Remove the specific iptables rule
       become: yes
+      shell: iptables -D FORWARD 1
+      when: ansible_distribution == "CentOS"
+      ignore_errors: true
+      register: result
+
+    - name: Debug Remove the iptables rule
+      debug:
+        var: result
+
+    - name: Save IPtables rules on Amazon
+      become: yes
+      ansible.builtin.command: /sbin/service iptables save
       when: ansible_distribution == "Amazon"
       register: result
 
@@ -112,45 +145,34 @@
       debug:
         var: result
 
-    - name: Save iptables rules on RHEL/CentOS/Ubuntu
+    - name: Ensure /etc/sysconfig/ directory exists on RHEL/CentOS
       become: yes
-      command: iptables-save > /etc/iptables/rules.v4
-      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS" or ansible_distribution == "Ubuntu"
+      file:
+        path: /etc/sysconfig/
+        state: directory
+      when: ansible_distribution == "RedHat"
       register: result
 
-    - name: Debug Save iptables rules
+    - name: Debug Save iptables rules on RHEL/CentOS
       debug:
         var: result
 
-    - name: Start and enable iptables on RHEL/CentOS
+    - name: Save iptables rules on RHEL
       become: yes
-      systemd:
-        name: iptables
-        state: started
-        enabled: yes
-      when: ansible_distribution == "RedHat" or ansible_distribution == "CentOS"
+      shell: iptables-save > /etc/sysconfig/iptables
       register: result
+      when: ansible_distribution == "RedHat"
 
-    - name: Debug Start and enable iptables on RHEL/CentOS
-      debug:
-        var: result
-    
-    - name: Restart iptables service on Ubuntu
-      systemd:
-        name: netfilter-persistent
-        state: restarted
-      when: ansible_distribution == "Ubuntu"
-
-    - name: Debug iptables restart on Ubuntu
+    - name: Debug Save iptables rules on RHEL/CentOS
       debug:
         var: result
 
-    - name: Restart IPtables on Amazon
-      ansible.builtin.command: /sbin/service iptables restart
+    - name: Save iptables rules on CentOS
       become: yes
-      when: ansible_distribution == "Amazon"
+      shell: service iptables save
       register: result
+      when: ansible_distribution == "CentOS"
 
-    - name: Debug Restart IPtables on Amazon
+    - name: Debug Save iptables rules on CentOS
       debug:
         var: result
