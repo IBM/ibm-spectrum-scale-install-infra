@@ -1,0 +1,29 @@
+---
+# Creating LDAP Group on the LDAP Server
+
+- name: LDAP | Group File
+  ansible.builtin.blockinfile:
+    path: "{{ LDAP_DIR }}/group.ldif"
+    marker: "#Ansible Managed Content"
+    block: |
+      dn: cn={{ LDAP_GROUP }},ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+      objectClass: posixGroup
+      cn: {{ LDAP_GROUP }}
+      gidNumber: 5000
+
+- name: LDAP | Group Check
+  shell: |
+    ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "(objectClass=posixGroup)" | grep -q "{{ LDAP_GROUP }}"
+  register: ldapgroupsearch_result
+  ignore_errors: true
+  changed_when: false
+
+- name: LDAP | Group Created
+  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/group.ldif
+  when: ldapgroupsearch_result.rc != 0
+  notify: group_added
+
+- name: LDAP | Group Exist
+  debug:
+    msg: "LDAP Group '{{ LDAP_GROUP }}' already exists. Skipping."
+  when: ldapgroupsearch_result.rc == 0

@@ -1,0 +1,44 @@
+---
+# Creating LDAP User on the LDAP Server
+
+- name: Generate LDAP Password Hash
+  ansible.builtin.command: slappasswd -s "{{ LDAP_USER_PASSWORD }}"
+  register: ldap_hashed_password
+
+- name: LDAP | User File
+  ansible.builtin.blockinfile:
+    path: "{{ LDAP_DIR }}/users.ldif"
+    marker: "#Ansible Managed Content"
+    block: |
+      dn: uid={{ LDAP_USER }},ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+      objectClass: inetOrgPerson
+      objectClass: posixAccount
+      objectClass: shadowAccount
+      uid: {{ LDAP_USER }}
+      sn: {{ LDAP_USER }}
+      givenName: {{ LDAP_USER }}
+      cn: {{ LDAP_USER }}
+      displayName: {{ LDAP_USER }}
+      uidNumber: 10000
+      gidNumber: 5000
+      userPassword: {{ ldap_hashed_password.stdout }}
+      gecos: {{ LDAP_USER }}
+      loginShell: /bin/bash
+      homeDirectory: /home/{{ LDAP_USER }}
+
+- name: LDAP | User Check
+  shell: |
+    ldapsearch -x -LLL -b cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "(objectClass=posixAccount)" uid cn | grep -q "{{ LDAP_USER }}"
+  register: ldapusersearch_result
+  ignore_errors: true
+  changed_when: false
+
+- name: LDAP | User Created
+  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/users.ldif
+  when: ldapusersearch_result.rc != 0
+  notify: user_added
+
+- name: LDAP | User Exist
+  debug:
+    msg: "LDAP User '{{ LDAP_User }}' already exists. Skipping."
+  when: ldapusersearch_result.rc == 0

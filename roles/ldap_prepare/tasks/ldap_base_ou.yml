@@ -1,0 +1,23 @@
+---
+# Creating Base OU for the LDAP Server
+
+- name: LDAP | Server OU File
+  ansible.builtin.blockinfile:
+    path: "{{ LDAP_DIR }}/ou.ldif"
+    marker: "#Ansible Managed Content"
+    block: |
+      dn: ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+      objectClass: organizationalUnit
+      ou: People
+      
+      dn: ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+      objectClass: organizationalUnit
+      ou: Groups
+
+- name: LDAP | Server OU Update
+  command: >
+    ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/ou.ldif
+  register: ldapouadd_result
+
+- debug:
+    var: ldapouadd_result.stdout_lines

@@ -1,0 +1,8 @@
+LDAP_DIR: "/opt/LDAP"
+LDAP_ADMIN_PASSWORD: "{{ ldap_admin_password }}"
+LDAP_GROUP: "{{ scale_cluster_clustername }}"
+LDAP_USER: "{{ ldap_user_name }}"
+LDAP_USER_PASSWORD: "{{ ldap_user_password }}"
+LDAP_SERVER: ="ldap://{{ scale_cluster_clustername }}-ldap.com"
+BASE_DN: "{{ ldap_basedns }}"
+LDAP_SERVER_IP: "{{ ldap_server }}"

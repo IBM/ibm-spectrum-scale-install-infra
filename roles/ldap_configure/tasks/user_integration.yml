@@ -1,0 +1,90 @@
+---
+# Installing required ldap client packages for the integration.
+
+- name: LDAP | Enable SSSD and SSSD Authentication
+  ansible.builtin.command: authconfig --enablesssd --enablesssdauth --update
+  register: enable_ssd
+
+- debug:
+    var: enable_ssd.stdout_lines
+
+- name: LDAP | Select SSSD Authentication Configuration
+  ansible.builtin.command: authselect select sssd
+  register: select_ssd_result
+
+- debug:
+    var: select_ssd_.stdout_lines
+
+- name: LDAP | LDAP Conf Update with LDAP_SERVER and BASE_DN
+  ansible.builtin.blockinfile:
+    path: /etc/openldap/ldap.conf
+    marker: "# {mark} Ansible Managed Content"
+    block: |
+      URI {{ LDAP_SERVER }}
+      BASE {{ BASE_DN }}
+
+- name: LDAP | SSSD Conf Update
+  ansible.builtin.blockinfile:
+    path: /etc/sssd/sssd.conf
+    block: |
+      [domain/default]
+      autofs_provider = ldap
+      cache_credentials = True
+      ldap_search_base = {{ BASE_DN }}
+      id_provider = ldap
+      auth_provider = ldap
+      chpass_provider = ldap
+      ldap_uri = {{ LDAP_SERVER_IP }}
+      enumerate = true
+      access_provider = simple
+      ldap_id_use_start_tls = false
+      ldap_tls_reqcert = never
+
+      [sssd]
+      services = nss, pam, autofs
+      domains = default
+
+      [nss]
+      homedir_substring = /home
+    marker: "# {mark} Ansible Managed Content"
+
+- name: LDAP | SSSD Permission set
+  ansible.builtin.file:
+    path: /etc/sssd/sssd.conf
+    mode: '0600'
+
+- name: LDAP | Restart SSSD
+  ansible.builtin.systemd:
+    name: sssd
+    state: restarted
+
+- name: LDAP | Enable SSSD at boot
+  ansible.builtin.systemd:
+    name: sssd
+    enabled: yes
+
+- name: LDAP | Enable authselect feature with-mkhomedir
+  ansible.builtin.command: authselect enable-feature with-mkhomedir
+
+- name: LDAP | Enable ODDJOB at boot
+  ansible.builtin.systemd:
+    name: oddjobd.service
+    enabled: yes
+
+- name: LDAP | Restart ODDJOB
+  ansible.builtin.systemd:
+    name: oddjobd.service
+    state: restarted
+
+- name: LDAP | Update SSHD config
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication yes'
+    state: present
+    backup: yes 
+
+- name: LDAP | Restart SSH service
+  ansible.builtin.systemd:
+    name: sshd
+    state: restarted

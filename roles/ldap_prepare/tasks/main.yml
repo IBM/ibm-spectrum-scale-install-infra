@@ -1,0 +1,15 @@
+---
+
+    # Integration LDAP with IBM Spectrum Scale (GPFS) for user level access.
+    # Below are the LDAP Server configuration tasks to add OU, Groups and Users.
+        # Import the 'ldap_env.yml' task for setting the env to store the LDAP configuration files.
+        - import_tasks: ldap_env.yml
+
+        # Import the 'ldap_users.yml' task for adding OU to LDAP.
+        - import_tasks: ldap_base_ou.yml
+
+        # Import the 'ldap_groups.yml' task for adding groups to LDAP.
+        - import_tasks: ldap_groups.yml
+
+        # Import the 'ldap_users.yml' task for adding users to LDAP.
+        - import_tasks: ldap_users.yml
