@@ -1,3 +1,4 @@
+LDAP_ADMIN_PASSWORD: "{{ ldap_admin_password }}"
 LDAP_SERVER: ="ldap://{{ scale_cluster_clustername }}-ldap.com"
 BASE_DN: "{{ ldap_basedns }}"
 LDAP_SERVER_IP: "{{ ldap_server }}"
