@@ -27,18 +27,21 @@
       homeDirectory: /home/{{ LDAP_USER }}
 
 - name: LDAP | User Check
-  shell: |
-    ldapsearch -x -LLL -b cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "(objectClass=posixAccount)" uid cn | grep -q "{{ LDAP_USER }}"
-  register: ldapusersearch_result
-  ignore_errors: true
-  changed_when: false
+  ansible.builtin.shell: |
+    ldap_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=people,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" uid cn 2>&1)
+    if grep -q "uid={{ LDAP_USER }}," <<< "$ldap_search_result"; then
+        echo "UserFound."
+    else
+        echo "UserNotFound"
+    fi
+  register: ldap_user_search
 
 - name: LDAP | User Created
   ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/users.ldif
-  when: ldapusersearch_result.rc != 0
-  notify: user_added
+  when: ldap_user_search.stdout == "UserNotFound"
+  notify: group_added
 
 - name: LDAP | User Exist
   debug:
     msg: "LDAP User '{{ LDAP_User }}' already exists. Skipping."
-  when: ldapusersearch_result.rc == 0
+  when: ldap_user_search.stdout == "UserFound"

@@ -15,9 +15,15 @@
       ou: Groups
 
 - name: LDAP | Server OU Update
-  command: >
+  ansible.builtin.command: >
+    ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "(objectClass=organizationalUnit)"
+  register: ldapousearch_result
+  changed_when: false  
+
+- name: LDAP | Server OU Create
+  ansible.builtin.command: >
     ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/ou.ldif
-  register: ldapouadd_result
+  when: ldapousearch_result.rc != 0 
 
 - debug:
     var: ldapouadd_result.stdout_lines
