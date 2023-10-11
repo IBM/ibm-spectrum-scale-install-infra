@@ -54,7 +54,21 @@
           - item.fileset is defined
 
       - debug:
-          msg: "{{scale_afm_cos_define}}"        
+          msg: "{{scale_afm_cos_define}}"
+
+      - name: configure | Create a AFM cos default configuration with filesets
+        command: "{{ scale_command_path }}mmchfileset {{ item.filesystem }} {{ item.fileset }}  -p afmdirlookuprefreshinterval=default -p afmfilelookuprefreshinterval=default -p afmfileopenrefreshinterval=default -p afmdiropenrefreshinterval=default -p afmSkipHomeRefresh=no"
+        register: scale_afm_cos_config_define
+        failed_when: false
+        when:
+          - not "enabled" in scale_existing_afmcos.stdout_lines
+          - item.filesystem is defined
+          - item.fileset is defined
+          - item.mode is defined and item.mode != 'sw'
+
+      - debug:
+          msg: "{{scale_afm_cos_config_define}}"
+ 
       - name: configure | FM cos configuration
         debug:
           msg: AFM cos configured. 
