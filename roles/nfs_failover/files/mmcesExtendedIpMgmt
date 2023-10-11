@@ -1,0 +1,94 @@
+#!/usr/lpp/mmfs/bin/mmksh
+# sample file for standard gpfs cluster.
+# If you move this file to /var/mmfs/etc and rename it to mmcesExtendedIpMgmt the commands to enable
+# and disable IP assignement are working identically as before but are executed from this script
+# instead from internal ces code.
+# On cloud systems you may need some pre- and post processing when you add or remove an ip from an
+# adapter.
+# Apply your changes inside the functions only. You can add new functions called by the existing
+# functions if desired.
+
+typeset -i rc=1
+typeset funcName=$1
+shift
+typeset cmd="$*"
+
+# enable ip by: /sbin/ifconfig <interface> <ip> netmask <interfaceMask>
+function enableIP
+{
+  typeset cmd="$*"
+  # in case the following information is needed, remove the #
+  # typeset interface=$2
+  # typeset ip=$3
+  # typeset interfaceMaske=$5
+  # if needed add additional cloud specific code here
+  
+  ces_interface=$(echo $6 | cut -d":" -f1)
+  [[ $? -ne 0 ]] && return $?
+  print -- "Identified CES interface=$ces_interface\n"
+
+  next_hop=$(/usr/sbin/ifconfig $ces_interface | grep 'inet '| awk '{print $2}')
+  [[ $? -ne 0 ]] && return $?
+  print -- "Identified Next Hop=$next_hop\n"
+  
+  ces_ip=$(echo $4 | cut -d"/" -f1)
+  [[ $? -ne 0 ]] && return $?
+  print -- "Identified CES IP=$ces_ip\n"
+
+  destination=$ces_ip/32
+  [[ $? -ne 0 ]] && return $?
+  print -- "Identified Destination=$destination\n"
+
+  route_name=ces-$(echo $ces_ip | tr . -)
+  [[ $? -ne 0 ]] && return $?
+  print -- "Identified Route Name=$route_name\n"
+
+  /usr/local/bin/ibmcloud login --apikey $IC_API_KEY -r $IC_REGION -g $IC_RG -q
+  [[ $? -ne 0 ]] && return $?
+  print -- "Login to IBM Cloud\n"
+
+  print -- "RT_CMD=/usr/local/bin/ibmcloud is vpc-routing-table-route-create $IC_VPC $IC_RT --zone $IC_ZONE --destination $destination --next-hop $next_hop --action deliver --name $route_name -q\n"
+  /usr/local/bin/ibmcloud is vpc-routing-table-route-create $IC_VPC $IC_RT --zone $IC_ZONE --destination $destination --next-hop $next_hop --action deliver --name $route_name -q
+  [[ $? -ne 0 ]] && return $?
+  print -- "Route created for CES IP\n"
+
+  ${cmd}   # enable specific IPV4 IP on specific adapter
+  # if needed add additional cloud specific code here
+  return $?
+}
+
+# delete ip by: ip addr del <ip> dev <interface>
+function deleteIP
+{
+  typeset cmd="$*"
+  # in case the following information is needed, remove the #
+  # typeset interface=$6
+  # typeset ip=$4
+  # if needed add additional cloud specific code here
+
+  ces_ip=$(echo $4 | cut -d"/" -f1)
+  [[ $? -ne 0 ]] && return $?
+  print -- "Identified CES IP=$ces_ip\n"
+
+  route_name=ces-$(echo $ces_ip | tr . -)
+  [[ $? -ne 0 ]] && return $?
+  print -- "Identified Route Name=$route_name\n"
+
+  /usr/local/bin/ibmcloud login --apikey $IC_API_KEY -r $IC_REGION -g $IC_RG -q
+  [[ $? -ne 0 ]] && return $?
+  print -- "Login to IBM Cloud\n"
+
+  print -- "RT_CMD=/usr/local/bin/ibmcloud is vpc-routing-table-route-delete $IC_VPC $IC_RT $route_name -f -q\n"
+  /usr/local/bin/ibmcloud is vpc-routing-table-route-delete $IC_VPC $IC_RT $route_name -f -q
+  [[ $? -ne 0 ]] && return $?
+  print -- "Route deleted for CES IP\n"
+
+  ${cmd}    # disable specific IP from specific adapter
+  # if needed add additional cloud specific code here
+  return $?
+}
+
+print -- "callout=$0, funcName=${funcName}, cmd=${cmd}"
+${funcName} ${cmd}
+rc=$?
+return ${rc}

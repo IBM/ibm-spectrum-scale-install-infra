@@ -1,0 +1,121 @@
+---
+
+##################### Fileset For CES Nodes #####################
+
+- name: Get Filesystem name
+  command: basename "{{ scale_protocols.mountpoint }}"
+  register: filesystem_name
+  when: is_admin_node | default(false) == true
+
+- name: Debug the Filesystem name
+  debug:
+    var: filesystem_name.stdout
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true
+
+- name: Check if fileset in file system already exists
+  shell: "/usr/lpp/mmfs/bin/mmlsfileset {{ filesystem_name.stdout }} | tail -n +3 | awk '{print $1}' | grep -w {{ item }}"
+  loop: "{{ scale_protocols.list_of_fileset }}"
+  register: filesets_result
+  ignore_errors: yes
+  failed_when: filesets_result.rc == 2
+  when: is_admin_node | default(false) == true
+
+- name: Print return code for each fileset
+  debug:
+    msg: "Fileset {{ item.item }} - Return Code: {{ item.rc }}"
+  loop: "{{ filesets_result.results }}"
+  loop_control:
+    loop_var: item
+  when: is_admin_node | default(false) == true
+
+- name: Create new fileset
+  shell: "/usr/lpp/mmfs/bin/mmcrfileset {{ filesystem_name.stdout }} {{ item.item }} --inode-space new"
+  loop: "{{ filesets_result.results }}"
+  register: created_fileset
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true and item.rc != 0
+  run_once: true
+
+- name: Print return code for created filesets
+  debug:
+    msg: "Fileset_created {{ item.item.item }} - Return Code: {{ item.item.rc }}"
+  loop: "{{ created_fileset.results }}"
+  loop_control:
+    loop_var: item
+  when: is_admin_node | default(false) == true
+
+- name: Link new fileset
+  shell: "/usr/lpp/mmfs/bin/mmlinkfileset {{ filesystem_name.stdout }} {{ item.item.item }} -J {{ scale_protocols.mountpoint }}/{{ item.item.item }}"
+  loop: "{{ created_fileset.results }}"
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true and item.changed == true
+  run_once: true
+
+- name: Check filesets in file system
+  command: /usr/lpp/mmfs/bin/mmlsfileset {{ filesystem_name.stdout }}
+  register: filesets
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true
+
+- name: Debug the filesets in file system
+  debug:
+    var: filesets.stdout_lines
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true
+
+- name: Check service is already exists
+  shell: "/usr/lpp/mmfs/bin/mmuserauth service check | grep -q 'File configuration is USER-DEFINED'"
+  register: service_result
+  ignore_errors: yes
+  failed_when: service_result.rc == 2
+  when: is_admin_node | default(false) == true
+
+- name: Service Check Result
+  debug:
+    var: service_result.rc
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true
+
+- name: Setup Auth
+  shell: "/usr/lpp/mmfs/bin/mmuserauth service create --data-access-method file --type userdefined"
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true and service_result.rc != 0
+  run_once: true
+
+- name: Check NFS export list if already exists
+  shell: "/usr/lpp/mmfs/bin/mmnfs export list -Y | tail -n +2 | awk -F: '{print $7, $8}' | sort -k2 | awk '{print $1}' | grep -w {{ scale_protocols.mountpoint }}/{{ item }}"
+  loop: "{{ scale_protocols.list_of_fileset }}"
+  register: export_list_exists
+  failed_when: export_list_exists.rc == 2
+  when: is_admin_node | default(false) == true
+  ignore_errors: yes
+  run_once: true
+
+- name: Print return code of NFS export list
+  debug:
+    msg: "Export_list {{ item.item }} - Return Code: {{ item.rc }}"
+  loop: "{{ export_list_exists.results }}"
+  loop_control:
+    loop_var: item
+  when: is_admin_node | default(false) == true
+
+- name: Create NFS export
+  shell: '/usr/lpp/mmfs/bin/mmnfs export add {{ scale_protocols.mountpoint }}/{{ item.item }} --client "{{ compute_subnet_cidr }}(Access_Type=RW,SQUASH=no_root_squash)"'
+  with_items: "{{ export_list_exists.results }}"
+  register: created_nfs_export
+  when: is_admin_node | default(false) == true and item.rc != 0
+  run_once: true
+  ignore_errors: yes
+
+- name: Check NFS export list
+  command: /usr/lpp/mmfs/bin/mmnfs export list
+  register: export_list
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true
+
+- name: Debug the NFS export list
+  debug:
+    var: export_list.stdout_lines
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true

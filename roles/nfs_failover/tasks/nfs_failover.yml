@@ -1,0 +1,50 @@
+---
+
+##################### Failover For CES Nodes #####################
+
+- name: Check if the file exists
+  command: ls "/var/mmfs/etc/mmcesExtendedIpMgmt"
+  register: file_check_result
+  ignore_errors: yes
+  when: scale_protocol_node | default(false) == true
+  failed_when: file_check_result.rc == 1
+
+- name: Print file existence status
+  debug:
+    msg: "The file dont exists."
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Copy mmcesExtendedIpMgmt file
+  copy:
+    src: mmcesExtendedIpMgmt
+    dest: /var/mmfs/etc/mmcesExtendedIpMgmt
+  register: copy_result
+  when : scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Set execution permissions using shell command
+  shell: chmod +x /var/mmfs/etc/mmcesExtendedIpMgmt
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+##################### OS Level Route For CES Nodes #####################
+
+# Task to check and add custom IP routes on CES nodes.
+
+- name: Check if custom IP route exists
+  shell: ip route show {{ compute_subnet_cidr }} via {{ protocol_gateway_ip }} dev eth1 | grep -q {{ compute_subnet_cidr }}
+  register: custom_ip_routes_exist
+  ignore_errors: yes
+  changed_when: false
+  when : scale_protocol_node | default(false) == true
+  failed_when: custom_ip_routes_exist.rc == 2
+
+- name: Configure Custom IP Route
+  shell: echo "{{ compute_subnet_cidr }} via {{ protocol_gateway_ip }} dev eth1" >> /etc/sysconfig/network-scripts/route-{{ scale_sec_interface_name }}
+  when: scale_protocol_node | default(false) == true and custom_ip_routes_exist.rc != 0
+
+# Task to check and Restart NetworkManager service on cluster nodes.
+
+- name: configure | Restart NetworkManager service
+  service:
+    name: NetworkManager
+    state: restarted
+  when: scale_protocol_node | default(false) == true and custom_ip_routes_exist.rc != 0
