@@ -5,6 +5,11 @@
   ansible.builtin.command: slappasswd -s "{{ LDAP_USER_PASSWORD }}"
   register: ldap_hashed_password
 
+- name: LDAP | Create users.ldif file if it doesn't exist
+  ansible.builtin.file:
+    path: "{{ LDAP_DIR }}/users.ldif"
+    state: touch
+
 - name: LDAP | User File
   ansible.builtin.blockinfile:
     path: "{{ LDAP_DIR }}/users.ldif"

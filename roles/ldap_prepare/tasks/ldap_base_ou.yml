@@ -1,7 +1,17 @@
 ---
 # Creating Base OU for the LDAP Server
 
-- name: LDAP | Server People OU File
+- name: LDAP | Create oupeople.ldif file if it doesn't exist
+  ansible.builtin.file:
+    path: "{{ LDAP_DIR }}/oupeople.ldif"
+    state: touch
+
+- name: LDAP | Create ougroups.ldif file if it doesn't exist
+  ansible.builtin.file:
+    path: "{{ LDAP_DIR }}/ougroups.ldif"
+    state: touch
+
+- name: LDAP | Server People OU File update
   ansible.builtin.blockinfile:
     path: "{{ LDAP_DIR }}/oupeople.ldif"
     marker: "#Ansible Managed Content"

@@ -1,7 +1,7 @@
 ---
 # Creating LDAP Group on the LDAP Server
 
-- name: Create ou.ldif file if it doesn't exist
+- name: LDAP | Create group.ldif file if it doesn't exist
   ansible.builtin.file:
     path: "{{ LDAP_DIR }}/group.ldif"
     state: touch
