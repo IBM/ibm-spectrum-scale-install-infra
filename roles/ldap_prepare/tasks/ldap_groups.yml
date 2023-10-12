@@ -1,20 +1,12 @@
 ---
 # Creating LDAP Group on the LDAP Server
 
-- name: LDAP | Create group.ldif file if it doesn't exist
-  ansible.builtin.file:
-    path: "{{ LDAP_DIR }}/group.ldif"
-    state: touch
-
 - name: LDAP | Group File
-  ansible.builtin.blockinfile:
-    path: "{{ LDAP_DIR }}/group.ldif"
-    marker: "#Ansible Managed Content"
-    block: |
-      dn: cn={{ LDAP_GROUP }},ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
-      objectClass: posixGroup
-      cn: {{ LDAP_GROUP }}
-      gidNumber: 5000
+  shell: |
+    echo "dn: cn={{ LDAP_GROUP }},ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+    objectClass: posixGroup
+    cn: {{ LDAP_GROUP }}
+    gidNumber: 5000" > "{{ LDAP_DIR }}/group.ldif"
 
 - name: LDAP | Check Group Existence
   ansible.builtin.shell: |

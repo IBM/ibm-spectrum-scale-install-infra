@@ -1,33 +1,17 @@
 ---
 # Creating Base OU for the LDAP Server
 
-- name: LDAP | Create oupeople.ldif file if it doesn't exist
-  ansible.builtin.file:
-    path: "{{ LDAP_DIR }}/oupeople.ldif"
-    state: touch
+- name: LDAP | Server People OU File
+  shell: |
+    echo "dn: ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+    objectClass: organizationalUnit
+    ou: People" > "{{ LDAP_DIR }}/oupeople.ldif"
 
-- name: LDAP | Create ougroups.ldif file if it doesn't exist
-  ansible.builtin.file:
-    path: "{{ LDAP_DIR }}/ougroups.ldif"
-    state: touch
-
-- name: LDAP | Server People OU File update
-  ansible.builtin.blockinfile:
-    path: "{{ LDAP_DIR }}/oupeople.ldif"
-    marker: "#Ansible Managed Content"
-    block: |
-      dn: ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
-      objectClass: organizationalUnit
-      ou: People
-
-- name: LDAP | Server Groups OU File update
-  ansible.builtin.blockinfile:
-    path: "{{ LDAP_DIR }}/ougroups.ldif"
-    marker: "#Ansible Managed Content"
-    block: |      
-      dn: ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
-      objectClass: organizationalUnit
-      ou: Groups
+- name: LDAP | Server Groups OU File
+  shell: |
+    echo "dn: ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+    objectClass: organizationalUnit
+    ou: Groups" > "{{ LDAP_DIR }}/ougroups.ldif"
 
 - name: LDAP | Groups OU Check
   ansible.builtin.shell: |
