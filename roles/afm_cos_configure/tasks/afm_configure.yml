@@ -64,7 +64,6 @@
           - not "enabled" in scale_existing_afmcos.stdout_lines
           - item.filesystem is defined
           - item.fileset is defined
-          - item.mode is defined and item.mode != 'sw'
 
       - debug:
           msg: "{{scale_afm_cos_config_define}}"
