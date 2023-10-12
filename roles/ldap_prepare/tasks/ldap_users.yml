@@ -39,7 +39,7 @@
 - name: LDAP | User Created
   ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/users.ldif
   when: ldap_user_search.stdout == "UserNotFound"
-  notify: group_added
+  notify: User_Created
 
 - name: LDAP | User Exist
   debug:

@@ -1,29 +1,60 @@
 ---
 # Creating Base OU for the LDAP Server
 
-- name: LDAP | Server OU File
+- name: LDAP | Server People OU File
   ansible.builtin.blockinfile:
-    path: "{{ LDAP_DIR }}/ou.ldif"
+    path: "{{ LDAP_DIR }}/oupeople.ldif"
     marker: "#Ansible Managed Content"
     block: |
       dn: ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
       objectClass: organizationalUnit
       ou: People
-      
+
+- name: LDAP | Server Groups OU File
+  ansible.builtin.blockinfile:
+    path: "{{ LDAP_DIR }}/ougroups.ldif"
+    marker: "#Ansible Managed Content"
+    block: |      
       dn: ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
       objectClass: organizationalUnit
       ou: Groups
 
-- name: LDAP | Server OU Update
-  ansible.builtin.command: >
-    ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "(objectClass=organizationalUnit)"
-  register: ldapousearch_result
-  changed_when: false  
+- name: LDAP | Groups OU Check
+  ansible.builtin.shell: |
+    ldap_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "objectClass=organizationalUnit" 2>&1)
+    if grep -q "ou=Groups," <<< "$ldap_search_result"; then
+        echo "GroupsOUFound."
+    else
+        echo "GroupsOUNotFound"
+    fi
+  register: ldap_groups_ou_search
 
-- name: LDAP | Server OU Create
-  ansible.builtin.command: >
-    ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/ou.ldif
-  when: ldapousearch_result.rc != 0 
+- name: LDAP | Groups OU Create
+  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/ougroups.ldif
+  when: ldap_groups_ou_search.stdout == "GroupsOUNotFound"
+  notify: OU_Created
 
-- debug:
-    var: ldapouadd_result.stdout_lines
+- name: LDAP | Groups OU Exist
+  debug:
+    msg: "LDAP OU 'Groups' already exists. Skipping."
+  when: ldap_groups_ou_search.stdout == "GroupsOUFound"
+
+- name: LDAP | People OU Check
+  ansible.builtin.shell: |
+    ldap_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "objectClass=organizationalUnit" 2>&1)
+    if grep -q "ou=People," <<< "$ldap_search_result"; then
+        echo "PeopleOUFound."
+    else
+        echo "PeopleOUNotFound"
+    fi
+  register: ldap_people_ou_search
+
+- name: LDAP | People OU Create
+  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/oupeople.ldif
+  when: ldap_people_ou_search.stdout == "PeopleOUNotFound"
+  notify: PeopleOU_Created
+
+- name: LDAP | People OU Exist
+  debug:
+    msg: "LDAP OU 'People' already exists. Skipping."
+  when: ldap_people_ou_search.stdout == "PeopleOUFound"
