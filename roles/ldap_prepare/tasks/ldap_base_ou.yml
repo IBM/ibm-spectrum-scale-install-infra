@@ -29,42 +29,62 @@
       objectClass: organizationalUnit
       ou: Groups
 
-- name: LDAP | Groups OU Check
-  ansible.builtin.shell: |
-    ldap_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "objectClass=organizationalUnit" 2>&1)
-    if grep -q "No such object" <<< "$ldap_search_result"; then
-        echo "GroupsOUNotFound"
-    else
-        echo "GroupsOUFound"
-    fi
-  register: ldap_groups_ou_search
+# - name: LDAP | Groups OU Check
+#   ansible.builtin.shell: |
+#     ldap_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "objectClass=organizationalUnit" 2>&1)
+#     if grep -q "No such object" <<< "$ldap_search_result"; then
+#         echo "GroupsOUNotFound"
+#     else
+#         echo "GroupsOUFound"
+#     fi
+#   register: ldap_groups_ou_search
 
-- name: LDAP | Groups OU Create
-  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/ougroups.ldif
-  when: ldap_groups_ou_search.stdout == "GroupsOUNotFound"
-  notify: OU_Created
+# - name: LDAP | Groups OU Create
+#   ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/ougroups.ldif
+#   when: ldap_groups_ou_search.stdout == "GroupsOUNotFound"
+#   notify: OU_Created
 
-- name: LDAP | Groups OU Exist
-  debug:
-    msg: "LDAP OU 'Groups' already exists. Skipping."
-  when: ldap_groups_ou_search.stdout == "GroupsOUFound"
+# - name: LDAP | Groups OU Exist
+#   debug:
+#     msg: "LDAP OU 'Groups' already exists. Skipping."
+#   when: ldap_groups_ou_search.stdout == "GroupsOUFound"
 
-- name: LDAP | People OU Check
-  ansible.builtin.shell: |
-    ldap_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "objectClass=organizationalUnit" 2>&1)
-    if grep -q "No such object" <<< "$ldap_search_result"; then
-        echo "PeopleOUNotFound"
-    else
-        echo "PeopleOUFound"
-    fi
-  register: ldap_people_ou_search
+# - name: LDAP | People OU Check
+#   ansible.builtin.shell: |
+#     ldap_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "objectClass=organizationalUnit" 2>&1)
+#     if grep -q "No such object" <<< "$ldap_search_result"; then
+#         echo "PeopleOUNotFound"
+#     else
+#         echo "PeopleOUFound"
+#     fi
+#   register: ldap_people_ou_search
 
-- name: LDAP | People OU Create
-  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/oupeople.ldif
-  when: ldap_people_ou_search.stdout == "PeopleOUNotFound"
-  notify: PeopleOU_Created
+# - name: LDAP | People OU Create
+#   ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/oupeople.ldif
+#   when: ldap_people_ou_search.stdout == "PeopleOUNotFound"
+#   notify: PeopleOU_Created
 
-- name: LDAP | People OU Exist
-  debug:
-    msg: "LDAP OU 'People' already exists. Skipping."
-  when: ldap_people_ou_search.stdout == "PeopleOUFound"
+# - name: LDAP | People OU Exist
+#   debug:
+#     msg: "LDAP OU 'People' already exists. Skipping."
+#   when: ldap_people_ou_search.stdout == "PeopleOUFound"
+
+- name: LDAP | OU Check
+  ansible.builtin.command: >
+    ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "objectClass=organizationalUnit" 2>&1
+  register: ldap_search_result
+  changed_when: false
+
+- name: Check if OU exists
+  ansible.builtin.set_fact:
+    ou_exists: "{{ 'No such object' not in ldap_search_result.stdout }}"
+  when: ldap_search_result.rc == 0
+
+- name: Create OU if it doesn't exist
+  ansible.builtin.command: >
+    ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/oupeople.ldif
+  when: not ou_exists
+
+- name: Debug
+  ansible.builtin.debug:
+    msg: "OU exists: {{ ou_exists }}"
