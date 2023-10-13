@@ -26,7 +26,6 @@
 - name: LDAP | Groups OU Create
   ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/ougroups.ldif
   when: ldap_groups_ou_search.stdout == "GroupsOUNotFound"
-  notify: OU_Created
 
 - name: LDAP | Groups OU Exist
   debug:
@@ -46,7 +45,6 @@
 - name: LDAP | People OU Create
   ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/oupeople.ldif
   when: ldap_people_ou_search.stdout == "PeopleOUNotFound"
-  notify: PeopleOU_Created
 
 - name: LDAP | People OU Exist
   debug:
