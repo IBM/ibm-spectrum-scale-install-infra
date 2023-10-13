@@ -11,7 +11,7 @@
 - name: LDAP | Check Group Existence
   ansible.builtin.shell: |
     ldap_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "(cn={{ LDAP_GROUP }})" 2>&1)
-    if [[ "$ldap_search_result" == *"{{ LDAP_GROUP }}"* ]]; then
+    if echo "$ldap_search_result" | grep -q "dn: cn={{ LDAP_GROUP }},"; then
         echo "GroupFound"
     else
         echo "GroupNotFound"
