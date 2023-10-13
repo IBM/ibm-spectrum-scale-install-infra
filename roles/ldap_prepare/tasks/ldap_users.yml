@@ -27,7 +27,7 @@
   ansible.builtin.shell: |
     ldap_user_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=people,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" uid cn 2>&1)
     if echo "$ldap_user_search_result" | grep -q "dn: uid={{ LDAP_USER }},"; then
-        echo "UserFound."
+        echo "UserFound"
     else
         echo "UserNotFound"
     fi
