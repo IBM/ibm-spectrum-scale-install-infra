@@ -24,29 +24,26 @@
       BASE {{ BASE_DN }}
 
 - name: LDAP | SSSD Conf Update
-  ansible.builtin.blockinfile:
-    path: /etc/sssd/sssd.conf
-    block: |
-      [domain/default]
-      autofs_provider = ldap
-      cache_credentials = True
-      ldap_search_base = {{ BASE_DN }}
-      id_provider = ldap
-      auth_provider = ldap
-      chpass_provider = ldap
-      ldap_uri = {{ LDAP_SERVER_IP }}
-      enumerate = true
-      access_provider = simple
-      ldap_id_use_start_tls = false
-      ldap_tls_reqcert = never
+  shell: |
+    echo "[domain/default]
+    autofs_provider = ldap
+    cache_credentials = True
+    ldap_search_base = {{ BASE_DN }}
+    id_provider = ldap
+    auth_provider = ldap
+    chpass_provider = ldap
+    ldap_uri = {{ LDAP_SERVER_IP }}
+    enumerate = true
+    access_provider = simple
+    ldap_id_use_start_tls = false
+    ldap_tls_reqcert = never
 
-      [sssd]
-      services = nss, pam, autofs
-      domains = default
+    [sssd]
+    services = nss, pam, autofs
+    domains = default
 
-      [nss]
-      homedir_substring = /home
-    marker: "# {mark} Ansible Managed Content"
+    [nss]
+    homedir_substring = /home" > "/etc/sssd/sssd.conf"
 
 - name: LDAP | SSSD Permission set
   ansible.builtin.file:
@@ -75,14 +72,6 @@
   ansible.builtin.systemd:
     name: oddjobd.service
     state: restarted
-
-- name: LDAP | Update SSHD config
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^#?PasswordAuthentication'
-    line: 'PasswordAuthentication yes'
-    state: present
-    backup: yes 
 
 - name: LDAP | Restart SSH service
   ansible.builtin.systemd:
