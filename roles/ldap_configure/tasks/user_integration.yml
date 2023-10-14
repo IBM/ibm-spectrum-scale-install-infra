@@ -20,19 +20,19 @@
     path: /etc/openldap/ldap.conf
     marker: "# {mark} Ansible Managed Content"
     block: |
-      URI {{ LDAP_SERVER }}
-      BASE {{ BASE_DN }}
+      URI ldap://{{ LDAP_SERVER_IP }}
+      BASE dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
 
 - name: LDAP | SSSD Conf Update
   shell: |
     echo "[domain/default]
     autofs_provider = ldap
     cache_credentials = True
-    ldap_search_base = {{ BASE_DN }}
+    ldap_search_base = dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
     id_provider = ldap
     auth_provider = ldap
     chpass_provider = ldap
-    ldap_uri = {{ LDAP_SERVER_IP }}
+    ldap_uri = ldap://{{ LDAP_SERVER_IP }}
     enumerate = true
     access_provider = simple
     ldap_id_use_start_tls = false
