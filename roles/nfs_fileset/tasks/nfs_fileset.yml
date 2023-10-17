@@ -2,6 +2,8 @@
 
 ##################### Fileset For CES Nodes #####################
 
+# First verifing if fileset already exists if not then creating Independent fileset linking it and printing it.
+
 - name: Get Filesystem name
   command: basename "{{ scale_protocols.mountpoint }}"
   register: filesystem_name
@@ -64,6 +66,8 @@
   ignore_errors: yes
   when: is_admin_node | default(false) == true
 
+# Cheking if Auth is already setup if not then Setting up Auth
+
 - name: Check service is already exists
   shell: "/usr/lpp/mmfs/bin/mmuserauth service check | grep -q 'File configuration is USER-DEFINED'"
   register: service_result
@@ -82,6 +86,8 @@
   ignore_errors: yes
   when: is_admin_node | default(false) == true and service_result.rc != 0
   run_once: true
+
+# Checking if NFS export list if already exists if not then Creating NFS export.
 
 - name: Check NFS export list if already exists
   shell: "/usr/lpp/mmfs/bin/mmnfs export list -Y | tail -n +2 | awk -F: '{print $7, $8}' | sort -k2 | awk '{print $1}' | grep -w {{ scale_protocols.mountpoint }}/{{ item }}"
@@ -119,3 +125,20 @@
     var: export_list.stdout_lines
   ignore_errors: yes
   when: is_admin_node | default(false) == true
+
+# Setting up quota for filesets
+
+# - name: Run mmchfs command
+#   shell: mmchfs {{ filesystem_name.stdout }} -Q yes --perfileset-quota
+
+# - name: Run mmcheckquota command
+#   shell: mmcheckquota {{ filesystem_name.stdout }}
+
+# - name: Run mmquotaon command
+#   shell: mmquotaon -g -j data
+
+# - name: Run mmsetquota command
+#   shell: mmsetquota {{ filesystem_name.stdout }}:data --block 25g:50g
+
+# - name: Run mmlsquota command
+#   shell: mmlsquota -j data {{ filesystem_name.stdout }}

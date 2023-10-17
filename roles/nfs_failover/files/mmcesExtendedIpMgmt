@@ -8,6 +8,8 @@
 # Apply your changes inside the functions only. You can add new functions called by the existing
 # functions if desired.
 
+#DYNAMIC_VARIABLES
+
 typeset -i rc=1
 typeset funcName=$1
 shift
@@ -48,7 +50,7 @@ function enableIP
   print -- "Login to IBM Cloud\n"
 
   print -- "RT_CMD=/usr/local/bin/ibmcloud is vpc-routing-table-route-create $IC_VPC $IC_RT --zone $IC_ZONE --destination $destination --next-hop $next_hop --action deliver --name $route_name -q\n"
-  /usr/local/bin/ibmcloud is vpc-routing-table-route-create $IC_VPC $IC_RT --zone $IC_ZONE --destination $destination --next-hop $next_hop --action deliver --name $route_name -q
+  sudo /usr/local/bin/ibmcloud is vpc-routing-table-route-create $IC_VPC $IC_RT --zone $IC_ZONE --destination $destination --next-hop $next_hop --action deliver --name $route_name -q
   [[ $? -ne 0 ]] && return $?
   print -- "Route created for CES IP\n"
 
@@ -79,7 +81,7 @@ function deleteIP
   print -- "Login to IBM Cloud\n"
 
   print -- "RT_CMD=/usr/local/bin/ibmcloud is vpc-routing-table-route-delete $IC_VPC $IC_RT $route_name -f -q\n"
-  /usr/local/bin/ibmcloud is vpc-routing-table-route-delete $IC_VPC $IC_RT $route_name -f -q
+  sudo /usr/local/bin/ibmcloud is vpc-routing-table-route-delete $IC_VPC $IC_RT $route_name -f -q
   [[ $? -ne 0 ]] && return $?
   print -- "Route deleted for CES IP\n"
 
