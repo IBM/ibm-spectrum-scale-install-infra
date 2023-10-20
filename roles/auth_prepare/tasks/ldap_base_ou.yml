@@ -6,12 +6,14 @@
     echo "dn: ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
     objectClass: organizationalUnit
     ou: People" > "{{ LDAP_DIR }}/oupeople.ldif"
+  register: people_ou_file
 
 - name: LDAP | Server Groups OU File
   shell: |
     echo "dn: ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
     objectClass: organizationalUnit
     ou: Groups" > "{{ LDAP_DIR }}/ougroups.ldif"
+  register: groups_ou_file
 
 - name: LDAP | Groups OU Check
   ansible.builtin.shell: |
