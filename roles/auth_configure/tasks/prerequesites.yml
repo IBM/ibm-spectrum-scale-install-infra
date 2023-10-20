@@ -1,0 +1,35 @@
+---
+# Installing required ldap client packages for the integration.
+
+- name: LDAP | Installing Packages
+  ansible.builtin.command: "cat /etc/redhat-release | grep -oE '[0-9]+' | head -1"
+  register: rhel_version
+  changed_when: false
+
+- name: LDAP | Install Packages for RHEL 7
+  ansible.builtin.yum:
+    name:
+      - openldap-clients
+      - nss-pam-ldapd
+      - authselect
+      - sssd
+      - oddjob
+      - oddjob-mkhomedir
+    state: present
+  when: rhel_version.stdout == "7"
+  register: install_ldap_client
+
+- name: LDAP | Install Packages for RHEL 8
+  ansible.builtin.dnf:
+    name:
+      - libnsl
+      - libnsl2
+      - openldap-clients
+      - nss-pam-ldapd
+      - authselect
+      - sssd
+      - oddjob
+      - oddjob-mkhomedir
+    state: present
+  when: rhel_version.stdout == "8"
+  register: install_ldap_client

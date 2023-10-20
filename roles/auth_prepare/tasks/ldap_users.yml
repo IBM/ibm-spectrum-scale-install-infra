@@ -1,0 +1,43 @@
+---
+# Creating LDAP User on the LDAP Server
+
+- name: Generate LDAP Password Hash
+  ansible.builtin.command: slappasswd -s "{{ LDAP_USER_PASSWORD }}"
+  register: ldap_hashed_password
+
+- name: LDAP | User File
+  shell: |
+    echo "dn: uid={{ LDAP_USER }},ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+    objectClass: inetOrgPerson
+    objectClass: posixAccount
+    objectClass: shadowAccount
+    uid: {{ LDAP_USER }}
+    sn: {{ LDAP_USER }}
+    givenName: {{ LDAP_USER }}
+    cn: {{ LDAP_USER }}
+    displayName: {{ LDAP_USER }}
+    uidNumber: 10000
+    gidNumber: 5000
+    userPassword: {{ ldap_hashed_password.stdout }}
+    gecos: {{ LDAP_USER }}
+    loginShell: /bin/bash
+    homeDirectory: /home/{{ LDAP_USER }}" > "{{ LDAP_DIR }}/users.ldif"
+      
+- name: LDAP | User Check
+  ansible.builtin.shell: |
+    ldap_user_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=people,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" uid cn 2>&1)
+    if echo "$ldap_user_search_result" | grep -q "dn: uid={{ LDAP_USER }},"; then
+        echo "UserFound"
+    else
+        echo "UserNotFound"
+    fi
+  register: ldap_user_search
+
+- name: LDAP | User Created
+  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/users.ldif
+  when: ldap_user_search.stdout == "UserNotFound"
+
+- name: LDAP | User Exist
+  debug:
+    msg: "LDAP User '{{ LDAP_User }}' already exists. Skipping."
+  when: ldap_user_search.stdout == "UserFound"

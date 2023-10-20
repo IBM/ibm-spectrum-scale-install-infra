@@ -1,0 +1,54 @@
+---
+# Creating Base OU for the LDAP Server
+
+- name: LDAP | Server People OU File
+  shell: |
+    echo "dn: ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+    objectClass: organizationalUnit
+    ou: People" > "{{ LDAP_DIR }}/oupeople.ldif"
+  register: people_ou_file
+
+- name: LDAP | Server Groups OU File
+  shell: |
+    echo "dn: ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+    objectClass: organizationalUnit
+    ou: Groups" > "{{ LDAP_DIR }}/ougroups.ldif"
+  register: groups_ou_file
+
+- name: LDAP | Groups OU Check
+  ansible.builtin.shell: |
+    ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "objectClass=organizationalUnit" > /dev/null 2>&1
+    if [ $? -eq 32 ]; then
+        echo "GroupsOUNotFound"
+    else
+        echo "GroupsOUFound"
+    fi
+  register: ldap_groups_ou_search
+
+- name: LDAP | Groups OU Create
+  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/ougroups.ldif
+  when: ldap_groups_ou_search.stdout == "GroupsOUNotFound"
+
+- name: LDAP | Groups OU Exist
+  debug:
+    msg: "LDAP OU 'Groups' already exists. Skipping."
+  when: ldap_groups_ou_search.stdout == "GroupsOUFound"
+
+- name: LDAP | People OU Check
+  ansible.builtin.shell: |
+    ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=People,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "objectClass=organizationalUnit" > /dev/null 2>&1
+    if [ $? -eq 32 ]; then
+        echo "PeopleOUNotFound"
+    else
+        echo "PeopleOUFound"
+    fi
+  register: ldap_people_ou_search
+
+- name: LDAP | People OU Create
+  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/oupeople.ldif
+  when: ldap_people_ou_search.stdout == "PeopleOUNotFound"
+
+- name: LDAP | People OU Exist
+  debug:
+    msg: "LDAP OU 'People' already exists. Skipping."
+  when: ldap_people_ou_search.stdout == "PeopleOUFound"
