@@ -66,6 +66,96 @@
   ignore_errors: yes
   when: is_admin_node | default(false) == true
 
+# Setting up quota for filesets
+
+- name: Check quota is already enabled
+  shell: "/usr/lpp/mmfs/bin/mmlsfs fs1 -Y | grep -w 'quotasAccountingEnabled' | grep -w 'user;group;fileset'"
+  register: enable_quota_check
+  loop: "{{ scale_protocols.list_of_quotas }}"
+  ignore_errors: yes
+  failed_when: enable_quota_check.rc == 2
+  when: is_admin_node | default(false) == true and item > 0
+
+- name: Debug to check it quota is already enabled
+  debug: 
+    msg: "Command to check if quota is already enabled: {{ item.0.cmd }}"
+  ignore_errors: yes
+  with_together: 
+    - "{{ enable_quota_check.results }}"
+    - "{{ scale_protocols.list_of_quotas }}"
+  when: is_admin_node | default(false) == true and item.1 > 0
+
+- name: Run mmchfs command and enable quota
+  shell: "/usr/lpp/mmfs/bin/mmchfs {{ filesystem_name.stdout }} -Q yes --perfileset-quota"
+  register: enable_quota
+  loop: "{{ enable_quota_check.results }}"
+  run_once: true
+  when: is_admin_node | default(false) == true and item.item > 0 and item.rc != 0
+
+- name: Run mmcheckquota command            ########## Can this be run all time when quota is enabled
+  shell: "/usr/lpp/mmfs/bin/mmcheckquota {{ filesystem_name.stdout }}"
+  register: quota_check
+  loop: "{{ enable_quota_check.results }}"
+  ignore_errors: yes
+  run_once: true
+  when: is_admin_node | default(false) == true and item.changed == true
+
+- name: Debug the mmcheckquota command
+  debug:
+    msg: "mmcheckquota Check: {{ item.stdout_lines }}"
+  ignore_errors: yes
+  loop: "{{ quota_check.results }}"
+  when: is_admin_node | default(false) == true and item.changed == true
+
+- name: Debug fileset and quota to be set for it.
+  debug:
+    msg: "{{ item.0.item.item }}: {{ item.1 }}GB"
+  with_together: 
+    - "{{ created_fileset.results }}"
+    - "{{ scale_protocols.list_of_quotas }}"
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true and item.1 > 0
+
+# - name: Check if quota for fileset is already set
+#   shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.item.item }} {{ filesystem_name.stdout }}"
+#   loop: "{{ created_fileset.results }}"
+#   register: existing_quota_details
+#   ignore_errors: yes
+#   when: is_admin_node | default(false) == true and scale_protocols.list_of_quotas is defined
+
+# - name: Debug
+#   debug:
+#     msg: "{{ item }}"
+#   loop: "{{ existing_quota_details.results }}"
+#   ignore_errors: yes
+#   when: is_admin_node | default(false) == true and scale_protocols.list_of_quotas is defined
+
+- name: Run mmsetquota command
+  shell: "/usr/lpp/mmfs/bin/mmsetquota {{ filesystem_name.stdout }}:{{ item.0.item.item }} --block {{ (item.1 * 0.8) | int }}g:{{ item.1 }}g"
+  with_together: 
+    - "{{ created_fileset.results }}"
+    - "{{ scale_protocols.list_of_quotas }}"
+  register: set_quota
+  when: is_admin_node | default(false) == true and item.1 > 0
+
+- name: Run mmlsquota command
+  shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.0.item.item }} {{ filesystem_name.stdout }}"
+  with_together: 
+    - "{{ created_fileset.results }}"
+    - "{{ scale_protocols.list_of_quotas }}"
+  register: quota_details
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true and item.1 > 0
+
+- name: Debug the after setting quota
+  debug:
+    msg: "{{ item.0.stdout_lines }}"
+  with_together: 
+    - "{{ quota_details.results }}"
+    - "{{ scale_protocols.list_of_quotas }}"
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true and item.1 > 0
+
 # Cheking if Auth is already setup if not then Setting up Auth
 
 - name: Check service is already exists
@@ -126,19 +216,10 @@
   ignore_errors: yes
   when: is_admin_node | default(false) == true
 
-# Setting up quota for filesets
-
-# - name: Run mmchfs command
-#   shell: mmchfs {{ filesystem_name.stdout }} -Q yes --perfileset-quota
-
-# - name: Run mmcheckquota command
-#   shell: mmcheckquota {{ filesystem_name.stdout }}
-
-# - name: Run mmquotaon command
-#   shell: mmquotaon -g -j data
-
-# - name: Run mmsetquota command
-#   shell: mmsetquota {{ filesystem_name.stdout }}:data --block 25g:50g
-
-# - name: Run mmlsquota command
-#   shell: mmlsquota -j data {{ filesystem_name.stdout }}
+- name: Change MINOR_VERSIONS
+  shell: "/usr/lpp/mmfs/bin/mmnfs config change MINOR_VERSIONS=0,1"
+  register: change_minor_versions
+  with_items: "{{ export_list_exists.results }}"
+  when: is_admin_node | default(false) == true and item.rc != 0
+  run_once: true
+  ignore_errors: yes
