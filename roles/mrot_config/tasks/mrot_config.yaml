@@ -86,4 +86,4 @@
   service:
     name: NetworkManager
     state: restarted
-  when: routing_table_exists.results[0].rc != 0 or custom_ip_rules_exist.results[0].rc != 0 or custom_ip_routes_exist.results[0].rc != 0 or custom_default_routes_exist.results[0].rc != 0
+  when: routing_table_exists.results[0].rc != 0 or custom_ip_rules_exist.results[0].rc != 0 or custom_ip_routes_exist.results[0].rc != 0 or (scale_cluster_type == "compute" and custom_default_routes_exist.results[0].rc != 0)
