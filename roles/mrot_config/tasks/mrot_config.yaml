@@ -59,31 +59,10 @@
   with_items: "{{ variable_sets }}"
   when: custom_ip_routes_exist.results[0].rc != 0
 
-# Task to check and add custom IP routes on compute cluster nodes(For enabeling ssh on Primary interface).
-
-- name: check | Check if custom IP routes exist on compute nodes to enabeling ssh on Primary interface
-  shell: |
-    ip route show table all | grep -qw '{{ item.bastion_ip }} via {{ item.comp_gateway_ip }} dev {{ scale_pri_interface_name }} table subnet_{{ item.network_addr_1 }}_{{ scale_pri_interface_name }}'
-  register: custom_default_routes_exist
-  ignore_errors: yes
-  with_items: "{{ variable_sets }}"
-  when: scale_cluster_type == "compute"
-  failed_when: custom_default_routes_exist.rc == 2
-
-- debug: 
-    var: custom_default_routes_exist.results[0].cmd
-  when: scale_cluster_type == "compute"
-
-- name: configure | Custom IP routes on compute nodes to enabeling ssh on Primary interface
-  shell: |
-    echo "{{ item.bastion_ip }} via {{ item.comp_gateway_ip }} dev {{ scale_pri_interface_name }} table subnet_{{ item.network_addr_1 }}_{{ scale_pri_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_pri_interface_name }}
-  with_items: "{{ variable_sets }}"
-  when: scale_cluster_type == "compute" and custom_default_routes_exist.results[0].rc != 0
-
 # Task to check and Restart NetworkManager service on cluster nodes.
 
 - name: configure | Restart NetworkManager service
   service:
     name: NetworkManager
     state: restarted
-  when: routing_table_exists.results[0].rc != 0 or custom_ip_rules_exist.results[0].rc != 0 or custom_ip_routes_exist.results[0].rc != 0 or (scale_cluster_type == "compute" and custom_default_routes_exist.results[0].rc != 0)
+  when: routing_table_exists.results[0].rc != 0 or custom_ip_rules_exist.results[0].rc != 0 or custom_ip_routes_exist.results[0].rc != 0

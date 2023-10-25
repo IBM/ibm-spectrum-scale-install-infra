@@ -10,7 +10,7 @@
     - name: configure | Executing specific tasks on the compute cluster to check and cofigure MROT configuration.
       vars:
         variable_sets:
-          - { network_addr_1: "{{ compute_network_addr.stdout_lines[0] }}", network_addr_2: "{{ storage_network_addr.stdout_lines[0] }}", subnet_cidr_1: "{{ compute_subnet_cidr }}", subnet_cidr_2: "{{ storage_subnet_cidr }}", primary_ip: "{{ primary_ip.stdout }}", secondary_ip: "{{ secondary_ip.stdout }}", comp_gateway_ip: "{{ comp_gateway_ip }}", bastion_ip: "{{ bastion_instance_private_ip }}"}
+          - { network_addr_1: "{{ compute_network_addr.stdout_lines[0] }}", network_addr_2: "{{ storage_network_addr.stdout_lines[0] }}", subnet_cidr_1: "{{ compute_subnet_cidr }}", subnet_cidr_2: "{{ storage_subnet_cidr }}", primary_ip: "{{ primary_ip.stdout }}", secondary_ip: "{{ secondary_ip.stdout }}"}
       block:
         - import_tasks: mrot_config.yaml
       when: scale_cluster_type == "compute"

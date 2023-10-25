@@ -1,0 +1,47 @@
+---
+# Checking if NFS export list if already exists if not then Creating NFS export.
+
+- name: Check NFS export list if already exists
+  shell: "/usr/lpp/mmfs/bin/mmnfs export list -Y | tail -n +2 | awk -F: '{print $7, $8}' | sort -k2 | awk '{print $1}' | grep -w {{ scale_protocols.mountpoint }}/{{ item }}"
+  loop: "{{ scale_protocols.list_of_fileset }}"
+  register: export_list_exists
+  failed_when: export_list_exists.rc == 2
+  when: is_admin_node | default(false) == true
+  ignore_errors: yes
+  run_once: true
+
+- name: Print return code of NFS export list
+  debug:
+    msg: "Export_list {{ item.item }} - Return Code: {{ item.rc }}"
+  loop: "{{ export_list_exists.results }}"
+  loop_control:
+    loop_var: item
+  when: is_admin_node | default(false) == true
+
+- name: Create NFS export
+  shell: '/usr/lpp/mmfs/bin/mmnfs export add {{ scale_protocols.mountpoint }}/{{ item.item }} --client "{{ compute_subnet_cidr }}(Access_Type=RW,SQUASH=no_root_squash)"'
+  with_items: "{{ export_list_exists.results }}"
+  register: created_nfs_export
+  when: is_admin_node | default(false) == true and item.rc != 0
+  run_once: true
+  ignore_errors: yes
+
+- name: Check NFS export list
+  command: /usr/lpp/mmfs/bin/mmnfs export list
+  register: export_list
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true
+
+- name: Debug the NFS export list
+  debug:
+    var: export_list.stdout_lines
+  ignore_errors: yes
+  when: is_admin_node | default(false) == true
+
+- name: Change MINOR_VERSIONS
+  shell: "/usr/lpp/mmfs/bin/mmnfs config change MINOR_VERSIONS=0,1"
+  register: change_minor_versions
+  with_items: "{{ export_list_exists.results }}"
+  when: is_admin_node | default(false) == true and item.rc != 0
+  run_once: true
+  ignore_errors: yes
