@@ -92,6 +92,21 @@
   run_once: true
   when: is_admin_node | default(false) == true and item.item > 0 and item.rc != 0
 
+- name: Run mmcheckquota command
+  shell: "/usr/lpp/mmfs/bin/mmcheckquota {{ filesystem_name.stdout }}"
+  register: quota_check
+  loop: "{{ enable_quota_check.results }}"
+  ignore_errors: yes
+  run_once: true
+  when: is_admin_node | default(false) == true and item.changed == true
+
+- name: Debug the mmcheckquota command
+  debug:
+    msg: "mmcheckquota Check: {{ item.stdout_lines }}"
+  ignore_errors: yes
+  loop: "{{ quota_check.results }}"
+  when: is_admin_node | default(false) == true and item.changed == true
+
 - name: Debug fileset and quota to be set for it.
   debug:
     msg: "{{ item.0.item.item }}: {{ item.1 }}GB"
