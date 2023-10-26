@@ -19,7 +19,7 @@
     src: mmcesExtendedIpMgmt
     dest: /var/mmfs/etc/mmcesExtendedIpMgmt
   register: copy_result
-  when : scale_protocol_node | default(false) == true and file_check_result.rc != 0
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
 
 - name: Set execution permissions using shell command
   shell: chmod +x /var/mmfs/etc/mmcesExtendedIpMgmt
@@ -62,7 +62,7 @@
   register: custom_ip_routes_exist_client
   ignore_errors: yes
   changed_when: false
-  when : scale_protocol_node | default(false) == true
+  when: scale_protocol_node | default(false) == true
   failed_when: custom_ip_routes_exist_client.rc == 2
 
 - name: Configure Custom IP Route
@@ -96,40 +96,48 @@
 - name: cluster | Get CIDR block of storage subnet
   shell: "ip route show | grep 'dev {{ scale_pri_interface_name }} proto kernel' | awk '{print $1}' | uniq"
   register: storage_subnet_cidr
+  when: scale_protocol_node | default(false) == true
 
 - name: Debug CIDR block of storage subnet
   debug:
     var: storage_subnet_cidr.stdout
+  when: scale_protocol_node | default(false) == true
 
 # To get CIDR block of protocol subnet
 
 - name: cluster | Get CIDR block of protocol subnet
   shell: "ip route show | grep 'dev {{ scale_sec_interface_name }} proto kernel' | awk '{print $1}'"
   register: protocol_subnet_cidr
+  when: scale_protocol_node | default(false) == true
 
 - name: Debug CIDR block of protocol subnet
   debug:
     var: protocol_subnet_cidr.stdout
+  when: scale_protocol_node | default(false) == true
 
 # To extract network address of storage and compute cluster.
 
 - name: cluster | Extract compute network address
   shell: echo "{{ storage_subnet_cidr.stdout }}" | awk -F'/' '{print $1}'
   register: storage_network_addr
+  when: scale_protocol_node | default(false) == true
 
 - name: cluster | Extract storage network address
   shell: echo "{{ protocol_subnet_cidr.stdout }}" | awk -F'/' '{print $1}'
   register: protocol_network_addr
+  when: scale_protocol_node | default(false) == true
 
 # To get Gateway IP of storage subnet.
 
 - name: cluster | Get Gateway IP of storage subnet
-    shell: "ip route show dev {{ scale_pri_interface_name }} | awk '/default/ {print $3}' | uniq"
-    register: strg_gateway_ip
+  shell: "ip route show dev {{ scale_pri_interface_name }} | awk '/default/ {print $3}' | uniq"
+  register: strg_gateway_ip
+  when: scale_protocol_node | default(false) == true
 
 - name: Debug storage subnet gateway ip
   debug:
     var: strg_gateway_ip.stdout
+  when: scale_protocol_node | default(false) == true
 
 # Task to check and add custom routing tables on cluster nodes.
 
