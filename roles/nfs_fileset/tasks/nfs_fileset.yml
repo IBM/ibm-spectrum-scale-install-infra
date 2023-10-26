@@ -4,19 +4,31 @@
 
 # First verifing if fileset already exists if not then creating Independent fileset linking it and printing it.
 
-- name: Get Filesystem name
-  command: basename "{{ scale_protocols.mountpoint }}"
-  register: filesystem_name
-  when: is_admin_node | default(false) == true
+# - name: Get Filesystem name
+#   command: basename "{{ scale_protocols.mountpoint }}"
+#   register: filesystem_name
+#   when: is_admin_node | default(false) == true
+
+# - name: Debug the Filesystem name
+#   debug:
+#     var: filesystem_name.stdout
+#   ignore_errors: yes
+#   when: is_admin_node | default(false) == true
+
+- name: storage | Find existing filesystem(s)
+  shell: /usr/lpp/mmfs/bin/mmlsfs all -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
+  register: scale_storage_existing_fs
+  changed_when: false
+  failed_when: false
 
 - name: Debug the Filesystem name
   debug:
-    var: filesystem_name.stdout
+    var: scale_storage_existing_fs.stdout
   ignore_errors: yes
   when: is_admin_node | default(false) == true
 
 - name: Check if fileset in file system already exists
-  shell: "/usr/lpp/mmfs/bin/mmlsfileset {{ filesystem_name.stdout }} | tail -n +3 | awk '{print $1}' | grep -w {{ item }}"
+  shell: "/usr/lpp/mmfs/bin/mmlsfileset {{ scale_storage_existing_fs.stdout }} | tail -n +3 | awk '{print $1}' | grep -w {{ item }}"
   loop: "{{ scale_protocols.list_of_fileset }}"
   register: filesets_result
   ignore_errors: yes
@@ -32,7 +44,7 @@
   when: is_admin_node | default(false) == true
 
 - name: Create new fileset
-  shell: "/usr/lpp/mmfs/bin/mmcrfileset {{ filesystem_name.stdout }} {{ item.item }} --inode-space new"
+  shell: "/usr/lpp/mmfs/bin/mmcrfileset {{ scale_storage_existing_fs.stdout }} {{ item.item }} --inode-space new"
   loop: "{{ filesets_result.results }}"
   register: created_fileset
   ignore_errors: yes
@@ -48,14 +60,14 @@
   when: is_admin_node | default(false) == true
 
 - name: Link new fileset
-  shell: "/usr/lpp/mmfs/bin/mmlinkfileset {{ filesystem_name.stdout }} {{ item.item.item }} -J {{ scale_protocols.mountpoint }}/{{ item.item.item }}"
+  shell: "/usr/lpp/mmfs/bin/mmlinkfileset {{ scale_storage_existing_fs.stdout }} {{ item.item.item }} -J {{ scale_protocols.mountpoint }}/{{ item.item.item }}"
   loop: "{{ created_fileset.results }}"
   ignore_errors: yes
   when: is_admin_node | default(false) == true and item.changed == true
   run_once: true
 
 - name: Check filesets in file system
-  command: /usr/lpp/mmfs/bin/mmlsfileset {{ filesystem_name.stdout }}
+  command: /usr/lpp/mmfs/bin/mmlsfileset {{ scale_storage_existing_fs.stdout }}
   register: filesets
   ignore_errors: yes
   when: is_admin_node | default(false) == true
@@ -86,14 +98,14 @@
   when: is_admin_node | default(false) == true and item.1 > 0
 
 - name: Run mmchfs command and enable quota
-  shell: "/usr/lpp/mmfs/bin/mmchfs {{ filesystem_name.stdout }} -Q yes --perfileset-quota"
+  shell: "/usr/lpp/mmfs/bin/mmchfs {{ scale_storage_existing_fs.stdout }} -Q yes --perfileset-quota"
   register: enable_quota
   loop: "{{ enable_quota_check.results }}"
   run_once: true
   when: is_admin_node | default(false) == true and item.item > 0 and item.rc != 0
 
 - name: Run mmcheckquota command
-  shell: "/usr/lpp/mmfs/bin/mmcheckquota {{ filesystem_name.stdout }}"
+  shell: "/usr/lpp/mmfs/bin/mmcheckquota {{ scale_storage_existing_fs.stdout }}"
   register: quota_check
   loop: "{{ enable_quota_check.results }}"
   ignore_errors: yes
@@ -117,7 +129,7 @@
   when: is_admin_node | default(false) == true and item.1 > 0
 
 # - name: Check if quota for fileset is already set
-#   shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.item.item }} {{ filesystem_name.stdout }}"
+#   shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.item.item }} {{ scale_storage_existing_fs.stdout }}"
 #   loop: "{{ created_fileset.results }}"
 #   register: existing_quota_details
 #   ignore_errors: yes
@@ -131,7 +143,7 @@
 #   when: is_admin_node | default(false) == true and scale_protocols.list_of_quotas is defined
 
 - name: Run mmsetquota command
-  shell: "/usr/lpp/mmfs/bin/mmsetquota {{ filesystem_name.stdout }}:{{ item.0.item.item }} --block {{ (item.1 * 0.8) | int }}g:{{ item.1 }}g"
+  shell: "/usr/lpp/mmfs/bin/mmsetquota {{ scale_storage_existing_fs.stdout }}:{{ item.0.item.item }} --block {{ (item.1 * 0.8) | int }}g:{{ item.1 }}g"
   with_together: 
     - "{{ created_fileset.results }}"
     - "{{ scale_protocols.list_of_quotas }}"
@@ -139,7 +151,7 @@
   when: is_admin_node | default(false) == true and item.1 > 0
 
 - name: Run mmlsquota command
-  shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.0.item.item }} {{ filesystem_name.stdout }}"
+  shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.0.item.item }} {{ scale_storage_existing_fs.stdout }}"
   with_together: 
     - "{{ created_fileset.results }}"
     - "{{ scale_protocols.list_of_quotas }}"
