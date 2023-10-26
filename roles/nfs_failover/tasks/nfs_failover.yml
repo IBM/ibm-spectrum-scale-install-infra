@@ -30,14 +30,9 @@
   register: env_var_output
   delegate_to: localhost
   when: scale_protocol_node | default(false) == true
-  
-- name: Display var
-  debug:
-    var: env_var_output
-  when: scale_protocol_node | default(false) == true
 
 - name: Write environmental variable to file on remote machine
-  shell: "echo '{{ env_var_output.stdout }}' >> /tmp/j.txt"
+  shell: "echo '{{ env_var_output.stdout }}' > /tmp/j.txt"
   when: scale_protocol_node | default(false) == true
 
 - name: Replace DYNAMIC_VARIABLES with specified lines
@@ -45,7 +40,7 @@
     path: /var/mmfs/etc/mmcesExtendedIpMgmt
     regexp: '#DYNAMIC_VARIABLES'
     replace: |
-      IC_API_KEY={{ ic_api_key }}
+      IC_API_KEY={{ env_var_output.stdout }}
       IC_REGION={{ ic_region }}
       IC_ZONE={{ ic_zone }}
       IC_RG={{ ic_rg }}
@@ -68,8 +63,6 @@
 - name: Configure Custom IP Route
   shell: echo "{{ compute_subnet_cidr }} via {{ proto_gateway_ip }} dev {{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_sec_interface_name }}
   when: scale_protocol_node | default(false) == true and custom_ip_routes_exist_client.rc != 0
-
-###################################################################################################
 
 # To get ip address of primary and secondary interface on cluster nodes.
 
