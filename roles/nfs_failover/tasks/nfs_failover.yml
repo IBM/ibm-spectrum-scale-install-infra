@@ -26,16 +26,19 @@
   when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
 
 - name: Fetch environmental variable from Ansible controller
-    shell: "echo $IC_API_KEY" 
-    register: env_var_output
-    delegate_to: localhost
+  shell: "echo $IC_API_KEY" 
+  register: env_var_output
+  delegate_to: localhost
+  when: scale_protocol_node | default(false) == true
   
 - name: Display var
   debug:
     var: env_var_output
+  when: scale_protocol_node | default(false) == true
 
 - name: Write environmental variable to file on remote machine
-  shell: "echo '{{ env_var_output.stdout }}' >> /tmp/j.txt"  
+  shell: "echo '{{ env_var_output.stdout }}' >> /tmp/j.txt"
+  when: scale_protocol_node | default(false) == true
 
 - name: Replace DYNAMIC_VARIABLES with specified lines
   replace:
