@@ -83,7 +83,7 @@
 - name: Check quota is already enabled
   shell: "/usr/lpp/mmfs/bin/mmlsfs fs1 -Y | grep -w 'quotasAccountingEnabled' | grep -w 'user;group;fileset'"
   register: enable_quota_check
-  loop: "{{ scale_protocols.list_of_quotas }}"
+  loop: "{{ scale_protocols.quotas }}"
   ignore_errors: yes
   failed_when: enable_quota_check.rc == 2
   when: is_admin_node | default(false) == true and item > 0
@@ -94,7 +94,7 @@
   ignore_errors: yes
   with_together: 
     - "{{ enable_quota_check.results }}"
-    - "{{ scale_protocols.list_of_quotas }}"
+    - "{{ scale_protocols.quotas }}"
   when: is_admin_node | default(false) == true and item.1 > 0
 
 - name: Run mmchfs command and enable quota
@@ -124,7 +124,7 @@
     msg: "{{ item.0.item.item }}: {{ item.1 }}GB"
   with_together: 
     - "{{ created_fileset.results }}"
-    - "{{ scale_protocols.list_of_quotas }}"
+    - "{{ scale_protocols.quotas }}"
   ignore_errors: yes
   when: is_admin_node | default(false) == true and item.1 > 0
 
@@ -133,20 +133,20 @@
 #   loop: "{{ created_fileset.results }}"
 #   register: existing_quota_details
 #   ignore_errors: yes
-#   when: is_admin_node | default(false) == true and scale_protocols.list_of_quotas is defined
+#   when: is_admin_node | default(false) == true and scale_protocols.quotas is defined
 
 # - name: Debug
 #   debug:
 #     msg: "{{ item }}"
 #   loop: "{{ existing_quota_details.results }}"
 #   ignore_errors: yes
-#   when: is_admin_node | default(false) == true and scale_protocols.list_of_quotas is defined
+#   when: is_admin_node | default(false) == true and scale_protocols.quotas is defined
 
 - name: Run mmsetquota command
   shell: "/usr/lpp/mmfs/bin/mmsetquota {{ scale_storage_existing_fs.stdout }}:{{ item.0.item.item }} --block {{ (item.1 * 0.8) | int }}g:{{ item.1 }}g"
   with_together: 
     - "{{ created_fileset.results }}"
-    - "{{ scale_protocols.list_of_quotas }}"
+    - "{{ scale_protocols.quotas }}"
   register: set_quota
   when: is_admin_node | default(false) == true and item.1 > 0
 
@@ -154,7 +154,7 @@
   shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.0.item.item }} {{ scale_storage_existing_fs.stdout }}"
   with_together: 
     - "{{ created_fileset.results }}"
-    - "{{ scale_protocols.list_of_quotas }}"
+    - "{{ scale_protocols.quotas }}"
   register: quota_details
   ignore_errors: yes
   when: is_admin_node | default(false) == true and item.1 > 0
@@ -164,7 +164,7 @@
     msg: "{{ item.0.stdout_lines }}"
   with_together: 
     - "{{ quota_details.results }}"
-    - "{{ scale_protocols.list_of_quotas }}"
+    - "{{ scale_protocols.quotas }}"
   ignore_errors: yes
   when: is_admin_node | default(false) == true and item.1 > 0
 
