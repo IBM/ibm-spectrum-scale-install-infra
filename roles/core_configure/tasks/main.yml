@@ -39,3 +39,7 @@
 # cluster node remover playbook
 - import_tasks: removenode.yml
   tags: removenode
+
+# # tasks for creating fileset
+# - import_tasks: storage_fileset.yml
+#   when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)

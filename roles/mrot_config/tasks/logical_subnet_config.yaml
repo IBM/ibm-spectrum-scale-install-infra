@@ -15,7 +15,7 @@
 # Configure logical subnet on cluster
 
 - name: configure | Logical subnet using mmchconfig
-  command: /usr/lpp/mmfs/bin/mmchconfig subnets='{{ storage_network_addr.stdout_lines[0] }}/{{ scale_cluster_clustername }};{{ opposit_cluster_clustername }}'
+  command: /usr/lpp/mmfs/bin/mmchconfig subnets='{{ storage_network_addr.stdout_lines[0] }}/{{ scale_cluster_clustername }};{{ scale_remote_cluster_clustername }}'
   register: logical_subnet_configured
   when: logical_subnets_exist.rc != 0
 
