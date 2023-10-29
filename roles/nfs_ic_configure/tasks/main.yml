@@ -1,5 +1,5 @@
 ---
 
 # tasks file for failover
-- import_tasks: nfs_fileset.yml
+- import_tasks: nfs_ic_configure.yml
   when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)

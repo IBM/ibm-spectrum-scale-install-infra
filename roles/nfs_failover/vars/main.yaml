@@ -1,5 +1,1 @@
 # Static Variables for CES
-
-# Interface names
-scale_pri_interface_name: "eth0"
-scale_sec_interface_name: "eth1"
