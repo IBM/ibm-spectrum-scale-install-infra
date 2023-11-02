@@ -42,7 +42,7 @@
 
 # tasks for creating fileset
 - import_tasks: storage_fileset.yml
-  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)
-  # when:  
-  #   - scale_storage is defined
-  #   - scale_storage.filesets | length > 0
+  when:
+    - scale_storage is defined
+    - scale_storage[0].filesets is defined
+    - scale_storage[0].filesets | length > 0

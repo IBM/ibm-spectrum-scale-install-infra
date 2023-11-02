@@ -1,5 +1,7 @@
 ---
-
-# tasks file for failover
+# Tasks for creating fileset
 - import_tasks: nfs_fileset.yml
-  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)
+  when:
+    - scale_storage is defined
+    - scale_storage[0].filesets is defined
+    - scale_storage[0].filesets | length > 0

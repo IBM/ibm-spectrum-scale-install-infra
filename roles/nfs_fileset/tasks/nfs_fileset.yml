@@ -18,7 +18,7 @@
 
 - name: Check if fileset in file system already exists
   shell: "/usr/lpp/mmfs/bin/mmlsfileset {{ scale_storage_existing_fs.stdout }} | tail -n +3 | awk '{print $1}' | grep -w {{ item.key }}"
-  loop: "{{ scale_protocols.filesets | dict2items }}"
+  loop: "{{ scale_storage[0].filesets | dict2items }}"
   register: filesets_result
   ignore_errors: yes
   failed_when: filesets_result.rc == 2
@@ -48,7 +48,7 @@
   when: is_admin_node | default(false) == true
 
 - name: Link new fileset
-  shell: "/usr/lpp/mmfs/bin/mmlinkfileset {{ scale_storage_existing_fs.stdout }} {{ item.item.item.key }} -J {{ scale_protocols.mountpoint }}/{{ item.item.item.key }}"
+  shell: "/usr/lpp/mmfs/bin/mmlinkfileset {{ scale_storage_existing_fs.stdout }} {{ item.item.item.key }} -J {{ scale_storage[0].defaultMountPoint }}/{{ item.item.item.key }}"
   loop: "{{ created_fileset.results }}"
   when: is_admin_node | default(false) == true and item.changed == true
   run_once: true
@@ -70,7 +70,7 @@
 - name: Check quota is already enabled
   shell: "/usr/lpp/mmfs/bin/mmlsfs fs1 -Y | grep -w 'quotasAccountingEnabled' | grep -w 'user;group;fileset'"
   register: enable_quota_check
-  loop: "{{ scale_protocols.filesets | dict2items }}"
+  loop: "{{ scale_storage[0].filesets | dict2items }}"
   ignore_errors: yes
   failed_when: enable_quota_check.rc == 2
   when: is_admin_node | default(false) == true and item.value > 0
@@ -81,7 +81,7 @@
   ignore_errors: yes
   with_together: 
     - "{{ enable_quota_check.results }}"
-    - "{{ scale_protocols.filesets | dict2items }}"
+    - "{{ scale_storage[0].filesets | dict2items }}"
   when: is_admin_node | default(false) == true and item.1.value > 0
 
 - name: Run mmchfs command and enable quota
@@ -108,7 +108,7 @@
 - name: Debug fileset and quota to be set for it.
   debug:
     msg: "{{ item.key }}: {{ item.value }}GB"
-  loop: "{{ scale_protocols.filesets | dict2items }}"
+  loop: "{{ scale_storage[0].filesets | dict2items }}"
   ignore_errors: yes
   when: is_admin_node | default(false) == true and item.value > 0
 
@@ -124,7 +124,7 @@
     msg: "Fileset name: {{ item.item.item.item.key }}  Quota allocated: {{ item.stdout }}"
   loop: "{{ existing_quota_details.results }}"
   ignore_errors: yes
-  when: is_admin_node | default(false) == true
+  when: is_admin_node | default(false) == true and item.item.item.item.value > 0
 
 - name: Run mmsetquota command
   shell: "/usr/lpp/mmfs/bin/mmsetquota {{ scale_storage_existing_fs.stdout }}:{{ item.item.item.item.key }} --block {{ (item.item.item.item.value * 0.8) | int }}g:{{ item.item.item.item.value }}g"
@@ -148,65 +148,65 @@
 
 # Cheking if Auth is already setup if not then Setting up Auth
 
-- name: Check service is already exists
-  shell: "/usr/lpp/mmfs/bin/mmuserauth service check | grep -q 'File configuration is USER-DEFINED'"
-  register: service_result
-  ignore_errors: yes
-  failed_when: service_result.rc == 2
-  when: is_admin_node | default(false) == true
+# - name: Check service is already exists
+#   shell: "/usr/lpp/mmfs/bin/mmuserauth service check | grep -q 'File configuration is USER-DEFINED'"
+#   register: service_result
+#   ignore_errors: yes
+#   failed_when: service_result.rc == 2
+#   when: is_admin_node | default(false) == true
 
-- name: Service Check Result
-  debug:
-    var: service_result.rc
-  ignore_errors: yes
-  when: is_admin_node | default(false) == true
+# - name: Service Check Result
+#   debug:
+#     var: service_result.rc
+#   ignore_errors: yes
+#   when: is_admin_node | default(false) == true
 
-- name: Setup Auth
-  shell: "/usr/lpp/mmfs/bin/mmuserauth service create --data-access-method file --type userdefined"
-  when: is_admin_node | default(false) == true and service_result.rc != 0
-  run_once: true
+# - name: Setup Auth
+#   shell: "/usr/lpp/mmfs/bin/mmuserauth service create --data-access-method file --type userdefined"
+#   when: is_admin_node | default(false) == true and service_result.rc != 0
+#   run_once: true
 
-# Checking if NFS export list if already exists if not then Creating NFS export.
+# # Checking if NFS export list if already exists if not then Creating NFS export.
 
-- name: Check NFS export list if already exists
-  shell: "/usr/lpp/mmfs/bin/mmnfs export list -Y | tail -n +2 | awk -F: '{print $7, $8}' | sort -k2 | awk '{print $1}' | grep -w {{ scale_protocols.mountpoint }}/{{ item.key }}"
-  loop: "{{ scale_protocols.filesets | dict2items }}"
-  register: export_list_exists
-  failed_when: export_list_exists.rc == 2
-  when: is_admin_node | default(false) == true
-  ignore_errors: yes
-  run_once: true
+# - name: Check NFS export list if already exists
+#   shell: "/usr/lpp/mmfs/bin/mmnfs export list -Y | tail -n +2 | awk -F: '{print $7, $8}' | sort -k2 | awk '{print $1}' | grep -w {{ scale_protocols.mountpoint }}/{{ item.key }}"
+#   loop: "{{ scale_protocols.filesets | dict2items }}"
+#   register: export_list_exists
+#   failed_when: export_list_exists.rc == 2
+#   when: is_admin_node | default(false) == true
+#   ignore_errors: yes
+#   run_once: true
 
-- name: Print return code of NFS export list
-  debug:
-    msg: "Export_list {{ item.item.key }} - Return Code: {{ item.rc }}"
-  loop: "{{ export_list_exists.results }}"
-  loop_control:
-    loop_var: item
-  when: is_admin_node | default(false) == true
+# - name: Print return code of NFS export list
+#   debug:
+#     msg: "Export_list {{ item.item.key }} - Return Code: {{ item.rc }}"
+#   loop: "{{ export_list_exists.results }}"
+#   loop_control:
+#     loop_var: item
+#   when: is_admin_node | default(false) == true
 
-- name: Create NFS export
-  shell: '/usr/lpp/mmfs/bin/mmnfs export add {{ scale_protocols.mountpoint }}/{{ item.item.key }} --client "{{ compute_subnet_cidr }}(Access_Type=RW,SQUASH=no_root_squash)"'
-  with_items: "{{ export_list_exists.results }}"
-  register: created_nfs_export
-  when: is_admin_node | default(false) == true and item.rc != 0
-  run_once: true
+# - name: Create NFS export
+#   shell: '/usr/lpp/mmfs/bin/mmnfs export add {{ scale_protocols.mountpoint }}/{{ item.item.key }} --client "{{ compute_subnet_cidr }}(Access_Type=RW,SQUASH=no_root_squash)"'
+#   with_items: "{{ export_list_exists.results }}"
+#   register: created_nfs_export
+#   when: is_admin_node | default(false) == true and item.rc != 0
+#   run_once: true
 
-- name: Check NFS export list
-  command: /usr/lpp/mmfs/bin/mmnfs export list
-  register: export_list
-  ignore_errors: yes
-  when: is_admin_node | default(false) == true
+# - name: Check NFS export list
+#   command: /usr/lpp/mmfs/bin/mmnfs export list
+#   register: export_list
+#   ignore_errors: yes
+#   when: is_admin_node | default(false) == true
 
-- name: Debug the NFS export list
-  debug:
-    var: export_list.stdout_lines
-  ignore_errors: yes
-  when: is_admin_node | default(false) == true
+# - name: Debug the NFS export list
+#   debug:
+#     var: export_list.stdout_lines
+#   ignore_errors: yes
+#   when: is_admin_node | default(false) == true
 
-- name: Change MINOR_VERSIONS
-  shell: "/usr/lpp/mmfs/bin/mmnfs config change MINOR_VERSIONS=0,1"
-  register: change_minor_versions
-  with_items: "{{ export_list_exists.results }}"
-  when: is_admin_node | default(false) == true and item.rc != 0
-  run_once: true
+# - name: Change MINOR_VERSIONS
+#   shell: "/usr/lpp/mmfs/bin/mmnfs config change MINOR_VERSIONS=0,1"
+#   register: change_minor_versions
+#   with_items: "{{ export_list_exists.results }}"
+#   when: is_admin_node | default(false) == true and item.rc != 0
+#   run_once: true
