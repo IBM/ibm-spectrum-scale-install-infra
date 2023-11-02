@@ -16,7 +16,7 @@
 
 - name: Copy mmcesExtendedIpMgmt file
   copy:
-    src: /opt/IBM/ibm-spectrumscale-cloud-deploy/ibm-spectrum-scale-cloud-install/resources/ibmcloud/scripts/mmcesExtendedIpMgmt
+    src: "{{ failover_script_path }}"
     dest: /var/mmfs/etc/mmcesExtendedIpMgmt
   register: copy_result
   when: scale_protocol_node | default(false) == true and file_check_result.rc != 0

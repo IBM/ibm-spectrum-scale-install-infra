@@ -1,0 +1,5 @@
+---
+
+# tasks file for failover
+- import_tasks: user_auth_userdefined.yml
+  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool) #and ldap_basedns == null 

@@ -19,7 +19,7 @@
 
 - name: Calculate protocol node index modulo
   set_fact:
-    proto_node_index: "{{ client_node_index | int % scale_protocol_nodes | length }}"
+    proto_node_index: "{{ client_node_index | int % protocol_cluster_reserved_names | length }}"
 
 - name: Display the protocol node index
   debug:
@@ -27,9 +27,9 @@
 
 - name: Set Protocol Node
   set_fact:
-    protocol_node: "{{ scale_protocol_nodes[proto_node_index|int] }}"
+    protocol_node: "{{ protocol_cluster_reserved_names[proto_node_index|int] }}"
 
-- name: Print Client and Protocol Node
+- name: Print protocol node name
   debug:
     msg: "Protocol Node: {{ protocol_node }}"
 
@@ -77,7 +77,7 @@
   when: item.stdout_lines == []
 
 - name: Mount NFS filesets
-  shell: "mount -t nfs -o sec=sys,vers=4.1 {{ protocol_node }}:/gpfs/fs1/{{ item.0.name }} {{ item.1.item.mount_path }} -vv"
+  shell: "mount -t nfs -o sec=sys {{ protocol_node }}:/gpfs/fs1/{{ item.0.name }} {{ item.1.item.mount_path }} -vv"
   register: mounted_filesets
   with_together:
     - "{{ filesets }}"

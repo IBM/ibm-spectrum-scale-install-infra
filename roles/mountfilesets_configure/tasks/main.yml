@@ -1,4 +1,0 @@
----
-
-# tasks file for failover
-- import_tasks: mountfilesets_configure.yml
