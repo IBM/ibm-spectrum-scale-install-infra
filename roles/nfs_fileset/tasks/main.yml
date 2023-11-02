@@ -1,7 +1,0 @@
----
-# Tasks for creating fileset
-- import_tasks: nfs_fileset.yml
-  when:
-    - scale_storage is defined
-    - scale_storage[0].filesets is defined
-    - scale_storage[0].filesets | length > 0
