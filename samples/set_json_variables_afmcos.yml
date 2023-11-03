@@ -1,0 +1,43 @@
+---
+# This playbook will read all required input from json inventory
+#- name: Create the required groups
+- hosts: localhost
+  connection: local
+
+  tasks:
+  - name: Read all intermediate output from Resource Details
+    include_vars:
+       file: vars/afm_cos_template.json
+    register: scale_json
+    when: scale_cluster_definition_path is not defined
+
+  - name: Read all intermediate output from defined Resource Details
+    include_vars:
+       file: "{{ scale_cluster_definition_path }}"
+    register: scale_json_defined
+    when: scale_cluster_definition_path is defined
+
+  - name: Check valid json file
+    assert:
+      that: scale_json.failed == false
+      msg: >-
+        scale_clusterdefinition.json is not present in the
+        vars directory. Make sure that this file is present
+        in the vars directory along with all required
+        Ansible scale inventory.
+    when: scale_json.failed is defined
+
+  - name: Pass all inputs related to creating Spectrum Scale cluster to all nodes
+    add_host:
+     name: "{{ item.fqdn }}"
+     groups: scale_node
+     scale_storage: "{{ scale_storage | default(omit) }}"
+     scale_afm_cos_filesets_params: "{{ scale_afm_cos_filesets_params | default(omit) }}"
+     scale_afm_cos_bucket_params: "{{ scale_afm_cos_bucket_params | default(omit) }}"
+     scale_admin_node: "{{ item.is_admin_node | default('true') }}"
+     scale_daemon_nodename: "{{ item.scale_daemon_nodename | default(omit) }}"
+     scale_cluster_gateway: "{{ item.scale_cluster_gateway | default(false) }}"
+     scale_cluster_config: "{{ scale_cluster | default(omit) }}"
+    loop: "{{ node_details }}"
+  tags:
+  - scale_inventory

@@ -46,7 +46,6 @@
   debug:
     var: ansible_distribution_version
 
-
 - name: Install tasks block for RHEL
   block:
     - name: Check | Check if NetworkManager-dispatcher-routing-rules is installed

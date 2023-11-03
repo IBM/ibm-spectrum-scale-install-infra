@@ -1,0 +1,18 @@
+---
+#
+# samples/playbook_ces.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster with Cluster
+# Export Services (CES). Additional variables need to be defined for this, it is
+# recommended to use Ansible group variables for this purpose:
+# https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
+
+# Sample definitions can be found in samples/vars/ces_vars.yml
+- import_playbook: set_json_variables_afmcos.yml
+
+- hosts: scale_node
+  collections:
+    - ibm.spectrum_scale
+  roles:
+    - afm_cos_configure

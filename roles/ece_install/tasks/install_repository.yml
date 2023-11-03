@@ -28,3 +28,13 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_gnr_packages }}"
+
+- name: install | Add GPFS gnr packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_gnr_packages }}"
+    - gpfs.sed
+  when:
+    - scale_version is defined
+    - scale_version is version_compare('5.1.9', '>=')

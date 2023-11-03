@@ -261,7 +261,6 @@
     - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Remove json spesific information to a plain pub key file.
       shell:
         cmd: sed 's/,/\n/g' {{ scale_remotemount_storage_pub_key_location_json }} | tr -d '"\[\]' | sed 's/^ //' > {{ scale_remotemount_storage_pub_key_location }}
-        warn: false
       run_once: true
 
     - name: Step 3 - Remote Cluster Config - API-CLI

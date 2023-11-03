@@ -205,15 +205,14 @@
   shell:
    cmd: "{{ scale_command_path }}mmces interface mode interface --force"
   when:
-   - scale_ces_ipv6_list|length > 0 or
-      scale_protocols.interface_mode is defined and scale_protocols.interface_mode | bool
+   - scale_protocols.interface_mode is defined and scale_protocols.interface_mode | bool
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
 
 - name: configure | Add IPv6 interface
   shell:
    cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
-  when: scale_ces_ipv6_list|length > 0 and scale_protocols.interface|length > 0
+  when: scale_protocols.interface is defined and scale_protocols.interface|length > 0
   with_items:
   - "{{ scale_protocols.interface }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
