@@ -1,6 +1,6 @@
 ---
-    # Enabling MROT for IBM Spectrum Scale.
-
+    # Enabling MROT for IBM Storage Scale.
+    
       # Task to be executed on the all nodes of cluster
     - name: common | Executing common tasks on cluster nodes
       block:
