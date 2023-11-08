@@ -1,5 +1,0 @@
-# Static Variables for CES
-
-
-# Path for failover script on Ansible controler server.
-failover_script_path: "/opt/IBM/ibm-spectrumscale-cloud-deploy/ibm-spectrum-scale-cloud-install/resources/ibmcloud/scripts/mmcesExtendedIpMgmt"

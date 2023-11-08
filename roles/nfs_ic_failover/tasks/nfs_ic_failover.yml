@@ -1,0 +1,68 @@
+---
+
+##################### Failover For CES Nodes #####################
+
+- name: Check if the file exists
+  command: ls "/var/mmfs/etc/mmcesExtendedIpMgmt"
+  register: file_check_result
+  ignore_errors: yes
+  when: scale_protocol_node | default(false) == true
+  failed_when: file_check_result.rc == 1
+
+- name: Print file existence status
+  debug:
+    msg: "mmcesExtendedIpMgmt file do not exists."
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Copy mmcesExtendedIpMgmt file
+  shell: cp /usr/lpp/mmfs/samples/mmcesExtendedIpMgmt.ibmcloud /var/mmfs/etc/mmcesExtendedIpMgmt
+  register: copy_result
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Set execution permissions using shell command
+  shell: chmod +x /var/mmfs/etc/mmcesExtendedIpMgmt
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Fetch API KEY From environmental variable of Ansible controller
+  shell: "echo $IC_API_KEY" 
+  register: env_api_key
+  delegate_to: localhost
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Replace IC_API_KEY with specified lines
+  replace:
+    path: /var/mmfs/etc/mmcesExtendedIpMgmt
+    regexp: 'IC_API_KEY='
+    replace: IC_API_KEY={{ env_api_key.stdout }}
+  when: "scale_protocol_node | default(false) == true and file_check_result.rc != 0 and 'IC_API_KEY=' is match"
+
+- name: Fetch rest of the variables from environmental variable of remote host
+  shell: "echo ${{ item }}"
+  register: env_var_result
+  loop:
+    - IC_REGION
+    - IC_ZONE
+    - IC_RG
+    - IC_VPC
+    - IC_RT
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Set facts for the fetched variables
+  set_fact:
+    "{{ item.item }}": "{{ item.stdout }}"
+  loop: "{{ env_var_result.results }}"
+  register: facts_variables
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0 and item.rc == 0
+
+- name: Update Variables
+  replace:
+    path: /var/mmfs/etc/mmcesExtendedIpMgmt
+    regexp: '^{{ item.regex }}='
+    replace: '{{ item.key }}={{ item.value }}'
+  loop:
+    - { regex: 'IC_REGION', key: 'IC_REGION', value: '{{ IC_REGION }}' }
+    - { regex: 'IC_ZONE', key: 'IC_ZONE', value: '{{ IC_ZONE }}' }
+    - { regex: 'IC_RG', key: 'IC_RG', value: '{{ IC_RG }}' }
+    - { regex: 'IC_VPC', key: 'IC_VPC', value: '{{ IC_VPC }}' }
+    - { regex: 'IC_RT', key: 'IC_RT', value: '{{ IC_RT }}' }
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
