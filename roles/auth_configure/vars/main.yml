@@ -1,0 +1,3 @@
+LDAP_ADMIN_PASSWORD: "{{ ldap_admin_password }}"
+BASE_DN: "{{ ldap_basedns }}"
+LDAP_SERVER_IP: "{{ ldap_server }}"
