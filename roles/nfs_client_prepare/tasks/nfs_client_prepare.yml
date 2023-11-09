@@ -3,27 +3,32 @@
 
 # Task to check if nfs-utils present and if not then install it.
 
-- name: Check if nfs-utils package is installed
-  command: "rpm -q nfs-utils"
-  register: nfs_utils_result
-  ignore_errors: true
-  failed_when: false
+- name: Install nfs-utils package
+  block:
+    - name: Check if nfs-utils package is installed
+      command: "rpm -q nfs-utils"
+      register: nfs_utils_result
+      ignore_errors: true
+      failed_when: false
 
-- name: Display if nfs-utils package is already installed
-  debug:
-    msg: |
-      {% if nfs_utils_result.stdout %}
-        Package installed: {{ nfs_utils_result.stdout }}:
-      {% else %}
-        Error: {{ nfs_utils_result.stderr }}
-      {% endif %}
-  ignore_errors: true
+    - name: Display if nfs-utils package is already installed
+      debug:
+        msg: |
+          {% if nfs_utils_result.stdout %}
+            Package installed: {{ nfs_utils_result.stdout }}:
+          {% else %}
+            Error: {{ nfs_utils_result.stderr }}
+          {% endif %}
+      ignore_errors: true
 
-- name: Install nfs-utils if not already installed
-  yum:
-    name: nfs-utils
-    state: present
-  when: nfs_utils_result.rc != 0
+    - name: Install nfs-utils if not already installed
+      yum:
+        name: nfs-utils
+        state: present
+      when: nfs_utils_result.rc != 0
+  when:
+    - ansible_distribution in scale_rhel_distribution
+    - ansible_distribution_version in scale_rhel_version
 
 # Check exported file systems from NFS server.
 
