@@ -17,6 +17,8 @@
 scale_storage:
   - filesystem: gpfs01
     filsets:
+      binaries: 0
+      data: 50
     disks:
       - device: /dev/sdb
         nsd: nsd_1
