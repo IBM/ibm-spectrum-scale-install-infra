@@ -1,0 +1,28 @@
+---
+# Creating LDAP Group on the LDAP Server
+
+- name: LDAP | Group File
+  shell: |
+    echo "dn: cn={{ LDAP_GROUP }},ou=Groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+    objectClass: posixGroup
+    cn: {{ LDAP_GROUP }}
+    gidNumber: 5000" > "{{ LDAP_DIR }}/group.ldif"
+
+- name: LDAP | Check Group Existence
+  ansible.builtin.shell: |
+    ldap_group_search_result=$(ldapsearch -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -b "ou=groups,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" "(cn={{ LDAP_GROUP }})" 2>&1)
+    if echo "$ldap_group_search_result" | grep -q "dn: cn={{ LDAP_GROUP }},"; then
+        echo "GroupFound"
+    else
+        echo "GroupNotFound"
+    fi
+  register: ldap_group_search
+
+- name: LDAP | Group Created
+  ansible.builtin.command: ldapadd -x -D cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} -w {{ LDAP_ADMIN_PASSWORD }} -f {{ LDAP_DIR }}/group.ldif
+  when: ldap_group_search.stdout == "GroupNotFound"
+
+- name: LDAP | Group Exist
+  debug:
+    msg: "LDAP Group '{{ LDAP_GROUP }}' already exists. Skipping."
+  when: ldap_group_search.stdout == "GroupFound"
