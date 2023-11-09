@@ -1,0 +1,47 @@
+---
+# Check and prepare before mounting file system
+
+# Task to check if nfs-utils present and if not then install it.
+
+- name: Check if nfs-utils package is installed
+  command: "rpm -q nfs-utils"
+  register: nfs_utils_result
+  ignore_errors: true
+  failed_when: false
+
+- name: Display if nfs-utils package is already installed
+  debug:
+    msg: |
+      {% if nfs_utils_result.stdout %}
+        Package installed: {{ nfs_utils_result.stdout }}:
+      {% else %}
+        Error: {{ nfs_utils_result.stderr }}
+      {% endif %}
+  ignore_errors: true
+
+- name: Install nfs-utils if not already installed
+  yum:
+    name: nfs-utils
+    state: present
+  when: nfs_utils_result.rc != 0
+
+# Check exported file systems from NFS server.
+
+- name: Command to check exported file systems from an NFS server.
+  command: "showmount -e {{ item }}"
+  loop: "{{ protocol_cluster_reserved_names }}"
+  register: showmount_output
+  ignore_errors: true
+  failed_when: false
+
+- name: Display exported file systems from an NFS server.
+  debug:
+    msg: |
+      {% if item.stdout_lines %}
+        Exported file systems: {{ item.stdout_lines }}:
+      {% else %}
+        Error msg: {{ item.stderr }}
+      {% endif %}
+  loop: "{{ showmount_output.results }}"
+  ignore_errors: true
+  

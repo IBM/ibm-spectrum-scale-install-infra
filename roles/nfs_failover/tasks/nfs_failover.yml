@@ -1,0 +1,26 @@
+---
+
+##################### Failover For CES Nodes #####################
+
+- name: Check if the file exists
+  command: ls "/var/mmfs/etc/mmcesExtendedIpMgmt"
+  register: file_check_result
+  ignore_errors: yes
+  when: scale_protocol_node | default(false) == true
+  failed_when: file_check_result.rc == 1
+
+- name: Print file existence status
+  debug:
+    msg: "mmcesExtendedIpMgmt file dont exists."
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Copy mmcesExtendedIpMgmt file
+  copy:
+    src: "{{ failover_script_path }}"
+    dest: /var/mmfs/etc/mmcesExtendedIpMgmt
+  register: copy_result
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Set execution permissions using shell command
+  shell: chmod +x /var/mmfs/etc/mmcesExtendedIpMgmt
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0

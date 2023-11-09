@@ -1,0 +1,85 @@
+---
+# Mount the file sets to the specified protocol nodes
+
+- name: Run shell command to extract last character
+  shell: "echo {{ ansible_hostname }} | awk '{print substr($0, length, 1)}'"
+  register: last_char_result
+
+- name: Display the result
+  debug:
+    var: last_char_result.stdout
+
+- name: Index of client node
+  set_fact:
+    client_node_index: "{{ last_char_result.stdout | int - 1 }}"
+
+- name: Display the client node index
+  debug:
+    msg: "Client Node Index is {{ client_node_index }}"
+
+- name: Calculate protocol node index modulo
+  set_fact:
+    proto_node_index: "{{ client_node_index | int % protocol_cluster_reserved_names | length }}"
+
+- name: Display the protocol node index
+  debug:
+    msg: "Protocol Node Index is: {{ proto_node_index }}"
+
+- name: Set Protocol Node
+  set_fact:
+    protocol_node: "{{ protocol_cluster_reserved_names[proto_node_index|int] }}"
+
+- name: Print protocol node name
+  debug:
+    msg: "Protocol Node: {{ protocol_node }}"
+
+- name: Run the mount command and check for the mount
+  shell: "mount | grep -w {{ item.mount_path }}"
+  register: mount_output
+  loop: "{{ filesets }}"
+  ignore_errors: true
+  failed_when: mount_output.rc == 2
+
+- name: Display the result mount points
+  debug:
+    msg: |
+      {% if item.stdout_lines %}
+        Mount Points found for: {{ item.item.name }}:
+        {{ item.stdout }}
+      {% else %}
+        Mount not found for {{ item.item.name }}
+      {% endif %}
+  loop: "{{ mount_output.results }}"
+
+- name: Check if the directory exists
+  stat:
+    path: "{{ item.mount_path }}"
+  register: dir_stat
+  loop: "{{ filesets }}"
+
+- name: Display the result if dir exists
+  debug:
+    msg: "Mount Dir Exists or not: {{ item.stat.exists }}"
+  loop: "{{ dir_stat.results }}"
+
+- name: Delete the directory if it exists and is not mounted
+  shell: rm -rf "{{ item.0.stat.path }}"
+  register: deleted_dir
+  with_together:
+    - "{{ dir_stat.results }}"
+    - "{{ mount_output.results }}"
+  when: item.0.stat.exists == true and item.1.stdout_lines == []
+
+- name: Create the directory if it is not mounted
+  shell: mkdir -p "{{ item.item.mount_path }}"
+  register: dir_created
+  loop: "{{ mount_output.results }}"
+  when: item.stdout_lines == []
+
+- name: Mount NFS filesets
+  shell: "mount -t nfs -o sec=sys {{ protocol_node }}:/gpfs/fs1/{{ item.0.name }} {{ item.1.item.mount_path }} -vv"
+  register: mounted_filesets
+  with_together:
+    - "{{ filesets }}"
+    - "{{ mount_output.results }}"
+  when: item.1.stdout_lines == []

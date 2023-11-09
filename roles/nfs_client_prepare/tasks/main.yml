@@ -1,0 +1,4 @@
+---
+
+# tasks file for failover
+- import_tasks: nfs_client_prepare.yml

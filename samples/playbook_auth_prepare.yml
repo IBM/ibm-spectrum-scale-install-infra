@@ -1,0 +1,17 @@
+---
+#
+# samples/playbook_auth_prepare.yml
+#
+
+# Playbook sample for deploying LDAP Instance in IBM Spectrum Scale (GPFS) cluster for user authentication with CES
+# Additional variables need to be defined for this, it
+# is recommended to use Ansible group variables for this purpose:
+# https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
+
+- hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
+  pre_tasks:
+    - include_vars: auth_prepare_vars.yml 
+  roles:
+    - auth_prepare

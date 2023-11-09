@@ -1,0 +1,21 @@
+---
+
+    # Enabling authentication to IBM Storage Scale (GPFS) for user level access.
+    # Below are the LDAP user integration and LDAP integration on cluster tasks.
+        # Import the 'prerequesites.yml' task for installing the required packages on the client servers for LDAP.
+        - import_tasks: ldap_prerequisites.yml
+
+        # Import the 'user_integration.yml' task for authenticating LDAP users to access the cluster nodes.
+        - import_tasks: ldap_user_integration.yml
+
+        # Import the 'user_auth_precheck.yml' task for checking the userauth service on the cluster.
+        - import_tasks: user_auth_precheck.yml
+          when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)
+
+        # Import the 'user_auth_userdefined.yml' task for enable userdefined authentication to perform cluster level operations.
+        - import_tasks: user_auth_userdefined.yml
+          when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool) and enable_ldap == false          
+
+        # Import the 'user_auth_ldap.yml' task for authentication LDAP users to perform cluster level operations.
+        - import_tasks: user_auth_ldap.yml
+          when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool) and enable_ldap == true
