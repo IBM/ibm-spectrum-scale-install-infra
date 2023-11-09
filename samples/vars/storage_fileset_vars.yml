@@ -16,7 +16,7 @@
 
 scale_storage:
   - filesystem: gpfs01
-    filsets:
+    filesets:
       binaries: 0
       data: 50
     disks:
