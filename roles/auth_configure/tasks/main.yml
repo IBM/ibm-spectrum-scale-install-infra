@@ -1,13 +1,5 @@
 ---
 
-
-
-# tasks file for failover
- 
-
-
----
-
     # Enabling authentication to IBM Storage Scale (GPFS) for user level access.
     # Below are the LDAP user integration and LDAP integration on cluster tasks.
         # Import the 'prerequesites.yml' task for installing the required packages on the client servers for LDAP.
