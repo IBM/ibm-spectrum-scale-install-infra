@@ -1,0 +1,3 @@
+# tasks file for failover
+- import_tasks: auth_prepare.yml
+  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)

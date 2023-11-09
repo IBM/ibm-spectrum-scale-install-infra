@@ -1,0 +1,172 @@
+---
+##################### OS Level Route For CES Nodes #####################
+
+# Task to check and add custom IP routes on CES nodes.
+
+- name: Check if custom IP route exists
+  shell: ip route show {{ compute_subnet_cidr }} via {{ protocol_gateway_ip }} dev {{ scale_sec_interface_name }} | grep -q {{ compute_subnet_cidr }}
+  register: custom_ip_routes_exist_client
+  ignore_errors: yes
+  changed_when: false
+  when: scale_protocol_node | default(false) == true
+  failed_when: custom_ip_routes_exist_client.rc == 2
+
+- name: Configure Custom IP Route
+  shell: echo "{{ compute_subnet_cidr }} via {{ protocol_gateway_ip }} dev {{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_sec_interface_name }}
+  when: scale_protocol_node | default(false) == true and custom_ip_routes_exist_client.rc != 0
+
+# To get ip address of primary and secondary interface on cluster nodes.
+
+- name: cluster | Get primary IP address
+  shell: ip addr show {{ scale_pri_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
+  register: primary_ip
+  when: scale_protocol_node | default(false) == true
+
+- name: cluster | Get secondary IP address
+  shell: ip addr show {{ scale_sec_interface_name }} | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'
+  register: secondary_ip
+  when: scale_protocol_node | default(false) == true
+
+- debug:
+    var: primary_ip.stdout
+  when: scale_protocol_node | default(false) == true
+
+- debug:
+    var: secondary_ip.stdout_lines[0]
+  when: scale_protocol_node | default(false) == true
+
+# To get CIDR block of storage subnet
+
+- name: cluster | Get CIDR block of storage subnet
+  shell: "ip route show | grep 'dev {{ scale_pri_interface_name }} proto kernel' | awk '{print $1}' | uniq"
+  register: storage_subnet_cidr
+  when: scale_protocol_node | default(false) == true
+
+- name: Debug CIDR block of storage subnet
+  debug:
+    var: storage_subnet_cidr.stdout
+  when: scale_protocol_node | default(false) == true
+
+# To get CIDR block of protocol subnet
+
+- name: cluster | Get CIDR block of protocol subnet
+  shell: "ip route show | grep 'dev {{ scale_sec_interface_name }} proto kernel' | awk '{print $1}'"
+  register: protocol_subnet_cidr
+  when: scale_protocol_node | default(false) == true
+
+- name: Debug CIDR block of protocol subnet
+  debug:
+    var: protocol_subnet_cidr.stdout
+  when: scale_protocol_node | default(false) == true
+
+# To extract network address of storage and compute cluster.
+
+- name: cluster | Extract compute network address
+  shell: echo "{{ storage_subnet_cidr.stdout }}" | awk -F'/' '{print $1}'
+  register: storage_network_addr
+  when: scale_protocol_node | default(false) == true
+
+- name: cluster | Extract storage network address
+  shell: echo "{{ protocol_subnet_cidr.stdout }}" | awk -F'/' '{print $1}'
+  register: protocol_network_addr
+  when: scale_protocol_node | default(false) == true
+
+# To get Gateway IP of storage subnet.
+
+- name: cluster | Get Gateway IP of storage subnet
+  shell: "ip route show dev {{ scale_pri_interface_name }} | awk '/default/ {print $3}' | uniq"
+  register: strg_gateway_ip
+  when: scale_protocol_node | default(false) == true
+
+- name: Debug storage subnet gateway ip
+  debug:
+    var: strg_gateway_ip.stdout
+  when: scale_protocol_node | default(false) == true
+
+# Task to check and add custom routing tables on cluster nodes.
+
+- name: check | Check if custom routing tables exist
+  shell: grep -q 'subnet_{{ storage_network_addr.stdout_lines[0] }}_{{ scale_pri_interface_name }}' /etc/iproute2/rt_tables && grep -q 'subnet_{{ protocol_network_addr.stdout_lines[0] }}_{{ scale_sec_interface_name }}' /etc/iproute2/rt_tables
+  register: routing_table_exists
+  when: scale_protocol_node | default(false) == true
+  ignore_errors: yes
+  failed_when: routing_table_exists.rc == 2
+
+- debug: 
+    var: routing_table_exists.cmd
+  when: scale_protocol_node | default(false) == true
+
+- name: configure | Custom routing tables
+  shell: |
+    echo "200 subnet_{{ storage_network_addr.stdout_lines[0] }}_{{ scale_pri_interface_name }}" >> /etc/iproute2/rt_tables
+    echo "201 subnet_{{ protocol_network_addr.stdout_lines[0] }}_{{ scale_sec_interface_name }}" >> /etc/iproute2/rt_tables
+  when: scale_protocol_node | default(false) == true and routing_table_exists.rc != 0
+
+# Task to check and add custom IP rules on cluster nodes.
+
+- name: check | Check if custom IP rules exist
+  shell: ip rule show | grep -q "lookup subnet_{{ storage_network_addr.stdout_lines[0] }}_{{ scale_pri_interface_name }}" && ip rule show | grep -q "lookup subnet_{{ protocol_network_addr.stdout_lines[0] }}_{{ scale_sec_interface_name }}"
+  register: custom_ip_rules_exist
+  ignore_errors: yes
+  failed_when: custom_ip_rules_exist.rc == 2
+  when: scale_protocol_node | default(false) == true
+
+- debug: 
+    var: custom_ip_rules_exist.cmd
+  when: scale_protocol_node | default(false) == true
+
+- name: configure | Custom IP rules
+  shell: |
+    echo "from {{ primary_ip.stdout }}/32 table subnet_{{ storage_network_addr.stdout_lines[0] }}_{{ scale_pri_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ scale_pri_interface_name }}
+    echo "from {{ secondary_ip.stdout_lines[0] }}/32 table subnet_{{ protocol_network_addr.stdout_lines[0] }}_{{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/rule-{{ scale_sec_interface_name }}
+  when: scale_protocol_node | default(false) == true and custom_ip_rules_exist.rc != 0
+
+# Task to check and add custom IP routes on cluster nodes.
+
+- name: check | Check if custom IP routes exist
+  shell: |
+    ip route show table subnet_{{ storage_network_addr.stdout_lines[0] }}_{{ scale_pri_interface_name }} | grep -q "{{ storage_subnet_cidr.stdout }}"
+    ip route show table subnet_{{ protocol_network_addr.stdout_lines[0] }}_{{ scale_sec_interface_name }} | grep -q "{{ protocol_subnet_cidr.stdout }}"
+  register: custom_ip_routes_exist
+  ignore_errors: yes
+  failed_when: custom_ip_routes_exist.rc == 2
+  when: scale_protocol_node | default(false) == true
+
+- debug: 
+    var: custom_ip_routes_exist.cmd
+  when: scale_protocol_node | default(false) == true
+
+- name: configure | Custom IP routes
+  shell: |
+    echo "{{ storage_subnet_cidr.stdout }} dev {{ scale_pri_interface_name }} table subnet_{{ storage_network_addr.stdout_lines[0] }}_{{ scale_pri_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_pri_interface_name }}
+    echo "{{ protocol_subnet_cidr.stdout }} dev {{ scale_sec_interface_name }} table subnet_{{ protocol_network_addr.stdout_lines[0] }}_{{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_sec_interface_name }}
+  when: scale_protocol_node | default(false) == true and custom_ip_routes_exist.rc != 0
+
+# Task to check and add custom IP routes on protocol nodes(For enabeling ssh on Primary interface).
+
+- name: check | Check if custom IP routes exist on compute nodes to enabeling ssh on Primary interface
+  shell: |
+    ip route show table subnet_{{ storage_network_addr.stdout_lines[0] }}_{{ scale_pri_interface_name }} | grep -q default
+    ip route show table subnet_{{ protocol_network_addr.stdout_lines[0] }}_{{ scale_sec_interface_name }} | grep -q default
+  register: custom_default_routes_exist
+  ignore_errors: yes
+  when: scale_protocol_node | default(false) == true
+  failed_when: custom_default_routes_exist.rc == 2
+
+- debug: 
+    var: custom_default_routes_exist.cmd
+  when: scale_protocol_node | default(false) == true
+
+- name: configure | Custom IP routes on compute nodes to enabeling ssh on Primary interface
+  shell: |
+    echo "default via {{ strg_gateway_ip.stdout }} dev {{ scale_pri_interface_name }} table subnet_{{ storage_network_addr.stdout_lines[0] }}_{{ scale_pri_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_pri_interface_name }}
+    echo "default via {{ protocol_gateway_ip }} dev {{ scale_sec_interface_name }} table subnet_{{ protocol_network_addr.stdout_lines[0] }}_{{ scale_sec_interface_name }}" >> /etc/sysconfig/network-scripts/route-{{ scale_sec_interface_name }}
+  when: scale_protocol_node | default(false) == true and custom_default_routes_exist.rc != 0
+
+# Task to check and Restart NetworkManager service on cluster nodes.
+
+- name: configure | Restart NetworkManager service
+  service:
+    name: NetworkManager
+    state: restarted
+  when: scale_protocol_node | default(false) == true and (custom_ip_routes_exist_client.rc != 0 or routing_table_exists.rc != 0 or custom_ip_rules_exist.rc != 0 or custom_ip_routes_exist.rc != 0 or custom_default_routes_exist.rc != 0)

@@ -1,0 +1,15 @@
+---
+# Task to check if Auth is already setup
+
+- name: Check service is already exists
+  shell: "/usr/lpp/mmfs/bin/mmuserauth service check | grep -q 'File configuration is *'"
+  register: service_result
+  ignore_errors: yes
+  failed_when: false
+  run_once: true
+
+- name: Service Check Result
+  debug:
+    var: service_result.rc
+  ignore_errors: yes
+  run_once: true

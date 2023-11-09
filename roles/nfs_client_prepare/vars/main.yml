@@ -1,0 +1,10 @@
+# Supported scale OS distrubution
+scale_rhel_distribution:
+  - RedHat
+  - CentOS
+
+# Supported version RHEL OS
+scale_rhel_version:
+  - "7.9"
+  - "8.6"
+  - "8.8"
