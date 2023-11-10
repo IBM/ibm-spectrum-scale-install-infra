@@ -5,20 +5,20 @@
 # Import the 'prerequesites.yml' task for installing the required packages on the client servers for LDAP.
 
 - include_tasks: ldap_prerequisites.yml
-  when: ldap_basedns != "null"
+  when: exec_ldap_tasks == true
 
 # Import the 'user_integration.yml' task for authenticating LDAP users to access the cluster nodes.
 - include_tasks: ldap_user_integration.yml
-  when: ldap_basedns != "null"
+  when: exec_ldap_tasks == true
 
 # Import the 'user_auth_precheck.yml' task for checking the userauth service on the cluster.
 - include_tasks: user_auth_precheck.yml
-  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool) and ldap_basedns != "null"
+  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)
 
 # Import the 'user_auth_userdefined.yml' task for enable userdefined authentication to perform cluster level operations.
 - include_tasks: user_auth_userdefined.yml
-  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool) and ldap_basedns == "null"         
+  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool) and exec_ldap_tasks == false        
 
 # Import the 'user_auth_ldap.yml' task for authentication LDAP users to perform cluster level operations.
 - include_tasks: user_auth_ldap.yml
-  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool) and ldap_basedns != "null"
+  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool) and exec_ldap_tasks == true
