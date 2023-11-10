@@ -8,8 +8,10 @@
 # is recommended to use Ansible group variables for this purpose:
 # https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
 
-- hosts: cluster01
+- hosts: ldap_nodes
   collections:
     - ibm.spectrum_scale
+  pre_tasks:
+    - include_vars: auth_ldap_server_prepare.yml 
   roles:
-    - auth_prepare
+    - auth_ldap_server_prepare
