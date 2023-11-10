@@ -4,4 +4,4 @@
 # Below are the LDAP Server configuration tasks to add OU, Groups and Users.
 
 - include_tasks: auth_prepare.yml
-  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool) and ldap_basedns == "null"
+  when: scale_protocols is defined and (scale_protocols.nfs|bool or scale_protocols.smb|bool)
