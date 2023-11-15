@@ -62,6 +62,12 @@
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - javahome_path|length > 0
 
+- fail:
+    msg: "JAVA_HOME not set properly"
+  when: 
+    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
+    - jvm_list.rc != 0
+    
 - name: check | Fetch hdfs extracted tar
   set_fact:
      hdfs_dependency_jars_dir: "hadoop-3.2.4"
@@ -85,9 +91,3 @@
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - dep_jars.rc != 0
-
-- fail:
-    msg: "JAVA_HOME not set properly"
-  when: 
-    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-    - jvm_list.rc != 0
