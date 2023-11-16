@@ -1,0 +1,234 @@
+---
+# Local package installation method
+- block:  ## run_once: true
+  - name: install | Stat local installation package
+    stat:
+     path: "{{ scale_install_localpkg_path }}"
+     checksum_algorithm: md5
+    register: scale_install_localpkg
+
+  - name: install | Check local installation package
+    assert:
+     that: scale_install_localpkg.stat.exists
+     msg: >-
+          Please set the variable 'scale_install_localpkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+
+#
+# Optionally, verify package checksum
+#
+  - name: install | Stat checksum file
+    stat:
+     path: "{{ scale_install_localpkg_path }}.md5"
+    register: scale_install_md5_file
+
+  - block:  ## when: scale_install_md5_file.stat.exists
+    - name: install | Read checksum from file
+      set_fact:
+       scale_install_md5_sum: "{{ lookup('file', scale_install_localpkg_path + '.md5') }}"
+
+    - name: install | Compare checksums
+      assert:
+       that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.checksum
+       msg: >-
+              Checksums don't match. Please check integritiy of your local
+              installation package!
+
+    when: scale_install_md5_file.stat.exists
+  run_once: true
+  delegate_to: localhost
+
+#
+# Copy installation package
+#
+- name: install | Stat extracted packages
+  stat:
+   path: "{{ smb_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
+  - name: install | Stat temporary directory
+    stat:
+     path: "{{ scale_install_localpkg_tmpdir_path }}"
+    register: scale_install_localpkg_tmpdir
+
+  - name: install | Check temporary directory
+    assert:
+     that:
+     - scale_install_localpkg_tmpdir.stat.exists
+     - scale_install_localpkg_tmpdir.stat.isdir
+     msg: >-
+          Please set the variable 'scale_install_localpkg_tmpdir_path' to point
+          to a temporary directory on the remote system!
+
+  - name: install | Copy installation package to node
+    copy:
+     src: "{{ scale_install_localpkg_path }}"
+     dest: "{{ scale_install_localpkg_tmpdir_path }}"
+     mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+#
+# Extract installation package
+#
+- name: install | Extract installation package
+  vars:
+   localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+  command: "{{ localpkg + ' --silent' }}"
+  args:
+   creates: "{{ smb_extracted_path }}"
+
+- name: install | Stat extracted packages
+  stat:
+   path: "{{ smb_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Check extracted packages
+  assert:
+   that:
+   - scale_install_gpfs_rpmdir.stat.exists
+   - scale_install_gpfs_rpmdir.stat.isdir
+   msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      local installation package!
+
+# Delete installation package
+- name: install | Delete installation package from node
+  file:
+   path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+   state: absent
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_rpms/rhel7/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_rpms/rhel9/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_rpms/sles12/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_rpms/sles15/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
+
+- name: install | smb path
+  set_fact:
+   scale_smb_url: 'smb_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+
+- block:
+   - name: install | smb path
+     set_fact:
+        scale_smb_url: 'smb_debs/ubuntu/ubuntu20/'
+     when: ansible_distribution_major_version == '20'
+
+   - name: install | smb path
+     set_fact:
+        scale_smb_url: 'smb_debs/ubuntu/ubuntu22/'
+     when: ansible_distribution_major_version == '22'
+  when:
+     - ansible_distribution in scale_ubuntu_distribution
+     - scale_version >= "5.1.4.0"
+
+# Find smb rpms
+- block:  ## when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
+
+  - name: install | Find gpfs.smb (gpfs.smb) package
+    find:
+     paths: "{{ smb_extracted_path }}/{{ scale_smb_url }}"
+     patterns: gpfs.smb*
+    register: scale_install_gpfs_smb
+
+  - name: install | Check valid GPFS (gpfs.smb) package
+    assert:
+     that: scale_install_gpfs_smb.matched > 0
+     msg: "No GPFS smb (gpfs.smb) package found {{ smb_extracted_path }}/{{ scale_smb_url }}gpfs.smb*"
+
+  - name: install | Add GPFS smb package to list
+    vars:
+     current_package: "{{ item.path }}"
+    set_fact:
+     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+    with_items:
+    - "{{ scale_install_gpfs_smb.files }}"
+
+  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
+
+- block:  ## when: ansible_distribution in scale_ubuntu_distribution
+
+  - name: install | Find gpfs.smb (gpfs.smb) package
+    find:
+     paths: "{{ smb_extracted_path }}/{{ scale_smb_url }}"
+     patterns: gpfs.smb_*
+    register: scale_install_gpfs_smb
+
+  - name: install | Check valid GPFS (gpfs.smb) package
+    assert:
+     that: scale_install_gpfs_smb.matched > 0
+     msg: "No GPFS smb (gpfs.smb) package found {{ smb_extracted_path }}/{{ scale_smb_url }}gpfs.smb*"
+
+  - name: install | Add GPFS smb package to list
+    vars:
+     current_package: "{{ item.path }}"
+    set_fact:
+     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+    with_items:
+    - "{{ scale_install_gpfs_smb.files }}"
+
+  when: ansible_distribution in scale_ubuntu_distribution
+
+- block:  ## when: ansible_distribution in scale_rhel_distribution
+
+  - name: install | Find gpfs.smb-debuginfo (gpfs.smb-debuginfo) package
+    find:
+     paths: "{{ smb_extracted_path }}/{{ scale_smb_url }}"
+     patterns: gpfs.smb-debuginfo*
+    register: scale_install_gpfs_smb_debuginfo
+
+  - name: install | Check valid GPFS (gpfs.smb-debuginfo) package
+    assert:
+     that: scale_install_gpfs_smb_debuginfo.matched > 0
+     msg: "No GPFS smb (gpfs.smb-debuginfo) package found {{ smb_extracted_path }}/{{ scale_smb_url }}gpfs.smb-debuginfo*"
+
+  when: ansible_distribution in scale_rhel_distribution
+
+- block:
+  - name: initialize
+    set_fact:
+     debuginfo_package: []
+
+  - name: install | Add GPFS package to list
+    set_fact:
+     debuginfo_package: "{{ debuginfo_package + [ item.path ] }}"
+    with_items:
+    - "{{ scale_install_gpfs_smb_debuginfo.files }}"
+
+  - name: remove debuginfo from packages
+    set_fact:
+     scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
+  when: not scale_smb_install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
+
+- debug:
+   msg: "{{ scale_install_all_packages }}"
