@@ -63,7 +63,7 @@
   - name: install | Check valid GPFS (s3) package
     assert:
      that: scale_install_gpfs_s3.matched > 0
-     msg: "No GPFS smb (noobaa-core) package found {{ gpfs_path_url }}noobaa-core*"
+     msg: "No S3 (noobaa-core) package found {{ gpfs_path_url }}noobaa-core*"
 
   - name: install | Add GPFS s3 package to list
     vars:

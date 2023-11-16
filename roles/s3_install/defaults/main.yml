@@ -3,9 +3,9 @@
 # either edit this file or define your own variables to override the defaults
 
 ## Specify the URL of the (existing) Spectrum Scale YUM/apt/zypper repository
-#scale_install_smb_repository_rpms: http://<ip>/smb_rpms/
-#scale_install_smb_repository_debs: http://<ip>/smb_debs/
-#scale_install_smb_repository_rpms_sles: http://<ip>/smb_rpms/sles12/
+#scale_install_s3_repository_rpms: http://<ip>/s3_rpms/
+#scale_install_smb_repository_debs: http://<ip>/s3_debs/
+#scale_install_smb_repository_rpms_sles: http://<ip>/s3_rpms/sles12/
 
 ## List of S3 packages to install
 scale_s3_packages:
