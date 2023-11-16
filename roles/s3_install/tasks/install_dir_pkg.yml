@@ -48,60 +48,30 @@
   when: scale_install_directory_pkg_path is defined
 
 #
-# Find GPFS SMB
+# Find noobaa-core
 #
 # 
 
 - block:  ## when: host is defined as a protocol node
 
-  - name: install | Find gpfs.smb (gpfs.smb) package
+  - name: install | Find noobaa-core (noobaa-core) package
     find:
      paths:  "{{ gpfs_path_url }}"
-     patterns: gpfs.smb*
-    register: scale_install_gpfs_smb
+     patterns: noobaa-core*
+    register: scale_install_gpfs_s3
 
-  - name: install | Check valid GPFS (gpfs.smb) package
+  - name: install | Check valid GPFS (s3) package
     assert:
-     that: scale_install_gpfs_smb.matched > 0
-     msg: "No GPFS smb (gpfs.smb) package found {{ gpfs_path_url }}gpfs.smb*"
+     that: scale_install_gpfs_s3.matched > 0
+     msg: "No GPFS smb (noobaa-core) package found {{ gpfs_path_url }}noobaa-core*"
 
-  - name: install | Add GPFS smb package to list
+  - name: install | Add GPFS s3 package to list
     vars:
      current_package:  "{{ item.path }}"
     set_fact:
      scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
     with_items:
-    - "{{ scale_install_gpfs_smb.files }}"
-
-- block:  ## when: host is defined as a protocol node
-
-  - name: install | Find gpfs.smb-debuginfo (gpfs.smb-debuginfo) package
-    find:
-     paths:  "{{ gpfs_path_url }}"
-     patterns: gpfs.smb-debuginfo*
-    register: scale_install_gpfs_smb_debuginfo
-
-  - name: install | Check valid GPFS (gpfs.smb-debuginfo) package
-    assert:
-     that: scale_install_gpfs_smb_debuginfo.matched > 0
-     msg: "No GPFS smb (gpfs.smb-debuginfo) package found {{ gpfs_path_url }}gpfs.smb-debuginfo*"
-  when: ansible_distribution in scale_rhel_distribution
-
-- block:
-  - name: initialize
-    set_fact:
-     debuginfo_package: []
-
-  - name: install | Add GPFS package to list
-    set_fact:
-     debuginfo_package: "{{ debuginfo_package + [ item.path ] }}"
-    with_items:
-    - "{{ scale_install_gpfs_smb_debuginfo.files }}"
-
-  - name: remove debuginfo from packages
-    set_fact:
-     scale_install_all_packages: "{{ scale_install_all_packages | difference(debuginfo_package)}}"
-  when: not scale_smb_install_debuginfo|bool and ansible_distribution in scale_rhel_distribution
+    - "{{ scale_install_gpfs_s3.files }}"
 
 - debug:
    msg: "{{ scale_install_all_packages }}"
