@@ -1,0 +1,12 @@
+---
+# Authenticating LDAP to the cluster
+
+- name: LDAP | Authenticate Cluster
+  shell: |
+    echo -e "{{ ldap_admin_password }}" | mmuserauth service create --type ldap --data-access-method file --servers {{ ldap_server }} --base-dn dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} --user-name cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} --netbios-name ces
+  when: service_result.rc is defined and service_result.rc != 0
+  register: ldap_authenticate_cluster
+  run_once: true
+
+- debug:
+    var: ldap_authenticate_cluster.stdout_lines
