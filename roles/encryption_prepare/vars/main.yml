@@ -7,7 +7,7 @@ gklm_dir: "/opt/gklm"
 gklm_backup_dir: "/opt/IBM/WebSphere/Liberty/products/sklm/data"
 
 #Default GKLM User for DB2
-gklm_user: "klmdb411"
+gklm_user: "klmdb42"
 
 #Dynamic Variables for Encryption based on users input
 

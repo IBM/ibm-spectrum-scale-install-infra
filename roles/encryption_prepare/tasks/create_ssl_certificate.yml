@@ -15,6 +15,7 @@
     validate_certs: no
   register: login_response
   run_once: true
+  ignore_errors: yes
 
 - name: Extract UserAuthId from login response
   set_fact:
