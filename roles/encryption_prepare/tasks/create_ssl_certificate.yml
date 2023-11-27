@@ -15,7 +15,6 @@
     validate_certs: no
   register: login_response
   run_once: true
-  ignore_errors: yes
 
 - name: Extract UserAuthId from login response
   set_fact:
@@ -44,6 +43,7 @@
     validate_certs: no
   register: certificate_creation
   run_once: true
+  ignore_errors: yes
 
 - debug:
     var: certificate_creation.status
