@@ -43,6 +43,11 @@
     validate_certs: no
   register: certificate_creation
   run_once: true
+  ignore_errors: yes
 
 - debug:
-    var: certificate_creation.json
+    var: certificate_creation.status
+
+- fail:
+    msg: "SSL certificate creation failed. Status code: {{ certificate_creation.status }}"
+  when: certificate_creation.status != 201
