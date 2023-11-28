@@ -1,0 +1,22 @@
+---
+- name: check | Initialize
+  set_fact:
+   scale_s3_node_list: []
+
+- name: check | Collect all s3 nodes
+  set_fact:
+    scale_s3_node_list: "{{ scale_s3_node_list + [hostvars[item]['inventory_hostname']] }}"
+  when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
+  with_items:
+   - "{{ ansible_play_hosts }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: check | Check if atleast one s3 node is configured
+  assert:
+   that:
+   - scale_s3_node_list|length > 0
+   fail_msg: "No s3 nodes configured"
+
+- debug:
+   msg: "S3 precheck ok"

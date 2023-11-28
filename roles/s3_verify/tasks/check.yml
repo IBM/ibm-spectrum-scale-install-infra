@@ -1,0 +1,14 @@
+---
+- name: postcheck | Check if S3 is running
+  shell:
+   cmd: "{{ scale_command_path }}mmces service list|grep S3"
+  register: scale_s3_status
+  when: inventory_hostname in scale_s3_node_list
+  failed_when: false
+
+- name: postcheck | Check if s3 is running
+  assert:
+   that:
+   - scale_s3_status.rc == 0
+   fail_msg: "S3 is not active on {{ ansible_hostname }}"
+  when: inventory_hostname in scale_s3_node_list

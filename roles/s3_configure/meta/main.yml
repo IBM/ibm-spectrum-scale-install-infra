@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: IBM Corporation
+  description: Highly-customizable Ansible role for installing and configuring IBM Spectrum Scale (GPFS)
+  company: IBM
+
+  license: Apache-2.0
+
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: EL
+      versions:
+        - 7
+        - 8
+
+  galaxy_tags: []
+
+dependencies:
+  - ibm.spectrum_scale.s3_prepare
+  - ibm.spectrum_scale.ces_common

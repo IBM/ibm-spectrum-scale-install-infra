@@ -1,0 +1,5 @@
+---
+# Install IBM Spectrum Scale (S3)
+- import_tasks: install.yml
+  when: scale_protocols is defined and (scale_protocols.s3|bool)
+  tags: install
