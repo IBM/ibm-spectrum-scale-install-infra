@@ -1,0 +1,49 @@
+---
+- block:
+      - name: create | Initialize
+        set_fact:
+          extra_option_flag: ""
+
+      - name: create | Set existing bucket if it is defined
+        set_fact:
+          extra_option_flag: "{{ extra_option_flag }}{{ item.bucket }}"
+        when:
+          - item.bucket is defined
+      - name: create | Set existing bucket if it is defined
+        set_fact:
+          extra_option_flag: "{{ extra_option_flag }}:{{ item.Region}}"
+        when:
+          - item.Region is defined
+
+      - name: create | Set existing bucket if it is defined
+        set_fact:
+          extra_option_flag: "{{ extra_option_flag }}@{{ item.Server}}"
+        when:
+          - item.Server is defined
+
+      - name: configure | Set the access key and secret key for new/existing bucket as below at gateway node
+        command: "{{ scale_command_path }}mmafmcoskeys  {{ extra_option_flag }} set  {{ item.akey }} {{ item.skey }}"
+        register: scale_afm_cos_define
+        failed_when: scale_afm_cos_define.rc != 0
+        when:
+          - item.bucket is defined
+          - item.akey is defined
+          - item.skey is defined
+     
+      - name: configure | Set the access key and secret key for new/existing bucket as below at gateway node
+        command: "{{ scale_command_path }}mmafmcoskeys  {{ item.bucket }}:{{ item.Region  }}@{{ item.Server }} set  --keyfile {{ item.KeyfilePath }}"
+        register: scale_afm_cos_define
+        failed_when: scale_afm_cos_define.rc != 0
+        when:
+          - item.bucket is defined
+          - item.Region is defined
+          - item.Server is defined
+          - item.KeyfilePath is defined
+  
+      - name: configure | FM cos bucket configuration
+        debug:
+          msg: AFM cos bucket configured. 
+  rescue:
+    - name: Failure detected in Configuring AFM cos bucket
+      fail:
+         msg: "I caught an error, Please take a look to the output given!."
