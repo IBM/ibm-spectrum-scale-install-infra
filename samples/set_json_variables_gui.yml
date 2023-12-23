@@ -1,0 +1,52 @@
+---
+# This playbook will read all required input from json inventory
+#- name: Create the required groups
+- hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Read all intermediate output from Resource Details
+      include_vars:
+        file: vars/gui_access_clusterdefinition.json
+      register: scale_json
+      when: cluster_inventory_file is undefined
+
+    - name: Read all intermediate output from user defined Resource Details
+      include_vars:
+        file: "{{ cluster_inventory_file }}"
+      register: scale_json_cloud
+      when: cluster_inventory_file is defined
+
+    - name: Check valid json file
+      assert:
+        that: scale_json.failed == false
+        msg: >-
+          scale_clusterdefinition.json is not present in the
+          vars directory. Make sure that this file is present
+          in the vars directory along with all required
+          Ansible scale inventory.
+      when: cluster_inventory_file is undefined
+
+    - name: Check valid json file
+      assert:
+        that: scale_json_cloud.failed == false
+        msg: >-
+          scale_clusterdefinition.json is not present in the
+          vars directory. Make sure that this file is present
+          in the vars directory along with all required
+          Ansible scale inventory.
+      when: cluster_inventory_file is defined
+
+    - name: Pass all inputs related to creating Spectrum Scale cluster to all nodes
+      add_host:
+        name: "{{ item.fqdn }}"
+        groups: scale_node
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+        ansible_ssh_private_key_file: "{{ item.ansible_ssh_private_key_file | default(omit) }}"
+        scale_gui_node: "{{ scale_cluster.scale_gui_node | default(omit) }}"
+        scale_gui_port: "{{ scale_cluster.scale_gui_port | default(omit) }}"
+        scale_forwarding_port: "{{ scale_cluster.scale_forwarding_port | default(omit) }}"
+        scale_jump_host_user: "{{ scale_cluster.scale_jump_host_user | default(omit) }}"
+      loop: "{{ node_details }}"
+  tags:
+    - scale_inventory
