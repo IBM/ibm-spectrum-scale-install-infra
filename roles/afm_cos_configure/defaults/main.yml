@@ -1,0 +1,35 @@
+---
+# Default variables for the IBM Spectrum Scale AFM Cos Configure role -
+## Spectrum Scale daemon nodename (defaults to node's hostname)
+scale_daemon_nodename: "{{ ansible_hostname }}"
+
+#"scale_afm_cos_bucket_params": [
+#       {
+#         "bucket": "test",
+#         "akey": "xxxxxxxx",
+#         "skey": "xxxxxxxx",
+#        },
+#        {
+#         "bucket": "test1",
+#         "akey": "xxxxxxxxx",
+#         "skey": "xxxxxxxxx",
+#        },
+#]
+
+#"scale_afm_cos_filesets_params": [
+#       {
+#         "filesystem": "fs1",
+#         "fileset": "afmfileset1",
+#         "endpoint": "https://s3.ap.cos.appdomain.cloud:443/bucket-afm1", 
+#         "bucket": "bucket-afm1",
+#         "mode": "SW",
+#        },
+#        {
+#         "filesystem": "fs1",
+#         "fileset": "afmfileset2",
+#         "endpoint": "https://s3.ap.cos.appdomain.cloud:443/bucket-afm2",
+#         "bucket": "bucket-afm2",
+#         "mode": "SW"
+#        }
+#]
+
