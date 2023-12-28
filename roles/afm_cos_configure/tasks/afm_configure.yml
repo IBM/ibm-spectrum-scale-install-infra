@@ -10,7 +10,7 @@
           - item.fileset is defined
 
       - name: create | Find existing Bucket(s)
-        shell: mmafmcoskeys all get --report | grep -v HEADER | cut -d ':' -f 1 | uniq
+        shell: mmafmcoskeys all get --report | tail -n +2 | cut -d '=' -f 1 | uniq
         register: scale_existing_bucket
         changed_when: false
         failed_when: false
