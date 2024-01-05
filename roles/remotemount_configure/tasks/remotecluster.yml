@@ -285,10 +285,10 @@
       run_once: True
 
     - set_fact:
-        owning_nodes_name: "{{ owning_nodes_name }} + [ '{{ item.adminNodeName }}' ]"
+          owning_nodes_name: "{{ owning_nodes_name + [item.adminNodeName] }}"
       with_items: "{{ owning_cluster_nodes.json.nodes }}"
       run_once: True
-
+  
 #
 # This Section is when using daemonNodeName
 #
@@ -312,7 +312,7 @@
       run_once: True
 
     - set_fact:
-        owning_daemon_nodes_name: "{{ owning_daemon_nodes_name }} + [ '{{ item.json.nodes.0.network.daemonNodeName }}' ]"
+        owning_daemon_nodes_name: "{{ owning_daemon_nodes_name + [item.json.nodes.0.network.daemonNodeName] }}"
       with_items: "{{ owning_cluster_daemonnodes.results }}"
       run_once: True
 
@@ -427,19 +427,23 @@
   ignore_errors: true
   run_once: True
 
-
 - name: "Mount Filesystem | Storage Cluster (owner) | Check if filesystems is accessible on Client Cluster ('{{ access_cluster_name }}') - Debug"
   run_once: True
   debug:
-    msg: "{{ remote_clusters_results.json.remoteClusters[0] | json_query('owningClusterFilesystems[*].filesystem') | join(', ')  }}"
-  when: scale_remotemount_debug | bool
+    msg: "{{ remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems| map(attribute='filesystem') | list | join(', ') }}"
+  when:
+   - scale_remotemount_debug | bool
+   - (remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems is defined and
+     remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems| length > 0)
 
 # Set current filesystem access and run only the access task on filesystem, this is a list
 # this could also be changed to a import_task with loop.
 
 - set_fact:
-    current_scale_remotemount_storage_filesystem_name: "{{ remote_clusters_results.json.remoteClusters[0] | json_query('owningClusterFilesystems[*].filesystem') | join(', ')  }}"
+    current_scale_remotemount_storage_filesystem_name: "{{ remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems| map(attribute='filesystem') | list | join(', ') }}"
   run_once: True
+  when: (remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems is defined and
+         remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems| length > 0)
 
 - name: Step 6 - Configure and Mount filesystems
   debug:
