@@ -433,8 +433,7 @@
     msg: "{{ remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems| map(attribute='filesystem') | list | join(', ') }}"
   when:
    - scale_remotemount_debug | bool
-   - (remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems is defined and
-     remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems| length > 0)
+   - remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems is defined
 
 # Set current filesystem access and run only the access task on filesystem, this is a list
 # this could also be changed to a import_task with loop.
@@ -442,8 +441,7 @@
 - set_fact:
     current_scale_remotemount_storage_filesystem_name: "{{ remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems| map(attribute='filesystem') | list | join(', ') }}"
   run_once: True
-  when: (remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems is defined and
-         remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems| length > 0)
+  when: remote_clusters_results.json.remoteClusters[0].owningClusterFilesystems is defined
 
 - name: Step 6 - Configure and Mount filesystems
   debug:
