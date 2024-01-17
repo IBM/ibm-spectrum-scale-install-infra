@@ -81,7 +81,7 @@
   ignore_errors: true
 
 - debug:
-    msg: "gpfs_hdfs_protocol_version: {{ gpfs_hdfs_protocol_version.stdout_lines[0] }}"
+    msg: "gpfs_hdfs_protocol_version: {{ gpfs_hdfs_protocol_version}}"
 
 - name: Check gpfs.hdfs-protocol version for standalone installation
   fail:
