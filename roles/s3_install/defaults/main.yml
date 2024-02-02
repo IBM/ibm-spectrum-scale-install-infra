@@ -10,6 +10,7 @@
 ## List of S3 packages to install
 scale_s3_packages:
 - noobaa-core
+- gpfs.mms3
 
 ## Temporary directory to copy installation package to
 ## (local package installation method)
