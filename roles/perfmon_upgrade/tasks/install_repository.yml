@@ -79,6 +79,10 @@
     - ansible_distribution in scale_ubuntu_distribution
     - scale_version >= "5.1.4.0"
 
+- set_fact:
+    scale_zimon_url: ""
+  when: scale_baseurl is defined
+
 - name: upgrade | Configure ZIMon YUM repository
   yum_repository:
     name: spectrum-scale-zimon

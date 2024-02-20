@@ -7,12 +7,17 @@
 - name: Initialize
   set_fact:
     is_scale_java_pkg_installed: false
+    base_repo_url: "gpfs_rpms/"
+
+- set_fact:
+    base_repo_url: ""
+  when: scale_baseurl is defined
 
 - name: upgrade | Configure GPFS YUM repository
   yum_repository:
     name: spectrum-scale-gpfs
     description: IBM Spectrum Scale (GPFS)
-    baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
+    baseurl: "{{ scale_install_repository_url }}{{ base_repo_url }}"
     gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
@@ -22,6 +27,7 @@
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
     - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
+
 #
 # Configure apt repository
 #
