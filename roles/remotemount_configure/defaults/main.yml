@@ -16,6 +16,8 @@ scale_remotemount_endpoint: "{{ scale_remotemount_scalemgmt_endpoint }}/remotemo
 
 scale_remotemount_validate_certs_uri: 'no'
 
+scale_cluster_authorization_cleanup: true
+
 # Temporary Storage for Public Key, Only used when debuging
 scale_remotemount_client_access_key: /tmp/client_cluster.pub
 

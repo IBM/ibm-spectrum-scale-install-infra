@@ -88,7 +88,9 @@
 # We want to delete the one where the owningCluster name matches what we are trying to do a remote mount on
 - name: Cleanup | Client Cluster (access) | Delete the Remote Mount/clusters connection on a loop.
   include_tasks: delete_remote_cluster.yml
-  when: item.owningCluster == owning_cluster_name
+  when:
+     - item.owningCluster == owning_cluster_name
+     - scale_cluster_authorization_cleanup is defined and scale_cluster_authorization_cleanup | bool
   loop: "{{ remote_clusters_result.json.owningClusters }}"
   run_once: True
 
@@ -139,7 +141,9 @@
       retries: "{{ scale_remotemount_restapi_retries_count }}"
       delay: "{{ scale_remotemount_restapi_retries_delay }}"
   #when: not remote_clusters_results.failed
-  when: remote_clusters_results.json.status.code == 200
+  when: 
+    - remote_clusters_results.json.status.code == 200
+    - scale_cluster_authorization_cleanup is defined and scale_cluster_authorization_cleanup | bool
   run_once: True
 
 - name: "Cleanup | Storage Cluster (owner) | Output from delete the Client Cluster, ('{{ access_cluster_name }}')"
@@ -148,3 +152,4 @@
     msg: "The is no Client/Accessing cluster named: ({{ access_cluster_name }}) - Message from RestAPI: {{ remote_clusters_results.json.status.message }}"
   when:
     - remote_clusters_results.json.status.code == 400
+    - scale_cluster_authorization_cleanup is defined and scale_cluster_authorization_cleanup | bool
