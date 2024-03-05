@@ -46,7 +46,7 @@
 
       - name: create | Set extra parameter config
         set_fact:
-          extra_option_flag: "{{ extra_option_flag }} --gcs }}"
+          extra_option_flag: "{{ extra_option_flag }} --gcs"
         when: "scale_afm_cos_config_params is defined and
                 (scale_afm_cos_config_params.is_gcs is defined and scale_afm_cos_config_params.is_gcs|bool)"
     
