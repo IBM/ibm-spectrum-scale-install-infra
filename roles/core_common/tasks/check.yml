@@ -88,15 +88,15 @@
 
 # set dynamic variable based on supported OS
 - name: check | Set variables based on yum/dnf based OS
-  include: yum/set_vars.yml
+  include_tasks: yum/set_vars.yml
   when: ansible_distribution in scale_rhel_distribution
 
 - name: check | Set variables based on apt based os
-  include: apt/set_vars.yml
+  include_tasks: apt/set_vars.yml
   when: ansible_distribution in scale_ubuntu_distribution
 
 - name: check | Set variables based on zypper based OS
-  include: zypper/set_vars.yml
+  include_tasks: zypper/set_vars.yml
   when: ansible_distribution in scale_sles_distribution
 
 - name: check | Storage Scale GPG key
