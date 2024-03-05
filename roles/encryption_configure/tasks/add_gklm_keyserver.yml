@@ -38,7 +38,7 @@
 
 - name: Encryption | Adding GKLM Server
   shell: |
-    echo -e "yes" | mmkeyserv server add "{{ scale_encryption_servers[0] }}" --backup {% if scale_encryption_servers|length > 1 %}"{{ scale_encryption_servers[1:] | join(',') }}"{% endif %} --server-pwd "{{ password_file }}"
+    mmkeyserv server add "{{ scale_encryption_servers[0] }}" --backup {% if scale_encryption_servers|length > 1 %}"{{ scale_encryption_servers[1:] | join(',') }}"{% endif %} --server-pwd "{{ password_file }}" --accept
   register: add_keyserver_output
   run_once: true
 
