@@ -1,6 +1,10 @@
 ---
 # Sharing the master backup across all clones
 
+- name: Define copy_status variable
+  set_fact:
+    copy_status: []
+
 - name: Encryption | Copy Master Backup
   fetch:
     src: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
@@ -8,26 +12,35 @@
     flat: yes
     fail_on_missing: yes
   delegate_to: "{{ scale_encryption_servers[0] }}"
+  run_once: true    
+
+- name: Determine if the host is not the first scale_encryption_server
+  set_fact:
+    is_not_first_server: "{{ inventory_hostname != scale_encryption_servers[0] }}"
   run_once: true
+  delegate_to: localhost
 
 - name: Encryption | Copy Master Backup to Clone
   copy:
     src: "/tmp/{{ master_backup_jar_file }}"
     dest: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
   delegate_to: "{{ item }}"
-  with_items: "{{ scale_encryption_servers }}"
-  when: inventory_hostname != scale_encryption_servers[0]
-  run_once: true
+  register: copy_result
+  loop: "{{ scale_encryption_servers }}"
+  when: "item != scale_encryption_servers[0]"
+  loop_control:
+    label: "{{ item }}"
+  ignore_errors: true
 
 - name: Encryption | Change Backup file permission
   ansible.builtin.file:
     path: "{{ gklm_backup_dir }}/{{ master_backup_jar_file }}"
     owner: "{{ gklm_user }}"
+    mode: '0644'
   become: true
   delegate_to: "{{ item }}"
-  with_items: "{{ scale_encryption_servers }}"
-  when: inventory_hostname != scale_encryption_servers[0]
-  run_once: true
+  loop: "{{ scale_encryption_servers }}"
+  when: "item != scale_encryption_servers[0]"
 
 - debug:
-    var: copy_status
+    var: copy_result
