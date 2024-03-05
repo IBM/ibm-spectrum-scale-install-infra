@@ -40,10 +40,11 @@
       country: "{{ ssl_cert_usage_country }}"
       validity: "{{ ssl_cert_validity }}"
       algorithm: "{{ ssl_cert_algorithm }}"
+    status_code: 201  # Accepting 201 as a successful response
     validate_certs: no
   register: certificate_creation
   run_once: true
-  ignore_errors: yes
+  ignore_errors: true
 
 - debug:
     var: certificate_creation.status
