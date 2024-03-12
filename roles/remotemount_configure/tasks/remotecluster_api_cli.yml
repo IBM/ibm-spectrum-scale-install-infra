@@ -261,7 +261,6 @@
     - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Remove json spesific information to a plain pub key file.
       shell:
         cmd: sed 's/,/\n/g' {{ scale_remotemount_storage_pub_key_location_json }} | tr -d '"\[\]' | sed 's/^ //' > {{ scale_remotemount_storage_pub_key_location }}
-        warn: false
       run_once: true
 
     - name: Step 3 - Remote Cluster Config - API-CLI
@@ -293,9 +292,17 @@
       run_once: True
 
     - set_fact:
-        owning_nodes_name: "{{ owning_nodes_name }} + [ '{{ item.adminNodeName }}' ]"
-      with_items: "{{ owning_cluster_nodes.json.nodes }}"
+        owning_nodes_name: "{{ owning_cluster_nodes.json.nodes | map(attribute='adminNodeName') | list }}"
       run_once: True
+
+    - name: Debug owning_nodes_name
+      debug:
+        var: owning_nodes_name
+
+    - name: Debug each item
+      debug:
+        var: item
+      loop: "{{ owning_nodes_name }}"
 
 #
 # This Section is when using daemonNodeName
@@ -304,7 +311,7 @@
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
         force_basic_auth: yes
-        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/nodes/{{item}}
+        url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/nodes/{{ item }}
         method: GET
         user: "{{ scale_remotemount_storage_gui_username }}"
         password: "{{ scale_remotemount_storage_gui_password }}"
@@ -319,12 +326,18 @@
         owning_daemon_nodes_name: []
       run_once: True
 
+        #- set_fact:
+        #owning_daemon_nodes_name: "{{ owning_daemon_nodes_name }} + [ '{{ item.json.nodes.0.network.daemonNodeName }}' ]"
+        #with_items: "{{ owning_cluster_daemonnodes.results }}"
+        #run_once: True
 
     - set_fact:
-        owning_daemon_nodes_name: "{{ owning_daemon_nodes_name }} + [ '{{ item.json.nodes.0.network.daemonNodeName }}' ]"
-      with_items: "{{ owning_cluster_daemonnodes.results }}"
+        owning_daemon_nodes_name: "{{ owning_cluster_daemonnodes.results | map(attribute='json.nodes.0.network.daemonNodeName') | list }}"
       run_once: True
 
+    - name: Print out the array storing the DeamonNodeNames from the Storage Cluster (owning)
+      debug:
+        var: owning_daemon_nodes_name
 
 #
 # adminNodeName section
