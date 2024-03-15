@@ -31,7 +31,6 @@
         auth        required      pam_deny.so"
 
         echo -e "$auth_line" | tee -a /etc/pam.d/password-auth /etc/pam.d/system-auth
-
         cat /etc/pam.d/password-auth > /etc/pam.d/sshd
 
     - name: LDAP | Update LDAP Configuration with LDAP_SERVER and BASE_DN
@@ -43,10 +42,17 @@
           uri ldap://{{ LDAP_SERVER_IP }}/
           base dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
         create: yes
+        replace: yes
 
     - name: Allow SSH authentication
       ansible.builtin.shell: |
         sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+    - name: Restart SSH Service
+      ansible.builtin.systemd:
+         name: sshd
+         state: restarted
+         enabled: yes
 
     - name: Restart and enable the services
       ansible.builtin.systemd:
@@ -54,7 +60,6 @@
         state: restarted
         enabled: yes
       loop:
-        - sshd
         - nslcd
         - nscd
-  when: rhel_version.stdout == "8"
+  when: rhel_version.stdout in ["7", "8"]
