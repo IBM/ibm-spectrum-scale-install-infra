@@ -1,169 +1,20 @@
-# ---
-# # Installing required ldap client packages for the integration.
-
-# - name: LDAP | OS version check
-#   ansible.builtin.shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
-#   register: rhel_version
-#   changed_when: false
-
-# - name: LDAP | Enable SSSD and SSSD Authentication
-#   ansible.builtin.command: authconfig --enablesssd --enablesssdauth --update
-#   register: enable_ssd
-
-# - debug:
-#     var: enable_ssd.stdout_lines
-
-# - name: LDAP | Select SSSD Authentication Configuration
-#   ansible.builtin.command: authselect select sssd
-#   when: rhel_version.stdout == "8"
-#   register: select_ssd_result
-
-# - debug:
-#     var: select_ssd_.stdout_lines
-
-# - name: LDAP | LDAP Conf Update with LDAP_SERVER and BASE_DN
-#   ansible.builtin.blockinfile:
-#     path: /etc/openldap/ldap.conf
-#     marker: "# {mark} Ansible Managed Content"
-#     block: |
-#       URI ldap://{{ LDAP_SERVER_IP }}
-#       BASE dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
-
-# - name: LDAP | SSSD Conf Update
-#   shell: |
-#     echo "[domain/default]
-#     autofs_provider = ldap
-#     cache_credentials = True
-#     ldap_search_base = dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
-#     id_provider = ldap
-#     auth_provider = ldap
-#     chpass_provider = ldap
-#     ldap_uri = ldap://{{ LDAP_SERVER_IP }}
-#     enumerate = true
-#     access_provider = simple
-#     ldap_id_use_start_tls = false
-#     ldap_tls_reqcert = never
-
-#     [sssd]
-#     services = nss, pam, autofs
-#     domains = default
-
-#     [nss]
-#     homedir_substring = /home" > "/etc/sssd/sssd.conf"
-
-# - name: LDAP | SSSD Permission set
-#   ansible.builtin.file:
-#     path: /etc/sssd/sssd.conf
-#     mode: '0600'
-
-# - name: LDAP | Restart SSSD
-#   ansible.builtin.systemd:
-#     name: sssd
-#     state: restarted
-
-# - name: LDAP | Enable SSSD at boot
-#   ansible.builtin.systemd:
-#     name: sssd
-#     enabled: yes
-
-# - name: LDAP | Enable authselect feature with-mkhomedir
-#   ansible.builtin.command: authselect enable-feature with-mkhomedir
-
-# - name: LDAP | Enable ODDJOB at boot
-#   ansible.builtin.systemd:
-#     name: oddjobd.service
-#     enabled: yes
-
-# - name: LDAP | Restart ODDJOB
-#   ansible.builtin.systemd:
-#     name: oddjobd.service
-#     state: restarted
-
-# - name: LDAP | Restart SSH service
-#   ansible.builtin.systemd:
-#     name: sshd
-#     state: restarted
-# ---
-# - name: LDAP | OS version check
-#   ansible.builtin.shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
-#   register: rhel_version
-#   changed_when: false
-
-# - block:
-#     - name: LDAP | Enable LDAP authentication
-#       ansible.builtin.shell: |
-#         authconfig --enableldap --enableldapauth --ldapserver=ldap://{{ LDAP_SERVER_IP }} --ldapbasedn="dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" --enablemkhomedir --update
-#       register: enable_authconfig
-
-#     - debug:
-#         var: enable_authconfig.stdout_lines
-
-#     - name: Update NSSwitch config file
-#       ansible.builtin.shell: |
-#         sed -i -e 's/^passwd:.*$/passwd: files ldap/' \
-#                -e 's/^shadow:.*$/shadow: files ldap/' \
-#                -e 's/^group:.*$/group: files ldap/' /etc/nsswitch.conf
-
-#         sed -i '/^auth/d' /etc/pam.d/password-auth
-#         sed -i '/^auth/d' /etc/pam.d/system-auth
-
-#     - name: Update configuration
-#       ansible.builtin.shell: |
-#         auth_line="\nauth        required      pam_env.so\n\
-#         auth        sufficient    pam_unix.so nullok try_first_pass\n\
-#         auth        requisite     pam_succeed_if.so uid >= 1000 quiet_success\n\
-#         auth        sufficient    pam_ldap.so use_first_pass\n\
-#         auth        required      pam_deny.so"
-
-#         echo -e "$auth_line" | tee -a /etc/pam.d/password-auth /etc/pam.d/system-auth
-
-#         cat /etc/pam.d/password-auth > /etc/pam.d/sshd
-
-#     - name: LDAP | Update LDAP Configuration with LDAP_SERVER and BASE_DN
-#       ansible.builtin.blockinfile:
-#         path: /etc/nslcd.conf
-#         block: |
-#           uid nslcd
-#           gid ldap
-#           uri ldap://{{ LDAP_SERVER_IP }}/
-#           base dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
-#         create: yes
-
-#     - name: Allow SSH authentication
-#       ansible.builtin.shell: |
-#         sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-
-#     - name: Restart and enable the services
-#       ansible.builtin.systemd:
-#         name: "{{ item }}"
-#         state: restarted
-#         enabled: yes
-#       loop:
-#         - sshd
-#         - nslcd
-#         - nscd
-#   when: rhel_version.stdout == "8"
 ---
 - name: LDAP | OS version check
-  shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
+  ansible.builtin.shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
   register: rhel_version
   changed_when: false
 
-- name: LDAP | Enable LDAP authentication
-  block:
-    - name: Enable LDAP Authentication via authconfig
-      shell: >
+- block:
+    - name: LDAP | Enable LDAP authentication
+      ansible.builtin.shell: |
         authconfig --enableldap --enableldapauth --ldapserver=ldap://{{ LDAP_SERVER_IP }} --ldapbasedn="dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" --enablemkhomedir --update
       register: enable_authconfig
-    - name: Debug enable_authconfig output
-      debug:
-        var: enable_authconfig.stdout_lines
-  when: rhel_version.stdout == "8"
 
-- name: Update NSSwitch config file
-  block:
-    - name: Update NSSwitch config file for LDAP
-      shell: >
+    - debug:
+        var: enable_authconfig.stdout_lines
+
+    - name: Update NSSwitch config file
+      ansible.builtin.shell: |
         sed -i -e 's/^passwd:.*$/passwd: files ldap/' \
                -e 's/^shadow:.*$/shadow: files ldap/' \
                -e 's/^group:.*$/group: files ldap/' /etc/nsswitch.conf
@@ -171,8 +22,8 @@
         sed -i '/^auth/d' /etc/pam.d/password-auth
         sed -i '/^auth/d' /etc/pam.d/system-auth
 
-    - name: Update PAM configuration
-      shell: |
+    - name: Update configuration
+      ansible.builtin.shell: |
         auth_line="\nauth        required      pam_env.so\n\
         auth        sufficient    pam_unix.so nullok try_first_pass\n\
         auth        requisite     pam_succeed_if.so uid >= 1000 quiet_success\n\
@@ -183,37 +34,27 @@
 
         cat /etc/pam.d/password-auth > /etc/pam.d/sshd
 
-  when: rhel_version.stdout == "8"
+    - name: LDAP | Update LDAP Configuration with LDAP_SERVER and BASE_DN
+      ansible.builtin.blockinfile:
+        path: /etc/nslcd.conf
+        block: |
+          uid nslcd
+          gid ldap
+          uri ldap://{{ LDAP_SERVER_IP }}/
+          base dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+        create: yes
 
-- name: LDAP | Update LDAP Configuration with LDAP_SERVER and BASE_DN
-  blockinfile:
-    path: /etc/nslcd.conf
-    block: |
-      uid nslcd
-      gid ldap
-      uri ldap://{{ LDAP_SERVER_IP }}/
-      base dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
-    create: yes
-  when: rhel_version.stdout == "8"
-
-- name: Allow SSH authentication
-  block:
-    - name: Allow SSH Password Authentication
-      shell: >
+    - name: Allow SSH authentication
+      ansible.builtin.shell: |
         sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
-    - name: Restart SSH Service
-      systemd:
-        name: sshd
+    - name: Restart and enable the services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
         state: restarted
         enabled: yes
-
-- name: Restart and enable the services
-  systemd:
-    name: "{{ item }}"
-    state: restarted
-    enabled: yes
-  loop:
-    - nslcd
-    - nscd
+      loop:
+        - sshd
+        - nslcd
+        - nscd
   when: rhel_version.stdout == "8"
