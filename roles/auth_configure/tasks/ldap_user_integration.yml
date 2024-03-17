@@ -1,4 +1,6 @@
 ---
+# Installing required ldap client packages for the integration.
+
 - name: LDAP | OS version check
   ansible.builtin.shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
   register: rhel_version
@@ -6,8 +8,7 @@
 
 - block:
     - name: LDAP | Enable LDAP authentication
-      ansible.builtin.shell: |
-        authconfig --enableldap --enableldapauth --ldapserver=ldap://{{ LDAP_SERVER_IP }} --ldapbasedn="dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" --enablemkhomedir --update
+      ansible.builtin.command: authconfig --enableldap --enableldapauth --ldapserver=ldap://{{ LDAP_SERVER_IP }} --ldapbasedn="dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" --enablemkhomedir --update
       register: enable_authconfig
 
     - debug:
@@ -45,8 +46,7 @@
         replace: yes
 
     - name: Allow SSH authentication
-      ansible.builtin.shell: |
-        sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      ansible.builtin.command: sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
     - name: Restart SSH Service
       ansible.builtin.systemd:
