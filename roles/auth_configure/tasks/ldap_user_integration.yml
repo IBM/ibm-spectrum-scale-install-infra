@@ -14,25 +14,39 @@
     - debug:
         var: enable_authconfig.stdout_lines
 
-    - name: Update NSSwitch config file
-      ansible.builtin.shell: |
-        sed -i -e 's/^passwd:.*$/passwd: files ldap/' \
-               -e 's/^shadow:.*$/shadow: files ldap/' \
-               -e 's/^group:.*$/group: files ldap/' /etc/nsswitch.conf
+    - name: Update nsswitch.conf
+      ansible.builtin.lineinfile:
+        path: /etc/nsswitch.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^passwd:', line: 'passwd: files ldap' }
+        - { regexp: '^shadow:', line: 'shadow: files ldap' }
+        - { regexp: '^group:', line: 'group: files ldap' }
+    
+    - name: Remove 'auth' lines from password-auth PAM configuration
+      ansible.builtin.lineinfile:
+        path: "{{ item }}"
+        state: absent
+        regexp: '^auth.*'
+      loop:
+        - /etc/pam.d/password-auth
+        - /etc/pam.d/system-auth
 
-        sed -i '/^auth/d' /etc/pam.d/password-auth
-        sed -i '/^auth/d' /etc/pam.d/system-auth
-
-    - name: Update configuration
-      ansible.builtin.shell: |
-        auth_line="\nauth        required      pam_env.so\n\
-        auth        sufficient    pam_unix.so nullok try_first_pass\n\
-        auth        requisite     pam_succeed_if.so uid >= 1000 quiet_success\n\
-        auth        sufficient    pam_ldap.so use_first_pass\n\
-        auth        required      pam_deny.so"
-
-        echo -e "$auth_line" | tee -a /etc/pam.d/password-auth /etc/pam.d/system-auth
-        cat /etc/pam.d/password-auth > /etc/pam.d/sshd
+    - name: Add custom auth lines to PAM configuration files
+      ansible.builtin.blockinfile:
+        path: "{{ item }}"
+        block: |
+          auth        required      pam_env.so
+          auth        sufficient    pam_unix.so nullok try_first_pass
+          auth        requisite     pam_succeed_if.so uid >= 1000 quiet_success
+          auth        sufficient    pam_ldap.so use_first_pass
+          auth        required      pam_deny.so
+        create: yes
+      loop:
+        - /etc/pam.d/password-auth
+        - /etc/pam.d/system-auth
+        - /etc/pam.d/sshd
 
     - name: LDAP | Update LDAP Configuration with LDAP_SERVER and BASE_DN
       ansible.builtin.blockinfile:
@@ -46,13 +60,11 @@
         replace: yes
 
     - name: Allow SSH authentication
-      ansible.builtin.command: sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
-
-    - name: Restart SSH Service
-      ansible.builtin.systemd:
-         name: sshd
-         state: restarted
-         enabled: yes
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+      notify: Restart SSH Service
 
     - name: Restart and enable the services
       ansible.builtin.systemd:
@@ -63,3 +75,10 @@
         - nslcd
         - nscd
   when: rhel_version.stdout in ["7", "8"]
+
+handlers:
+  - name: Restart SSH Service
+    ansible.builtin.service:
+      name: sshd
+      state: restarted
+      enabled: yes
