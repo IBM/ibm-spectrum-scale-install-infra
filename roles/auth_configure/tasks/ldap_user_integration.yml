@@ -49,6 +49,11 @@
         - /etc/pam.d/system-auth
         - /etc/pam.d/sshd
 
+    - name: Remove nslcd.conf file
+      ansible.builtin.file:
+        path: /etc/nslcd.conf
+        state: absent
+
     - name: LDAP | Update LDAP Configuration with LDAP_SERVER and BASE_DN
       ansible.builtin.blockinfile:
         path: /etc/nslcd.conf
