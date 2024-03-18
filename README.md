@@ -35,7 +35,9 @@ Features
 
 - [x] Support for RHEL 7 on x86_64, PPC64 and PPC64LE
 - [x] Support for RHEL 8 on x86_64 and PPC64LE
+- [x] Support for RHEL 9 on x86_64 and PPC64LE
 - [x] Support for UBUNTU 20 on x86_64 and PPC64LE
+- [x] Support for UBUNTU 22 on x86_64
 - [x] Support for SLES 15 on x86_64 and PPC64LE
 
 #### Common prerequisites
