@@ -22,22 +22,43 @@
         when:
            - scale_existing_bucket.stdout_lines is defined
 
+      - name: create | Find existing Bucket(s)
+        shell: mmafmcoskeys all get --report | grep -v HEADER | cut -d '=' -f 1 | uniq
+        register: scale_existing_bucket_list
+        changed_when: false
+        failed_when: false
+
+      - debug:
+           msg: "{{scale_existing_bucket_list.stdout_lines}}"
+        changed_when: false
+        failed_when: false
+        when:
+           - scale_existing_bucket_list.stdout_lines is defined
+
       - name: create | Initialize
         set_fact:
           extra_option_flag: ""
+          all_existing_bucket: []
+
+      - set_fact:
+            all_existing_bucket: "{{ scale_existing_bucket.stdout_lines + scale_existing_bucket_list.stdout_lines }}"
+            
+
+      - debug:
+           msg: "{{all_existing_bucket}}"
 
       - name: create | Set existing bucket if it is defined
         set_fact:
           extra_option_flag: "{{ extra_option_flag }} --bucket {{ item.bucket }}"
         when:
-          - item.bucket in scale_existing_bucket.stdout_lines
+          - item.bucket in all_existing_bucket
           - item.bucket is defined
       
       - name: create | Set new bucket if it is defined
         set_fact:
           extra_option_flag: "{{ extra_option_flag }} --new-bucket {{ item.bucket }}"
         when:
-          - item.bucket not in scale_existing_bucket.stdout_lines
+          - item.bucket not in all_existing_bucket
           - item.bucket is defined
 
       - name: create | Set mode if it is defined
