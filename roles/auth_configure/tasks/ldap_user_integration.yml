@@ -1,68 +1,74 @@
 ---
-# Installing required ldap client packages for the integration.
+# Installing required LDAP client packages for the integration.
 
 - name: LDAP | OS version check
   ansible.builtin.shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
   register: rhel_version
   changed_when: false
 
-- name: LDAP | Enable LDAP authentication
-  ansible.builtin.command:
-    cmd: authconfig --enableldap --enableldapauth --ldapserver=ldap://{{ LDAP_SERVER_IP }} --ldapbasedn="dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" --enablemkhomedir --update
-  register: enable_authconfig
+- block:
+    - name: LDAP | Enable LDAP authentication
+      ansible.builtin.command:
+        cmd: authconfig --enableldap --enableldapauth --ldapserver=ldap://{{ LDAP_SERVER_IP }} --ldapbasedn="dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" --enablemkhomedir --update
+      register: enable_authconfig
 
-- debug:
-    var: enable_authconfig.stdout_lines
+    - debug:
+        var: enable_authconfig.stdout_lines
 
-- name: Update nsswitch.conf
-  ansible.builtin.lineinfile:
-    path: /etc/nsswitch.conf
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  loop:
-    - { regexp: '^passwd:', line: 'passwd: files ldap' }
-    - { regexp: '^shadow:', line: 'shadow: files ldap' }
-    - { regexp: '^group:', line: 'group: files ldap' }
+    - name: Update nsswitch.conf
+      ansible.builtin.lineinfile:
+        path: /etc/nsswitch.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^passwd:', line: 'passwd: files ldap' }
+        - { regexp: '^shadow:', line: 'shadow: files ldap' }
+        - { regexp: '^group:', line: 'group: files ldap' }
 
-- name: Remove 'auth' lines from password-auth PAM configuration
-  ansible.builtin.lineinfile:
-    path: "{{ item }}"
-    state: absent
-    regexp: '^auth.*'
-  loop:
-    - /etc/pam.d/password-auth
-    - /etc/pam.d/system-auth
+    - name: Remove 'auth' lines from password-auth PAM configuration
+      ansible.builtin.lineinfile:
+        path: "{{ item }}"
+        state: absent
+        regexp: '^auth.*'
+      loop:
+        - /etc/pam.d/password-auth
+        - /etc/pam.d/system-auth
 
-- name: Add custom auth lines to PAM configuration files
-  ansible.builtin.blockinfile:
-    path: "{{ item }}"
-    block: |
-      auth        required      pam_env.so
-      auth        sufficient    pam_unix.so nullok try_first_pass
-      auth        requisite     pam_succeed_if.so uid >= 1000 quiet_success
-      auth        sufficient    pam_ldap.so use_first_pass
-      auth        required      pam_deny.so
-    create: yes
-  loop:
-    - /etc/pam.d/password-auth
-    - /etc/pam.d/system-auth
-    - /etc/pam.d/sshd
+    - name: Add custom auth lines to PAM configuration files
+      ansible.builtin.blockinfile:
+        path: "{{ item }}"
+        block: |
+          auth        required      pam_env.so
+          auth        sufficient    pam_unix.so nullok try_first_pass
+          auth        requisite     pam_succeed_if.so uid >= 1000 quiet_success
+          auth        sufficient    pam_ldap.so use_first_pass
+          auth        required      pam_deny.so
+        create: yes
+      loop:
+        - /etc/pam.d/password-auth
+        - /etc/pam.d/system-auth
+        - /etc/pam.d/sshd
 
-- name: LDAP | Update LDAP Configuration with LDAP_SERVER and BASE_DN
-  ansible.builtin.command: echo "uid nslcd\ngid ldap\nuri ldap://{{ LDAP_SERVER_IP }}/nbase dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" > /etc/nslcd.conf
+    - name: LDAP | Update LDAP Configuration with LDAP_SERVER and BASE_DN
+      ansible.builtin.blockinfile:
+        path: /etc/nslcd.conf
+        block: |
+          uid nslcd
+          gid ldap
+          uri ldap://{{ LDAP_SERVER_IP }}/
+          base dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+        create: yes
 
-- name: Allow SSH authentication
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^PasswordAuthentication'
-    line: 'PasswordAuthentication yes'
-  notify: Restart SSH Service
+    - name: Allow SSH authentication
+      ansible.builtin.command: sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      notify: Restart SSH Service
 
-- name: Restart and enable the services
-  ansible.builtin.systemd:
-    name: "{{ item }}"
-    state: restarted
-    enabled: yes
-  loop:
-    - nslcd
-    - nscd
+    - name: Restart and enable the services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: restarted
+        enabled: yes
+      loop:
+        - nslcd
+        - nscd
+  when: rhel_version.stdout in ["7", "8"]
