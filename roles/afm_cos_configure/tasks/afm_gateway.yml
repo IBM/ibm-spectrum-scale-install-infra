@@ -29,3 +29,18 @@
 - debug:
     msg: "{{ result_gateway.cmd }}"
   when: result_gateway.cmd is defined
+
+- name: storage | Mount filesystem(s) on AFM gateway nodes
+  vars:
+     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | list }}"
+  command: "{{ scale_command_path }}mmmount all -N {{ scale_gateway_node | join(',') }}"
+  changed_when: false
+  run_once: true
+  failed_when: false
+  ignore_errors: yes
+  register: scale_mount_fs_cloud
+  when: groups['scale_gateway_nodes'] | list | length > 0
+
+- debug:
+    msg: "{{ scale_mount_fs_cloud }}"
+  when: scale_mount_fs_cloud is defined
