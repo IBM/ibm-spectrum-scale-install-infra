@@ -14,7 +14,7 @@
     name: spectrum-scale-s3
     description: IBM Spectrum Scale (s3)
     baseurl: "{{ scale_install_repository_url }}{{ scale_s3_url }}"
-    gpgcheck: no
+    gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
     state: present
