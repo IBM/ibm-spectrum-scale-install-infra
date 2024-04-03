@@ -1,0 +1,4 @@
+---
+handlers:
+  - name: Reload fstab
+    ansible.builtin.command: mount -a

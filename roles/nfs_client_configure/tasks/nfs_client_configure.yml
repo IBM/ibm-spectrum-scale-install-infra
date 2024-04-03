@@ -83,3 +83,13 @@
     - "{{ filesets }}"
     - "{{ mount_output.results }}"
   when: item.1.stdout_lines == []
+
+- name: Add an entry to fstab for permanent mount
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "{{ protocol_node }}:/gpfs/fs1/{{ item.0.name }} {{ item.1.item.mount_path }} nfs4 rw,sec=sys,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev 0 0"
+    insertafter: EOF
+  with_together:
+    - "{{ filesets }}"
+    - "{{ mount_output.results }}"
+  notify: Reload fstab
