@@ -61,3 +61,8 @@
     - "{{ filesets }}"
     - "{{ mount_output.results }}"
   notify: Reload fstab
+
+- name: Set permissions for mounted paths
+  shell: "chmod -R 777 {{ item.item.mount_path }}"
+  loop: "{{ mount_output.results }}"
+  ignore_errors: true
