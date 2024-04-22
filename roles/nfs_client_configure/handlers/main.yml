@@ -1,0 +1,4 @@
+---
+# It used to mount all file systems listed in /etc/fstab
+- name: Reload fstab
+  ansible.builtin.command: mount -a
