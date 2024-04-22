@@ -20,7 +20,7 @@
 
 - name: Create NFS export
   shell: |
-    /usr/lpp/mmfs/bin/mmnfs export add {{ scale_protocols.mountpoint }}/{{ item.item }} --client "{{ compute_subnet_cidr }}(Access_Type=RW,SQUASH=no_root_squash)"
+    /usr/lpp/mmfs/bin/mmnfs export add {{ scale_protocols.mountpoint }}/{{ item.item }} --client "{{ compute_subnet_cidr }}(Access_Type=RW,SQUASH=root_squash)"
     sleep 10              #This is temporary fix for Dbus error.
   with_items: "{{ export_list_exists.results }}"
   register: created_nfs_export

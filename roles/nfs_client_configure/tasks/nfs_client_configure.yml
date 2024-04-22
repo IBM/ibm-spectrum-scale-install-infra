@@ -64,5 +64,5 @@
 
 - name: Set permissions for mounted paths
   shell: "chmod -R 777 {{ item.item.mount_path }}"
-  loop: "{{ mount_output.results }}"
+  loop: "{{ mount_output.results | rejectattr('item.mount_path', 'match', '\\.snapshots$') }}"
   ignore_errors: true
