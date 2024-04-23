@@ -80,138 +80,160 @@ Please define the CES shared root file system in the inventory."
    fail_msg: "Installer did not find the file system mount point point to be used for CES (protocols) shared root.
 Please define the CES shared root file system mount point in the inventory."
 
-# - block:
-#   - name: check | Check if ces export ips are defined
-#     assert:
-#      that:
-#      - item.export_ip_pool is defined
-#      - item.export_ip_pool|length > 0
-#      fail_msg: "CES export ip pool is not defined or empty for group {{ item.group_name }}"
-#     with_items:
-#     - "{{ scale_protocols.scale_ces_groups }}"
+- block:
+  - name: check | Check if ces export ips are defined
+    assert:
+     that:
+     - item.export_ip_pool is defined
+     - item.export_ip_pool|length > 0
+     fail_msg: "CES export ip pool is not defined or empty for group {{ item.group_name }}"
+    with_items:
+    - "{{ scale_protocols.scale_ces_groups }}"
 
-#   - name: check | Check if export ips are duplicated
-#     assert:
-#      that:
-#      - item.export_ip_pool|length == item.export_ip_pool|unique|length
-#      fail_msg: "Duplicate ips found in export ip pool for group {{ item.group_name }}"
-#     with_items:
-#     - "{{ scale_protocols.scale_ces_groups }}"
-#   when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0 and scale_protocols.export_ip_pool is defined
+  - name: check | Check if export ips are duplicated
+    assert:
+     that:
+     - item.export_ip_pool|length == item.export_ip_pool|unique|length
+     fail_msg: "Duplicate ips found in export ip pool for group {{ item.group_name }}"
+    with_items:
+    - "{{ scale_protocols.scale_ces_groups }}"
+  when: scale_protocols.export_ip_pool is defined
 
-# - block:
-#   - name: check | Check if ces export ips are defined
-#     assert:
-#      that:
-#      - scale_protocols.export_ip_pool is defined
-#      - scale_protocols.export_ip_pool|length > 0
-#      fail_msg: "CES export ip pool is not defined or empty"
-#     run_once: true
+- block:
+  - name: check | Check if ces export ips are defined
+    assert:
+     that:
+     - scale_protocols.export_ip_pool is defined
+     - scale_protocols.export_ip_pool|length > 0
+     fail_msg: "CES export ip pool is not defined or empty"
+    run_once: true
 
-#   - name: check | Collect unique export ips
-#     set_fact:
-#      scale_export_ip: "{{ scale_protocols.export_ip_pool|unique }}"
-#     run_once: true
+  - name: check | Collect unique export ips
+    set_fact:
+     scale_export_ip: "{{ scale_protocols.export_ip_pool|unique }}"
+    run_once: true
 
-#   - name: check | Check if export ips are duplicated
-#     assert:
-#      that:
-#      - scale_protocols.export_ip_pool|length == scale_export_ip|length
-#      fail_msg: "Duplicate ips found in export ip pool"
-#     run_once: true
-#   when: scale_protocols.scale_ces_groups is not defined
+  - name: check | Check if export ips are duplicated
+    assert:
+     that:
+     - scale_protocols.export_ip_pool|length == scale_export_ip|length
+     fail_msg: "Duplicate ips found in export ip pool"
+    run_once: true
+  when: scale_protocols.export_ip_pool is defined
 
-# - name: check | Get list of GPFS nodes which are not reporting active state
-#   shell:
-#    cmd: "{{ scale_command_path }}mmgetstate|grep active"
-#   register: inactive_nodes
-#   ignore_errors: true
-#   failed_when: false
+- block:
+  - name: check | Check if CES export node ips map is defined
+    assert:
+     that:
+     - scale_protocols.export_node_ip_map is defined
+     - scale_protocols.export_node_ip_map|length > 0
+     fail_msg: "CES export ip pool map is not defined or empty"
+    run_once: true
 
-# - name: check | Check if any nodes are inactive
-#   assert:
-#    that:
-#    - inactive_nodes.rc == 0
-#    fail_msg: "GPFS is not active on: {{ ansible_hostname }}. Ensure GPFS is active on all nodes before continuing with the install toolkit"
+  - name: check | Collect unique export ips
+    set_fact:
+     scale_export_ip: "{{ scale_protocols.export_node_ip_map|unique }}"
+    run_once: true
 
-# - name: check | Check if ccr is enabled
-#   shell:
-#    cmd: "{{ scale_command_path }}mmlscluster|grep CCR"
-#   register: ccr_status
-#   failed_when: false
+  - name: check | Check if export ips are duplicated
+    assert:
+     that:
+     - scale_protocols.export_node_ip_map|length == scale_export_ip|length
+     fail_msg: "Duplicate ips found in export ip pool"
+    run_once: true
+  when: scale_protocols.export_node_ip_map is defined
 
-# - name: check | Check if ccr is enabled
-#   assert:
-#    that:
-#    - ccr_status.rc == 0
-#    fail_msg: "CCR is not enabled on the cluster. CCR must be enabled to install protocols"
+- name: check | Get list of GPFS nodes which are not reporting active state
+  shell:
+   cmd: "{{ scale_command_path }}mmgetstate|grep active"
+  register: inactive_nodes
+  ignore_errors: true
+  failed_when: false
 
-#   when: scale_protocols.export_ip_pool is defined
+- name: check | Check if any nodes are inactive
+  assert:
+   that:
+   - inactive_nodes.rc == 0
+   fail_msg: "GPFS is not active on: {{ ansible_hostname }}. Ensure GPFS is active on all nodes before continuing with the install toolkit"
 
-# - block:
-#   - name: check | Extract ip list
-#     set_fact:
-#      scale_ces_export_ip: "{{ scale_ces_export_ip + [ item.export_ip_pool ] }}"
-#     with_items:
-#     - "{{ scale_protocols.scale_ces_groups }}"
+- name: check | Check if ccr is enabled
+  shell:
+   cmd: "{{ scale_command_path }}mmlscluster|grep CCR"
+  register: ccr_status
+  failed_when: false
 
-#   - name: check | Prepare CES ip list
-#     set_fact:
-#      scale_export_ip: "{{ scale_ces_export_ip|flatten }}"
+- name: check | Check if ccr is enabled
+  assert:
+   that:
+   - ccr_status.rc == 0
+   fail_msg: "CCR is not enabled on the cluster. CCR must be enabled to install protocols"
 
-#   - name: check | Prepare IPv6 export ip list
-#     set_fact:
-#      scale_ces_ipv6_list: "{{ scale_ces_ipv6_list + [ item ]}}"
-#     when: item is regex ( scale_ipv6_regex )
-#     with_items:
-#     - "{{ scale_export_ip }}"
+  when: scale_protocols.export_ip_pool is defined or scale_protocols.export_node_ip_map is defined
 
-#   - name: check | Prepare IPv4 export ip list
-#     set_fact:
-#      scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
-#     when: item is regex ( scale_ipv4_regex )
-#     with_items:
-#     - "{{ scale_export_ip }}"
+- block:
+  - name: check | Extract ip list
+    set_fact:
+     scale_ces_export_ip: "{{ scale_ces_export_ip + [ item.export_ip_pool ] }}"
+    with_items:
+    - "{{ scale_protocols.scale_ces_groups }}"
 
-#   - name: check | Check if interface is defined
-#     assert:
-#      that:
-#      - scale_protocols.interface|length > 0
-#     when: scale_ces_ipv6_list|length > 0
+  - name: check | Prepare CES ip list
+    set_fact:
+     scale_export_ip: "{{ scale_ces_export_ip|flatten }}"
 
-#   - name: check | Check if all ces ips are either IPv4 or IPv6
-#     debug:
-#      msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6."
-#     when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
-#     failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
+  - name: check | Prepare IPv6 export ip list
+    set_fact:
+     scale_ces_ipv6_list: "{{ scale_ces_ipv6_list + [ item ]}}"
+    when: item is regex ( scale_ipv6_regex )
+    with_items:
+    - "{{ scale_export_ip }}"
 
-#   when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0 and scale_protocols.export_ip_pool is defined
+  - name: check | Prepare IPv4 export ip list
+    set_fact:
+     scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
+    when: item is regex ( scale_ipv4_regex )
+    with_items:
+    - "{{ scale_export_ip }}"
 
-# - block:
-#   - name: check | Prepare IPv6 export ip list
-#     set_fact:
-#      scale_ces_ipv6_list: "{{ scale_ces_ipv6_list + [ item ]}}"
-#     when: item is regex ( scale_ipv6_regex )
-#     with_items:
-#     - "{{ scale_protocols.export_ip_pool }}"
+  - name: check | Check if interface is defined
+    assert:
+     that:
+     - scale_protocols.interface|length > 0
+    when: scale_ces_ipv6_list|length > 0
 
-#   - name: check | Prepare IPv4 export ip list
-#     set_fact:
-#      scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
-#     when: item is regex ( scale_ipv4_regex )
-#     with_items:
-#     - "{{ scale_protocols.export_ip_pool }}"
+  - name: check | Check if all ces ips are either IPv4 or IPv6
+    debug:
+     msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6."
+    when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
+    failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
 
-#   - name: check | Check if interface is defined
-#     assert:
-#      that:
-#      - scale_protocols.interface|length > 0
-#     when: scale_ces_ipv6_list|length > 0
+  when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0 and scale_protocols.export_ip_pool is defined and scale_protocols.export_node_ip_map is not defined
 
-#   - name: check | Check if all ces ips are either IPv4 or IPv6
-#     debug:
-#      msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6."
-#     when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
-#     failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
+- block:
+  - name: check | Prepare IPv6 export ip list
+    set_fact:
+     scale_ces_ipv6_list: "{{ scale_ces_ipv6_list + [ item ]}}"
+    when: item is regex ( scale_ipv6_regex )
+    with_items:
+    - "{{ scale_protocols.export_ip_pool }}"
 
-#   when: scale_protocols.scale_ces_groups is not defined and scale_protocols.export_ip_pool is defined
+  - name: check | Prepare IPv4 export ip list
+    set_fact:
+     scale_ces_ipv4_list: "{{ scale_ces_ipv4_list + [ item ]}}"
+    when: item is regex ( scale_ipv4_regex )
+    with_items:
+    - "{{ scale_protocols.export_ip_pool }}"
+
+  - name: check | Check if interface is defined
+    assert:
+     that:
+     - scale_protocols.interface|length > 0
+    when: scale_ces_ipv6_list|length > 0
+
+  - name: check | Check if all ces ips are either IPv4 or IPv6
+    debug:
+     msg: "Mixed IPs detected. All CES export IPs can be either IPv4 or IPv6."
+    when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
+    failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
+
+  when: scale_protocols.scale_ces_groups is not defined and scale_protocols.export_ip_pool is defined and scale_protocols.export_node_ip_map is not defined 
