@@ -5,6 +5,7 @@
    scale_export_ips: ""
    scale_server_nodes: ""
    scale_service_list: []
+   scale_export_node_ip_map: []
    scale_ces_nodes: ""
 
 - name: check | Set default daemon nodename
@@ -233,29 +234,51 @@
     with_items:
     - "{{ scale_protocols.scale_ces_groups }}"
   when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0
-
+  
 - block:
-  - name: configure | Prepare export ips string
+  - name: configure | Prepare export CES nodes ips map
     set_fact:
-     scale_export_ips: "{{ scale_export_ips + ',' + item|string }}"
+     scale_export_node_ip_map: "{{ scale_protocols.export_node_ip_map }}"
     with_items:
-    - "{{ scale_protocols.export_ip_pool }}"
+    - "{{ scale_protocols.export_node_ip_map }}"
     delegate_to: "{{ scale_protocol_node_list.0 }}"
     run_once: true
+    register: scale_export_node_ip_map
 
-  - name: configure | Assign export ips as pool
-    command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
+  - name: Print node name and IP address
+    debug:
+      msg: "Node name: {{ item.item.keys() | first }}, IP address: {{ item.item.values() | first }}"
+    loop: "{{ scale_export_node_ip_map.results }}"
+
+  - name: configure | Assign export ips to CES nodes
+    command: "{{ scale_command_path }}mmces address add --ces-node {{ item.item.keys() | first }} --ces-ip {{ item.item.values() | first }}"
     when: scale_protocols.scale_ces_groups is not defined
     delegate_to: "{{ scale_protocol_node_list.0 }}"
+    loop: "{{ scale_export_node_ip_map.results }}"
     run_once: true
 
-  when: scale_protocols.scale_ces_groups is not defined
+# - block:
+#   - name: configure | Prepare export ips string
+#     set_fact:
+#      scale_export_ips: "{{ scale_export_ips + ',' + item|string }}"
+#     with_items:
+#     - "{{ scale_protocols.export_ip_pool }}"
+#     delegate_to: "{{ scale_protocol_node_list.0 }}"
+#     run_once: true
 
-- name: configure | Rebalance CES IPs
-  command: "{{ scale_command_path }}mmces address move --rebalance"
-  #when: inventory_hostname in scale_protocol_node_list
-  delegate_to: "{{ scale_protocol_node_list.0 }}"
-  run_once: true
+#   - name: configure | Assign export ips as pool
+#     command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
+#     when: scale_protocols.scale_ces_groups is not defined
+#     delegate_to: "{{ scale_protocol_node_list.0 }}"
+#     run_once: true
+
+#   when: scale_protocols.scale_ces_groups is not defined
+
+# - name: configure | Rebalance CES IPs
+#   command: "{{ scale_command_path }}mmces address move --rebalance"
+#   #when: inventory_hostname in scale_protocol_node_list
+#   delegate_to: "{{ scale_protocol_node_list.0 }}"
+#   run_once: true
 
 - name: configure | Check if zimon sensor is configured
   shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
