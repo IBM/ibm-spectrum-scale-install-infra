@@ -97,7 +97,7 @@ Please define the CES shared root file system mount point in the inventory."
      fail_msg: "Duplicate ips found in export ip pool for group {{ item.group_name }}"
     with_items:
     - "{{ scale_protocols.scale_ces_groups }}"
-  when: scale_protocols.export_ip_pool is defined
+  when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0 and scale_protocols.export_ip_pool is not defined and scale_protocols.export_node_ip_map is not defined
 
 - block:
   - name: check | Check if ces export ips are defined
