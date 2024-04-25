@@ -26,7 +26,7 @@
   register: created_nfs_export
   when: is_admin_node | default(false) == true and item.rc != 0
   run_once: true
-  
+
 - name: Check NFS export list
   command: /usr/lpp/mmfs/bin/mmnfs export list
   register: export_list
