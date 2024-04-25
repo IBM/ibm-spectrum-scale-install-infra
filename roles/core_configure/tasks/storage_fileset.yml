@@ -144,3 +144,12 @@
 
   run_once: true
   delegate_to: "{{ groups['scale_cluster_admin_nodes'].0 }}"
+
+- name: Update permissions for userinput filesets
+  shell: >
+    find {{ scale_storage[0].defaultMountPoint }}/{{ item.key }} -type d ! -path '{{ scale_storage[0].defaultMountPoint }}/{{ item.key }}/.snapshots' -exec chmod 777 {} +
+  loop: "{{ scale_storage[0].filesets | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  run_once: true
+  when: scale_storage[0].filesets is defined
