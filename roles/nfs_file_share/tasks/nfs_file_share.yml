@@ -26,14 +26,7 @@
   register: created_nfs_export
   when: is_admin_node | default(false) == true and item.rc != 0
   run_once: true
-
-# - name: Update permissions for directories in export list
-#   shell: |
-#     find {{ scale_protocols.mountpoint }}/{{ item.item }} -type d ! -path "{{ scale_protocols.mountpoint }}/{{ item.item }}/.snapshots" -exec chmod 777 {} +
-#   with_items: "{{ export_list_exists.results }}"
-#   when: is_admin_node | default(false) == true and item.rc != 0 and scale_protocols.mountpoint is defined
-#   run_once: true
-
+  
 - name: Check NFS export list
   command: /usr/lpp/mmfs/bin/mmnfs export list
   register: export_list
