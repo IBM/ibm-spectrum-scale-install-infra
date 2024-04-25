@@ -9,6 +9,7 @@
    scale_os_list: []
    scale_arch_list: []
    scale_export_ip: []
+   scale_export_node_ip_map: []
    scale_ces_export_ip: []
    scale_ces_ipv6_list: []
    scale_ces_ipv4_list: []
@@ -96,7 +97,7 @@ Please define the CES shared root file system mount point in the inventory."
      fail_msg: "Duplicate ips found in export ip pool for group {{ item.group_name }}"
     with_items:
     - "{{ scale_protocols.scale_ces_groups }}"
-  when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0
+  when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0 and scale_protocols.export_ip_pool is defined and scale_protocols.export_node_ip_map is not defined 
 
 - block:
   - name: check | Check if ces export ips are defined
@@ -118,7 +119,17 @@ Please define the CES shared root file system mount point in the inventory."
      - scale_protocols.export_ip_pool|length == scale_export_ip|length
      fail_msg: "Duplicate ips found in export ip pool"
     run_once: true
-  when: scale_protocols.scale_ces_groups is not defined
+  when: scale_protocols.scale_ces_groups is not defined and scale_protocols.export_ip_pool is defined
+
+- block:
+  - name: check | Check if CES export node ips map is defined
+    assert:
+     that:
+     - scale_protocols.export_node_ip_map is defined
+     - scale_protocols.export_node_ip_map|length > 0
+     fail_msg: "CES export ip pool map is not defined or empty"
+    run_once: true
+  when: scale_protocols.export_node_ip_map is defined
 
 - name: check | Get list of GPFS nodes which are not reporting active state
   shell:
@@ -144,6 +155,8 @@ Please define the CES shared root file system mount point in the inventory."
    that:
    - ccr_status.rc == 0
    fail_msg: "CCR is not enabled on the cluster. CCR must be enabled to install protocols"
+
+  when: scale_protocols.export_ip_pool is defined or scale_protocols.export_node_ip_map is defined
 
 - block:
   - name: check | Extract ip list
@@ -182,7 +195,7 @@ Please define the CES shared root file system mount point in the inventory."
     when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
     failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
 
-  when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0
+  when: scale_protocols.scale_ces_groups is defined and scale_protocols.scale_ces_groups|length > 0 and scale_protocols.export_ip_pool is defined and scale_protocols.export_node_ip_map is not defined
 
 - block:
   - name: check | Prepare IPv6 export ip list
@@ -211,4 +224,4 @@ Please define the CES shared root file system mount point in the inventory."
     when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
     failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
 
-  when: scale_protocols.scale_ces_groups is not defined
+  when: scale_protocols.scale_ces_groups is not defined and scale_protocols.export_ip_pool is defined and scale_protocols.export_node_ip_map is not defined 
