@@ -1,0 +1,5 @@
+---
+# tasks file for cluster
+- import_tasks: configure.yml
+  when: scale_protocols is defined and scale_protocols.s3|bool
+  tags: config

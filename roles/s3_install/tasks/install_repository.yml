@@ -1,0 +1,31 @@
+---
+- name: install | s3 path
+  set_fact:
+   scale_s3_url: 's3_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: install | s3 path
+  set_fact:
+   scale_s3_url: 's3_rpms/rhel9/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
+
+- name: install | Configure s3 YUM repository
+  yum_repository:
+    name: spectrum-scale-s3
+    description: IBM Spectrum Scale (s3)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_s3_url }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
+    repo_gpgcheck: no
+    sslverify: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url is defined
+    - scale_install_repository_url != 'existing'
+
+- name: install | Add GPFS s3 packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_s3_packages }}"

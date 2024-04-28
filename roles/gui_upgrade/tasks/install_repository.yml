@@ -1,6 +1,13 @@
 ---
 # YUM repository installation method
 
+- name: initialize
+  set_fact:
+    gui_url: "gpfs_rpms/"
+
+- set_fact:
+     gui_url: ""
+  when: scale_baseurl is defined
 #
 # Configure YUM repository
 #
@@ -8,7 +15,7 @@
   yum_repository:
     name: spectrum-scale-gui
     description: IBM Spectrum Scale (GUI)
-    baseurl: "{{ scale_install_repository_url }}gpfs_rpms/"
+    baseurl: "{{ scale_install_repository_url }}{{ gui_url }}"
     gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no

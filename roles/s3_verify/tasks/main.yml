@@ -1,0 +1,5 @@
+---
+# tasks file for postcheck
+- import_tasks: check.yml
+  when: protocols is defined and protocols.s3|bool
+  tags: always

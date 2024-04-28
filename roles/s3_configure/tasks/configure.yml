@@ -1,0 +1,6 @@
+---
+- name: configure | Enable S3
+  shell:
+   cmd: "{{ scale_command_path }}mmces service enable S3"
+  delegate_to: "{{ scale_s3_node_list.0 }}"
+  run_once: true

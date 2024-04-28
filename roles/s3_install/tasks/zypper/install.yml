@@ -1,0 +1,7 @@
+---
+- name: install | Install GPFS S3 packages
+  zypper:
+   name: "{{ scale_install_all_packages }}"
+   state: present
+   disable_gpg_check: no
+  when: inventory_hostname in scale_s3_node_list
