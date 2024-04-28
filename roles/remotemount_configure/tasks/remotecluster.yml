@@ -288,9 +288,6 @@
           owning_nodes_name: "{{ owning_nodes_name + [item.adminNodeName] }}"
       with_items: "{{ owning_cluster_nodes.json.nodes }}"
       run_once: True
-  
-    - debug:
-        msg: "{{owning_nodes_name}}"
 
 #
 # This Section is when using daemonNodeName
