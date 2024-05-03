@@ -126,3 +126,13 @@
   with_items:
     - gpfs.java*
   when: (is_scale_java_pkg_installed | bool)
+
+#
+# Add GPFS packages for building MOS from source
+#
+- name: install | Add scale api package to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  when: scale_mos is defined
+  with_items:
+      - gpfs.scaleapi
