@@ -6,3 +6,12 @@
 
 - import_tasks: build.yml
   tags: build
+
+- import_tasks: install_nodeid.yml 
+  tags: install
+  when:
+    - scale_mos is defined
+    - scale_node_id_config is defined
+    - scale_node_id_config.cert is defined
+    - scale_node_id_config.key is defined
+    - scale_node_id_config.chain is defined
