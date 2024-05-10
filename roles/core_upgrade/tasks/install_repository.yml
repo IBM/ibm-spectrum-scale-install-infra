@@ -91,6 +91,8 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_hpt_packages }}"
+  when:
+    - ansible_architecture != "aarch64"
 
 - name: upgrade | Check if gpfs java package is installed
   shell: rpm -q gpfs.java
