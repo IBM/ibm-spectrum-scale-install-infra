@@ -13,22 +13,22 @@
       when: scale_node_id_config.cert_dir_location is defined
 
     - name: install | Copy installation package to node
-      synchronize:
+      copy:
         src: "{{ scale_node_id_config.cert }}"
         dest: "{{ scale_node_id_config.cert }}"
-        use_ssh_args: yes
+        mode: '0600'
 
     - name: install | Copy installation package to node
-      synchronize:
+      copy:
         src: "{{ scale_node_id_config.key }}"
         dest: "{{ scale_node_id_config.key }}"
-        use_ssh_args: yes
+        mode: '0600'
 
     - name: install | Copy installation package to node
-      synchronize:
+      copy:
         src: "{{ scale_node_id_config.chain }}"
         dest: "{{ scale_node_id_config.chain }}"
-        use_ssh_args: yes
+        mode: '0600'
 
     - name: cluster | Node identity
       command: /usr/lpp/mmfs/bin/scalectl nodeid get

@@ -71,6 +71,16 @@
          msg: "{{scale_zimon_conf_pmcollector.cmd}}"
       when: scale_zimon_conf_pmcollector.cmd is defined
 
+    - name: configure | Setting server licenses on collector nodes
+      vars:
+        collector_nodes_new: "{{ groups['scale_zimon_collectors'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
+      command: "{{ scale_command_path }}mmchlicense server --accept -N {{ collector_nodes_new | join(',') }}"
+      async: 120
+      poll: 5
+      run_once: true
+      failed_when: false
+      changed_when: false
+
     - name: configure | update performance collection for new node
       vars:
         collector_nodes_new: "{{ groups['scale_zimon_collectors'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"

@@ -1,0 +1,75 @@
+---
+# Start daemons and finalize node roles
+
+#
+# Start daemon on nodes
+#
+- name: cluster | Find delegate node for new cluster
+  set_fact:
+    delegate_node: "{{ groups['scale_cluster_candidates'].0 }}"
+  when:
+    - groups['scale_cluster_candidates'] is defined
+
+- name: cluster | Find delegate node for existing cluster
+  set_fact:
+    delegate_node: "{{ groups['scale_cluster_members'].0 }}"
+  when:
+    - groups['scale_cluster_members'] is defined
+
+- name: cluster | Identify nodes to start daemon on
+  set_fact:
+    scale_daemon_node_list: "{{ scale_daemon_node_list | default([]) + [hostvars[item].scale_daemon_nodename] }}"
+  when:
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'present'
+    - hostvars[item].scale_daemon_nodename is defined
+    - not hostvars[item].scale_daemon_running
+  with_items:
+    - "{{ ansible_play_hosts }}"
+  run_once: true
+  delegate_to: localhost
+
+- block:  ## when: delegate_node is defined
+    - name: cluster | Start daemons
+      command: /usr/lpp/mmfs/bin/scalectl node start -N "{{ scale_daemon_node_list | join(',') }}"
+      when: scale_daemon_node_list is defined and scale_daemon_node_list | length > 0
+      register: scalectl_startup
+      notify: wait-daemon-active
+  when:
+    - delegate_node is defined
+  run_once: true
+  delegate_to: "{{ delegate_node }}"
+
+- debug:
+    msg: "{{scalectl_startup}}"
+  when: scalectl_startup is defined
+
+- meta: flush_handlers
+
+#
+# Change node roles of existing cluster members
+#
+- block:  ## when: groups['scale_cluster_members'] is defined
+    - name: cluster | Prepare existing cluster ChangeFile
+      template:
+        src: ChangeFile.j2
+        dest: /var/mmfs/tmp/ChangeFile
+      register: scale_cluster_changefile
+
+    - block:  ## when: scale_cluster_changefile is changed
+        - name: cluster | Accept server license for quorum nodes
+          vars:
+            quorum_nodes: "{{ groups['scale_cluster_quorum_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
+          command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N {{ quorum_nodes | join(',') }}
+
+        - name: cluster | Change roles of existing nodes
+          command: /usr/lpp/mmfs/bin/mmchnode -S /var/mmfs/tmp/ChangeFile
+          notify: accept-licenses
+
+      when: scale_cluster_changefile is changed
+  when:
+     - groups['scale_cluster_members'] is defined
+     - scale_node_role_change | bool
+  run_once: true
+  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+
+- meta: flush_handlers
