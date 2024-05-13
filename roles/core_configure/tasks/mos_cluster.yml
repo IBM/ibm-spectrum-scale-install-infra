@@ -1,0 +1,278 @@
+---
+# Create cluster with nodes
+
+# Make default variables available in hostvars
+- name: cluster | Set default quorum role
+  set_fact:
+    scale_cluster_quorum: "{{ scale_cluster_quorum }}"
+  when: hostvars[inventory_hostname].scale_cluster_quorum is undefined
+
+- name: cluster | Set default manager role
+  set_fact:
+    scale_cluster_manager: "{{ scale_cluster_manager }}"
+  when: hostvars[inventory_hostname].scale_cluster_manager is undefined
+
+- name: cluster | Set default daemon state
+  set_fact:
+    scale_state: "{{ scale_state }}"
+  when: hostvars[inventory_hostname].scale_state is undefined
+
+# Cleanup groups from previous play
+#- meta: refresh_inventory
+
+#
+# Inspect existing cluster and inventory
+#
+- name: cluster | Find existing cluster
+  shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterSummary | cut -d ':' -f 8
+  register: scale_cluster_clusterId
+  changed_when: false
+  failed_when: false
+
+- name: cluster | Find existing cluster members
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_members
+  when:
+    - hostvars[item].scale_cluster_clusterId.stdout
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+- name: cluster | Find new cluster candidates
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_candidates
+  when:
+    - not hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+#
+# Assign default quorum nodes
+#
+- name: cluster | Assign default quorum nodes
+  set_fact:
+    scale_cluster_quorum: true
+  when: true not in ansible_play_hosts | map('extract', hostvars, 'scale_cluster_quorum') | map('bool') | list
+  with_sequence: start=1 end={{ [ ansible_play_hosts | length, 7 ] | min }}
+  run_once: true
+  delegate_to: "{{ ansible_play_hosts[item | int - 1] }}"
+  delegate_facts: true
+
+- name: cluster | Find quorum nodes
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_quorum_nodes
+  when: hostvars[item].scale_cluster_quorum | bool
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+- name: cluster | Find GPFS user profile
+  find:
+    paths: "{{ scale_cluster_profile_dir_path }}"
+    patterns: "{{ scale_cluster_profile_name }}.profile"
+    hidden: yes
+  register: stat_user_profile_result
+  run_once: true
+  delegate_to: localhost
+  when:
+    - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
+    - scale_cluster_profile_name not in scale_cluster_system_profile
+
+- block:
+    - name: cluster | cluster profile name validation
+      assert:
+        that:
+          - scale_cluster_profile_name is not match("gpfs.*")
+        msg: >-
+          A user-defined profile must not begin with the string 'gpfs'
+
+    - name: cluster | cluster profile format validation
+      assert:
+        that:
+          - stat_user_profile_result.matched == 1
+        msg: >-
+          A user-defined profile must have the .profile suffix
+  delegate_to: localhost
+  when:
+    - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
+    - scale_cluster_profile_name not in scale_cluster_system_profile
+
+- block:
+    - name: cluster | Copy user defined profile
+      copy:
+        src: "{{ stat_user_profile_result.files.0.path }}"
+        dest: "{{ scale_cluster_profile_system_path }}"
+        mode: '0444'
+  when:
+    - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
+    - scale_cluster_profile_name not in scale_cluster_system_profile
+
+#
+# Create new cluster
+#
+- block:  ## when: groups['scale_cluster_members'] is undefined
+    - name: cluster | Prepare new cluster NodeFile
+      template:
+        src: NewNodeFile.j2
+        dest: /var/mmfs/tmp/NodeFile
+
+    - name: cluster | Stat GPFS profile file
+      find:
+        paths: "{{ scale_cluster_profile_dir_path }}"
+        patterns: "{{ scale_cluster_profile_name }}.profile"
+      register: stat_profile_result
+
+    - name: cluster | Initialize gpfs profile
+      set_fact:
+         profile_type: ""
+         extra_option: ""
+
+    - name: cluster | set the local node for cluster create
+      set_fact:
+           cluster_local_nodename: "{{ groups['scale_cluster_candidates'].0 }}"
+
+    - name: cluster | Set gpfs profile if it is defined
+      set_fact:
+         profile_type: "--profileName {{ scale_cluster_profile_name }}"
+      when:
+        - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
+        - (stat_profile_result.matched is defined and stat_profile_result.matched == 1) or (stat_user_profile_result.matched is defined and stat_user_profile_result.matched == 1)
+
+    - name: cluster | Set gpfs remote shell command if it is defined
+      set_fact:
+         extra_option: "{{ extra_option }} -r {{ scale_cluster_config.remote_shell }}"
+      when:
+        - scale_cluster_config is defined and scale_cluster_config.remote_shell is defined
+
+    - name: cluster | Set gpfs remote file copy if it is defined
+      set_fact:
+         extra_option: "{{ extra_option }} -R {{ scale_cluster_config.remote_file_copy }}"
+      when:
+        - scale_cluster_config is defined and scale_cluster_config.remote_file_copy is defined
+
+    - name: cluster | Set gpfs cluster user defined port if it is defined
+      set_fact:
+         extra_option: "{{ extra_option }} --port {{ scale_cluster_config.scale_port_number }}"
+      when:
+        - scale_cluster_config is defined and scale_cluster_config.scale_port_number is defined
+
+    - name: cluster | Create new cluster
+      command: /usr/lpp/mmfs/bin/scalectl cluster create -N {{ cluster_local_nodename }} -C {{ scale_cluster_clustername }} {{ extra_option }}
+      notify: accept-licenses
+      register: mmcrcluster_results
+
+    - debug:
+         msg: "{{ mmcrcluster_results.cmd }}"
+
+    - name: cluster | Copy cluster create NodeFile
+      copy:
+        src: /var/mmfs/tmp/NodeFile
+        dest: /usr/lpp/mmfs/
+        mode: a+x
+        remote_src: yes
+      ignore_errors: yes
+
+    - name: cluster | Cleanup new cluster NodeFile
+      file:
+        path: /var/mmfs/tmp/NodeFile
+        state: absent
+
+    - name: cluster | Prepare new cluster ChangeFile for next run
+      template:
+        src: ChangeFile.j2
+        dest: /var/mmfs/tmp/ChangeFile
+  when:
+    - groups['scale_cluster_candidates'] is defined
+    - groups['scale_cluster_members'] is undefined
+  run_once: true
+  delegate_to: "{{ groups['scale_cluster_candidates'].0 }}"
+
+#
+# Inspect existing cluster and inventory
+#
+- name: cluster | Find existing cluster
+  shell: /usr/lpp/mmfs/bin/mmlscluster -Y | grep -v HEADER | grep clusterSummary | cut -d ':' -f 8
+  register: scale_cluster_clusterId
+  changed_when: false
+  failed_when: false
+
+- name: cluster | Find existing cluster members
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_members
+  when:
+    - hostvars[item].scale_cluster_clusterId.stdout
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+- name: cluster | Find new cluster candidates
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_candidates
+  when:
+    - not hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
+#
+# Add nodes to existing cluster
+#
+- block:  ## when: groups['scale_cluster_members'] is defined
+    - name: cluster | Identify nodes to be added on
+      set_fact:
+         scale_add_node_list: "{{ scale_add_node_list | default([]) + [hostvars[item].scale_daemon_nodename] }}"
+      when:
+         - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
+         - not hostvars[item].scale_cluster_clusterId.stdout
+         - hostvars[item].scale_cluster_clusterId.stderr
+      with_items:
+        - "{{ ansible_play_hosts }}"
+      changed_when: false
+
+    - debug:
+        msg: "{{scale_add_node_list}}"
+      when: scale_add_node_list is defined
+
+    - name: cluster | Prepare existing cluster NodeFile
+      template:
+        src: AddNodeFile.j2
+        dest: /var/mmfs/tmp/NodeFile
+
+    - name: cluster | Add new nodes to cluster
+      command: /usr/lpp/mmfs/bin/scalectl node add -N "{{ item }}"
+      register: mmadd_results
+      with_items:
+          - "{{ scale_add_node_list }}"
+      when:
+         - "{{ scale_add_node_list| length > 0 }}" 
+
+    - debug:
+         msg: "{{ mmadd_results.cmd }}"
+      when:  mmadd_results.cmd is defined
+
+    - name: cluster | Copy Add node NodeFile
+      copy:
+        src: /var/mmfs/tmp/NodeFile
+        dest: /usr/lpp/mmfs/
+        mode: a+x
+        remote_src: yes
+      ignore_errors: yes
+
+    - name: cluster | Cleanup existing cluster NodeFile
+      file:
+        path: /var/mmfs/tmp/NodeFile
+        state: absent
+  when:
+    - groups['scale_cluster_candidates'] is defined
+    - groups['scale_cluster_members'] is defined
+  run_once: true
+  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+
+- meta: flush_handlers
+
+# Node roles will be finalized after daemons are started...
