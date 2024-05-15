@@ -33,7 +33,6 @@
   when: rhel_version.stdout == "8"
   register: install_ldap_client
 
-
 - name: LDAP | Install Packages for RHEL 9
   ansible.builtin.dnf:
     name:
