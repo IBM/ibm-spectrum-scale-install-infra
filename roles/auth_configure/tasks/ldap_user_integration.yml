@@ -149,7 +149,7 @@
         replace: 'PasswordAuthentication yes'
       notify: Restart SSH Service
 
-    - name: Restart sssd service
+    - name: Restart 'sssd' service
       ansible.builtin.service:
         name: sssd
         state: restarted
