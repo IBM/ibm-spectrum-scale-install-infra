@@ -15,6 +15,7 @@
 
         # Import the 'create_ssl_certificate.yml' task for Creating certificate for GKLM.
         - import_tasks: create_ssl_certificate.yml
+          when: password_update_stat.stat.exists == False
 
         # Import the 'connection_wait.yml' task for making the play wait to avoid connection refuse error due to concurrent requests.
         - import_tasks: connection_wait.yml
@@ -62,4 +63,4 @@
             loop_var: server
 
         # Import the 'cleanup_secrets.yml' task for cleaning the security credentials stored locally.
-        - import_tasks: cleanup_secrets.yml
+        # - import_tasks: cleanup_secrets.yml

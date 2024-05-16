@@ -1,0 +1,8 @@
+---
+# Checking file on remote server and making as flag for following tasks.
+
+- name: Check if password_update_success file exists on remote server
+  stat:
+    path: "{{ gklm_dir }}/password_update_success"
+  register: password_update_success_file
+  run_once: true
