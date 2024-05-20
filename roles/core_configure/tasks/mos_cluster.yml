@@ -249,6 +249,7 @@
       with_items:
           - "{{ scale_add_node_list }}"
       when:
+         - scale_add_node_list is defined
          - "{{ scale_add_node_list| length > 0 }}" 
 
     - debug:
