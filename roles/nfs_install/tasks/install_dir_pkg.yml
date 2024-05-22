@@ -102,7 +102,7 @@
   - name: install | Find gpfs.nfs-ganesha (gpfs.nfs-ganesha) package
     find:
      paths:  "{{ gpfs_path_url }}"
-     patterns: gpfs.nfs-ganesha*
+     patterns: "gpfs.nfs-ganesha*.el{{ ansible_distribution_major_version }}.*"
     register: scale_install_gpfs_nfs_ganesha
 
   - name: install | Check valid GPFS (gpfs.nfs-ganesha) package
@@ -124,7 +124,7 @@
   - name: install | Find gpfs.nfs-ganesha-utils (gpfs.nfs-ganesha) package
     find:
      paths:  "{{ gpfs_path_url }}"
-     patterns: gpfs.nfs-ganesha-utils*
+     patterns: "gpfs.nfs-ganesha-utils*.el{{ ansible_distribution_major_version }}.*"
     register: scale_install_gpfs_nfs_utils
 
   - name: install | Check valid GPFS (gpfs.nfs-ganesha) package
@@ -137,7 +137,7 @@
   - name: install | Find gpfs.nfs-ganesha-gpfs (gpfs.nfs-ganesha) package
     find:
      paths:  "{{ gpfs_path_url }}"
-     patterns: gpfs.nfs-ganesha-gpfs*
+     patterns: "gpfs.nfs-ganesha-gpfs*.el{{ ansible_distribution_major_version }}.*"
     register: scale_install_gpfs_nfs_gpfs
 
   - name: install | Check valid GPFS (gpfs.nfs-ganesha) package
@@ -175,7 +175,7 @@
   - name: install | Find gpfs.pm-ganesha (gpfs.pm-ganesha) package
     find:
      paths:  "{{ gpfs_path_url }}"
-     patterns: gpfs.pm-ganesha*
+     patterns: "gpfs.pm-ganesha*.el{{ ansible_distribution_major_version }}.*"
     register: scale_install_gpfs_nfs_pm
 
   - name: install | Check valid GPFS (gpfs.pm-ganesha) package
@@ -189,7 +189,7 @@
   - name: install | Find gpfs.nfs-ganesha (gpfs.nfs-ganesha) package
     find:
      paths:  "{{ gpfs_path_url }}"
-     patterns: gpfs.nfs-ganesha-debuginfo*
+     patterns: "gpfs.nfs-ganesha-debuginfo*.el{{ ansible_distribution_major_version }}.*"
     register: scale_install_gpfs_nfs_ganesha_debuginfo
 
   - name: install | Check valid GPFS (gpfs.nfs-ganesha-debuginfo) package
