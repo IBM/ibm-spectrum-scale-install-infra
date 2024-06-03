@@ -1,0 +1,71 @@
+---
+# Inform user about (offline) update
+
+- name: update | Find current version
+  shell: /usr/lpp/mmfs/bin/mmdiag --version -Y | grep -v HEADER | cut -d ':' -f 7 | tr -d '[:space:]'
+  register: scale_current_version
+  changed_when: false
+  failed_when: false
+
+- name: update | Find current gpfs version
+  shell: rpm -q gpfs.base --queryformat '%{VERSION}-%{RELEASE}\n'
+  register: scale_current_version_gpfs
+  changed_when: false
+  failed_when: false
+
+- name: update | Find available version
+  shell: rpm -qp "{{ scale_gpfs_path_url }}/gpfs.base-*.{{ scale_architecture }}.rpm" --qf '%{VERSION}-%{RELEASE}\n'
+  register: scale_repo_gpfsversion
+  when: scale_install_repository_url is undefined
+  changed_when: false
+
+- name: update | Check if node needs to be updated
+  set_fact:
+    scale_install_needsupdate: "{{ scale_current_version_gpfs.stdout != scale_repo_gpfsversion.stdout }}"
+    scale_repo_gpfsversion: "{{ scale_repo_gpfsversion.stdout }}"
+  when: scale_install_repository_url is undefined
+
+- name: update | Get package version
+  yum:
+    list: gpfs.scaleapi.base
+  register: package_name_version
+
+- name: update | Set package version
+  set_fact:
+    package_name_version: "{{ package_name_version.results|selectattr('yumstate','match','available')|map(attribute='version')|list|first }}"
+    package_name_release: "{{ package_name_version.results|selectattr('yumstate','match','available')|map(attribute='release')|list|first }}"
+  when:
+    - "'available' in package_name_version.results | map(attribute='yumstate') | list"
+
+- name: update | Set gpfs package version
+  set_fact:
+    package_gpfs_version: "{{ package_name_version }}-{{ package_name_release }}"
+  when: scale_install_repository_url is defined
+
+- name: update | Check if node needs to be updated
+  set_fact:
+    scale_install_needsupdate: "{{ scale_current_version_gpfs.stdout != package_gpfs_version }}"
+    scale_repo_gpfsversion: "{{ package_gpfs_version }}"
+  when: scale_install_repository_url is defined
+
+- set_fact:
+    scale_vars_update: "{{ ansible_play_hosts|
+      map('extract', hostvars, 'scale_install_needsupdate')|
+      list }}"
+  run_once: true
+
+- block: ## run_once: true
+    - name: update | Check if any running node needs to be updated
+      vars:
+        msg: |-
+          ######################################################################
+          Spectrum Scale is running, Please stop it for an automatic offline update,
+          or manually perform an online update (by taking down one node at a time)!
+          Current version: {{ scale_current_version_gpfs.stdout }}
+          Available version for update: {{ scale_repo_gpfsversion }}
+          ######################################################################
+      assert:
+        that:
+          - "{{ 'True' not in scale_vars_update }}"
+        msg: "{{ msg.split('\n') }}"
+  run_once: true
