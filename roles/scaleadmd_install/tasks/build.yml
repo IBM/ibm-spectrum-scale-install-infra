@@ -1,0 +1,95 @@
+---
+# Build Linux kernel extension from source
+
+- block:  ## when: scale_install_gplbin_package is undefined
+#
+# Install gplsrc prereqs
+#
+    - name: build | Set prereqs for building GPL from sourece
+      set_fact:
+         scale_build_gplsrc_prereqs: "{{ scale_build_gplsrc_prereqs_s390x }}"
+      when: ansible_architecture == "s390x"
+
+    - name: build | Install prereqs for building GPL module from source
+      yum:
+        name: "{{ scale_build_gplsrc_prereqs }}"
+        state: present
+        disable_excludes: all
+      when: ansible_pkg_mgr == 'yum'
+      register: scale_gpl_yum_result
+      retries: 10
+      until: scale_gpl_yum_result is success
+      delay: 20
+
+    - name: build | Install prereqs for building GPL module from source
+      dnf:
+        name: "{{ scale_build_gplsrc_prereqs }}"
+        state: present
+        disable_excludes: all
+      when: ansible_pkg_mgr == 'dnf'
+      register: scale_gpl_dnf_result
+      retries: 10
+      until: scale_gpl_dnf_result is success
+      delay: 20
+
+    - name: build | Install prereqs for building GPL module from source
+      apt:
+        name: "{{ scale_build_gplsrc_prereqs_deb }}"
+        state: present
+      when: ansible_pkg_mgr == 'apt'
+
+    - name: build | Install prereqs for building GPL module from source
+      zypper:
+        name: "{{ scale_build_gplsrc_prereqs_zypp }}"
+        state: present
+      when: ansible_pkg_mgr == 'zypper'
+
+    - block:  ## when: rhel8 node
+        - name: build | Install prereqs for building GPL from source
+          dnf:
+            name: "{{ scale_build_gplsrc_el8_prereqs }}"
+            state: present
+      when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+#
+# Identify Linux Distribution
+#
+    - name: build | Identify RedHat distribution
+      set_fact:
+        scale_build_distribution: REDHAT_AS_LINUX
+      when:
+        ansible_distribution in scale_rhel_distribution or
+        ansible_distribution in scale_sles_distribution
+
+    - name: build | Identify OS distribution
+      set_fact:
+        scale_build_distribution: UBUNTU_AS_LINUX
+      when:
+        - ansible_distribution in scale_ubuntu_distribution
+
+    - name: build | Check Linux distribution
+      assert:
+        that: scale_build_distribution is defined
+        msg: >-
+          Unsupported Linux distribution {{ ansible_distribution }}!
+
+#
+# Build kernel extension
+#
+    - name: build | Compile GPL module
+      shell: export LINUX_DISTRIBUTION={{ scale_build_distribution }} ; /usr/lpp/mmfs/bin/mmbuildgpl --quiet
+      args:
+        creates: /lib/modules/{{ ansible_kernel }}/extra/mmfs26.ko
+
+    - name: build | Stat GPL module
+      stat:
+        path: /lib/modules/{{ ansible_kernel }}/extra/mmfs26.ko
+      register: scale_build_kmod
+
+    - name: build | Check GPL module
+      assert:
+        that: scale_build_kmod.stat.exists
+        msg: >-
+          Unable to build Linux kernel extension for running kernel
+          {{ ansible_kernel }}!
+  when: scale_install_gplbin_package is undefined

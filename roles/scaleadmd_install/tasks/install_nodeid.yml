@@ -1,0 +1,52 @@
+---
+#
+# Copy ssh key package
+#
+
+- block:
+    - name: install| Creates default directory
+      file:
+        path: "{{ scale_node_id_config.cert_dir_location }}"
+        state: directory
+        mode: '0600'
+        recurse: yes
+      when: scale_node_id_config.cert_dir_location is defined
+
+    - name: install | Copy installation package to node
+      copy:
+        src: "{{ scale_node_id_config.cert }}"
+        dest: "{{ scale_node_id_config.cert }}"
+        mode: '0600'
+
+    - name: install | Copy installation package to node
+      copy:
+        src: "{{ scale_node_id_config.key }}"
+        dest: "{{ scale_node_id_config.key }}"
+        mode: '0600'
+
+    - name: install | Copy installation package to node
+      copy:
+        src: "{{ scale_node_id_config.chain }}"
+        dest: "{{ scale_node_id_config.chain }}"
+        mode: '0600'
+
+    - name: cluster | Node identity
+      command: /usr/lpp/mmfs/bin/scalectl nodeid get
+      register: nodeidentity_exist_results
+
+    - debug:
+            msg: "{{nodeidentity_exist_results}}"
+
+    - name: cluster | Node identity
+      command: /usr/lpp/mmfs/bin/scalectl nodeid import  --cert {{ scale_node_id_config.cert }} --key {{ scale_node_id_config.key }} --chain {{ scale_node_id_config.chain }}
+      register: nodeidentity_results
+      when: nodeidentity_exist_results.stdout_lines | length < 1
+  when:
+    - scale_node_id_config is defined
+    - scale_node_id_config.cert is defined
+    - scale_node_id_config.key is defined
+    - scale_node_id_config.chain is defined
+
+- debug:
+     msg: "{{ nodeidentity_results.cmd }}"
+  when: nodeidentity_results.cmd is defined

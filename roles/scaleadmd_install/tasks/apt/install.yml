@@ -1,0 +1,40 @@
+---
+#
+# Install or update packages
+#
+- block:  ## when: not scale_daemon_running
+    - block:
+        - name: install | Install GPFS packages
+          apt:
+            deb: "{{ item }}"
+            state: present
+          register: scale_install_debpackageresult
+          with_items:
+            - "{{ scale_install_all_packages }}"
+
+        - name: install | Install GPFS License packages
+          apt:
+            deb: "{{ item }}"
+            state: present
+          with_items:
+            - "{{ scale_install_license_packages }}"
+      
+        - name: install | Check if GPFS packages were updated
+          set_fact:
+            scale_install_updated: true
+          when:
+            - (scale_install_debpackageresult.changed)
+      when: scale_install_repository_url is not defined
+
+    - block:
+        - name: install | Install GPFS Core packages
+          package:
+           name: "{{ scale_install_all_packages }}"
+           state: present
+
+        - name: install | Install GPFS Core packages
+          package:
+           name: "{{ scale_install_license_packages }}"
+           state: present
+      when: scale_install_repository_url is defined
+  when: not scale_daemon_running
