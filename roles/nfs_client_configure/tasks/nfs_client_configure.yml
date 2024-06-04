@@ -45,7 +45,7 @@
   when: item.stdout_lines == []
 
 - name: Mount NFS filesets
-  shell: "mount -t nfs -o sec=sys {{ protocol_cluster_reserved_names }}:/gpfs/fs1/{{ item.0.name }} {{ item.1.item.mount_path }} -vv"
+  shell: "mount -t nfs -o sec=sys {{ protocol_cluster_reserved_names }}:{{ storage_cluster_filesystem_mountpoint }}/{{ item.0.name }} {{ item.1.item.mount_path }} -vv"
   register: mounted_filesets
   with_together:
     - "{{ filesets }}"
@@ -55,7 +55,7 @@
 - name: Add an entry to fstab for permanent mount
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    line: "{{ protocol_cluster_reserved_names }}:/gpfs/fs1/{{ item.0.name }} {{ item.1.item.mount_path }} nfs4 rw,sec=sys,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev 0 0"
+    line: "{{ protocol_cluster_reserved_names }}:{{ storage_cluster_filesystem_mountpoint }}/{{ item.0.name }} {{ item.1.item.mount_path }} nfs4 rw,sec=sys,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev 0 0"
     insertafter: EOF
   with_together:
     - "{{ filesets }}"
