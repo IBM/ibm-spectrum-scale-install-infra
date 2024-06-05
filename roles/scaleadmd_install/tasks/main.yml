@@ -11,7 +11,6 @@
   tags: install
   when:
     - scale_mos is defined
-    - scale_node_id_config is defined
-    - scale_node_id_config.cert is defined
-    - scale_node_id_config.key is defined
-    - scale_node_id_config.chain is defined
+    - hostvars[inventory_hostname].node_cert is defined
+    - hostvars[inventory_hostname].node_cert_key is defined
+    - hostvars[inventory_hostname].node_cert_chain is defined
