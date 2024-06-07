@@ -33,6 +33,16 @@
     - name: cluster | Node identity
       command: /usr/lpp/mmfs/bin/scalectl nodeid get
       register: nodeidentity_exist_results
+      ignore_errors: yes
+      failed_when: false
+
+    - name: cluster | Restart scaleadmd ( workaround)
+      command: systemctl restart scaleadmd
+      ignore_errors: yes
+      failed_when: false
+      when: 
+          - nodeidentity_exist_results.stderr is defined
+          - '"/var/mmfs/run/grpc.admin.sock" in nodeidentity_exist_results.stderr'
 
     - debug:
             msg: "{{nodeidentity_exist_results}}"
@@ -40,6 +50,8 @@
     - name: cluster | Node identity
       command: /usr/lpp/mmfs/bin/scalectl nodeid import  --cert {{ hostvars[inventory_hostname].node_cert }} --key {{ hostvars[inventory_hostname].node_cert_key }} --chain {{ hostvars[inventory_hostname].node_cert_chain }}
       register: nodeidentity_results
+      retries: 5
+      delay: 30
       when: nodeidentity_exist_results.stdout_lines | length < 1
   when:
     - hostvars[inventory_hostname].node_cert is defined
