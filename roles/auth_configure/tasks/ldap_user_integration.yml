@@ -65,7 +65,10 @@
         create: yes
 
     - name: Allow SSH authentication
-      ansible.builtin.command: sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+      ansible.builtin.replace:
+        path: /etc/ssh/sshd_config
+        regexp: 'PasswordAuthentication no'
+        replace: 'PasswordAuthentication yes'
       notify: Restart SSH Service
 
     - name: Restart and enable the services
@@ -77,3 +80,78 @@
         - nslcd
         - nscd
   when: rhel_version.stdout in ["7", "8"]
+
+- block:
+    - name: Remove sssd.conf file
+      ansible.builtin.file:
+        path: /etc/sssd/sssd.conf
+        state: absent
+
+    - name: Update LDAP Configuration on sssd.conf
+      ansible.builtin.blockinfile:
+        path: /etc/sssd/sssd.conf
+        block: |
+          [sssd]
+          config_file_version = 2
+          services = nss, pam,autofs
+          domains = default
+          [nss]
+          homedir_substring = /home
+          [pam]
+          [domain/default]
+          id_provider = ldap
+          autofs_provider = ldap
+          auth_provider = ldap
+          chpass_provider = ldap
+          ldap_uri = ldap://{{ LDAP_SERVER_IP }}
+          ldap_search_base = dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+          cache_credentials = True
+          ldap_tls_reqcert = never
+        create: yes
+
+    - name: Set permissions for sssd.conf
+      file:
+          path: /etc/sssd/sssd.conf
+          mode: "0600"
+      become: yes
+
+    - name: Set ownership for sssd.conf
+      file:
+        path: /etc/sssd/sssd.conf
+        owner: root
+        group: root
+      become: yes
+
+    - name: Append BASE and URI to ldap.conf
+      ansible.builtin.blockinfile:
+        path: /etc/openldap/ldap.conf
+        block: |
+          BASE   dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+          URI    ldap://{{ LDAP_SERVER_IP }}
+        create: yes
+
+    - name: Run authselect to select sssd with mkhomedir
+      command: authselect select sssd with-mkhomedir --force
+
+    - name: Enable and start sssd and oddjobd services
+      ansible.builtin.service:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      loop:
+        - sssd
+        - oddjobd
+
+    - name: Allow SSH authentication
+      ansible.builtin.replace:
+        path: /etc/ssh/sshd_config
+        regexp: 'PasswordAuthentication no'
+        replace: 'PasswordAuthentication yes'
+      notify: Restart SSH Service
+
+    - name: Restart sssd service
+      ansible.builtin.service:
+        name: sssd
+        state: restarted
+        enabled: yes
+  when: rhel_version.stdout in ["9"]
