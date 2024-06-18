@@ -54,16 +54,22 @@
         src: ChangeFile.j2
         dest: /var/mmfs/tmp/ChangeFile
       register: scale_cluster_changefile
+      failed_when: false
+      ignore_errors: yes
 
     - block:  ## when: scale_cluster_changefile is changed
         - name: cluster | Accept server license for quorum nodes
           vars:
             quorum_nodes: "{{ groups['scale_cluster_quorum_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
           command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N {{ quorum_nodes | join(',') }}
+          failed_when: false
+          ignore_errors: yes
 
         - name: cluster | Change roles of existing nodes
           command: /usr/lpp/mmfs/bin/mmchnode -S /var/mmfs/tmp/ChangeFile
           notify: accept-licenses
+          failed_when: false
+          ignore_errors: yes
 
       when: scale_cluster_changefile is changed
   when:
