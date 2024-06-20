@@ -55,8 +55,8 @@
           vars:
             quorum_nodes: "{{ groups['scale_cluster_quorum_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
             manager_nodes: "{{ groups['scale_cluster_manager_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
-            unique_nodes: "{{ (quorum_nodes | union(manager_nodes)) | list }}"
-          command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N {{ unique_nodes | join(',') }}
+            server_license_nodes: "{{ (quorum_nodes | union(manager_nodes)) | list }}"
+          command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N {{ server_license_nodes | join(',') }}
 
         - name: cluster | Change roles of existing nodes
           command: /usr/lpp/mmfs/bin/mmchnode -S /var/mmfs/tmp/ChangeFile
