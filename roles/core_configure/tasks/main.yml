@@ -9,7 +9,7 @@
   when:
     - scale_type is undefined
 
-- import_tasks: mos_cluster.yml
+- import_tasks: scaleadmd_cluster.yml
   tags: cluster
   when:
     - scale_type is defined 
@@ -22,7 +22,7 @@
   when:
     - scale_type is undefined
 
-- import_tasks: mos_cluster_start.yml
+- import_tasks: scaleadmd_cluster_start.yml
   tags: cluster
   when:
     - scale_type is defined
@@ -41,7 +41,7 @@
     - scale_disks is defined
     - scale_type is undefined
 
-- import_tasks: mos_storage_disk.yml
+- import_tasks: scaleadmd_storage_disk.yml
   tags: storage
   when:
     - scale_storage is undefined
