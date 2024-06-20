@@ -51,10 +51,12 @@
       register: scale_cluster_changefile
 
     - block:  ## when: scale_cluster_changefile is changed
-        - name: cluster | Accept server license for quorum nodes
+        - name: cluster | Accept server license for quorum and manager nodes
           vars:
             quorum_nodes: "{{ groups['scale_cluster_quorum_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
-          command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N {{ quorum_nodes | join(',') }}
+            manager_nodes: "{{ groups['scale_cluster_manager_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
+            unique_nodes: "{{ (quorum_nodes | union(manager_nodes)) | list }}"
+          command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N {{ unique_nodes | join(',') }}
 
         - name: cluster | Change roles of existing nodes
           command: /usr/lpp/mmfs/bin/mmchnode -S /var/mmfs/tmp/ChangeFile

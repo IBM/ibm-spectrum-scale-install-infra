@@ -69,6 +69,14 @@
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
+- name: cluster | Find manager nodes
+  add_host:
+    name: "{{ item }}"
+    groups: scale_cluster_manager_nodes
+  when: hostvars[item].scale_cluster_manager | bool
+  with_items: "{{ ansible_play_hosts }}"
+  changed_when: false
+
 - name: cluster | Find GPFS user profile
   find:
     paths: "{{ scale_cluster_profile_dir_path }}"
