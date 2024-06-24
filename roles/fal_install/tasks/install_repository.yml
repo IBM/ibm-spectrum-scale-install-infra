@@ -141,3 +141,8 @@
   with_items:
     - "{{ scale_auditlogging_packages }}"
   when: (scale_fal_enable | bool)
+
+- name: install | remove gpfs.java packages from list
+  set_fact:
+      scale_install_all_packages: "{{ scale_install_all_packages | reject('search', 'gpfs.java') | list }}"
+  when: (ansible_architecture == "aarch64") and (scale_fal_enable | bool)
