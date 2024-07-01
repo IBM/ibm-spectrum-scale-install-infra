@@ -1,0 +1,23 @@
+---
+# tasks file for configure
+- include_tasks: afm_gateway.yml
+  tags: configure
+  run_once: true
+
+- include_tasks: afm_bucket.yml
+  tags: configure
+  when:
+    - scale_afm_cos_bucket_params is defined
+  with_items:
+    - "{{ scale_afm_cos_bucket_params }}"
+  run_once: true
+
+- include_tasks: afm_configure.yml
+  tags: configure
+  when:
+    - scale_afm_cos_filesets_params is defined
+  with_items:
+    - "{{ scale_afm_cos_filesets_params }}"
+  run_once: true
+
+
