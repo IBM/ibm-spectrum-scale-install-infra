@@ -1,0 +1,42 @@
+---
+## Task for temporary fix for Nooba CES S3 issue.
+## This can be removed later once fix will be available with Nooba
+- block:
+    - name: Move logrotate file to  etc/logrotate.d/
+      copy:
+        src:  /usr/local/noobaa-core/src/deploy/standalone/logrotate_noobaa.conf
+        dest: /etc/logrotate.d/logrotate_noobaa.conf
+      failed_when: false
+      ignore_errors: yes
+
+    - name: Remove /etc/logrotate.d/noobaa/logrotate_noobaa.conf file
+      file:
+        path: /etc/logrotate.d/noobaa/logrotate_noobaa.conf
+        state: absent
+      failed_when: false
+      ignore_errors: yes
+
+    - name: Remove logrotate script from outchannel
+      shell:
+          cmd: sed -i 's/,\/usr\/local\/noobaa-core\/src\/deploy\/standalone\/logrotate_noobaa.sh//g' /etc/rsyslog.d/noobaa_syslog.conf
+      failed_when: false
+      ignore_errors: yes
+
+    - name: Add rate limit changes for rsyslog
+      lineinfile:
+        path: /etc/rsyslog.d/noobaa_syslog.conf
+        state: present
+        insertafter: '^\$EscapeControlCharactersOnReceive'
+        line: '$imjournalRatelimitInterval 0'
+      failed_when: false
+      ignore_errors: yes
+
+
+    - name: Add rate limit changes for rsyslog
+      lineinfile:
+        path: /etc/rsyslog.d/noobaa_syslog.conf
+        state: present
+        insertafter: '^\$EscapeControlCharactersOnReceive'
+        line: '$imjournalRatelimitBurst 0'
+      failed_when: false
+      ignore_errors: yes
