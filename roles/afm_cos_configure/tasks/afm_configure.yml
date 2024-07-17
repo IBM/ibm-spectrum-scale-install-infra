@@ -45,7 +45,7 @@
           extra_option_flag: "{{ extra_option_flag }} --mode {{ item.mode | default('sw') }}"
     
       - name: configure | Create a AFM cos relationship with filesets
-        command: "{{ scale_command_path }}mmafmcosconfig {{ item.filesystem }} {{ item.fileset }}  --endpoint {{ item.endpoint }}  {{ extra_option_flag }} --object-fs --xattr --acls --uid 0 --gid 0 --perm 0700"
+        command: "{{ scale_command_path }}mmafmcosconfig {{ item.filesystem }} {{ item.fileset }}  --endpoint {{ item.endpoint }}  {{ extra_option_flag }} --object-fs --xattr --acls"
         register: scale_afm_cos_define
         failed_when: scale_afm_cos_define.rc != 0
         when:
