@@ -52,7 +52,54 @@
           - not "enabled" in scale_existing_afmcos.stdout_lines
           - item.filesystem is defined
           - item.fileset is defined
+#################################################################################
+      - name: configure | Add Number of Gateway Flush Threads for AFM filsets
+        command: "mmchfileset fs1 {{ item.fileset }} -p afmNumFlushThreads=8"
+        failed_when: scale_afm_cos_define.rc != 0
+        run_once: true
+        when:
+          - not "enabled" in scale_existing_afmcos.stdout_lines
+          - item.filesystem is defined
+          - item.fileset is defined
+      
+      - name: configure | Check if afmDIO is already configured
+        shell: |
+          mmlsconfig -Y | grep -v HEADER | grep -w -q afmDIO
+        register: afmDIO_exists
+        ignore_errors: yes 
+        failed_when: afmDIO_exists.rc == 2
+        
+      - name: configure | Add afmDIO
+        command: "mmchconfig afmDIO=2 -i"
+        run_once: true
+        when: afmDIO_exists.rc != 0
 
+      # - name: configure | Check if AFM COS fileset has read-only mode
+      #   shell: |
+      #     mmlsfileset fs1 {{ item.fileset }} --afm -L | grep -w -q read-only
+      #   register: read_only_fileset
+      #   run_once: true
+      #   ignore_errors: yes 
+      #   failed_when: afmDIO_exists.rc == 2
+      #   when:
+      #     #- not "enabled" in scale_existing_afmcos.stdout_lines
+      #     - item.filesystem is defined
+      #     - item.fileset is defined
+
+      # - debug:
+      #     msg: "{{read_only_fileset}}"
+
+      - name: Update permissions for AFM COS filesets
+        shell: >
+          find {{ scale_storage[0].defaultMountPoint }}/{{ item.fileset }} -type d ! -path '{{ scale_storage[0].defaultMountPoint }}/{{ item.fileset }}/.snapshots' ! -path '{{ scale_storage[0].defaultMountPoint }}/readonly' -exec chmod 777 {} +
+        failed_when: scale_afm_cos_define.rc != 0
+        ignore_errors: yes 
+        run_once: true
+        when:
+          - not "enabled" in scale_existing_afmcos.stdout_lines
+          - item.filesystem is defined
+          - item.fileset is defined
+#################################################################################
       - debug:
           msg: "{{scale_afm_cos_define}}"
 
