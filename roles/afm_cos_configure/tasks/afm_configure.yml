@@ -91,7 +91,7 @@
 
       - name: Update permissions for AFM COS filesets
         shell: >
-          find {{ scale_storage[0].defaultMountPoint }}/{{ item.fileset }} -type d ! -path '{{ scale_storage[0].defaultMountPoint }}/{{ item.fileset }}/.snapshots' ! -path '{{ scale_storage[0].defaultMountPoint }}/readonly' -exec chmod 777 {} +
+          find {{ scale_storage[0].defaultMountPoint }}/{{ item.fileset }} -type d ! -path '{{ scale_storage[0].defaultMountPoint }}/{{ item.fileset }}/.snapshots' -exec chmod 777 {} +
         failed_when: scale_afm_cos_define.rc != 0
         ignore_errors: yes 
         run_once: true
