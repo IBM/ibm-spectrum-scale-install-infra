@@ -4,10 +4,6 @@
   tags: configure
   run_once: true
 
-- include_tasks: afm_sensor_configure.yml
-  tags: configure
-  run_once: true
-
 - include_tasks: afm_bucket.yml
   tags: configure
   when:
@@ -22,6 +18,10 @@
     - scale_afm_cos_filesets_params is defined
   with_items:
     - "{{ scale_afm_cos_filesets_params }}"
+  run_once: true
+
+- include_tasks: afm_sensor_configure.yml
+  tags: configure
   run_once: true
 
 

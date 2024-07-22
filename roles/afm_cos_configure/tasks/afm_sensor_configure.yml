@@ -1,9 +1,9 @@
 ---
-- name: configure | Initialize lists
+- name: configure | Initialize lists of AFM Nodes
   set_fact:
    scale_gateway_nodes: []
 
-- name: cluster | Find gateway nodes
+- name: cluster | Find AFM gateway nodes
   add_host:
     name: "{{ item }}"
     groups: scale_gateway_nodes
@@ -11,7 +11,7 @@
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
-- name: configure | Setting server licenses on AFM gateway nodes
+- name: configure | Setting AFM Sensors on AFM gateway nodes
   vars:
      scale_gateway_node: "{{ groups['scale_gateway_nodes'] | list }}"
   command: "{{ scale_command_path }}mmperfmon config update GPFSAFMFS.restrict={{ scale_gateway_node | join(',') }} GPFSAFMFS.period=10 GPFSAFMFSET.restrict={{ scale_gateway_node | join(',') }} GPFSAFMFS.period=10 GPFSAFMFSET.restrict={{ scale_gateway_node | join(',') }} GPFSAFMFSET.period=10 GPFSAFM.restrict={{ scale_gateway_node | join(',') }} GPFSAFM.period=10"
