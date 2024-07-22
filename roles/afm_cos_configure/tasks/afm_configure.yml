@@ -54,7 +54,7 @@
           - item.fileset is defined
 #################################################################################
       - name: configure | Add Number of Gateway Flush Threads for AFM filsets
-        command: "mmchfileset fs1 {{ item.fileset }} -p afmNumFlushThreads=8"
+        command: "mmchfileset {{ item.filesystem }} {{ item.fileset }} -p afmNumFlushThreads=8"
         failed_when: scale_afm_cos_define.rc != 0
         run_once: true
         when:
