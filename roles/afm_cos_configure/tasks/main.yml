@@ -4,6 +4,10 @@
   tags: configure
   run_once: true
 
+- include_tasks: afm_sensor_configure.yml
+  tags: configure
+  run_once: true
+
 - include_tasks: afm_bucket.yml
   tags: configure
   when:
