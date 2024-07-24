@@ -72,7 +72,7 @@
 # Apply config params
 #
 
-    - name: Construct loop data
+    - name: config | Creat a list of configuration parameter for configuration
       set_fact:
         config_list: >
           {%- set config_list = [] -%}
@@ -85,7 +85,7 @@
           {%- endfor -%}
           {{ config_list }}
 
-    - name: Apply configuration parameters for each nodeclass
+    - name: config | Apply defined configuration parameters
       command: /usr/lpp/mmfs/bin/mmchconfig {{ item.key }}={{ item.value | string | regex_replace('True', 'yes') | regex_replace('False', 'no') }} -N {{ item.nodeclass }}
       register: scale_config_changed_params
       when:
@@ -93,7 +93,7 @@
       loop: "{{ config_list }}"
       loop_control:
         label: "{{ item.nodeclass }}: {{ item.key }}"
-        
+
     # - name: config | Apply defined configuration parameters
     #   vars:
     #     current_key: "{{ item.1.keys() | list | first }}"
