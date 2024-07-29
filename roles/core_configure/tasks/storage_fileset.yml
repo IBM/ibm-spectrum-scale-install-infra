@@ -66,7 +66,7 @@
 - name: Quota allocation for filesets
   block:  ## run_once: true
   - name: Check quota is already enabled
-    shell: "/usr/lpp/mmfs/bin/mmlsfs fs1 -Y | grep -w 'quotasAccountingEnabled' | grep -w 'user;group;fileset'"
+    shell: "/usr/lpp/mmfs/bin/mmlsfs {{ scale_storage_existing_fs.stdout }} -Y | grep -w 'quotasAccountingEnabled' | grep -w 'user;group;fileset'"
     register: enable_quota_check
     loop: "{{ scale_storage[0].filesets | dict2items }}"
     ignore_errors: yes
