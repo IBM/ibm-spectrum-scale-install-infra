@@ -1,0 +1,97 @@
+---
+- block:
+      - name: create | Find existing AFM cos enabled Filesystem
+        shell: mmlsfileset {{ item.filesystem }} {{ item.fileset }} --afm -Y | grep -v HEADER | cut -d ':' -f 20 | uniq
+        register: scale_existing_afmcos
+        changed_when: false
+        failed_when: false
+        when:
+          - item.filesystem is defined
+          - item.fileset is defined
+
+      - name: create | Find existing Bucket(s)
+        shell: mmafmcoskeys all get --report | tail -n +2 | cut -d '=' -f 1 | uniq
+        register: scale_existing_bucket
+        changed_when: false
+        failed_when: false
+
+      - debug:
+           msg: "{{scale_existing_bucket.stdout_lines}}"
+        changed_when: false
+        failed_when: false
+        when:
+           - scale_existing_bucket.stdout_lines is defined
+
+      - name: create | Initialize
+        set_fact:
+          extra_option_flag: ""
+
+      - name: create | Set existing bucket if it is defined
+        set_fact:
+          extra_option_flag: "{{ extra_option_flag }} --bucket {{ item.bucket }}"
+        when:
+          - item.bucket in scale_existing_bucket.stdout_lines
+          - item.bucket is defined
+      
+      - name: create | Set new bucket if it is defined
+        set_fact:
+          extra_option_flag: "{{ extra_option_flag }} --new-bucket {{ item.bucket }}"
+        when:
+          - item.bucket not in scale_existing_bucket.stdout_lines
+          - item.bucket is defined
+
+      - name: create | Set mode if it is defined
+        set_fact:
+          extra_option_flag: "{{ extra_option_flag }} --mode {{ item.mode | default('sw') }}"
+    
+      - name: configure | Create a AFM cos relationship with filesets
+        command: "{{ scale_command_path }}mmafmcosconfig {{ item.filesystem }} {{ item.fileset }}  --endpoint {{ item.endpoint }}  {{ extra_option_flag }} --object-fs --xattr --acls"
+        register: scale_afm_cos_define
+        failed_when: scale_afm_cos_define.rc != 0
+        when:
+          - not "enabled" in scale_existing_afmcos.stdout_lines
+          - item.filesystem is defined
+          - item.fileset is defined
+
+      - name: configure | Add Number of Gateway Flush Threads for AFM filsets
+        command: "mmchfileset {{ item.filesystem }} {{ item.fileset }} -p afmNumFlushThreads=8"
+        failed_when: scale_afm_cos_define.rc != 0
+        run_once: true
+        when:
+          - not "enabled" in scale_existing_afmcos.stdout_lines
+          - item.filesystem is defined
+          - item.fileset is defined
+
+      - name: Update permissions for AFM COS filesets
+        shell: >
+          find {{ scale_storage[0].defaultMountPoint }}/{{ item.fileset }} -type d ! -path '{{ scale_storage[0].defaultMountPoint }}/{{ item.fileset }}/.snapshots' -exec chmod 777 {} +
+        failed_when: scale_afm_cos_define.rc != 0
+        ignore_errors: yes 
+        run_once: true
+        when:
+          - not "enabled" in scale_existing_afmcos.stdout_lines
+          - item.filesystem is defined
+          - item.fileset is defined
+
+      - debug:
+          msg: "{{scale_afm_cos_define}}"
+
+      - name: configure | Create a AFM cos default configuration with filesets
+        command: "{{ scale_command_path }}mmchfileset {{ item.filesystem }} {{ item.fileset }}  -p afmdirlookuprefreshinterval=default -p afmfilelookuprefreshinterval=default -p afmfileopenrefreshinterval=default -p afmdiropenrefreshinterval=default -p afmSkipHomeRefresh=no"
+        register: scale_afm_cos_config_define
+        failed_when: false
+        when:
+          - not "enabled" in scale_existing_afmcos.stdout_lines
+          - item.filesystem is defined
+          - item.fileset is defined
+
+      - debug:
+          msg: "{{scale_afm_cos_config_define}}"
+ 
+      - name: configure | FM cos configuration
+        debug:
+          msg: AFM cos configured. 
+  rescue:
+    - name: Failure detected in Configuring AFM cos
+      fail:
+         msg: "I caught an error, Please take a look to the output given!."
