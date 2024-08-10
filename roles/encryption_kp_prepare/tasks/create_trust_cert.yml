@@ -1,0 +1,113 @@
+# Server - 1
+- block:
+
+    - name: Create a folder
+      file:
+        path: "{{ key_protect_dir }}"
+        state: directory
+
+    - name: Append password to KPClient.pwd
+      lineinfile:
+        path: "{{ key_protect_dir }}/{{ resource_prefix }}.pwd"
+        line: "{{ scale_encryption_admin_password }}"
+        create: yes
+
+    - name: Append port to kmip.port
+      lineinfile:
+        path: "{{ key_protect_dir }}/{{ resource_prefix }}.port"
+        line: "5696"
+        create: yes
+
+    - name: Copy files from source to destination folder
+      copy:
+        src: "{{ item }}"
+        dest: "{{ key_protect_dir }}"
+        owner: root 
+        group: root 
+      with_fileglob:
+        - "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect/*"
+
+    - name: Run mmgskkm store command
+      command: mmgskkm store --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --cert "{{ key_protect_dir }}/{{ resource_prefix }}.cert" --priv "{{ key_protect_dir }}/{{ resource_prefix }}.key" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+      args:
+        chdir: "{{ key_protect_dir }}"
+
+    - name: Run mmgskkm trust command
+      command: mmgskkm trust --prefix "{{ key_protect_dir }}/Key_Protect_Server.chain" --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+      args:
+        chdir: "{{ key_protect_dir }}"
+
+    - name: Run mmkmipkm createkey command
+      command: mmkmipkm createkey --host "{{ REGION }}.kms.cloud.ibm.com" --kmipport "{{ key_protect_dir }}/{{ resource_prefix }}.port" --keystore "{{ key_protect_dir }}/{{ resource_prefix }}.p12" --keypass "{{ key_protect_dir }}/{{ resource_prefix }}.pwd" --label "{{ resource_prefix }}"
+      args:
+        chdir: "{{ key_protect_dir }}"
+      register: createkey_output
+
+    - name: Save mmkmipkm createkey output to a file
+      copy:
+        content: "{{ createkey_output.stdout }}"
+        dest: "{{ key_protect_dir }}/encryption_key.txt"
+
+    - name: Copy file to remote server
+      copy:
+        src: "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+        dest: "/var/mmfs/etc/{{ resource_prefix }}.p12"
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Copy RKM.conf to destination
+      template:
+        src: "templates/RKM.conf.j2"
+        dest: "/var/mmfs/etc/RKM.conf"
+        owner: root
+        group: root
+        mode: '0600'
+
+  when: key_protect_dir is defined and key_protect_dir | length > 0
+
+
+# - name: Append password to KPClient.pwd
+#   lineinfile:
+#     path: {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.pwd
+#     line: "{{ KP_PASSWORD }}"
+#     create: yes
+
+# - name: Append port to kmip.port
+#   lineinfile:
+#     path: {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.port
+#     line: "5696"
+#     create: yes
+
+# - name: Run mmgskkm store command
+#   command: mmgskkm store --pwd "{{ KP_PASSWORD }}" --label {{ resource_prefix }} --cert {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.cert --priv {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.key --out {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.p12
+
+# - name: Run mmgskkm trust command
+#   command: mmgskkm trust --prefix {{ KEY_PROTECT_PATH }}/KPServer.chain --pwd "{{ KP_PASSWORD }}" --label {{ resource_prefix }} --out {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.p12
+
+# - name: Run mmkmipkm createkey command
+#   command: mmkmipkm createkey --host {{ REGION }}.kms.cloud.ibm.com --kmipport {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.port --keystore {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.p12 --keypass {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.pwd --label {{ resource_prefix }}
+
+# - name: Copy file to remote server
+#   copy:
+#     src: "{{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.p12"
+#     dest: "/var/mmfs/etc/{{ resource_prefix }}.p12"
+#     owner: root
+#     group: root
+#     mode: '0600'
+
+# - name: Copy RKM.conf to destination
+#   template:
+#     src: "templates/RKM.conf.j2"
+#     dest: "/var/mmfs/etc/RKM.conf"
+#     owner: root
+#     group: root
+#     mode: '0600'
+
+# - name: Copy Encryption policy file to destination
+#   template:
+#     src: "templates/RKM.conf.pol.j2"
+#     dest: "/var/mmfs/etc/RKM.conf.pol"
+#     owner: root
+#     group: root
+#     mode: '0600'
