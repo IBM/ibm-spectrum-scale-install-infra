@@ -1,0 +1,7 @@
+---
+
+# Key Protect preparation
+- import_tasks: create_trust_cert.yml
+
+# Apply Encryption
+- import_tasks: apply_encryption.yml
