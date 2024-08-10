@@ -1,4 +1,4 @@
 scale_encryption_admin_password: "{{ scale_encryption_admin_password }}"
-resource_prefix: "{{ resource_prefix }}"
+resource_prefix: "{{ kp_resource_prefix }}"
 region: "{{ region }}"
 key_protect_dir: "/opt/key_protect"
