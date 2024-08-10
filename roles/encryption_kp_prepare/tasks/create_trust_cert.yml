@@ -38,7 +38,7 @@
         chdir: "{{ key_protect_dir }}"
 
     - name: Run mmkmipkm createkey command
-      command: mmkmipkm createkey --host "{{ REGION }}.kms.cloud.ibm.com" --kmipport "{{ key_protect_dir }}/{{ resource_prefix }}.port" --keystore "{{ key_protect_dir }}/{{ resource_prefix }}.p12" --keypass "{{ key_protect_dir }}/{{ resource_prefix }}.pwd" --label "{{ resource_prefix }}"
+      command: mmkmipkm createkey --host "{{ region }}.kms.cloud.ibm.com" --kmipport "{{ key_protect_dir }}/{{ resource_prefix }}.port" --keystore "{{ key_protect_dir }}/{{ resource_prefix }}.p12" --keypass "{{ key_protect_dir }}/{{ resource_prefix }}.pwd" --label "{{ resource_prefix }}"
       args:
         chdir: "{{ key_protect_dir }}"
       register: createkey_output
