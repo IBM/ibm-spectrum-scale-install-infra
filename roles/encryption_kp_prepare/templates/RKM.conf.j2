@@ -1,6 +1,6 @@
 KP {
  type = KMIP
- kmipServerUri = tls://{{ region }}.kms.cloud.ibm.com:5696
+ kmipServerUri = tls://{{ vpc_region }}.kms.cloud.ibm.com:5696
  keyStore = /var/mmfs/etc/{{ resource_prefix }}.p12
  passphrase = {{ scale_encryption_admin_password }}
  clientCertLabel = {{ resource_prefix }}
