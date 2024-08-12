@@ -1,6 +1,5 @@
 # Server - 1
 - block:
-
     - name: Create a folder
       file:
         path: "{{ key_protect_dir }}"
@@ -22,14 +21,10 @@
       copy:
         src: "{{ item }}"
         dest: "{{ key_protect_dir }}"
-        owner: root 
-        group: root 
+        owner: root
+        group: root
       with_fileglob:
         - "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect/*"
-
-    - name: Sleep for 20 seconds
-      ansible.builtin.pause:
-        seconds: 20
 
     - name: Run mmgskkm store command
       command: mmgskkm store --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --cert "{{ key_protect_dir }}/{{ resource_prefix }}.cert" --priv "{{ key_protect_dir }}/{{ resource_prefix }}.key" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
@@ -41,88 +36,57 @@
       args:
         chdir: "{{ key_protect_dir }}"
 
-    - name: Sleep for 60 seconds
+    - name: Sleep for 20 seconds
       ansible.builtin.pause:
-        seconds: 60
+        seconds: 20
 
     - name: Run mmkmipkm createkey command
-      ansible.builtin.command: 
-        cmd: >
-          mmkmipkm createkey
-          --host "{{ vpc_region }}.kms.cloud.ibm.com"
-          --kmipport "{{ resource_prefix }}.port"
-          --keystore "{{ resource_prefix }}.p12"
-          --keypass "{{ resource_prefix }}.pwd"
-          --label "{{ resource_prefix }}"
+      command: >
+        mmkmipkm createkey
+        --host "{{ vpc_region }}.kms.cloud.ibm.com"
+        --kmipport "{{ resource_prefix }}.port"
+        --keystore "{{ resource_prefix }}.p12"
+        --keypass "{{ resource_prefix }}.pwd"
+        --label "{{ resource_prefix }}"
       args:
         chdir: "{{ key_protect_dir }}"
       register: createkey_output
 
-    - name: Save mmkmipkm createkey output to a file
-      copy:
-        content: "{{ createkey_output.stdout }}"
-        dest: "{{ key_protect_dir }}/encryption_key.txt"
+    - name: Set encryption key fact
+      set_fact:
+        encryption_key: "{{ createkey_output.stdout }}"
 
-    - name: Copy file to remote server
-      copy:
-        src: "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
-        dest: "/var/mmfs/etc/{{ resource_prefix }}.p12"
-        owner: root
-        group: root
-        mode: '0600'
+    - name: Ensure the file has 644 permissions
+      file: 
+        path: "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+        mode: '0644'
 
     - name: Copy RKM.conf to destination
       template:
         src: "templates/RKM.conf.j2"
-        dest: "/var/mmfs/etc/RKM.conf"
+        dest: "{{ key_protect_dir }}/RKM.conf"
         owner: root
         group: root
         mode: '0600'
 
+    - name: Copy the Policy file
+      template:
+        src: "templates/KP.fsenc.pol.j2"
+        dest: "/var/mmfs/etc/KP.fsenc.pol"
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Fetch the p12 file from remote server
+      fetch:
+        src: "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+        dest: "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect/"
+        flat: yes
+
+    - name: Fetch the RKM.conf file from remote server
+      fetch:
+        src: "{{ key_protect_dir }}/RKM.conf"
+        dest: "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect/"
+        flat: yes
+
   when: key_protect_dir is defined and key_protect_dir | length > 0
-
-
-# - name: Append password to KPClient.pwd
-#   lineinfile:
-#     path: {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.pwd
-#     line: "{{ KP_PASSWORD }}"
-#     create: yes
-
-# - name: Append port to kmip.port
-#   lineinfile:
-#     path: {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.port
-#     line: "5696"
-#     create: yes
-
-# - name: Run mmgskkm store command
-#   command: mmgskkm store --pwd "{{ KP_PASSWORD }}" --label {{ resource_prefix }} --cert {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.cert --priv {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.key --out {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.p12
-
-# - name: Run mmgskkm trust command
-#   command: mmgskkm trust --prefix {{ KEY_PROTECT_PATH }}/KPServer.chain --pwd "{{ KP_PASSWORD }}" --label {{ resource_prefix }} --out {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.p12
-
-# - name: Run mmkmipkm createkey command
-#   command: mmkmipkm createkey --host {{ REGION }}.kms.cloud.ibm.com --kmipport {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.port --keystore {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.p12 --keypass {{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.pwd --label {{ resource_prefix }}
-
-# - name: Copy file to remote server
-#   copy:
-#     src: "{{ KEY_PROTECT_PATH }}/{{ resource_prefix }}.p12"
-#     dest: "/var/mmfs/etc/{{ resource_prefix }}.p12"
-#     owner: root
-#     group: root
-#     mode: '0600'
-
-# - name: Copy RKM.conf to destination
-#   template:
-#     src: "templates/RKM.conf.j2"
-#     dest: "/var/mmfs/etc/RKM.conf"
-#     owner: root
-#     group: root
-#     mode: '0600'
-
-# - name: Copy Encryption policy file to destination
-#   template:
-#     src: "templates/RKM.conf.pol.j2"
-#     dest: "/var/mmfs/etc/RKM.conf.pol"
-#     owner: root
-#     group: root
-#     mode: '0600'
