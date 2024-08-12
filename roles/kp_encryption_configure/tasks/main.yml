@@ -1,3 +1,6 @@
 # roles/encryption_kp_prepare/tasks/main.yml
 
-- import_tasks: copy_config_files_to_remote.yml
+- import_tasks: update_file_permissions.yml
+  delegate_to: localhost
+
+- import_tasks: copy_files_to_remote.yml
