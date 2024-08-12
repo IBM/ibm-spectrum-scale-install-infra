@@ -14,4 +14,4 @@
     owner: root
     group: root
     mode: '0600'
-  when: p12_copy_result is succeeded
+  when: p12_copy_result.changed

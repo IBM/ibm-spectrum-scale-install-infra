@@ -28,5 +28,6 @@
         group: root
       with_fileglob:
          - "{{ key_protect_cert_files_dir }}/*"
+      run_once: true
         
   when: key_protect_dir is defined and key_protect_dir | length > 0
