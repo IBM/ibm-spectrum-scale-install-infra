@@ -3,11 +3,13 @@
       command: mmgskkm store --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --cert "{{ key_protect_dir }}/{{ resource_prefix }}.cert" --priv "{{ key_protect_dir }}/{{ resource_prefix }}.key" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
       args:
         chdir: "{{ key_protect_dir }}"
+      run_once: true
 
     - name: Run mmgskkm trust command
       command: mmgskkm trust --prefix "{{ key_protect_dir }}/Key_Protect_Server.chain" --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
       args:
         chdir: "{{ key_protect_dir }}"
+      run_once: true
 
     - name: Sleep for 20 seconds
       ansible.builtin.pause:
@@ -24,6 +26,7 @@
       args:
         chdir: "{{ key_protect_dir }}"
       register: createkey_output
+      run_once: true
 
     - name: Set encryption key fact
       set_fact:
@@ -36,4 +39,6 @@
         owner: root
         group: root
         mode: '0600'
+      run_once: true
+      
   when: key_protect_dir is defined and key_protect_dir | length > 0
