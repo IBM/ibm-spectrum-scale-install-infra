@@ -1,3 +1,3 @@
 # Copy Encryption config files to Remote servers
 
-- import_tasks: copy_config_files_to_remote.yml.yml
+- import_tasks: copy_config_files_to_remote.yml
