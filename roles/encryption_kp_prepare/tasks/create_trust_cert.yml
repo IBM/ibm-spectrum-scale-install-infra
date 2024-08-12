@@ -27,6 +27,10 @@
       with_fileglob:
         - "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect/*"
 
+    - name: Sleep for 60 seconds
+      ansible.builtin.pause:
+        seconds: 30
+
     - name: Run mmgskkm store command
       command: mmgskkm store --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --cert "{{ key_protect_dir }}/{{ resource_prefix }}.cert" --priv "{{ key_protect_dir }}/{{ resource_prefix }}.key" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
       args:
