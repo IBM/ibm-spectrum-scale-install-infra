@@ -1,0 +1,5 @@
+# roles/encryption_kp_prepare/tasks/main.yml
+
+- import_tasks: get_ssl_certs.yml
+- import_tasks: create_encryption_key.yml
+- import_tasks: copy_encryption_files_to_ansible_master.yml
