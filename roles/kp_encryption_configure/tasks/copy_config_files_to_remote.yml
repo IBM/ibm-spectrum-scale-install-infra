@@ -2,7 +2,8 @@
   file: 
     path: "{{ key_protect_cert_files_dir }}/{{ kp_resource_prefix }}.p12"
     mode: '0644'
-
+  delegate_to: localhost
+  
 - name: Copy the .p12 file to the remote server
   copy:
     src: "{{ key_protect_cert_files_dir }}/{{ kp_resource_prefix }}.p12"

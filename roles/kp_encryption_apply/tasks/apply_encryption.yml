@@ -1,5 +1,9 @@
-- block:
-    - name: Apply Encryption
-      command: mmchpolicy fs1 /var/mmfs/etc/KP.fsenc.pol
-      
-  when: key_protect_dir is defined and key_protect_dir | length > 0
+
+- name: Check if KP.fsenc.pol file exists
+  stat:
+    path: /var/mmfs/etc/KP.fsenc.pol
+  register: fsenc_pol_stat
+
+- name: Apply Encryption
+  command: mmchpolicy fs1 /var/mmfs/etc/KP.fsenc.pol
+  when: fsenc_pol_stat.stat.exists
