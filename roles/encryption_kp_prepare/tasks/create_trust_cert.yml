@@ -37,6 +37,10 @@
       args:
         chdir: "{{ key_protect_dir }}"
 
+    - name: Sleep for 60 seconds
+      ansible.builtin.pause:
+        seconds: 60
+
     - name: Run mmkmipkm createkey command
       command: mmkmipkm createkey --host "{{ region }}.kms.cloud.ibm.com" --kmipport "{{ key_protect_dir }}/{{ resource_prefix }}.port" --keystore "{{ key_protect_dir }}/{{ resource_prefix }}.p12" --keypass "{{ key_protect_dir }}/{{ resource_prefix }}.pwd" --label "{{ resource_prefix }}"
       args:
