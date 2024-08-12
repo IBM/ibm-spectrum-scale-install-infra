@@ -15,7 +15,7 @@
     - name: Append port to kmip.port
       lineinfile:
         path: "{{ key_protect_dir }}/{{ resource_prefix }}.port"
-        line: "5696"
+        line: "{{ key_protect_port }}"
         create: yes
 
     - name: Copy files from source to destination folder
@@ -27,9 +27,9 @@
       with_fileglob:
         - "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect/*"
 
-    - name: Sleep for 60 seconds
+    - name: Sleep for 20 seconds
       ansible.builtin.pause:
-        seconds: 30
+        seconds: 20
 
     - name: Run mmgskkm store command
       command: mmgskkm store --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --cert "{{ key_protect_dir }}/{{ resource_prefix }}.cert" --priv "{{ key_protect_dir }}/{{ resource_prefix }}.key" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
