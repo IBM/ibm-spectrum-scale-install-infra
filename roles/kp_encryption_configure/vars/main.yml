@@ -1,2 +1,2 @@
-resource_prefix: "{{ kp_resource_prefix }}"
+kp_resource_prefix: "{{ kp_resource_prefix }}"
 key_protect_cert_files_dir: "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect"
