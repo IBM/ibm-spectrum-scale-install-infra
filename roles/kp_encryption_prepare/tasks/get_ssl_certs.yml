@@ -4,6 +4,9 @@
       file:
         path: "{{ key_protect_dir }}"
         state: directory
+        owner: root
+        group: root
+        mode: '0755'
 
     - name: Append password to KPClient.pwd
       lineinfile:

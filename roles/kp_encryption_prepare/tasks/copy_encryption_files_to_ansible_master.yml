@@ -15,12 +15,12 @@
     - name: Fetch the p12 file from remote server
       fetch:
         src: "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
-        dest: "{{ key_protect_cert_files_dir }}"
+        dest: "{{ key_protect_cert_files_dir }}/"
         flat: yes
 
     - name: Fetch the RKM.conf file from remote server
       fetch:
         src: "{{ key_protect_dir }}/RKM.conf"
-        dest: "{{ key_protect_cert_files_dir }}"
+        dest: "{{ key_protect_cert_files_dir }}/"
         flat: yes
   when: key_protect_dir is defined and key_protect_dir | length > 0
