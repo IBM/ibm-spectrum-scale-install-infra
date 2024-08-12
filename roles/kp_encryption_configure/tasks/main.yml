@@ -1,0 +1,4 @@
+# roles/encryption_kp_prepare/tasks/main.yml
+
+- import_tasks: copy_config_files_to_remote.yml
+- import_tasks: apply_encryption.yml
