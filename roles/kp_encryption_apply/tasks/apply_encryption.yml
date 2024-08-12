@@ -1,4 +1,3 @@
-
 - name: Check if KP.fsenc.pol file exists
   stat:
     path: /var/mmfs/etc/KP.fsenc.pol
@@ -7,3 +6,4 @@
 - name: Apply Encryption
   command: mmchpolicy fs1 /var/mmfs/etc/KP.fsenc.pol
   when: fsenc_pol_stat.stat.exists
+  run_once: true
