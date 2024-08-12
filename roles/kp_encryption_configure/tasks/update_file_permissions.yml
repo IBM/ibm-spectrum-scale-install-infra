@@ -1,0 +1,22 @@
+- name: Check if the .p12 file exists
+  stat:
+    path: "{{ key_protect_cert_files_dir }}/{{ kp_resource_prefix }}.p12"
+  register: p12_file_stat
+
+- name: Ensure the .p12 file has 644 permissions
+  file: 
+    path: "{{ key_protect_cert_files_dir }}/{{ kp_resource_prefix }}.p12"
+    mode: '0644'
+  when: p12_file_stat.stat.exists
+  
+- name: Check if the RKM.conf file exists
+  stat:
+    path: "{{ key_protect_cert_files_dir }}/RKM.conf"
+  register: RKM_file_stat
+  delegate_to: localhost
+
+- name: Ensure the RKM.conf file has 644 permissions
+  file: 
+    path: "{{ key_protect_cert_files_dir }}/RKM.conf"
+    mode: '0644'
+  when: RKM_file_stat.stat.exists
