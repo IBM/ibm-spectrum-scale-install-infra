@@ -24,5 +24,6 @@
         owner: root
         group: root
       with_fileglob:
-        - "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect/*"
+         - "{{ key_protect_cert_files_dir }}/*"
+        
   when: key_protect_dir is defined and key_protect_dir | length > 0

@@ -1,5 +1,5 @@
 - block:
     - name: Apply Encryption
-      command: mmchpolicy fs1 /var/mmfs/etc/KP.fsenc.pol 
+      command: mmchpolicy fs1 /var/mmfs/etc/KP.fsenc.pol
       
   when: key_protect_dir is defined and key_protect_dir | length > 0
