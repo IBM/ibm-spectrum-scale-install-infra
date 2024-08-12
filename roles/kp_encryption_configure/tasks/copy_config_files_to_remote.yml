@@ -1,27 +1,25 @@
-- block:
-    - name: Ensure the file has 644 permissions
-      file: 
-        path: "{{ key_protect_cert_files_dir }}/{{ resource_prefix }}.p12"
-        mode: '0644'
+- name: Ensure the .p12 file has 644 permissions
+  file: 
+    path: "{{ key_protect_cert_files_dir }}/{{ resource_prefix }}.p12"
+    mode: '0644'
 
-    - name: Copy file to remote server
-      copy:
-        src: "{{ key_protect_cert_files_dir }}/{{ resource_prefix }}.p12"
-        dest: "/var/mmfs/etc/{{ resource_prefix }}.p12"
-        owner: root
-        group: root
-        mode: '0600'
+- name: Copy the .p12 file to the remote server
+  copy:
+    src: "{{ key_protect_cert_files_dir }}/{{ resource_prefix }}.p12"
+    dest: "/var/mmfs/etc/{{ resource_prefix }}.p12"
+    owner: root
+    group: root
+    mode: '0600'
 
-    - name: Ensure the file has 644 permissions
-      file: 
-        path: "{{ key_protect_cert_files_dir }}/RKM.conf"
-        mode: '0644'
+- name: Ensure the RKM.conf file has 644 permissions
+  file: 
+    path: "{{ key_protect_cert_files_dir }}/RKM.conf"
+    mode: '0644'
 
-    - name: Copy RKM.conf to destination
-      template:
-        src: "{{ key_protect_cert_files_dir }}/RKM.conf"
-        dest: "/var/mmfs/etc/RKM.conf"
-        owner: root
-        group: root
-        mode: '0600'
-  when: key_protect_dir is defined and key_protect_dir | length > 0
+- name: Copy RKM.conf to the destination
+  copy:
+    src: "{{ key_protect_cert_files_dir }}/RKM.conf"
+    dest: "/var/mmfs/etc/RKM.conf"
+    owner: root
+    group: root
+    mode: '0600'
