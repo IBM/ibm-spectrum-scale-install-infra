@@ -1,0 +1,28 @@
+# Server - 1
+- block:
+    - name: Create a folder
+      file:
+        path: "{{ key_protect_dir }}"
+        state: directory
+
+    - name: Append password to KPClient.pwd
+      lineinfile:
+        path: "{{ key_protect_dir }}/{{ resource_prefix }}.pwd"
+        line: "{{ scale_encryption_admin_password }}"
+        create: yes
+
+    - name: Append port to kmip.port
+      lineinfile:
+        path: "{{ key_protect_dir }}/{{ resource_prefix }}.port"
+        line: "{{ key_protect_port }}"
+        create: yes
+
+    - name: Copy files from source to destination folder
+      copy:
+        src: "{{ item }}"
+        dest: "{{ key_protect_dir }}"
+        owner: root
+        group: root
+      with_fileglob:
+        - "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect/*"
+  when: key_protect_dir is defined and key_protect_dir | length > 0
