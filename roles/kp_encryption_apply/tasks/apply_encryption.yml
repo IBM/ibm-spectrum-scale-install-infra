@@ -1,12 +1,19 @@
-- block:
-    - name: KeyProtect Encryption | Encryption Apply | Check .pol file
-      stat:
-        path: /var/mmfs/etc/KP.fsenc.pol
-      register: fsenc_pol_stat
+- name: KeyProtect Encryption | Encryption Apply | Check if KP.fsenc.pol file exists
+  stat:
+    path: /var/mmfs/etc/KP.fsenc.pol
+  register: fsenc_pol_stat
 
-    - name: KeyProtect Encryption | Encryption Apply | Encryption Apply
-      command: mmchpolicy fs1 /var/mmfs/etc/KP.fsenc.pol
-      when: fsenc_pol_stat.stat.exists
-      run_once: true
+- name: KeyProtect Encryption | Encryption Apply | Apply Policy
+  command: mmchpolicy fs1 /var/mmfs/etc/KP.fsenc.pol
+  when: fsenc_pol_stat.stat.exists
+  run_once: true
 
-  when: fsenc_pol_stat is defined and fsenc_pol_stat.stat.exists
+- name: KeyProtect Encryption | Encryption Apply | Show Applied Policy
+  command: mmlspolicy fs1 -L
+  register: policy_output
+  run_once: true
+
+- name: KeyProtect Encryption | Encryption Apply | Display Policy Output
+  debug:
+    msg: "{{ policy_output.stdout }}"
+  run_once: true
