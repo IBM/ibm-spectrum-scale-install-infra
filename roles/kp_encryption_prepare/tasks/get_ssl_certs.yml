@@ -1,33 +1,62 @@
-# Server - 1
 - block:
-    - name: Create a folder
+    - name: KeyProtect Encryption | Encryption Prepare | Check Directory
+      stat:
+        path: "{{ key_protect_dir }}"
+      register: key_protect_dir_stat
+
+    - name: KeyProtect Encryption | Encryption Prepare | Create Directory
       file:
         path: "{{ key_protect_dir }}"
         state: directory
         owner: root
         group: root
         mode: '0755'
+      when: not key_protect_dir_stat.stat.exists
 
-    - name: Append password to KPClient.pwd
+    - name: KeyProtect Encryption | Encryption Prepare | Password File Check
+      stat:
+        path: "{{ key_protect_dir }}/{{ resource_prefix }}.pwd"
+      register: password_file_stat
+
+    - name: KeyProtect Encryption | Encryption Prepare | Password File Create
       lineinfile:
         path: "{{ key_protect_dir }}/{{ resource_prefix }}.pwd"
         line: "{{ scale_encryption_admin_password }}"
         create: yes
+      when: not password_file_stat.stat.exists
 
-    - name: Append port to kmip.port
+    - name: KeyProtect Encryption | Encryption Prepare | Port File Check
+      stat:
+        path: "{{ key_protect_dir }}/{{ resource_prefix }}.port"
+      register: port_file_stat
+
+    - name: KeyProtect Encryption | Encryption Prepare | Port File Create
       lineinfile:
         path: "{{ key_protect_dir }}/{{ resource_prefix }}.port"
         line: "{{ key_protect_port }}"
         create: yes
+      when: not port_file_stat.stat.exists
 
-    - name: Copy files from source to destination folder
+    - name: KeyProtect Encryption | Encryption Prepare | Copy Certs to Remote Server
       copy:
         src: "{{ item }}"
         dest: "{{ key_protect_dir }}"
         owner: root
         group: root
       with_fileglob:
-         - "{{ key_protect_cert_files_dir }}/*"
+        - "{{ key_protect_cert_files_dir }}/*"
       run_once: true
-        
+
+    - name: Debug | KeyProtect Directory Stat
+      debug:
+        var: key_protect_dir_stat
+
+    - name: Debug | Password File Stat
+      debug:
+        var: password_file_stat
+
+    - name: Debug | Port File Stat
+      debug:
+        var: port_file_stat
+
   when: key_protect_dir is defined and key_protect_dir | length > 0
