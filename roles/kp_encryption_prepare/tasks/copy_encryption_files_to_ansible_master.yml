@@ -39,7 +39,6 @@
         src: "{{ key_protect_dir }}/RKM.conf"
         dest: "{{ key_protect_cert_files_dir }}/"
         flat: yes
-      when: rkm_conf_stat.stat.exists
       run_once: true
 
   when: key_protect_dir is defined and key_protect_dir | length > 0
