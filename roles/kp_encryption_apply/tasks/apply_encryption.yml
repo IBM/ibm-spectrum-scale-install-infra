@@ -1,9 +1,12 @@
-- name: Check if KP.fsenc.pol file exists
-  stat:
-    path: /var/mmfs/etc/KP.fsenc.pol
-  register: fsenc_pol_stat
+- block:
+    - name: KeyProtect Encryption | Encryption Apply | Check .pol file
+      stat:
+        path: /var/mmfs/etc/KP.fsenc.pol
+      register: fsenc_pol_stat
 
-- name: Apply Encryption
-  command: mmchpolicy fs1 /var/mmfs/etc/KP.fsenc.pol
-  when: fsenc_pol_stat.stat.exists
-  run_once: true
+    - name: KeyProtect Encryption | Encryption Apply | Encryption Apply
+      command: mmchpolicy fs1 /var/mmfs/etc/KP.fsenc.pol
+      when: fsenc_pol_stat.stat.exists
+      run_once: true
+
+  when: fsenc_pol_stat is defined and fsenc_pol_stat.stat.exists
