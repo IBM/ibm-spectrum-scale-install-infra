@@ -37,9 +37,15 @@
         --label "{{ resource_prefix }}"
       args:
         chdir: "{{ key_protect_dir }}"
-      when: cert_file_stat.stat.exists and not flag_file_stat.stat.exists
       register: createkey_output
+      when: cert_file_stat.stat.exists and not flag_file_stat.stat.exists
+      failed_when: "'error' in createkey_output.stderr or createkey_output.rc != 0"
       run_once: true
+
+    - name: Debug createkey_output
+      debug:
+        var: createkey_output
+      when: createkey_output is defined
 
     - name: KeyProtect Encryption | Encryption Prepare | Create flag to indicate key creation has been performed
       file:
@@ -48,19 +54,20 @@
       when: cert_file_stat.stat.exists and not flag_file_stat.stat.exists
       run_once: true
 
-    - name: Set encryption key fact
+    - name: KeyProtect Encryption | Encryption Prepare | Set Encryption key fact
       set_fact:
-        encryption_key: "{{ createkey_output.stdout }}"
-      when: createkey_output is defined and createkey_output.stdout != ""
+        encryption_key: "{{ createkey_output.stdout if createkey_output is defined and 'stdout' in createkey_output and createkey_output.stdout != '' }}"
+      when: cert_file_stat.stat.exists and not flag_file_stat.stat.exists
+      run_once: true
 
-    - name: Copy the Policy file
+    - name: KeyProtect Encryption | Encryption Prepare | Copy Policy file
       template:
         src: "templates/KP.fsenc.pol.j2"
         dest: "/var/mmfs/etc/KP.fsenc.pol"
         owner: root
         group: root
         mode: '0600'
-      when: createkey_output is defined and createkey_output.stdout != ""
+      when: encryption_key is defined and encryption_key != ''
       run_once: true
 
   when: key_protect_dir is defined and key_protect_dir | length > 0
