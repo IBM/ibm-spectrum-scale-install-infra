@@ -47,16 +47,4 @@
         - "{{ key_protect_cert_files_dir }}/*"
       run_once: true
 
-    - name: Debug | KeyProtect Directory Stat
-      debug:
-        var: key_protect_dir_stat
-
-    - name: Debug | Password File Stat
-      debug:
-        var: password_file_stat
-
-    - name: Debug | Port File Stat
-      debug:
-        var: port_file_stat
-
   when: key_protect_dir is defined and key_protect_dir | length > 0
