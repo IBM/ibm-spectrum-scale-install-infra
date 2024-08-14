@@ -15,12 +15,13 @@
       command: mmgskkm trust --prefix "{{ key_protect_dir }}/Key_Protect_Server.chain" --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
       args:
         chdir: "{{ key_protect_dir }}"
+      register: p12cert
       when: not cert_file_stat.stat.exists
       run_once: true
 
-    - name: Sleep for 20 seconds
+    - name: Sleep for 5 seconds
       ansible.builtin.pause:
-        seconds: 20
+        seconds: 5
 
     - name: KeyProtect Encryption | Encryption Prepare | Check if key creation has already performed
       stat:
@@ -38,11 +39,10 @@
       args:
         chdir: "{{ key_protect_dir }}"
       register: createkey_output
-      when: cert_file_stat.stat.exists and not flag_file_stat.stat.exists
-      failed_when: "'error' in createkey_output.stderr or createkey_output.rc != 0"
+      when: p12cert is defined and not flag_file_stat.stat.exists
       run_once: true
 
-    - name: Debug createkey_output
+    - name: KeyProtect Encryption | Encryption Prepare | Debug createkey_output
       debug:
         var: createkey_output
       when: createkey_output is defined
@@ -51,13 +51,13 @@
       file:
         path: "{{ key_protect_dir }}/key_creation_done.flag"
         state: touch
-      when: cert_file_stat.stat.exists and not flag_file_stat.stat.exists
+      when: not flag_file_stat.stat.exists
       run_once: true
 
     - name: KeyProtect Encryption | Encryption Prepare | Set Encryption key fact
       set_fact:
         encryption_key: "{{ createkey_output.stdout if createkey_output is defined and 'stdout' in createkey_output and createkey_output.stdout != '' }}"
-      when: cert_file_stat.stat.exists and not flag_file_stat.stat.exists
+      when: not flag_file_stat.stat.exists
       run_once: true
 
     - name: KeyProtect Encryption | Encryption Prepare | Copy Policy file
