@@ -139,6 +139,10 @@
     - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
 
+- name: update list
+  set_fact:
+      scale_auditlogging_packages: "{{ scale_auditlogging_packages | reject('search', 'gpfs.java') | list }}"
+  when: ansible_architecture == "aarch64"
 #
 # Add FAL packages
 #
