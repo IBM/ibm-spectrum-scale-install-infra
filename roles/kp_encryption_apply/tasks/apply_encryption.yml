@@ -1,5 +1,5 @@
 - name:  KeyProtect Encryption | Encryption Apply | Check encryption policy for file system
-  command: mmlspolicy cd1 -L
+  command: mmlspolicy {{ filesystem_mountpoint }} -L
   register: policy_output
   ignore_errors: yes
 
