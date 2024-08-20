@@ -125,15 +125,3 @@ scale_admin_node: false
 #     maxReceiverThreads: 32
 #     maxStatCache: 512K
 #     pagepool: 32G
-# scale_protocols:
-#   export_node_ip_map:
-#   - jay-test1-ces-001: 10.241.17.5
-#   - jay-test1-ces-002: 10.241.17.4
-#   exports:
-#   - data
-#   - tools
-#   filesystem: cesSharedRoot
-#   mountpoint: /gpfs/fs1
-#   nfs: true
-#   object: false
-#   smb: false
