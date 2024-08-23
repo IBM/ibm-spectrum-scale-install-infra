@@ -1,3 +1,6 @@
+# Create .p12 certificate and Create Encryption Key
+# Create a Policy file
+
 - block:
     - name: KeyProtect Encryption | Encryption Prepare | Check if .p12 cert exists
       stat:

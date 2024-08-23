@@ -1,3 +1,4 @@
-# Copy Encryption config files to Remote servers
+
+# Import the 'copy_config_files_to_remote.yml' task to obtain the RKM.conf and .p12 certificate files and copy them to Bootstrap node.
 
 - import_tasks: copy_config_files_to_remote.yml

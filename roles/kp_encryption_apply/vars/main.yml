@@ -1,1 +1,4 @@
+# Static Variables for Encryption
+
+# Scale File System Mount Point
 filesystem_mountpoint: "{{ filesystem_mountpoint }}"

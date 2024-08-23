@@ -1,3 +1,5 @@
+# Get RKM.conf and .p12 cert
+
 - block:
     - name: KeyProtect Encryption | Encryption Prepare | Check .p12 exists
       stat:
