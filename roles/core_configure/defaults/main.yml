@@ -84,3 +84,44 @@ scale_node_update_check: true
 
 ## admin node flag
 scale_admin_node: false
+
+## Example storage_cluster_config.yaml file for tunables based on Node Group
+# scale_cluster_config:
+#   ephemeral_port_range: 60000-61000
+# scale_config:
+# - nodeclass: storagedescnodegrp
+#   params:
+#   - maxFilesToCache: 128K
+#     maxMBpS: 4000
+#     maxReceiverThreads: 8
+#     maxStatCache: 128K
+#     pagepool: 8G
+# - nodeclass: managementnodegrp
+#   params:
+#   - maxFilesToCache: 128K
+#     maxMBpS: 4000
+#     maxReceiverThreads: 8
+#     maxStatCache: 128K
+#     pagepool: 8G
+# - nodeclass: storagenodegrp
+#   params:
+#   - maxFilesToCache: 128K
+#     maxMBpS: 4000
+#     maxReceiverThreads: 8
+#     maxStatCache: 128K
+#     pagepool: 8G
+# - nodeclass: protocolnodegrp
+#   params:
+#   - maxFilesToCache: 3M
+#     maxMBpS: 4000
+#     maxReceiverThreads: 32
+#     maxStatCache: 512K
+#     pagepool: 16G
+# - nodeclass: afmgatewaygrp
+#   params:
+#   - afmHardMemThreshold: 40G
+#     maxFilesToCache: 3M
+#     maxMBpS: 16000
+#     maxReceiverThreads: 32
+#     maxStatCache: 512K
+#     pagepool: 32G
