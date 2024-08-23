@@ -1,3 +1,5 @@
+# Distribute .p12 and RKM.conf files to all servers to apply encryption.
+
 - block:
     - name: KeyProtect Encryption | Encryption Configuration | Check .p12
       stat:
