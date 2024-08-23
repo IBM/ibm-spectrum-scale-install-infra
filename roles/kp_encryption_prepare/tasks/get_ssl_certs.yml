@@ -1,3 +1,6 @@
+# Creating directory and password file for non-interactive deployment for KeyProtect
+# Copy SSL certs from Bootstrap node to Management node
+
 - block:
     - name: KeyProtect Encryption | Encryption Prepare | Check Directory
       stat:
