@@ -30,4 +30,25 @@ The `kp_encryption_apply` Ansible role simplifies the encryption process by auto
 - Applying the encryption policy to the IBM Storage Scale cluster file system.
 - Validating the encryption to ensure proper implementation.
 
+## Verifying Encryption on the File System
+
+1. Log in to any of the cluster nodes (storage or compute) using the following SSH command and switch to the `root` user:
+
+    ```bash
+    ssh -J root@BASTION_SERVER vpcuser@STORAGE_NODE
+    sudo -i
+    ```
+
+2. Validate the policy applied to the cluster by running the following command:
+
+    ```bash
+    mmlspolicy FILESYSTEM_NAME -L
+    ```
+
+3. Check the encryption status of a specific file by running the following command:
+
+    ```bash
+    mmlsattr -n gpfs.Encryption FILE_NAME
+    ```
+
 For more in-depth information about encryption in IBM Spectrum Scale, including various encryption use cases, see the [Encryption documentation](https://www.ibm.com/docs/en/storage-scale/5.1.8?topic=administering-encryption).
