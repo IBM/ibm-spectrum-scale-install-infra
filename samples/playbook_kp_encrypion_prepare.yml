@@ -1,0 +1,16 @@
+---
+#
+# samples/playbook_kp_encrypion_prepare.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster with IBM Key Protect encryption.
+# Additional variables need to be defined for this, it
+# is recommended to use Ansible group variables for this purpose:
+# https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#assigning-a-variable-to-many-machines-group-variables
+
+- hosts: scale_management_node
+  collections:
+    - ibm.spectrum_scale
+  any_errors_fatal: true
+  roles:
+     - kp_encryption_prepare
