@@ -1,0 +1,31 @@
+# Apply Encryption Policy on IBM Storge Scale Cluster
+
+- name:  KeyProtect Encryption | Encryption Apply | Check encryption policy for file system
+  command: mmlspolicy {{ filesystem_mountpoint }} -L
+  register: policy_output
+  ignore_errors: yes
+
+- name:  KeyProtect Encryption | Encryption Apply | Check if encryption policy is applied
+  set_fact:
+    encryption_applied: "{{ 'KEYS' in policy_output.stdout }}"
+
+- name: KeyProtect Encryption | Encryption Apply | Check if KP.fsenc.pol file exists
+  stat:
+    path: /var/mmfs/etc/KP.fsenc.pol
+  register: fsenc_pol_stat
+  when: not encryption_applied
+
+- name: KeyProtect Encryption | Encryption Apply | Apply Policy
+  command: mmchpolicy {{ filesystem_mountpoint }} /var/mmfs/etc/KP.fsenc.pol
+  when: not encryption_applied
+  run_once: true
+
+- name: KeyProtect Encryption | Encryption Apply | Show Applied Policy
+  command: mmlspolicy {{ filesystem_mountpoint }} -L
+  register: policy_output
+  run_once: true
+
+- name: KeyProtect Encryption | Encryption Apply | Display Policy Output
+  debug:
+    msg: "{{ policy_output.stdout }}"
+  run_once: true

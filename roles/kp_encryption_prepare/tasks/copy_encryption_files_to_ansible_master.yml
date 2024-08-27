@@ -1,0 +1,46 @@
+# Get RKM.conf and .p12 cert
+
+- block:
+    - name: KeyProtect Encryption | Encryption Prepare | Check .p12 exists
+      stat:
+        path: "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+      register: p12_file_stat
+
+    - name: KeyProtect Encryption | Encryption Prepare | Update permissions
+      file: 
+        path: "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+        mode: '0644'
+      when: p12_file_stat.stat.exists
+      run_once: true
+
+    - name: KeyProtect Encryption | Encryption Prepare | Check RKM.conf
+      stat:
+        path: "{{ key_protect_dir }}/RKM.conf"
+      register: rkm_conf_stat
+
+    - name: KeyProtect Encryption | Encryption Prepare | Copy RKM.comf
+      template:
+        src: "templates/RKM.conf.j2"
+        dest: "{{ key_protect_dir }}/RKM.conf"
+        owner: root
+        group: root
+        mode: '0600'
+      when: not rkm_conf_stat.stat.exists
+      run_once: true
+
+    - name: KeyProtect Encryption | Encryption Prepare | Fetch .p12 
+      fetch:
+        src: "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+        dest: "{{ key_protect_cert_files_dir }}/"
+        flat: yes
+      when: p12_file_stat.stat.exists
+      run_once: true
+
+    - name: KeyProtect Encryption | Encryption Prepare | Fetch RKM.conf
+      fetch:
+        src: "{{ key_protect_dir }}/RKM.conf"
+        dest: "{{ key_protect_cert_files_dir }}/"
+        flat: yes
+      run_once: true
+
+  when: key_protect_dir is defined and key_protect_dir | length > 0

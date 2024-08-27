@@ -1,0 +1,10 @@
+# Preparation tasks for enabling encryption with IBM Key Protect
+
+# Import the 'get_ssl_certs.yml' task to retrieve SSL certificates from the Bootstrap node.
+- import_tasks: get_ssl_certs.yml
+
+# Import the 'create_encryption_key.yml' task to create the encryption key if it doesn't already exist.
+- import_tasks: create_encryption_key.yml
+
+# Import the 'copy_encryption_files_to_ansible_master.yml' task to obtain the RKM.conf and .p12 certificate files and copy them to Bootstrap node.
+- import_tasks: copy_encryption_files_to_ansible_master.yml

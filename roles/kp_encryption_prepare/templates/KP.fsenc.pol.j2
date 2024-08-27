@@ -1,0 +1,4 @@
+RULE 'EncPolicyGeneratorRule' ENCRYPTION 'RULE1' IS
+ALGO 'DEFAULTNISTSP800131AFAST'
+KEYS('{{ encryption_key }}:KP')
+RULE 'Encrypt all files' SET ENCRYPTION 'RULE1' WHERE NAME LIKE '%'

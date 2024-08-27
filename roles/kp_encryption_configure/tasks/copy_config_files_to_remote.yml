@@ -1,0 +1,33 @@
+# Distribute .p12 and RKM.conf files to all servers to apply encryption.
+
+- block:
+    - name: KeyProtect Encryption | Encryption Configuration | Check .p12
+      stat:
+        path: "/var/mmfs/etc/{{ kp_resource_prefix }}.p12"
+      register: p12_file_stat
+
+    - name: KeyProtect Encryption | Encryption Configuration | Copy .p12
+      copy:
+        src: "{{ key_protect_cert_files_dir }}/{{ kp_resource_prefix }}.p12"
+        dest: "/var/mmfs/etc/{{ kp_resource_prefix }}.p12"
+        owner: root
+        group: root
+        mode: '0600'
+      when: not p12_file_stat.stat.exists
+      register: p12_copy_result
+
+    - name: KeyProtect Encryption | Encryption Configuration | Check RKM.conf
+      stat:
+        path: "/var/mmfs/etc/RKM.conf"
+      register: rkm_conf_stat
+
+    - name: KeyProtect Encryption | Encryption Configuration | Copy RKM.conf
+      copy:
+        src: "{{ key_protect_cert_files_dir }}/RKM.conf"
+        dest: "/var/mmfs/etc/RKM.conf"
+        owner: root
+        group: root
+        mode: '0600'
+      when: not rkm_conf_stat.stat.exists
+
+  when: key_protect_cert_files_dir is defined and key_protect_cert_files_dir | length > 0

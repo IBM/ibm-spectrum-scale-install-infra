@@ -1,0 +1,19 @@
+# Static Variables for Encryption
+
+# Key Protect Password
+scale_encryption_admin_password: "{{ scale_encryption_admin_password }}"
+
+# Resource Prefix
+resource_prefix: "{{ kp_resource_prefix }}"
+
+# Region Name
+vpc_region: "{{ vpc_region }}"
+
+# Directory to store Key Protect files 
+key_protect_dir: "/opt/key_protect"
+
+# Key Protect Port
+key_protect_port: "5696"
+
+# Key Protect files path on Bootstrap node
+key_protect_cert_files_dir: "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect"

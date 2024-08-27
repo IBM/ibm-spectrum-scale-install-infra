@@ -1,0 +1,4 @@
+
+# Import the 'apply_encryption.yml' task to Apply the Encryption on the Scale Cluster.
+
+- import_tasks: apply_encryption.yml
