@@ -1,0 +1,77 @@
+---
+# Dir package installation method
+
+- block:  ## run_once: true
+    - name: install | Stat directory installation package
+      stat:
+        path: "{{ scale_install_directory_pkg_path }}"
+      register: scale_install_dirpkg
+
+    - name: install | Check directory installation package
+      assert:
+        that: scale_install_dirpkg.stat.exists
+        msg: >-
+          Please set the variable 'scale_install_directory_pkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+  run_once: true
+  delegate_to: localhost
+
+- name: install| Creates default directory
+  file:
+    path: "{{ scale_extracted_path }}"
+    state: directory
+    mode: a+x
+    recurse: yes
+
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ scale_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+  register: scale_install_gpfs_packagedir
+
+#
+# Copy installation directory package to default
+#
+- block:
+    - name: install | Copy installation package to node
+      copy:
+        src: "{{ scale_install_directory_pkg_path }}"
+        dest: "{{ scale_extracted_path }}"
+        mode: a+x
+
+- name: install | Set installation package path
+  set_fact:
+    dir_path: "{{ scale_extracted_path + '/' + scale_install_directory_pkg_path | basename }}"
+
+- name: install | gpfs base path
+  set_fact:
+    gpfs_path_url: "{{ dir_path }}"
+  when: scale_install_directory_pkg_path is defined
+
+#
+# Find noobaa-core
+#
+# 
+
+- block:  ## when: host is defined as a protocol node
+
+  - name: install | Find noobaa-core (noobaa-core) package
+    find:
+     paths:  "{{ gpfs_path_url }}"
+     patterns: noobaa-core*
+    register: scale_install_gpfs_s3
+
+  - name: install | Check valid GPFS (s3) package
+    assert:
+     that: scale_install_gpfs_s3.matched > 0
+     msg: "No S3 (noobaa-core) package found {{ gpfs_path_url }}noobaa-core*"
+
+  - name: install | Add GPFS s3 package to list
+    vars:
+     current_package:  "{{ item.path }}"
+    set_fact:
+     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+    with_items:
+    - "{{ scale_install_gpfs_s3.files }}"
+
+- debug:
+   msg: "{{ scale_install_all_packages }}"

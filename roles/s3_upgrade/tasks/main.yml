@@ -1,0 +1,4 @@
+---
+# Install IBM Spectrum Scale (S3)
+- import_tasks: install.yml
+  tags: upgrade
