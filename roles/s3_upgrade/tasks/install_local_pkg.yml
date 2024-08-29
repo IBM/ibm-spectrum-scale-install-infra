@@ -1,0 +1,137 @@
+---
+# Local package installation method
+- block:  ## run_once: true
+  - name: install | Stat local installation package
+    stat:
+     path: "{{ scale_install_localpkg_path }}"
+     checksum_algorithm: md5
+    register: scale_install_localpkg
+
+  - name: install | Check local installation package
+    assert:
+     that: scale_install_localpkg.stat.exists
+     msg: >-
+          Please set the variable 'scale_install_localpkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+
+#
+# Optionally, verify package checksum
+#
+  - name: install | Stat checksum file
+    stat:
+     path: "{{ scale_install_localpkg_path }}.md5"
+    register: scale_install_md5_file
+
+  - block:  ## when: scale_install_md5_file.stat.exists
+    - name: install | Read checksum from file
+      set_fact:
+       scale_install_md5_sum: "{{ lookup('file', scale_install_localpkg_path + '.md5') }}"
+
+    - name: install | Compare checksums
+      assert:
+       that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.checksum
+       msg: >-
+              Checksums don't match. Please check integritiy of your local
+              installation package!
+
+    when: scale_install_md5_file.stat.exists
+  run_once: true
+  delegate_to: localhost
+
+#
+# Copy installation package
+#
+- name: install | Stat extracted packages
+  stat:
+   path: "{{ s3_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- block:  ## when: not scale_install_gpfs_rpmdir.stat.exists
+  - name: install | Stat temporary directory
+    stat:
+     path: "{{ scale_install_localpkg_tmpdir_path }}"
+    register: scale_install_localpkg_tmpdir
+
+  - name: install | Check temporary directory
+    assert:
+     that:
+     - scale_install_localpkg_tmpdir.stat.exists
+     - scale_install_localpkg_tmpdir.stat.isdir
+     msg: >-
+          Please set the variable 'scale_install_localpkg_tmpdir_path' to point
+          to a temporary directory on the remote system!
+
+  - name: install | Copy installation package to node
+    copy:
+     src: "{{ scale_install_localpkg_path }}"
+     dest: "{{ scale_install_localpkg_tmpdir_path }}"
+     mode: a+x
+  when: not scale_install_gpfs_rpmdir.stat.exists
+
+#
+# Extract installation package
+#
+- name: install | Extract installation package
+  vars:
+   localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+  command: "{{ localpkg + ' --silent' }}"
+  args:
+   creates: "{{ s3_extracted_path }}"
+
+- name: install | Stat extracted packages
+  stat:
+   path: "{{ s3_extracted_path }}"
+  register: scale_install_gpfs_rpmdir
+
+- name: install | Check extracted packages
+  assert:
+   that:
+   - scale_install_gpfs_rpmdir.stat.exists
+   - scale_install_gpfs_rpmdir.stat.isdir
+   msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      local installation package!
+
+# Delete installation package
+- name: install | Delete installation package from node
+  file:
+   path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+   state: absent
+
+- name: install | s3 path
+  set_fact:
+   scale_s3_url: 's3_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: install | s3 path
+  set_fact:
+   scale_s3_url: 's3_rpms/rhel9/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
+
+# Find s3 rpms
+- block:  ## when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
+
+  - name: install | Find noobaa-core (noobaa-core) package
+    find:
+     paths: "{{ s3_extracted_path }}/{{ scale_s3_url }}"
+     patterns: noobaa-core*
+    register: scale_install_gpfs_s3
+
+  - name: install | Check valid (noobaa-core) package
+    assert:
+     that: scale_install_gpfs_s3.matched > 0
+     msg: "No noobaa-core (noobaa-core) package found {{ s3_extracted_path }}/{{ scale_s3_url }}noobaa-core*"
+
+  - name: install | Add noobaa-core package to list
+    vars:
+     current_package: "{{ item.path }}"
+    set_fact:
+     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+    with_items:
+    - "{{ scale_install_gpfs_s3.files }}"
+
+  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
+
+
+- debug:
+   msg: "{{ scale_install_all_packages }}"
