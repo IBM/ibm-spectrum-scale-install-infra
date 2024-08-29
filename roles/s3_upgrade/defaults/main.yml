@@ -1,0 +1,20 @@
+---
+# Default variables for the IBM Spectrum Scale (S3) role -
+# either edit this file or define your own variables to override the defaults
+
+## Specify the URL of the (existing) Spectrum Scale YUM/apt/zypper repository
+#scale_install_s3_repository_rpms: http://<ip>/s3_rpms/
+#scale_install_s3_repository_debs: http://<ip>/s3_debs/
+#scale_install_s3_repository_rpms_sles: http://<ip>/s3_rpms/sles12/
+
+## List of S3 packages to install
+scale_s3_packages:
+- noobaa-core
+- gpfs.mms3
+
+## Temporary directory to copy installation package to
+## (local package installation method)
+scale_install_localpkg_tmpdir_path: /tmp
+
+## Flag to install s3 debug package
+scale_s3_install_debuginfo: true

@@ -1,0 +1,6 @@
+---
+- name: upgrade | Upgrade GPFS S3 packages
+  yum:
+   name: "{{ scale_install_all_packages }}"
+   state: latest
+   disable_gpg_check: "{{ scale_disable_gpgcheck }}"
