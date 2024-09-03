@@ -76,3 +76,13 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   when: scale_install_gplbin_package is undefined
   with_items: "{{ scale_install_gplsrc_packages }}"
+
+#
+# Add GPFS packages for building scale-api from source
+#
+- name: install | Add scale api package to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  when: scale_type is defined
+  with_items:
+      - gpfs.scaleapi
