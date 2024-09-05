@@ -6,46 +6,57 @@
 - block:
     - name: install| Creates default directory
       file:
-        path: "{{ scale_node_id_config.cert_dir_location }}"
+        path: "{{ hostvars[inventory_hostname].cert_dir_location }}"
         state: directory
         mode: '0600'
         recurse: yes
-      when: scale_node_id_config.cert_dir_location is defined
+      when: hostvars[inventory_hostname].cert_dir_location is defined
 
     - name: install | Copy installation package to node
       copy:
-        src: "{{ scale_node_id_config.cert }}"
-        dest: "{{ scale_node_id_config.cert }}"
+        src: "{{ hostvars[inventory_hostname].node_cert }}"
+        dest: "{{ hostvars[inventory_hostname].node_cert }}"
         mode: '0600'
 
     - name: install | Copy installation package to node
       copy:
-        src: "{{ scale_node_id_config.key }}"
-        dest: "{{ scale_node_id_config.key }}"
+        src: "{{ hostvars[inventory_hostname].node_cert_key }}"
+        dest: "{{ hostvars[inventory_hostname].node_cert_key }}"
         mode: '0600'
 
     - name: install | Copy installation package to node
       copy:
-        src: "{{ scale_node_id_config.chain }}"
-        dest: "{{ scale_node_id_config.chain }}"
+        src: "{{ hostvars[inventory_hostname].node_cert_chain }}"
+        dest: "{{ hostvars[inventory_hostname].node_cert_chain }}"
         mode: '0600'
 
     - name: cluster | Node identity
-      command: /usr/lpp/mmfs/bin/scalectl nodeid get
+      command: /usr/lpp/mmfs/bin/scalectl node config get
       register: nodeidentity_exist_results
+      ignore_errors: yes
+      failed_when: false
+
+    - name: cluster | Restart scaleadmd ( workaround)
+      command: systemctl restart scaleadmd
+      ignore_errors: yes
+      failed_when: false
+      when: 
+          - nodeidentity_exist_results.stderr is defined
+          - '"/var/mmfs/run/grpc.admin.sock" in nodeidentity_exist_results.stderr'
 
     - debug:
             msg: "{{nodeidentity_exist_results}}"
 
     - name: cluster | Node identity
-      command: /usr/lpp/mmfs/bin/scalectl nodeid import  --cert {{ scale_node_id_config.cert }} --key {{ scale_node_id_config.key }} --chain {{ scale_node_id_config.chain }}
+      command: /usr/lpp/mmfs/bin/scalectl node config set --cert {{ hostvars[inventory_hostname].node_cert }} --key {{ hostvars[inventory_hostname].node_cert_key }} --chain {{ hostvars[inventory_hostname].node_cert_chain }}
       register: nodeidentity_results
-      when: nodeidentity_exist_results.stdout_lines | length < 1
+      retries: 5
+      delay: 30
+      #when: nodeidentity_exist_results.stdout_lines | length < 1
   when:
-    - scale_node_id_config is defined
-    - scale_node_id_config.cert is defined
-    - scale_node_id_config.key is defined
-    - scale_node_id_config.chain is defined
+    - hostvars[inventory_hostname].node_cert is defined
+    - hostvars[inventory_hostname].node_cert_key is defined
+    - hostvars[inventory_hostname].node_cert_chain is defined
 
 - debug:
      msg: "{{ nodeidentity_results.cmd }}"
