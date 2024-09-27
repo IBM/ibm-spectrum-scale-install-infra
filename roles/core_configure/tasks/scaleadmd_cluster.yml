@@ -238,6 +238,32 @@
         msg: "{{scale_add_node_list}}"
       when: scale_add_node_list is defined
 
+    - name: cluster | Identify quorum nodes to be added on
+      set_fact:
+          scale_quorum_node_list: "{{ scale_quorum_node_list | default([]) + [hostvars[item].scale_daemon_nodename] }}"
+      when:
+          - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
+          - not hostvars[item].scale_cluster_clusterId.stdout
+          - hostvars[item].scale_cluster_clusterId.stderr
+          - hostvars[item].scale_cluster_quorum is defined and hostvars[item].scale_cluster_quorum | bool 
+      with_items:
+        - "{{ ansible_play_hosts }}"
+      changed_when: false
+
+
+    - name: cluster | Identify manager nodes to be added on
+      set_fact:
+          scale_manager_node_list: "{{ scale_manager_node_list | default([]) + [hostvars[item].scale_daemon_nodename] }}"
+      when:
+          - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
+          - not hostvars[item].scale_cluster_clusterId.stdout
+          - hostvars[item].scale_cluster_clusterId.stderr
+          - hostvars[item].scale_cluster_manager is defined and hostvars[item].scale_cluster_manager | bool 
+      with_items:
+        - "{{ ansible_play_hosts }}"
+      changed_when: false
+
+
     - name: cluster | Prepare existing cluster NodeFile
       template:
         src: AddNodeFile.j2
@@ -268,6 +294,31 @@
       file:
         path: /var/mmfs/tmp/NodeFile
         state: absent
+
+    - name: cluster | Accept server license for quorum nodes
+      command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N "{{ scale_quorum_node_list | join(',') }}"
+      when: scale_quorum_node_list is defined and scale_quorum_node_list |length > 0
+      failed_when: false
+      ignore_errors: yes
+
+    - name: cluster | Change roles of quorum nodes
+      command: /usr/lpp/mmfs/bin/mmchnode --quorum -N "{{ scale_quorum_node_list | join(',') }}"
+      when: scale_quorum_node_list is defined and scale_quorum_node_list |length > 0
+      failed_when: false
+      ignore_errors: yes
+    
+    - name: cluster | Accept server license for manager nodes
+      command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N "{{ scale_manager_node_list | join(',') }}"
+      when: scale_manager_node_list is defined and scale_manager_node_list |length > 0
+      failed_when: false
+      ignore_errors: yes
+
+    - name: cluster | Change roles of manager nodes
+      command: /usr/lpp/mmfs/bin/mmchnode --manager -N "{{ scale_manager_node_list | join(',') }}"
+      when: scale_manager_node_list is defined and scale_manager_node_list |length > 0
+      failed_when: false
+      ignore_errors: yes
+
   when:
     - groups['scale_cluster_candidates'] is defined
     - groups['scale_cluster_members'] is defined

@@ -139,3 +139,28 @@
     - ansible_architecture == "s390x"
   ignore_errors: yes
   run_once: true
+
+- block:
+    - name: config | Check if scaleApiEnabled config for scale api is set to yes
+      command: "{{ scale_command_path }}mmlsconfig scaleApiEnabled"
+      register: scale_scaleapienabled
+      failed_when: false
+
+    - name: config | Setting scaleApiEnabled config for scale api
+      command: "{{ scale_command_path }}mmchconfig scaleApiEnabled=yes --force"
+      when:
+         - scale_scaleapienabled.stdout is defined
+         - "'yes' not in scale_scaleapienabled.stdout"
+      register: scale_scaleapienabled_cmd
+      failed_when: false
+
+    - debug:
+         msg: "{{ scale_scaleapienabled_cmd.cmd }}"
+      when: scale_scaleapienabled_cmd.cmd is defined
+      ignore_errors: yes
+      failed_when: false
+
+  when:
+    - scale_type is defined
+  ignore_errors: yes
+  run_once: true
