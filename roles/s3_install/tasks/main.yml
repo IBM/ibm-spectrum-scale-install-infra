@@ -3,7 +3,3 @@
 - import_tasks: install.yml
   when: scale_protocols is defined and (scale_protocols.s3|bool)
   tags: install
-
-- import_tasks: parseFile.yml
-  when: scale_protocols is defined and (scale_protocols.s3|bool)
-  tags: install
