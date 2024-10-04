@@ -325,6 +325,21 @@
   run_once: true
   delegate_to: "{{ groups['scale_cluster_members'].0 }}"
 
+- name: cluster | Node identity
+  command: /usr/lpp/mmfs/bin/scalectl node config get
+  register: nodeidentity_exist_results
+  ignore_errors: yes
+  failed_when: false
+
+- name: cluster | Restart scaleadmd ( workaround)
+  command: systemctl restart scaleadmd
+  ignore_errors: yes
+  failed_when: false
+  when: 
+    - nodeidentity_exist_results.stderr is defined
+    - ('"/var/mmfs/run/grpc.admin.sock" in nodeidentity_exist_results.stderr') or
+      ('"/var/mmfs/run/scaleadmd.grpc.sock" in nodeidentity_exist_results.stderr')
+
 - meta: flush_handlers
 
 # Node roles will be finalized after daemons are started...
