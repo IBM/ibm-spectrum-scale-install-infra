@@ -41,10 +41,8 @@
   register: env_var_result
   loop:
     - IC_REGION
-    - IC_ZONE
+    - IC_SUBNET
     - IC_RG
-    - IC_VPC
-    - IC_RT
   when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
 
 - name: Set facts for the fetched variables
@@ -61,8 +59,6 @@
     replace: '{{ item.key }}={{ item.value }}'
   loop:
     - { regex: 'IC_REGION', key: 'IC_REGION', value: '{{ IC_REGION }}' }
-    - { regex: 'IC_ZONE', key: 'IC_ZONE', value: '{{ IC_ZONE }}' }
+    - { regex: 'IC_SUBNET', key: 'IC_SUBNET', value: '{{ IC_SUBNET }}' }
     - { regex: 'IC_RG', key: 'IC_RG', value: '{{ IC_RG }}' }
-    - { regex: 'IC_VPC', key: 'IC_VPC', value: '{{ IC_VPC }}' }
-    - { regex: 'IC_RT', key: 'IC_RT', value: '{{ IC_RT }}' }
   when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
