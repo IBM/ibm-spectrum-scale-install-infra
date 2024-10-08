@@ -13,8 +13,8 @@ id_provider = ldap
 autofs_provider = ldap
 auth_provider = ldap
 chpass_provider = ldap
-ldap_uri = ldap://{{ ldap_server_ip }}
-ldap_search_base = dc={{ base_dn | regex_replace('\\..*', '') }},dc={{ base_dn | regex_replace('^[^.]+\\.', '') }}
+ldap_uri = ldap://{{ LDAP_SERVER_IP }}
+ldap_search_base = dc={{ BASE_DN | regex_replace('\\..*', '') }},dc={{ BASE_DN | regex_replace('^[^.]+\\.', '') }}
 ldap_id_use_start_tls = True
 ldap_tls_cacertdir = /etc/openldap/certs
 cache_credentials = True

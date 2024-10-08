@@ -45,8 +45,8 @@
         state: restarted
         enabled: yes
       loop:
-        - nslcd
-        - nscd
+        - sssd
+        - oddjobd
 
     - name: LDAP | Allow SSH authentication
       ansible.builtin.command: sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
