@@ -1,0 +1,19 @@
+---
+# Getting OpenLDAP SSL cert
+
+- name: LDAP | Check if ldap_cacert.pem exists on remote
+  stat:
+    path: /usr/local/share/ca-certificates/ldap_cacert.pem
+  register: remote_cert_status
+
+- name: LDAP | Check if ldap_cacert.pem exists locally
+  stat:
+    path: "{{ LDAP_CERT_FILES_DIR }}/ldap_cacert.pem"
+  register: ldap_cert_status
+
+- name: LDAP | Copy ldap_cacert.pem to Bootstrap
+  fetch:
+    src: /usr/local/share/ca-certificates/ldap_cacert.pem
+    dest: "{{ LDAP_CERT_FILES_DIR }}/ldap_cacert.pem"
+    flat: yes
+  when: remote_cert_status.stat.exists and not ldap_cert_status.stat.exists
