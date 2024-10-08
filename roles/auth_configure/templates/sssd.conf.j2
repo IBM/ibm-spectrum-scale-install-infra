@@ -1,0 +1,21 @@
+[sssd]
+config_file_version = 2
+services = nss, pam, autofs
+domains = default
+
+[nss]
+homedir_substring = /home
+
+[pam]
+
+[domain/default]
+id_provider = ldap
+autofs_provider = ldap
+auth_provider = ldap
+chpass_provider = ldap
+ldap_uri = ldap://{{ ldap_server_ip }}
+ldap_search_base = dc={{ base_dn | regex_replace('\\..*', '') }},dc={{ base_dn | regex_replace('^[^.]+\\.', '') }}
+ldap_id_use_start_tls = True
+ldap_tls_cacertdir = /etc/openldap/certs
+cache_credentials = True
+ldap_tls_reqcert = allow
