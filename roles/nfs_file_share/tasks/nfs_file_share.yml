@@ -1,28 +1,49 @@
 ---
 # Checking if NFS export list if already exists if not then Creating NFS export.
 
+- name: config | Create a list of configuration parameters for filesets
+  set_fact:
+    config_filset: >
+      {%- set config_filset = [] -%}
+      {%- for storage in scale_storage -%}
+        {%- for fileset_name, quota in storage.filesets.items() -%}
+          {{ config_filset.append({
+            'filesystem': storage.filesystem,
+            'fileset_name': fileset_name,
+            'quota': quota,
+            'defaultMountPoint': storage.defaultMountPoint
+          }) }}
+        {%- endfor -%}
+      {%- endfor -%}
+      {{ config_filset }}
+  run_once: true
+
 - name: Check NFS export list if already exists
-  shell: "/usr/lpp/mmfs/bin/mmnfs export list -Y | tail -n +2 | awk -F: '{print $7, $8}' | sort -k2 | awk '{print $1}' | grep -w {{ scale_protocols.mountpoint }}/{{ item }}"
-  loop: "{{ scale_protocols.exports }}"
+  shell: "/usr/lpp/mmfs/bin/mmnfs export list -Y | tail -n +2 | awk -F: '{print $7, $8}' | sort -k2 | awk '{print $1}' | grep -w {{ item.defaultMountPoint }}/{{ item.fileset_name }}"
   register: export_list_exists
+  loop: "{{ config_filset }}"
+  loop_control:
+    label: "{{ item.defaultMountPoint }}: {{ item.fileset_name }}"
   failed_when: export_list_exists.rc == 2
   when: is_admin_node | default(false) == true
   run_once: true
-
+  
 - name: Print return code of NFS export list
   debug:
-    msg: "Export_list {{ item.item }} - Return Code: {{ item.rc }}"
+    msg: "Export_list {{ item.item.fileset_name }} - Return Code: {{ item.rc }}"
   loop: "{{ export_list_exists.results }}"
   loop_control:
-    loop_var: item
+    label: "{{ item.item.fileset_name }}"
   when: is_admin_node | default(false) == true
-  ignore_errors: yes
+  run_once: true
 
 - name: Create NFS export
   shell: |
-    /usr/lpp/mmfs/bin/mmnfs export add {{ scale_protocols.mountpoint }}/{{ item.item }} --client "{{ compute_subnet_cidr }}(Access_Type=RW,SQUASH=root_squash)"
+    /usr/lpp/mmfs/bin/mmnfs export add {{ item.item.defaultMountPoint }}/{{ item.item.fileset_name }} --client "{{ compute_subnet_cidr }}(Access_Type=RW,SQUASH=root_squash)"
     sleep 10              #This is temporary fix for Dbus error.
-  with_items: "{{ export_list_exists.results }}"
+  loop: "{{ export_list_exists.results }}"
+  loop_control:
+    label: "{{ item.item.fileset_name }}"
   register: created_nfs_export
   when: is_admin_node | default(false) == true and item.rc != 0
   run_once: true
@@ -42,6 +63,8 @@
 - name: Change MINOR_VERSIONS
   shell: "/usr/lpp/mmfs/bin/mmnfs config change MINOR_VERSIONS=0,1"
   register: change_minor_versions
-  with_items: "{{ export_list_exists.results }}"
+  loop: "{{ export_list_exists.results }}"
+  loop_control:
+    label: "{{ item.item.fileset_name }}"
   when: is_admin_node | default(false) == true and item.rc != 0
   run_once: true
