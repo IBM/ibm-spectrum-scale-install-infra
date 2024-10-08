@@ -101,12 +101,21 @@
       with_items: "{{ scale_storage_stanzafile_new.results }}"
 
     - block:
+         - name: storage | Check if nsds are already active
+           shell: /usr/lpp/mmfs/bin/mmlsnsd -a -Y | grep -v HEADER | cut -d ':' -f 8
+           register: scale_nsd_active
+        
+         - debug:
+             var: scale_nsd_active.stdout_lines
+         
          - debug:
              msg: Wait for 240 second for NSD configuration to be synced across cluster. Please be patient...
+           when: ((scale_nsd_active.stdout_lines) | length) == 0
 
          - name: storage | Wait for NSD configuration to be synced across cluster
            wait_for:
              timeout: 240
+           when: ((scale_nsd_active.stdout_lines) | length) == 0
 
          - name: storage | wait-nsd-active
            shell: /usr/lpp/mmfs/bin/mmlsnsd -a -Y | grep -v HEADER | cut -d ':' -f 8

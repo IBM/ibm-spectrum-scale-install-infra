@@ -150,7 +150,7 @@
 
   - name: Debug if quota for fileset is already set
     debug:
-      msg: "Fileset name: {{ item.item.item.item.fileset_name }}  Quota allocated: {{ item.item.item.item.quota }}"
+      msg: "Fileset name: {{ item.item.item.item.fileset_name }}  Quota allocated: {{ item.item.item.item.quota }} Return Code: {{ item.item.item.rc }}"
     loop: "{{ existing_quota_details.results }}"
     loop_control:
       label: "{{ item.item.item.item.filesystem }}"
