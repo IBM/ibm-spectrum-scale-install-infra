@@ -189,5 +189,4 @@
   loop_control:
     label: "{{ item.defaultMountPoint }}: {{ item.fileset_name }}"
   run_once: true
-
-  #when: scale_storage[0].filesets is defined   Check on this and mmcheckquota command
+  when: item.fileset_name is defined
