@@ -6,6 +6,21 @@
   register: rhel_version
   changed_when: false
 
+- name: LDAP | Check ldap_cacert.pem
+  stat:
+    path: "{{ LDAP_CERT_FILES_DIR }}/ldap_cacert.pem"
+  register: ldap_cert_stat
+
+- name: LDAP | Copy ldap_cacert.pem to remote servers
+  copy:
+    src: "{{ LDAP_CERT_FILES_DIR }}/ldap_cacert.pem"
+    dest: /etc/openldap/certs/
+    owner: root
+    group: root
+    mode: '0600'
+  when: not ldap_cert_stat.stat.exists
+  register: ldap_cert_result
+
 - block:
     - name: LDAP | Create the SSSD configuration file
       template:
@@ -31,15 +46,7 @@
     - name: LDAP | Apply SSSD configuration with mkhomedir using authselect
       command: authselect select sssd with-mkhomedir --force
 
-    - name: LDAP | Restart SSSD and oddjobd services
-      systemd:
-        name: "{{ item }}"
-        state: restarted
-      loop:
-        - sssd
-        - oddjobd
-
-    - name: LDAP | Restart and enable nslcd and nscd services
+    - name: LDAP | Restart and Enable SSSD and oddjobd services
       ansible.builtin.systemd:
         name: "{{ item }}"
         state: restarted
@@ -52,4 +59,4 @@
       ansible.builtin.command: sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
       notify: Restart SSH Service
 
-  when: rhel_version.stdout in ["7", "8", "9"]
+  when: rhel_version.stdout in ["7", "8", "9"] and ldap_cert_result is not failed
