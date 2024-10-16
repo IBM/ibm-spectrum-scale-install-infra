@@ -63,6 +63,13 @@
 - name: Add base organizational units to LDAP
   command: ldapadd -x -D "{{ ldap_admin_dn }}" -w "{{ ldap_admin_password }}" -f /opt/base-ou-groups.ldif
 
+- name: Install the samba for multi-protocol schema
+  ansible.builtin.apt:
+    name: "samba"
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+
 - name: Create group LDIF
   copy:
     dest: /opt/group.ldif
