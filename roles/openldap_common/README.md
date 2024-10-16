@@ -13,7 +13,8 @@ Role Variables
 --------------
 
 - The parameters required to configure are as follows:
-  
+
+```
   ldap_domain: "example.com"
   ldap_organization: "Example Organization"
   ldap_admin_password: "Passw0rd"
@@ -22,12 +23,15 @@ Role Variables
   default_usergroup: "sample_group"
   default_user: "john"
   default_user_password: "Passw0rd"
+```
 
-  default_usergroup, default_user, default_user_password are optional.
+  `default_usergroup`, `default_user`, `default_user_password` are optional.
 
 Example Playbook
 ----------------
 
+```
   - hosts: servers
     roles:
       - openldap-common
+```
