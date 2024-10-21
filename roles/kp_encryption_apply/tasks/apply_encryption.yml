@@ -19,16 +19,14 @@
     - name: KeyProtect Encryption | Encryption Apply | Apply Policy
       command: mmchpolicy {{ filesystem_mountpoints }} /var/mmfs/etc/KP.fsenc.pol
       when: not encryption_applied
-      run_once: true
 
     - name: KeyProtect Encryption | Encryption Apply | Show Applied Policy
       command: mmlspolicy {{ filesystem_mountpoints }} -L
       register: policy_output
-      run_once: true
 
     - name: KeyProtect Encryption | Encryption Apply | Display Policy Output
       debug:
         msg: "{{ policy_output.stdout }}"
-      run_once: true
+
   when: is_admin_node | default(false) == true
   run_once: true
