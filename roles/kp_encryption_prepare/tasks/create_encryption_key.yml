@@ -4,18 +4,18 @@
 - block:
     - name: KeyProtect Encryption | Encryption Prepare | Check if .p12 cert exists
       stat:
-        path: "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+        path: "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.p12"
       register: cert_file_stat
 
     - name: Run mmgskkm store command | Encryption Prepare | Create a .p12 Store Cert
-      command: mmgskkm store --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --cert "{{ key_protect_dir }}/{{ resource_prefix }}.cert" --priv "{{ key_protect_dir }}/{{ resource_prefix }}.key" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+      command: mmgskkm store --pwd "{{ scale_encryption_admin_password }}" --label "{{ kp_resource_prefixs }}" --cert "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.cert" --priv "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.key" --out "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.p12"
       args:
         chdir: "{{ key_protect_dir }}"
       when: not cert_file_stat.stat.exists
       run_once: true
 
     - name: Run mmgskkm trust command | Encryption Prepare | Apply Trust on .p12 Cert
-      command: mmgskkm trust --prefix "{{ key_protect_dir }}/Key_Protect_Server.chain" --pwd "{{ scale_encryption_admin_password }}" --label "{{ resource_prefix }}" --out "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
+      command: mmgskkm trust --prefix "{{ key_protect_dir }}/Key_Protect_Server.chain" --pwd "{{ scale_encryption_admin_password }}" --label "{{ kp_resource_prefixs }}" --out "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.p12"
       args:
         chdir: "{{ key_protect_dir }}"
       register: p12cert
@@ -35,10 +35,10 @@
       command: >
         mmkmipkm createkey
         --host "{{ vpc_region }}.kms.cloud.ibm.com"
-        --kmipport "{{ resource_prefix }}.port"
-        --keystore "{{ key_protect_dir }}/{{ resource_prefix }}.p12"
-        --keypass "{{ key_protect_dir }}/{{ resource_prefix }}.pwd"
-        --label "{{ resource_prefix }}"
+        --kmipport "{{ kp_resource_prefixs }}.port"
+        --keystore "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.p12"
+        --keypass "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.pwd"
+        --label "{{ kp_resource_prefixs }}"
       args:
         chdir: "{{ key_protect_dir }}"
       register: createkey_output

@@ -18,24 +18,24 @@
 
     - name: KeyProtect Encryption | Encryption Prepare | Password File Check
       stat:
-        path: "{{ key_protect_dir }}/{{ resource_prefix }}.pwd"
+        path: "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.pwd"
       register: password_file_stat
 
     - name: KeyProtect Encryption | Encryption Prepare | Password File Create
       lineinfile:
-        path: "{{ key_protect_dir }}/{{ resource_prefix }}.pwd"
+        path: "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.pwd"
         line: "{{ scale_encryption_admin_password }}"
         create: yes
       when: not password_file_stat.stat.exists
 
     - name: KeyProtect Encryption | Encryption Prepare | Port File Check
       stat:
-        path: "{{ key_protect_dir }}/{{ resource_prefix }}.port"
+        path: "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.port"
       register: port_file_stat
 
     - name: KeyProtect Encryption | Encryption Prepare | Port File Create
       lineinfile:
-        path: "{{ key_protect_dir }}/{{ resource_prefix }}.port"
+        path: "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.port"
         line: "{{ key_protect_port }}"
         create: yes
       when: not port_file_stat.stat.exists
@@ -50,4 +50,5 @@
         - "{{ key_protect_cert_files_dir }}/*"
       run_once: true
 
-  when: key_protect_dir is defined and key_protect_dir | length > 0
+  when: is_admin_node | default(false) == true and key_protect_dir is defined and key_protect_dir | length > 0
+  run_once: true

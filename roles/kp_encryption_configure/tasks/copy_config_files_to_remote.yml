@@ -3,13 +3,13 @@
 - block:
     - name: KeyProtect Encryption | Encryption Configuration | Check .p12
       stat:
-        path: "/var/mmfs/etc/{{ kp_resource_prefix }}.p12"
+        path: "/var/mmfs/etc/{{ kp_resource_prefixs }}.p12"
       register: p12_file_stat
 
     - name: KeyProtect Encryption | Encryption Configuration | Copy .p12
       copy:
-        src: "{{ key_protect_cert_files_dir }}/{{ kp_resource_prefix }}.p12"
-        dest: "/var/mmfs/etc/{{ kp_resource_prefix }}.p12"
+        src: "{{ key_protect_cert_files_dir }}/{{ kp_resource_prefixs }}.p12"
+        dest: "/var/mmfs/etc/{{ kp_resource_prefixs }}.p12"
         owner: root
         group: root
         mode: '0600'

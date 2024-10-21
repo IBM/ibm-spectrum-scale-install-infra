@@ -3,12 +3,6 @@
 # Key Protect Password
 scale_encryption_admin_password: "{{ scale_encryption_admin_password }}"
 
-# Resource Prefix
-resource_prefix: "{{ kp_resource_prefix }}"
-
-# Region Name
-vpc_region: "{{ vpc_region }}"
-
 # Directory to store Key Protect files 
 key_protect_dir: "/opt/key_protect"
 
