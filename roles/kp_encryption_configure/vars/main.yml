@@ -1,7 +1,4 @@
 # Static Variables for Encryption
 
-# Resource Prefix
-kp_resource_prefix: "{{ kp_resource_prefix }}"
-
 # Key Protect files path on Bootstrap node
 key_protect_cert_files_dir: "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect"

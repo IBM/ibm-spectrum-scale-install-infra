@@ -1,8 +1,5 @@
 # Static Variables for Encryption
 
-# Key Protect Password
-scale_encryption_admin_password: "{{ scale_encryption_admin_password }}"
-
 # Directory to store Key Protect files 
 key_protect_dir: "/opt/key_protect"
 
