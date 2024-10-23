@@ -18,24 +18,24 @@
 
     - name: KeyProtect Encryption | Encryption Prepare | Password File Check
       stat:
-        path: "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.pwd"
+        path: "{{ key_protect_dir }}/{{ kp_resource_prefix }}.pwd"
       register: password_file_stat
 
     - name: KeyProtect Encryption | Encryption Prepare | Password File Create
       lineinfile:
-        path: "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.pwd"
+        path: "{{ key_protect_dir }}/{{ kp_resource_prefix }}.pwd"
         line: "{{ scale_encryption_admin_password }}"
         create: yes
       when: not password_file_stat.stat.exists
 
     - name: KeyProtect Encryption | Encryption Prepare | Port File Check
       stat:
-        path: "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.port"
+        path: "{{ key_protect_dir }}/{{ kp_resource_prefix }}.port"
       register: port_file_stat
 
     - name: KeyProtect Encryption | Encryption Prepare | Port File Create
       lineinfile:
-        path: "{{ key_protect_dir }}/{{ kp_resource_prefixs }}.port"
+        path: "{{ key_protect_dir }}/{{ kp_resource_prefix }}.port"
         line: "{{ key_protect_port }}"
         create: yes
       when: not port_file_stat.stat.exists
