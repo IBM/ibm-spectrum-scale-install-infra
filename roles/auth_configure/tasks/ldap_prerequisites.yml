@@ -6,18 +6,6 @@
   register: rhel_version
   changed_when: false
 
-- name: LDAP | Install Packages for RHEL 7
-  ansible.builtin.yum:
-    name:
-      - openldap-clients
-      - nss-pam-ldapd
-      - sssd
-      - oddjob
-      - oddjob-mkhomedir
-    state: present
-  when: rhel_version.stdout == "7"
-  register: install_ldap_client
-
 - name: LDAP | Install Packages for RHEL 8
   ansible.builtin.dnf:
     name:
