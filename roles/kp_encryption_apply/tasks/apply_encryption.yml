@@ -19,6 +19,7 @@
     - name: KeyProtect Encryption | Encryption Apply | Apply Policy
       command: mmchpolicy {{ filesystem_mountpoint }} /var/mmfs/etc/KP.fsenc.pol
       when: not encryption_applied
+      register: policy_apply_result
     
     - name: KeyProtect Encryption | Encryption Apply | Enforce the Policy on the Cluster
       command: mmchpolicy {{ filesystem_mountpoint }} /var/mmfs/etc/KP.fsenc.pol -I yes
