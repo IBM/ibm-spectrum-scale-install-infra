@@ -21,6 +21,11 @@
   when: not ldap_cert_stat.stat.exists
   register: ldap_cert_result
 
+- name: LDAP | Remove existing SSSD configuration file if present
+  file:
+    path: /etc/sssd/sssd.conf
+    state: absent
+
 - block:
     - name: LDAP | Create the SSSD configuration file
       template:
