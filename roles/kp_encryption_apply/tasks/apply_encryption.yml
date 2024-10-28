@@ -23,7 +23,7 @@
     
     - name: KeyProtect Encryption | Encryption Apply | Enforce the Policy on the Cluster
       command: mmchpolicy {{ filesystem_mountpoint }} /var/mmfs/etc/KP.fsenc.pol -I yes
-      when: policy_apply_result.skipped
+      when: policy_apply_result.changed == false
 
     - name: KeyProtect Encryption | Encryption Apply | Show Applied Policy
       command: mmlspolicy {{ filesystem_mountpoint }} -L
