@@ -1,12 +1,26 @@
 ---
 # Authenticating LDAP to the cluster
 
-- name: LDAP | Authenticate Cluster
+- name: LDAP | Check if LDAP is already configured
+  shell: mmuserauth service list
+  register: ldap_config_check
+  changed_when: false
+  run_once: true
+
+- name: LDAP | Authenticate Cluster with LDAP
   shell: |
-    echo -e "{{ ldap_admin_password }}" | mmuserauth service create --type ldap --data-access-method file --servers {{ ldap_server }} --base-dn dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} --user-name cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }} --netbios-name ces
-  when: service_result.rc is defined and service_result.rc != 0
+    echo -e "{{ ldap_admin_password }}" | mmuserauth service create \
+      --type ldap \
+      --data-access-method file \
+      --servers {{ ldap_server }} \
+      --base-dn "dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" \
+      --user-name "cn=admin,dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}" \
+      --netbios-name ces
+  when: "'LDAP' not in ldap_config_check.stdout"
   register: ldap_authenticate_cluster
   run_once: true
 
-- debug:
+- name: LDAP | Debug LDAP Authentication Output
+  debug:
     var: ldap_authenticate_cluster.stdout_lines
+  run_once: true
