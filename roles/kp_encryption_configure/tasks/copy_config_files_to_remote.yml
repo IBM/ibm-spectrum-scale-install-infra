@@ -15,6 +15,7 @@
       retries: 240
       delay: 10
       run_once: true
+      when: scale_cluster_type == 'compute'
 
     - name: KeyProtect Encryption | Encryption Configuration | Copy .p12
       copy:
