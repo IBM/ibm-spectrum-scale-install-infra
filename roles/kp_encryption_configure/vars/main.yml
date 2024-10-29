@@ -2,3 +2,5 @@
 
 # Key Protect files path on Bootstrap node
 key_protect_cert_files_dir: "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect"
+
+kp_resource_prefix: "{{ scale_cluster_clustername.split('.')[0] }}"
