@@ -10,12 +10,10 @@
       local_action:
         module: stat
         path: "{{ key_protect_cert_files_dir }}/{{ kp_resource_prefix }}.p12"
-      register: p12_file_stat
       until: p12_file_stat.stat.exists
       retries: 240
       delay: 10
       run_once: true
-      when: scale_cluster_type == 'compute'
 
     - name: KeyProtect Encryption | Encryption Configuration | Copy .p12
       copy:
