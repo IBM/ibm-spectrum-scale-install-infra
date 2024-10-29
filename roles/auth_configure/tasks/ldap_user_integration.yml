@@ -38,7 +38,7 @@
 
     - name: LDAP | Configure SSSD with mkhomedir
       ansible.builtin.command:
-        cmd: authselect select sssd with-mkhomedir --force
+        cmd: authselect select sssd with-mkhomedir
 
     - name: LDAP | Remove existing SSSD configuration file if present
       ansible.builtin.file:
