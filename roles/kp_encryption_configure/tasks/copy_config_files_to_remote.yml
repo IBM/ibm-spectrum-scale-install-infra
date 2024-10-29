@@ -10,7 +10,8 @@
       local_action:
         module: stat
         path: "{{ key_protect_cert_files_dir }}/{{ kp_resource_prefix }}.p12"
-      until: p12_file_stat.stat.exists
+      register: p12_file_stat_local  
+      until: p12_file_stat_local.stat.exists
       retries: 240
       delay: 10
       run_once: true
