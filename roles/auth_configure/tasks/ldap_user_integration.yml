@@ -32,14 +32,6 @@
           TLS_CACERTDIR /etc/openldap/certs
         create: yes
 
-    - name: LDAP | Rehash certificates in OpenLDAP directory
-      ansible.builtin.command:
-        cmd: openssl rehash /etc/openldap/certs
-
-    - name: LDAP | Configure SSSD with mkhomedir
-      ansible.builtin.command:
-        cmd: authselect select sssd with-mkhomedir --force
-
     - name: LDAP | Remove existing SSSD configuration file if present
       ansible.builtin.file:
         path: /etc/sssd/sssd.conf
@@ -52,6 +44,14 @@
         mode: '0600'
         owner: root
         group: root
+
+    - name: LDAP | Rehash certificates in OpenLDAP directory
+      ansible.builtin.command:
+        cmd: openssl rehash /etc/openldap/certs
+
+    - name: LDAP | Configure SSSD with mkhomedir
+      ansible.builtin.command:
+        cmd: authselect select sssd with-mkhomedir --force
 
     - name: LDAP | Restart and enable SSSD and oddjobd services
       ansible.builtin.systemd:

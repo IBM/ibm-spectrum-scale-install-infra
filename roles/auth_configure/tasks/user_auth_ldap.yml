@@ -1,7 +1,7 @@
 ---
 # Authenticating LDAP to the cluster
 
-- name: LDAP | CES - Check if LDAP is already configured
+- name: LDAP | CES - Check if LDAP authentication is already configured
   shell: mmuserauth service list
   register: ldap_config_check
   changed_when: false
