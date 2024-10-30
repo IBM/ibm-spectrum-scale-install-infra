@@ -26,6 +26,7 @@
     path: /etc/sssd/sssd.conf
     state: absent
     force: yes
+  when: ldap_authenticate_cluster.changed
 
 - name: LDAP | CES - Deploy SSSD Configuration File
   ansible.builtin.template:
@@ -34,9 +35,11 @@
     mode: '0600'
     owner: root
     group: root
+  when: ldap_authenticate_cluster.changed
 
 - name: LDAP | CES - Restart SSSD Service
   ansible.builtin.systemd:
     name: sssd
     state: restarted
     enabled: yes
+  when: ldap_authenticate_cluster.changed
