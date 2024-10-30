@@ -1,13 +1,13 @@
 ---
 # Authenticating LDAP to the cluster
 
-- name: LDAP | Check if LDAP is already configured
+- name: LDAP | CES - Check if LDAP is already configured
   shell: mmuserauth service list
   register: ldap_config_check
   changed_when: false
   run_once: true
 
-- name: LDAP | Authenticate Cluster with LDAP
+- name: LDAP | CES - Authenticate Cluster with LDAP
   shell: |
     echo -e "{{ ldap_admin_password }}" | mmuserauth service create \
       --type ldap \
@@ -20,18 +20,14 @@
   register: ldap_authenticate_cluster
   run_once: true
 
-- name: LDAP | Debug LDAP Authentication Output
-  debug:
-    var: ldap_authenticate_cluster.stdout_lines
-  run_once: true
-
-- name: LDAP | Ensure SSSD Configuration File is Absent
+# Following tasks have been added to prevent updates to the sssd.conf file after "CES - Authenticate Cluster with LDAP."
+- name: LDAP | CES - Ensure SSSD Configuration File is Absent
   ansible.builtin.file:
     path: /etc/sssd/sssd.conf
     state: absent
     force: yes
 
-- name: LDAP | Deploy SSSD Configuration File
+- name: LDAP | CES - Deploy SSSD Configuration File
   ansible.builtin.template:
     src: sssd.conf.j2
     dest: /etc/sssd/sssd.conf
@@ -39,7 +35,7 @@
     owner: root
     group: root
 
-- name: LDAP | Restart and Enable SSSD Service
+- name: LDAP | CES - Restart SSSD Service
   ansible.builtin.systemd:
     name: sssd
     state: restarted

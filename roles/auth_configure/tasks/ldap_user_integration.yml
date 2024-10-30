@@ -18,7 +18,7 @@
         dest: /etc/openldap/certs/ldap_cacert.pem
         owner: root
         group: root
-        mode: '0444'
+        mode: '0600'
       when: not ldap_cert_stat.stat.exists
       register: ldap_cert_result
 
