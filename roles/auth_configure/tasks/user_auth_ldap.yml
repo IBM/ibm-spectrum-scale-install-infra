@@ -24,3 +24,23 @@
   debug:
     var: ldap_authenticate_cluster.stdout_lines
   run_once: true
+
+- name: LDAP | Ensure SSSD Configuration File is Absent
+  ansible.builtin.file:
+    path: /etc/sssd/sssd.conf
+    state: absent
+    force: yes
+
+- name: LDAP | Deploy SSSD Configuration File
+  ansible.builtin.template:
+    src: sssd.conf.j2
+    dest: /etc/sssd/sssd.conf
+    mode: '0600'
+    owner: root
+    group: root
+
+- name: LDAP | Restart and Enable SSSD Service
+  ansible.builtin.systemd:
+    name: sssd
+    state: restarted
+    enabled: yes
