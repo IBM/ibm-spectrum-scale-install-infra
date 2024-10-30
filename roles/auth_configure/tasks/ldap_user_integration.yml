@@ -18,7 +18,7 @@
         dest: /etc/openldap/certs/ldap_cacert.pem
         owner: root
         group: root
-        mode: '0600'
+        mode: '0444'
       when: not ldap_cert_stat.stat.exists
       register: ldap_cert_result
 
@@ -49,7 +49,7 @@
       ansible.builtin.template:
         src: sssd.conf.j2
         dest: /etc/sssd/sssd.conf
-        mode: '0400'
+        mode: '0444'
         owner: root
         group: root
 
