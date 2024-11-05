@@ -1,5 +1,4 @@
 ---
-# Playbook for configuring LDAP client and SSSD on RHEL
 
 - name: LDAP | Check OS version
   ansible.builtin.shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
