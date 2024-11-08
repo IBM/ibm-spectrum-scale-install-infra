@@ -1,0 +1,59 @@
+---
+# sample/playbook_iptables_delete.yml
+#
+# playbook sample for deleting the iptables rules on bastion server for
+# gui access.
+
+# This file is mandatory to import and it will load inventory variables form
+# vars/gui_access_clusterdefinition.json
+- import_playbook: "set_json_variables_gui.yml"
+
+- hosts: scale_node
+  remote_user: "{{ scale_jump_host_user }}"
+  become: yes
+  name: Delete an iptables rule
+  tasks:
+    - name: Delete DNAT iptables rule
+      iptables:
+        chain: PREROUTING
+        table: nat
+        protocol: tcp
+        jump: DNAT
+        destination_port: "{{ scale_forwarding_port }}"
+        to_destination: "{{ scale_gui_node }}:{{ scale_gui_port }}"
+        state: absent
+      register: result
+
+    - name: Debug delete a iptables rule
+      debug:
+        var: result
+
+    - name: Save IPtables rules on Amazon
+      ansible.builtin.command: /sbin/service iptables save
+      become: yes
+      when: ansible_distribution == "Amazon"
+      register: result
+
+    - name: Debug Save iptables rules on Amazon
+      debug:
+        var: result
+
+    - name: Save IPtables rules on CentOS
+      ansible.builtin.command: /sbin/service iptables save
+      become: yes
+      when: ansible_distribution == "CentOS"
+      register: result
+
+    - name: Debug Save iptables rules on CentOS
+      debug:
+        var: result
+
+    - name: Save iptables rules on RHEL
+      become: yes
+      shell: iptables-save > /etc/iptables/rules.v4
+      when: ansible_distribution == "RedHat"
+      register: result
+
+    - name: Debug Save iptables rules on RHEL/CentOS
+      debug:
+        var: result
