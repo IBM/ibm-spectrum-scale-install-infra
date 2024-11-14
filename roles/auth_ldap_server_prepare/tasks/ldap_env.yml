@@ -81,11 +81,13 @@
   service:
     name: slapd
     state: restarted
+  register: slapd_service
 
 - name: Log OpenLDAP service start
   lineinfile:
     path: "{{ LOGFILE }}"
     line: "Started OpenLDAP service"
+  when: slapd_service.changed
 
 - name: Log SSL certificate generation
   lineinfile:
@@ -132,7 +134,7 @@
   command: certtool --generate-privkey --sec-param High --outfile /etc/ssl/private/ldapserver_slapd_key.pem
   args:
     creates: /etc/ssl/private/ldapserver_slapd_key.pem
-
+  register: ldap_key_generated
 
 - name: Create LDAP server certificate info file
   copy:
@@ -144,11 +146,13 @@
       encryption_key
       signing_key
       expiration_days = 3650
+  register: ldap_cert_info_created
 
 - name: Log LDAP server certificate generation
   lineinfile:
     path: "{{ LOGFILE }}"
     line: "Generated a private key and certificate for the LDAP server"
+  when: ldap_key_generated.changed and ldap_cert_info_created.changed
 
 - name: Generate LDAP server certificate signed by CA
   command: >
@@ -160,11 +164,13 @@
     --outfile /etc/ssl/certs/ldapserver_slapd_cert.pem
   args:
     creates: /etc/ssl/certs/ldapserver_slapd_cert.pem
+  register: ldap_cert_generated
 
 - name: Log LDAP server certificate generation
   lineinfile:
     path: "{{ LOGFILE }}"
     line: "Generated a certificate for the LDAP server signed by the CA"
+  when: ldap_cert_generated.changed
 
 - name: Change group ownership to openldap
   command: chgrp openldap /etc/ssl/private/ldapserver_slapd_key.pem
@@ -188,6 +194,7 @@
   ansible.builtin.command:
     cmd: chgrp openldap /etc/ssl/private/ldapserver_slapd_key.pem
   become: yes
+  register: change_group_ownership
 
 - name: Set file permissions to 0640
   ansible.builtin.file:
@@ -196,11 +203,13 @@
     owner: root
     group: openldap
   become: yes
+  register: set_permissions
 
 - name: Add openldap user to ssl-cert group
   ansible.builtin.command:
     cmd: gpasswd -a openldap ssl-cert
   become: yes
+  register: add_user_to_group
 
 - name: Log TLS configuration application
   ansible.builtin.lineinfile:
@@ -208,18 +217,20 @@
     line: "Applied TLS configuration"
   when: LOGFILE is defined
   become: yes
+  when: change_group_ownership.changed or set_permissions.changed or add_user_to_group.changed
 
 - name: Restart slapd service
   ansible.builtin.service:
     name: slapd
     state: restarted
   become: yes
+  register: slapd_service_restart
 
 - name: Log OpenLDAP service restart
   ansible.builtin.lineinfile:
     path: "{{ LOGFILE }}"
     line: "Restarted the OpenLDAP service"
-  when: LOGFILE is defined
+  when: slapd_service_restart.changed
   become: yes
 
 - name: Create LDIF file for TLS configuration
@@ -252,16 +263,19 @@
     ldapmodify -Y EXTERNAL -H ldapi:/// -f /etc/ssl/certinfo.ldif
   become: yes
   when: certinfo_ldif.stat.exists
+  register: tls_config_applied
 
 - name: Enable ldaps service in OpenLDAP configuration
   ansible.builtin.command: >
     sed -i 's|SLAPD_SERVICES="ldap:/// ldapi:///"|SLAPD_SERVICES="ldap:/// ldapi:/// ldaps:///"|g' /etc/default/slapd
   become: yes
+  register: ldaps_service_enabled
 
 - name: Log OpenLDAP TLS configuration
   ansible.builtin.command: >
     echo "Configured OpenLDAP to use TLS" >> {{ LOGFILE }}
   become: yes
+  when: tls_config_applied.changed and ldaps_service_enabled.changed and LOGFILE is defined
 
 - name: Update LDAP client configuration with TLS settings
   ansible.builtin.command: >
@@ -273,11 +287,13 @@
     name: slapd
     state: restarted
   become: yes
+  register: restart_openldap_service
 
 - name: Log SSL creation completion
   ansible.builtin.command: >
     echo "SSL creation completed" >> {{ LOGFILE }}
   become: yes
+  when: restart_openldap_service.changed
 
 # Creating LDAP directory to store the LDIF files.
 
