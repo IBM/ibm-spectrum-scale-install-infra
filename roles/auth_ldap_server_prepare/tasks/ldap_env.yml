@@ -278,3 +278,12 @@
   ansible.builtin.command: >
     echo "SSL creation completed" >> {{ LOGFILE }}
   become: yes
+
+# Creating LDAP directory to store the LDIF files.
+
+- name: LDAP | LDAP Directory | Creation 
+  file:
+    path: "{{ LDAP_DIR }}"
+    state: directory
+  register: create_dir_output
+  run_once: true
