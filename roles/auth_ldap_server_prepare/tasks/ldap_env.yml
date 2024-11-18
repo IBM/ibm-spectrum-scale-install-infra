@@ -1,10 +1,15 @@
 ---
-    - name: LDAP | LDAP Directory | Creation
+
+    - name: LDAP | LDAP Directory | Creation 
       file:
         path: "{{ LDAP_DIR }}"
         state: directory
       register: create_dir_output
       run_once: true
+
+    - name: LDAP | Update apt package index
+      apt:
+        update_cache: yes
 
     - name: LDAP | Set basedomain and rootdomain
       set_fact:
@@ -17,11 +22,6 @@
           - "Basedomain: {{ basedomain }}"
           - "Rootdomain: {{ rootdomain }}"
 
-    - name: LDAP | Update apt cache
-      apt:
-        update_cache: yes
-        force_apt_get: yes
-
     - name: LDAP | Install required packages
       apt:
         name:
@@ -32,42 +32,52 @@
         state: present
         force_apt_get: yes
 
-    - name: LDAP | Set non-interactive frontend for debconf
-      ansible.builtin.shell:
-        cmd: export DEBIAN_FRONTEND='non-interactive'
-
-    - name: LDAP | Set LDAP password and configurations using debconf
-      command: >
-        debconf-set-selections <<< "
-        slapd slapd/internal/adminpw password {{ LDAP_ADMIN_PASSWORD }}
-        slapd slapd/internal/generated_adminpw password {{ LDAP_ADMIN_PASSWORD }}
-        slapd slapd/password2 password {{ LDAP_ADMIN_PASSWORD }}
-        slapd slapd/password1 password {{ LDAP_ADMIN_PASSWORD }}
-        slapd slapd/domain string {{ BASE_DN }}
-        slapd shared/organization string {{ BASE_DN }}
-        slapd slapd/purge_database boolean false
-        slapd slapd/move_old_database boolean true
-        slapd slapd/no_configuration boolean false"
+    - name: LDAP | Install the openldap and required packages for ubuntu
+      ansible.builtin.apt:
+        name: "{{ OPENLDAP_SERVER_PKGS }}"
+        state: present
+        update_cache: true
+      when: ansible_os_family == 'Debian'
 
     - name: LDAP | Reconfigure slapd
-      ansible.builtin.shell:
-        cmd: dpkg-reconfigure slapd
-      environment:
-        DEBIAN_FRONTEND: non-interactive
+      shell: |
+        echo "slapd slapd/root_password password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/root_password_again password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/internal/adminpw password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/internal/generated_adminpw password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/password1 password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/password2 password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/domain string {{ BASE_DN }}" | debconf-set-selections
+        echo "slapd shared/organization string {{ LDAP_GROUP }}" | debconf-set-selections
+        echo "slapd slapd/purge_database boolean false" | debconf-set-selections
+        echo "slapd slapd/move_old_database boolean true" | debconf-set-selections
+        echo "slapd slapd/no_configuration boolean false" | debconf-set-selections
+        dpkg-reconfigure -f noninteractive slapd
 
-    - name: LDAP | Install slapd and ldap-utils
-      apt:
-        name:
-          - slapd
-          - ldap-utils
-        state: present
-        force_apt_get: yes
+    - name: LDAP | Set BASE in ldap.conf
+      lineinfile:
+        path: /etc/ldap/ldap.conf
+        line: "BASE   dc={{ basedomain }},dc={{ rootdomain }}"
+        create: yes
+
+    - name: LDAP | Set URI in ldap.conf
+      lineinfile:
+        path: /etc/ldap/ldap.conf
+        line: "URI    ldap://localhost"
+        create: yes
 
     - name: LDAP | Restart slapd service
-      systemd:
+      service:
         name: slapd
         state: restarted
-        enabled: yes
+
+    - name: LDAP | Check slapd service status
+      command: systemctl status slapd
+      register: slapd_status
+
+    - name: LDAP | Display slapd status
+      debug:
+        var: slapd_status
 
     - name: LDAP | Generate private key for CA
       command:
@@ -80,7 +90,7 @@
       copy:
         dest: /etc/ssl/ca.info
         content: |
-          cn = IBM Research
+          cn = {{ LDAP_GROUP }}
           ca
           cert_signing_key
           expiration_days = 3650
@@ -115,7 +125,7 @@
       copy:
         dest: /etc/ssl/ldapserver.info
         content: |
-          organization = IBM Research
+          organization = {{ LDAP_GROUP }}
           cn = localhost
           tls_www_server
           encryption_key
@@ -143,6 +153,9 @@
 
     - name: LDAP | Add openldap to ssl-cert group
       command: gpasswd -a openldap ssl-cert
+
+    - name: LDAP | Pause for 2 seconds
+      command: sleep 2
 
     - name: LDAP | Restart slapd service
       service:
@@ -180,7 +193,7 @@
       copy:
         dest: /etc/ldap/ldap.conf
         content: |
-          BASE   dc={{ BASE_DN.split('.')[0] }},dc={{ BASE_DN.split('.')[1] }}
+          BASE    dc={{ basedomain }},dc={{ rootdomain }}
           URI    ldap://localhost
           TLS_CACERT /etc/ssl/certs/ldap_cacert.pem
           TLS_REQCERT allow
