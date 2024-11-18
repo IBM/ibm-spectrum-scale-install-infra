@@ -1,16 +1,23 @@
 ---
-- name: Set basedomain and rootdomain
+- name: LDAP | LDAP Directory | Creation 
+  file:
+    path: "{{ LDAP_DIR }}"
+    state: directory
+  register: create_dir_output
+  run_once: true
+
+- name: LDAP | Set basedomain and rootdomain
   set_fact:
     basedomain: "{{ BASE_DN.split('.')[0] }}"
     rootdomain: "{{ BASE_DN.split('.')[1] }}"
 
-- name: Debug basedomain and rootdomain values
+- name: LDAP | Debug basedomain and rootdomain values
   debug:
     msg:
       - "Basedomain: {{ basedomain }}"
       - "Rootdomain: {{ rootdomain }}"
 
-- name: Install required software
+- name: LDAP | Install required software
   apt:
     name:
       - gnutls-bin
@@ -19,13 +26,13 @@
     update_cache: yes
   register: install_software
 
-- name: Log software installation
+- name: LDAP | Log software installation
   lineinfile:
     path: "{{ LOGFILE }}"
     line: "Installed pre-required software"
   when: install_software.changed
 
-- name: Set slapd root password for non-interactive installation
+- name: LDAP | Set slapd root password for non-interactive installation
   debconf:
     name: slapd
     question: "{{ item.question }}"
@@ -35,7 +42,7 @@
     - { question: 'slapd/root_password' }
     - { question: 'slapd/root_password_again' }
 
-- name: Install slapd and ldap-utils
+- name: LDAP | Install slapd and ldap-utils
   apt:
     name:
       - slapd
@@ -45,7 +52,7 @@
   environment:
     DEBIAN_FRONTEND: non-interactive
 
-- name: Set debconf selections for OpenLDAP configuration
+- name: LDAP | Set debconf selections for OpenLDAP configuration
   debconf:
     name: slapd
     question: "{{ item.question }}"
@@ -62,12 +69,12 @@
     - { question: 'slapd/move_old_database', value: "true", vtype: "boolean" }
     - { question: 'slapd/no_configuration', value: "false", vtype: "boolean" }
 
-- name: Reconfigure slapd
+- name: LDAP | Reconfigure slapd
   command: dpkg-reconfigure slapd
   environment:
     DEBIAN_FRONTEND: non-interactive
 
-- name: Update LDAP configuration with base and URI
+- name: LDAP | Update LDAP configuration with base and URI
   blockinfile:
     path: /etc/ldap/ldap.conf
     block: |
@@ -77,29 +84,29 @@
     - basedomain is defined
     - rootdomain is defined
 
-- name: Restart slapd service
+- name: LDAP | Restart slapd service
   service:
     name: slapd
     state: restarted
   register: slapd_service
 
-- name: Log OpenLDAP service start
+- name: LDAP | Log OpenLDAP service start
   lineinfile:
     path: "{{ LOGFILE }}"
     line: "Started OpenLDAP service"
   when: slapd_service.changed
 
-- name: Log SSL certificate generation
+- name: LDAP | Log SSL certificate generation
   lineinfile:
     path: "{{ LOGFILE }}"
     line: "Creating SSL certificate"
 
-- name: Generate SSL private key for OpenLDAP
+- name: LDAP | Generate SSL private key for OpenLDAP
   command: certtool --generate-privkey --sec-param High --outfile /etc/ssl/private/ldap_cakey.pem
   args:
     creates: /etc/ssl/private/ldap_cakey.pem
 
-- name: Create CA template file
+- name: LDAP | Create CA template file
   copy:
     dest: /etc/ssl/ca.info
     content: |
@@ -108,7 +115,7 @@
       cert_signing_key
       expiration_days = 3650
 
-- name: Generate self-signed CA certificate
+- name: LDAP | Generate self-signed CA certificate
   command: >
     certtool --generate-self-signed
     --load-privkey /etc/ssl/private/ldap_cakey.pem
@@ -117,11 +124,11 @@
   args:
     creates: /usr/local/share/ca-certificates/ldap_cacert.pem
 
-- name: Update CA certificates
+- name: LDAP | Update CA certificates
   command: update-ca-certificates
   become: yes
 
-- name: Copy CA certificate to /etc/ssl/certs
+- name: LDAP | Copy CA certificate to /etc/ssl/certs
   copy:
     src: /usr/local/share/ca-certificates/ldap_cacert.pem
     dest: /etc/ssl/certs/
@@ -130,13 +137,13 @@
     mode: '0644'
     remote_src: yes
 
-- name: Generate private key for LDAP server
+- name: LDAP | Generate private key for LDAP server
   command: certtool --generate-privkey --sec-param High --outfile /etc/ssl/private/ldapserver_slapd_key.pem
   args:
     creates: /etc/ssl/private/ldapserver_slapd_key.pem
   register: ldap_key_generated
 
-- name: Create LDAP server certificate info file
+- name: LDAP | Create LDAP server certificate info file
   copy:
     dest: /etc/ssl/ldapserver.info
     content: |
@@ -148,13 +155,13 @@
       expiration_days = 3650
   register: ldap_cert_info_created
 
-- name: Log LDAP server certificate generation
+- name: LDAP | Log LDAP server certificate generation
   lineinfile:
     path: "{{ LOGFILE }}"
     line: "Generated a private key and certificate for the LDAP server"
   when: ldap_key_generated.changed and ldap_cert_info_created.changed
 
-- name: Generate LDAP server certificate signed by CA
+- name: LDAP | Generate LDAP server certificate signed by CA
   command: >
     certtool --generate-certificate
     --load-privkey /etc/ssl/private/ldapserver_slapd_key.pem
@@ -166,17 +173,17 @@
     creates: /etc/ssl/certs/ldapserver_slapd_cert.pem
   register: ldap_cert_generated
 
-- name: Log LDAP server certificate generation
+- name: LDAP | Log LDAP server certificate generation
   lineinfile:
     path: "{{ LOGFILE }}"
     line: "Generated a certificate for the LDAP server signed by the CA"
   when: ldap_cert_generated.changed
 
-- name: Change group ownership to openldap
+- name: LDAP | Change group ownership to openldap
   command: chgrp openldap /etc/ssl/private/ldapserver_slapd_key.pem
   become: yes
 
-- name: Set the file permissions to 0640
+- name: LDAP | Set the file permissions to 0640
   file:
     path: /etc/ssl/private/ldapserver_slapd_key.pem
     mode: '0640'
@@ -184,19 +191,19 @@
     group: openldap
   become: yes
 
-- name: Log the TLS configuration application
+- name: LDAP | Log the TLS configuration application
   lineinfile:
     path: "{{ LOGFILE }}"
     line: "Applied TLS configuration"
   become: yes
 
-- name: Change group ownership to openldap
+- name: LDAP | Change group ownership to openldap
   ansible.builtin.command:
     cmd: chgrp openldap /etc/ssl/private/ldapserver_slapd_key.pem
   become: yes
   register: change_group_ownership
 
-- name: Set file permissions to 0640
+- name: LDAP | Set file permissions to 0640
   ansible.builtin.file:
     path: /etc/ssl/private/ldapserver_slapd_key.pem
     mode: '0640'
@@ -205,13 +212,13 @@
   become: yes
   register: set_permissions
 
-- name: Add openldap user to ssl-cert group
+- name: LDAP | Add openldap user to ssl-cert group
   ansible.builtin.command:
     cmd: gpasswd -a openldap ssl-cert
   become: yes
   register: add_user_to_group
 
-- name: Log TLS configuration application
+- name: LDAP | Log TLS configuration application
   ansible.builtin.lineinfile:
     path: "{{ LOGFILE }}"
     line: "Applied TLS configuration"
@@ -219,21 +226,21 @@
   become: yes
   when: change_group_ownership.changed or set_permissions.changed or add_user_to_group.changed
 
-- name: Restart slapd service
+- name: LDAP | Restart slapd service
   ansible.builtin.service:
     name: slapd
     state: restarted
   become: yes
   register: slapd_service_restart
 
-- name: Log OpenLDAP service restart
+- name: LDAP | Log OpenLDAP service restart
   ansible.builtin.lineinfile:
     path: "{{ LOGFILE }}"
     line: "Restarted the OpenLDAP service"
   when: slapd_service_restart.changed
   become: yes
 
-- name: Create LDIF file for TLS configuration
+- name: LDAP | Create LDIF file for TLS configuration
   ansible.builtin.command: >
     echo "dn: cn=config\n
     add: olcTLSCACertificateFile\n
@@ -247,59 +254,50 @@
     /etc/ssl/certinfo.ldif
   become: yes
 
-- name: Ensure certinfo.ldif file exists
+- name: LDAP | Ensure certinfo.ldif file exists
   ansible.builtin.file:
     path: /etc/ssl/certinfo.ldif
     state: touch
   become: yes
 
-- name: Check if certinfo.ldif exists
+- name: LDAP | Check if certinfo.ldif exists
   ansible.builtin.stat:
     path: /etc/ssl/certinfo.ldif
   register: certinfo_ldif
 
-- name: Apply TLS configuration to OpenLDAP if certinfo.ldif exists
+- name: LDAP | Apply TLS configuration to OpenLDAP if certinfo.ldif exists
   ansible.builtin.command: >
     ldapmodify -Y EXTERNAL -H ldapi:/// -f /etc/ssl/certinfo.ldif
   become: yes
   when: certinfo_ldif.stat.exists
   register: tls_config_applied
 
-- name: Enable ldaps service in OpenLDAP configuration
+- name: LDAP | Enable ldaps service in OpenLDAP configuration
   ansible.builtin.command: >
     sed -i 's|SLAPD_SERVICES="ldap:/// ldapi:///"|SLAPD_SERVICES="ldap:/// ldapi:/// ldaps:///"|g' /etc/default/slapd
   become: yes
   register: ldaps_service_enabled
 
-- name: Log OpenLDAP TLS configuration
+- name: LDAP | Log OpenLDAP TLS configuration
   ansible.builtin.command: >
     echo "Configured OpenLDAP to use TLS" >> {{ LOGFILE }}
   become: yes
   when: tls_config_applied.changed and ldaps_service_enabled.changed and LOGFILE is defined
 
-- name: Update LDAP client configuration with TLS settings
+- name: LDAP | Update LDAP client configuration with TLS settings
   ansible.builtin.command: >
     echo -e "TLS_CACERT /etc/ssl/certs/ldap_cacert.pem\nTLS_REQCERT allow" >> /etc/ldap/ldap.conf
   become: yes
 
-- name: Restart OpenLDAP service
+- name: LDAP | Restart OpenLDAP service
   ansible.builtin.service:
     name: slapd
     state: restarted
   become: yes
   register: restart_openldap_service
 
-- name: Log SSL creation completion
+- name: LDAP | Log SSL creation completion
   ansible.builtin.command: >
     echo "SSL creation completed" >> {{ LOGFILE }}
   become: yes
   when: restart_openldap_service.changed
-
-# Creating LDAP directory to store the LDIF files.
-
-- name: LDAP | LDAP Directory | Creation 
-  file:
-    path: "{{ LDAP_DIR }}"
-    state: directory
-  register: create_dir_output
-  run_once: true
