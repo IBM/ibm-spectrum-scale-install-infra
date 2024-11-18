@@ -1,5 +1,16 @@
 ---
+- name: LDAP | Check if LDAP configuration is already applied
+  stat:
+    path: /etc/ldap/.ldap_configured
+  register: ldap_config_status
 
+- name: LDAP | Skip configuration if already applied
+  debug:
+    msg: "LDAP configuration already applied, skipping."
+  when: ldap_config_status.stat.exists
+
+- name: LDAP | Execute LDAP configuration tasks
+  block:
     - name: LDAP | LDAP Directory | Creation 
       file:
         path: "{{ LDAP_DIR }}"
@@ -202,3 +213,4 @@
       service:
         name: slapd
         state: restarted
+  when: not ldap_config_status.stat.exists
