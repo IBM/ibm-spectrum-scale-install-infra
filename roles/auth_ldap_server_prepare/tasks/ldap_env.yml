@@ -36,24 +36,24 @@
       ansible.builtin.shell:
         cmd: export DEBIAN_FRONTEND='non-interactive'
 
-    - name: LDAP | Preconfigure slapd password and settings
-      debconf:
-        name: slapd
-        question: "{{ item.question }}"
-        value: "{{ item.value }}"
-        vtype: "{{ item.vtype }}"
-      with_items:
-        - { question: slapd/root_password, value: "{{ LDAP_ADMIN_PASSWORD }}", vtype: password }
-        - { question: slapd/root_password_again, value: "{{ LDAP_ADMIN_PASSWORD }}", vtype: password }
-        - { question: slapd/internal/adminpw, value: "{{ LDAP_ADMIN_PASSWORD }}", vtype: password }
-        - { question: slapd/internal/generated_adminpw, value: "{{ LDAP_ADMIN_PASSWORD }}", vtype: password }
-        - { question: slapd/password1, value: "{{ LDAP_ADMIN_PASSWORD }}", vtype: password }
-        - { question: slapd/password2, value: "{{ LDAP_ADMIN_PASSWORD }}", vtype: password }
-        - { question: slapd/domain, value: "{{ BASE_DN }}", vtype: string }
-        - { question: shared/organization, value: "{{ BASE_DN }}", vtype: string }
-        - { question: slapd/purge_database, value: "false", vtype: boolean }
-        - { question: slapd/move_old_database, value: "true", vtype: boolean }
-        - { question: slapd/no_configuration, value: "false", vtype: boolean }
+    - name: LDAP | Set LDAP password and configurations using debconf
+      command: >
+        debconf-set-selections <<< "
+        slapd slapd/internal/adminpw password {{ LDAP_ADMIN_PASSWORD }}
+        slapd slapd/internal/generated_adminpw password {{ LDAP_ADMIN_PASSWORD }}
+        slapd slapd/password2 password {{ LDAP_ADMIN_PASSWORD }}
+        slapd slapd/password1 password {{ LDAP_ADMIN_PASSWORD }}
+        slapd slapd/domain string {{ BASE_DN }}
+        slapd shared/organization string {{ BASE_DN }}
+        slapd slapd/purge_database boolean false
+        slapd slapd/move_old_database boolean true
+        slapd slapd/no_configuration boolean false"
+
+    - name: LDAP | Reconfigure slapd
+      ansible.builtin.shell:
+        cmd: dpkg-reconfigure slapd
+      environment:
+        DEBIAN_FRONTEND: non-interactive
 
     - name: LDAP | Install slapd and ldap-utils
       apt:
@@ -62,12 +62,6 @@
           - ldap-utils
         state: present
         force_apt_get: yes
-
-    - name: LDAP | Reconfigure slapd
-      ansible.builtin.shell:
-        cmd: dpkg-reconfigure slapd
-      environment:
-        DEBIAN_FRONTEND: non-interactive
 
     - name: LDAP | Restart slapd service
       systemd:
