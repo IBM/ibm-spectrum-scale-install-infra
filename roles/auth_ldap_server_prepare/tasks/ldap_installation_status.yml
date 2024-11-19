@@ -1,0 +1,10 @@
+---
+- name: LDAP | Check if LDAP configuration is already applied
+  stat:
+    path: /etc/ldap/.ldap_configured
+  register: ldap_config_status
+
+- name: LDAP | Skip configuration if already applied
+  debug:
+    msg: "LDAP configuration already applied, skipping."
+  when: ldap_config_status.stat.exists

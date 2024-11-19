@@ -1,10 +1,203 @@
 ---
-# Creating LDAP directory to store the LDIF files.
+    - name: LDAP | LDAP Directory | Creation 
+      file:
+        path: "{{ LDAP_DIR }}"
+        state: directory
+      register: create_dir_output
+      run_once: true
 
-- name: LDAP | LDAP Directory | Creation 
-  file:
-    path: "{{ LDAP_DIR }}"
-    state: directory
-  register: create_dir_output
-  run_once: true
+    - name: LDAP | Update apt package index
+      apt:
+        update_cache: yes
 
+    - name: LDAP | Set basedomain and rootdomain
+      set_fact:
+        basedomain: "{{ BASE_DN.split('.')[0] }}"
+        rootdomain: "{{ BASE_DN.split('.')[1] }}"
+
+    - name: LDAP | Debug basedomain and rootdomain values
+      debug:
+        msg:
+          - "Basedomain: {{ basedomain }}"
+          - "Rootdomain: {{ rootdomain }}"
+
+    - name: LDAP | Install required packages
+      apt:
+        name:
+          - nfs-common
+          - gnutls-bin
+          - ssl-cert
+          - debconf-utils
+        state: present
+        force_apt_get: yes
+
+    - name: LDAP | Install the openldap and required packages for ubuntu
+      ansible.builtin.apt:
+        name: "{{ OPENLDAP_SERVER_PKGS }}"
+        state: present
+        update_cache: true
+      when: ansible_os_family == 'Debian'
+
+    - name: LDAP | Reconfigure slapd
+      shell: |
+        echo "slapd slapd/root_password password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/root_password_again password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/internal/adminpw password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/internal/generated_adminpw password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/password1 password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/password2 password {{ LDAP_ADMIN_PASSWORD }}" | debconf-set-selections
+        echo "slapd slapd/domain string {{ BASE_DN }}" | debconf-set-selections
+        echo "slapd shared/organization string {{ LDAP_GROUP }}" | debconf-set-selections
+        echo "slapd slapd/purge_database boolean false" | debconf-set-selections
+        echo "slapd slapd/move_old_database boolean true" | debconf-set-selections
+        echo "slapd slapd/no_configuration boolean false" | debconf-set-selections
+        dpkg-reconfigure -f noninteractive slapd
+
+    - name: LDAP | Set BASE in ldap.conf
+      lineinfile:
+        path: /etc/ldap/ldap.conf
+        line: "BASE   dc={{ basedomain }},dc={{ rootdomain }}"
+        create: yes
+
+    - name: LDAP | Set URI in ldap.conf
+      lineinfile:
+        path: /etc/ldap/ldap.conf
+        line: "URI    ldap://localhost"
+        create: yes
+
+    - name: LDAP | Restart slapd service
+      service:
+        name: slapd
+        state: restarted
+
+    - name: LDAP | Check slapd service status
+      command: systemctl status slapd
+      register: slapd_status
+
+    - name: LDAP | Display slapd status
+      debug:
+        var: slapd_status
+
+    - name: LDAP | Generate private key for CA
+      command:
+        cmd: >
+          certtool --generate-privkey --sec-param High --outfile /etc/ssl/private/ldap_cakey.pem
+      args:
+        creates: /etc/ssl/private/ldap_cakey.pem
+
+    - name: LDAP | Create CA template file
+      copy:
+        dest: /etc/ssl/ca.info
+        content: |
+          cn = {{ LDAP_GROUP }}
+          ca
+          cert_signing_key
+          expiration_days = 3650
+
+    - name: LDAP | Generate self-signed CA certificate
+      command:
+        cmd: >
+          certtool --generate-self-signed
+          --load-privkey /etc/ssl/private/ldap_cakey.pem
+          --template /etc/ssl/ca.info
+          --outfile /usr/local/share/ca-certificates/ldap_cacert.pem
+      args:
+        creates: /usr/local/share/ca-certificates/ldap_cacert.pem
+
+    - name: LDAP | Update CA certificates
+      command: update-ca-certificates
+
+    - name: LDAP | Copy CA certificate to /etc/ssl/certs
+      copy:
+        src: /usr/local/share/ca-certificates/ldap_cacert.pem
+        dest: /etc/ssl/certs/ldap_cacert.pem
+        remote_src: yes
+
+    - name: LDAP | Generate private key for LDAP server
+      command:
+        cmd: >
+          certtool --generate-privkey --sec-param High --outfile /etc/ssl/private/ldapserver_slapd_key.pem
+      args:
+        creates: /etc/ssl/private/ldapserver_slapd_key.pem
+
+    - name: LDAP | Create LDAP server certificate template
+      copy:
+        dest: /etc/ssl/ldapserver.info
+        content: |
+          organization = {{ LDAP_GROUP }}
+          cn = localhost
+          tls_www_server
+          encryption_key
+          signing_key
+          expiration_days = 3650
+
+    - name: LDAP | Generate certificate for LDAP server signed by CA
+      command:
+        cmd: >
+          certtool --generate-certificate
+          --load-privkey /etc/ssl/private/ldapserver_slapd_key.pem
+          --load-ca-certificate /etc/ssl/certs/ldap_cacert.pem
+          --load-ca-privkey /etc/ssl/private/ldap_cakey.pem
+          --template /etc/ssl/ldapserver.info
+          --outfile /etc/ssl/certs/ldapserver_slapd_cert.pem
+      args:
+        creates: /etc/ssl/certs/ldapserver_slapd_cert.pem
+
+    - name: LDAP | Set proper permissions for LDAP server private key
+      file:
+        path: /etc/ssl/private/ldapserver_slapd_key.pem
+        group: openldap
+        mode: "0640"
+        state: file
+
+    - name: LDAP | Add openldap to ssl-cert group
+      command: gpasswd -a openldap ssl-cert
+
+    - name: LDAP | Pause for 2 seconds
+      command: sleep 2
+
+    - name: LDAP | Restart slapd service
+      service:
+        name: slapd
+        state: restarted
+
+    - name: LDAP | Create LDIF file for TLS configuration
+      copy:
+        dest: /etc/ssl/certinfo.ldif
+        content: |
+          dn: cn=config
+          add: olcTLSCACertificateFile
+          olcTLSCACertificateFile: /etc/ssl/certs/ldap_cacert.pem
+          -
+          add: olcTLSCertificateFile
+          olcTLSCertificateFile: /etc/ssl/certs/ldapserver_slapd_cert.pem
+          -
+          add: olcTLSCertificateKeyFile
+          olcTLSCertificateKeyFile: /etc/ssl/private/ldapserver_slapd_key.pem
+
+    - name: LDAP | Apply TLS configuration using ldapmodify
+      command:
+        cmd: ldapmodify -Y EXTERNAL -H ldapi:/// -f /etc/ssl/certinfo.ldif
+
+    - name: LDAP | Pause for 2 seconds
+      command: sleep 2
+
+    - name: LDAP | Update slapd to listen on ldaps://
+      replace:
+        path: /etc/default/slapd
+        regexp: 'SLAPD_SERVICES="ldap:/// ldapi:///"'
+        replace: 'SLAPD_SERVICES="ldap:/// ldapi:/// ldaps:///"'
+
+    - name: LDAP | Update ldap.conf with TLS configuration
+      copy:
+        dest: /etc/ldap/ldap.conf
+        content: |
+          BASE    dc={{ basedomain }},dc={{ rootdomain }}
+          URI    ldap://localhost
+          TLS_CACERT /etc/ssl/certs/ldap_cacert.pem
+          TLS_REQCERT allow
+
+    - name: LDAP | Restart slapd service after configuration
+      service:
+        name: slapd
+        state: restarted
