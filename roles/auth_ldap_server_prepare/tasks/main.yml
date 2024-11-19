@@ -3,10 +3,10 @@
 # Integration LDAP with IBM Spectrum Scale (GPFS) for user level access.
 # Below are the LDAP Server configuration tasks to add OU, Groups and Users.
 
-# Step 1: Check if LDAP configuration is already applied
+# Check if LDAP configuration is already applied
 - import_tasks: ldap_installation_status.yml
 
-# Step 2: Conditionally execute tasks if LDAP is not configured
+# Conditionally execute tasks if LDAP is not configured
 - block:
     # Import the 'ldap_env.yml' task for setting the env to store the LDAP configuration files.
     - import_tasks: ldap_env.yml

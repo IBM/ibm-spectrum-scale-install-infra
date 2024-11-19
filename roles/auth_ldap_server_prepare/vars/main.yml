@@ -6,7 +6,6 @@ LDAP_USER_PASSWORD: "{{ ldap_user_password }}"
 BASE_DN: "{{ ldap_basedns }}"
 LDAP_SERVER_IP: "{{ ldap_server }}"
 LDAP_CERT_FILES_DIR: "/opt/IBM/ibm-spectrumscale-cloud-deploy/ldap_key"
-LOGFILE: "/tmp/user_data.log"
 OPENLDAP_SERVER_PKGS:
   - slapd
   - ldap-utils
