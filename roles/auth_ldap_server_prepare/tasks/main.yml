@@ -3,20 +3,26 @@
 # Integration LDAP with IBM Spectrum Scale (GPFS) for user level access.
 # Below are the LDAP Server configuration tasks to add OU, Groups and Users.
 
-# Import the 'ldap_env.yml' task for setting the env to store the LDAP configuration files.
-- import_tasks: ldap_env.yml
+# Step 1: Check if LDAP configuration is already applied
+- import_tasks: ldap_installation_status.yml
 
-# Import the 'get_ldap_certs.yml' task for getting the SSL certificate.
-- import_tasks: get_ldap_certs.yml
+# Step 2: Conditionally execute tasks if LDAP is not configured
+- block:
+    # Import the 'ldap_env.yml' task for setting the env to store the LDAP configuration files.
+    - import_tasks: ldap_env.yml
 
-# Import the 'ldap_users.yml' task for adding OU to LDAP.
-- import_tasks: ldap_base_ou.yml
+    # Import the 'get_ldap_certs.yml' task for getting the SSL certificate.
+    - import_tasks: get_ldap_certs.yml
 
-# Import the 'ldap_groups.yml' task for adding groups to LDAP.
-- import_tasks: ldap_groups.yml
+    # Import the 'ldap_base_ou.yml' task for adding OU to LDAP.
+    - import_tasks: ldap_base_ou.yml
 
-# Import the 'ldap_users.yml' task for adding users to LDAP.
-- import_tasks: ldap_users.yml
+    # Import the 'ldap_groups.yml' task for adding groups to LDAP.
+    - import_tasks: ldap_groups.yml
 
-# Import the 'cleanup_secrets.yml' task for cleaning the confidential files stored locally.
-- import_tasks: cleanup_secrets.yml
+    # Import the 'ldap_users.yml' task for adding users to LDAP.
+    - import_tasks: ldap_users.yml
+
+    # Import the 'cleanup_secrets.yml' task for cleaning the confidential files stored locally.
+    - import_tasks: cleanup_secrets.yml
+  when: not ldap_config_status.stat.exists
