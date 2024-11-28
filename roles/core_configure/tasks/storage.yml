@@ -99,14 +99,19 @@
       when:
         - item.size > 1
       with_items: "{{ scale_storage_stanzafile_new.results }}"
+      register: scale_existig_nsd_list
 
     - block:
          - debug:
              msg: Wait for 240 second for NSD configuration to be synced across cluster. Please be patient...
+           loop: "{{ scale_existig_nsd_list.results }}"
+           when: item.changed == true
 
          - name: storage | Wait for NSD configuration to be synced across cluster
            wait_for:
              timeout: 240
+           loop: "{{ scale_existig_nsd_list.results }}"
+           when: item.changed == true
 
          - name: storage | wait-nsd-active
            shell: /usr/lpp/mmfs/bin/mmlsnsd -a -Y | grep -v HEADER | cut -d ':' -f 8
