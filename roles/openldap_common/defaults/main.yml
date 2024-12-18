@@ -1,0 +1,10 @@
+---
+# Variables for the OpenLDAP role
+ldap_domain: ""
+ldap_organization: ""
+ldap_admin_password: ""
+ldap_basedn: ""
+ldap_admin_dn: ""
+default_usergroup: ""
+default_user: ""
+default_user_password: ""

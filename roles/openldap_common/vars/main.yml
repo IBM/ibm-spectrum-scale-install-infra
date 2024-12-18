@@ -1,0 +1,5 @@
+---
+# Variables for the OpenLDAP role
+openldap_server_pkgs:
+  - slapd
+  - ldap-utils

@@ -1,0 +1,137 @@
+---
+# tasks file for openldap
+
+- name: Update apt package index
+  apt:
+     update_cache: yes
+
+- name: Install the openldap and required packages for ubuntu
+  ansible.builtin.apt:
+    name: "{{ openldap_server_pkgs }}"
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+
+- name: Reconfigure slapd
+  shell: |
+    echo "slapd slapd/root_password password {{ ldap_admin_password }}" | debconf-set-selections
+    echo "slapd slapd/root_password_again password {{ ldap_admin_password }}" | debconf-set-selections
+    echo "slapd slapd/internal/adminpw password {{ ldap_admin_password }}" | debconf-set-selections
+    echo "slapd slapd/internal/generated_adminpw password {{ ldap_admin_password }}" | debconf-set-selections
+    echo "slapd slapd/password1 password {{ ldap_admin_password }}" | debconf-set-selections
+    echo "slapd slapd/password2 password {{ ldap_admin_password }}" | debconf-set-selections
+    echo "slapd slapd/domain string {{ ldap_domain }}" | debconf-set-selections
+    echo "slapd shared/organization string {{ ldap_organization }}" | debconf-set-selections
+    echo "slapd slapd/purge_database boolean false" | debconf-set-selections
+    echo "slapd slapd/move_old_database boolean true" | debconf-set-selections
+    echo "slapd slapd/no_configuration boolean false" | debconf-set-selections
+    dpkg-reconfigure -f noninteractive slapd
+
+- name: Set BASE in ldap.conf
+  lineinfile:
+    path: /etc/ldap/ldap.conf
+    line: "BASE   {{ ldap_basedn }}"
+    create: yes
+
+- name: Set URI in ldap.conf
+  lineinfile:
+    path: /etc/ldap/ldap.conf
+    line: "URI    ldap://localhost"
+    create: yes
+
+- name: Restart slapd service
+  service:
+    name: slapd
+    state: restarted
+
+- name: Check slapd service status
+  command: systemctl status slapd
+  register: slapd_status
+
+- name: Create base organizational LDIF
+  copy:
+    dest: /opt/base-ou-groups.ldif
+    content: |
+      dn: ou=People,{{ ldap_basedn }}
+      objectClass: organizationalUnit
+      ou: People
+
+      dn: ou=Groups,{{ ldap_basedn }}
+      objectClass: organizationalUnit
+      ou: Groups
+
+- name: Add base organizational units to LDAP
+  command: ldapadd -x -D "{{ ldap_admin_dn }}" -w "{{ ldap_admin_password }}" -f /opt/base-ou-groups.ldif
+
+- name: Install the samba for multi-protocol schema
+  ansible.builtin.apt:
+    name: "samba"
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+
+- name: Create group LDIF
+  copy:
+    dest: /opt/group.ldif
+    content: |
+      dn: cn={{ default_usergroup }},ou=Groups,{{ ldap_basedn }}
+      objectClass: posixGroup
+      cn: {{ default_usergroup }}
+      gidNumber: 5000
+  when: default_usergroup != ""
+
+- name: Add group to LDAP
+  command: ldapadd -x -D "{{ ldap_admin_dn }}" -w "{{ ldap_admin_password }}" -f /opt/group.ldif
+  when: default_usergroup != ""
+
+- name: Check if the user group exists
+  shell: ldapsearch -x -D "{{ ldap_admin_dn }}" -w "{{ ldap_admin_password }}" -b "ou=groups,{{ ldap_basedn }}" "(objectClass=posixGroup)" | grep {{ default_usergroup }}
+  register: group_exists
+  ignore_errors: true
+  when: default_usergroup != ""
+
+- name: Ensure group creation message is logged
+  debug:
+    msg: "{{ 'User group created' if group_exists.rc == 0 else 'User group not created' }}"
+  when: default_usergroup != ""
+
+- name: Hash default user password
+  shell: slappasswd -s "{{ default_user_password }}"
+  register: default_user_password_hash
+  when: default_user != ""
+
+- name: Create user LDIF
+  copy:
+    dest: /opt/user.ldif
+    content: |
+      dn: uid={{ default_user }},ou=People,{{ ldap_basedn }}
+      objectClass: inetOrgPerson
+      objectClass: posixAccount
+      objectClass: shadowAccount
+      uid: {{ default_user }}
+      sn: {{ default_user }}
+      givenName: {{ default_user }}
+      cn: {{ default_user }}
+      displayName: {{ default_user }}
+      uidNumber: 1100
+      gidNumber: 5000
+      userPassword: {{ default_user_password_hash.stdout }}
+      gecos: {{ default_user }}
+      loginShell: /bin/bash
+      homeDirectory: /home/{{ default_user }}
+  when: default_user != ""
+
+- name: Add user to LDAP
+  command: ldapadd -x -D "{{ ldap_admin_dn }}" -w "{{ ldap_admin_password }}" -f /opt/user.ldif
+  when: default_user != ""
+
+- name: Check if the user exists
+  shell: ldapsearch -x -LLL -b "ou=People,{{ ldap_basedn }}" "(objectClass=posixAccount)" uid cn | grep {{ default_user }}
+  register: user_exists
+  ignore_errors: true
+  when: default_user != ""
+
+- name: Ensure user creation message is logged
+  debug:
+    msg: "{{ 'User created' if user_exists.rc == 0 else 'User not created' }}"
+  when: default_user != ""

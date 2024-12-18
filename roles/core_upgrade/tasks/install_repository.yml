@@ -28,6 +28,22 @@
     - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
 
+- name: upgrade | Configure GPFS Scale API YUM repository
+  yum_repository:
+    name: spectrum-scale-scaleapi
+    description: IBM Spectrum Scale Scale API (GPFS)
+    baseurl: "{{ scale_install_repository_url }}scaleapi_rpms/"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
+    repo_gpgcheck: no
+    sslverify: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - scale_scaleadmd is defined
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url is defined
+    - scale_install_repository_url != 'existing'
+
 #
 # Configure apt repository
 #
@@ -128,3 +144,13 @@
   with_items:
     - gpfs.java*
   when: (is_scale_java_pkg_installed | bool)
+
+#
+# Add GPFS packages for building scale-api from source
+#
+- name: install | Add scale api package to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  when: scale_scaleadmd is defined
+  with_items:
+      - gpfs.scaleapi
