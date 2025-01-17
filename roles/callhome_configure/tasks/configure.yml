@@ -54,7 +54,7 @@
 
   - name: configure| Setup the call home customer configuration
     shell:
-     cmd: "{{ scale_command_path }}mmcallhome info change --customer-name {{ scale_callhome_params.customer_name }} --customer-id {{ scale_callhome_params.customer_id }} --email {{ scale_callhome_params.customer_email}} --country-code {{ scale_callhome_params.customer_country }}"
+     cmd: "{{ scale_command_path }}mmcallhome info change --customer-name \"{{ scale_callhome_params.customer_name }}\" --customer-id {{ scale_callhome_params.customer_id }} --email {{ scale_callhome_params.customer_email}} --country-code {{ scale_callhome_params.customer_country }}"
     register: scale_callhome_customer_config
 
   - debug:
