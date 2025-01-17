@@ -35,7 +35,9 @@ Features
 
 - [x] Support for RHEL 7 on x86_64, PPC64 and PPC64LE
 - [x] Support for RHEL 8 on x86_64 and PPC64LE
+- [x] Support for RHEL 9 on x86_64 and PPC64LE
 - [x] Support for UBUNTU 20 on x86_64 and PPC64LE
+- [x] Support for UBUNTU 22 on x86_64 and PPC64LE
 - [x] Support for SLES 15 on x86_64 and PPC64LE
 
 #### Common prerequisites
@@ -91,6 +93,7 @@ Features
 
 - [x] Install IBM Storage Scale SMB or NFS on selected cluster nodes (5.0.5.2 and above)
 - [x] Install IBM Storage Scale Object on selected cluster nodes (5.1.1.0 and above)
+- [x] Install IBM Storage Scale S3 on selected cluster nodes (5.2.0.0 and above)
 - [x] CES IPV4 or IPV6 support
 - [x] CES interface mode support
 
@@ -107,12 +110,14 @@ The following IBM Storage Scale versions are tested:
 - 5.0.4.0 and above
 - 5.0.5.2 and above for CES (SMB and NFS)
 - 5.1.1.0 and above for CES (Object)
+- 5.2.0.0 and above for CES (S3)
 - **Refer to the [Release Notes](https://github.com/IBM/ibm-spectrum-scale-install-infra/releases) for details**
 
 Specific OS requirements:
 
 - For CES (SMB/NFS) on SLES15: Python 3 is required.
 - For CES (Object): RhedHat 8.x is required.
+- For CES (S3): RhedHat 8.x or RhedHat 9.x is required.
 
 Prerequisites
 -------------
@@ -308,6 +313,7 @@ The following [roles](https://docs.ansible.com/ansible/latest/user_guide/playboo
 - HDFS (`roles/hdfs_*`)
 - Call Home (`roles/callhome_*`)
 - File Audit Logging (`roles/fal_*`)
+- S3 (`roles/s3_*`)
 - ...
 
 Note that [Core GPFS](roles/core) is the only mandatory role, all other roles are optional. Each of the optional roles requires additional configuration variables. Browse the examples in the [samples/](samples/) directory to learn how to:
