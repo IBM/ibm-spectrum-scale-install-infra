@@ -51,3 +51,23 @@
             - (scale_install_packageresult.changed) or (scale_install_dnfpackageresult.changed)
       when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
   when: not scale_daemon_running
+
+- block:
+     - name: install | Get scaleapi package
+       command: rpm -qi gpfs.scaleapi
+       register: package_name_scaleapi
+       ignore_errors: true
+       failed_when: false
+       when:
+         - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    
+     - name: install | Install GPFS scaleapi package
+       dnf:
+         name: "gpfs.scaleapi"
+         state: present
+       ignore_errors: true
+       failed_when: false
+       when:
+          - package_name_scaleapi.rc is defined
+          - package_name_scaleapi.rc != 0
+  when: scale_scaleadmd is defined
