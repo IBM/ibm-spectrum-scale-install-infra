@@ -30,6 +30,37 @@
    that:
    - scale_hdfs_nodes_list|length > 0
    fail_msg: "No hdfs nodes configured"
+- name: global_var | Initialize
+  set_fact:
+   scale_hdfs_nodes_list: []
+   scale_hdfs_namenodes_list: []
+   scale_hdfs_datanodes_list: []
+
+- name: global_var | Collect all HDFS NameNodes
+  set_fact:
+   scale_hdfs_namenodes_list: "{{ item.namenodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Collect all HDFS DataNodes
+  set_fact:
+   scale_hdfs_datanodes_list: "{{ item.datanodes | unique }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: global_var | Get HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
+
+- name: global_var | make unique HDFS nodes
+  set_fact:
+    scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
+
+- name: check | Check if atleast one hdfs node is configured
+  assert:
+   that:
+   - scale_hdfs_nodes_list|length > 0
+   fail_msg: "No hdfs nodes configured"
 
 - name: check | Fetch JAVA_HOME path
   shell: echo $JAVA_HOME
@@ -58,30 +89,57 @@
 - name: check | verify JAVA
   command: "ls {{ javahome_path }}/bin/java"
   register: jvm_list
-  when: 
+  when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - javahome_path|length > 0
 
 - fail:
     msg: "JAVA_HOME not set properly"
-  when: 
+  when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - jvm_list.rc != 0
 
-- name: check | Fetch hdfs extracted tar
+- name: check | get hdfs rpm dir
   set_fact:
-     hdfs_dependency_jars_dir: "hadoop-3.1.4"
+       hdfs_rpm_dir: "hdfs_3.1.1.x"
 
-- name: Check and fetch gpfs.hdfs-protocol version
-  shell: "rpm -q gpfs.hdfs-protocol --qf %{VERSION}-%{RELEASE}"
-  register: gpfs_hdfs_protocol_version
+- name: check | get hdfs rpm dir
+  set_fact:
+       hdfs_rpm_dir: "hdfs_3.2.2.x"
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - transparency_322_enabled|bool
   ignore_errors: true
 
 - debug:
-    msg: "gpfs_hdfs_protocol_version: {{ gpfs_hdfs_protocol_version}}"
+    msg: "hdfs_rpm_dir: {{ hdfs_rpm_dir}}"
+
+- name: Check and fetch gpfs.hdfs-protocol version
+  shell:
+      rpm -qp "{{ scale_extracted_path }}/hdfs_rpms/rhel/{{ hdfs_rpm_dir }}/gpfs.hdfs-protocol-*.x86_64.rpm"
+      --qf '%{VERSION}.%{RELEASE}\n' | cut -d '.' -f -4
+  register: gpfs_hdfs_protocol_version
+  delegate_to: localhost
+  run_once: true
+
+- debug:
+    msg: "gpfs_hdfs_protocol_version: {{ gpfs_hdfs_protocol_version.stdout }}"
+
+- name: check | Fetch hdfs extracted tar
+  set_fact:
+     hdfs_dependency_jars_dir: "/opt/hadoop/jars/hadoop-3.1.4"
+  when:
+     - transparency_322_enabled|bool == False
+     - gpfs_hdfs_protocol_version.rc == 0
+     - gpfs_hdfs_protocol_version.stdout  is version('3.1.1.19', '<')
+
+- name: check | Fetch hdfs extracted tar
+  set_fact:
+     hdfs_dependency_jars_dir: "/opt/cloudera/parcels"
+  when:
+     - transparency_322_enabled|bool == False
+     - gpfs_hdfs_protocol_version.rc == 0
+     - gpfs_hdfs_protocol_version.stdout  is version('3.1.1.18', '>')
 
 - name: Check gpfs.hdfs-protocol version for standalone installation
   fail:
@@ -93,24 +151,25 @@
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - transparency_322_enabled|bool
     - gpfs_hdfs_protocol_version.rc == 0
-    - gpfs_hdfs_protocol_version.stdout_lines[0] < '3.2.2-5'
-
+    - gpfs_hdfs_protocol_version.stdout is version('3.2.2.5', '<')
 - debug:
     msg: "hdfs_dependency_jars_dir: {{ hdfs_dependency_jars_dir }}"
+  when:
+     - transparency_322_enabled|bool == False
 
 - name: check | verify dependency jars
-  command: "ls /opt/hadoop/jars/{{ hdfs_dependency_jars_dir }}"
+  command: "ls {{ hdfs_dependency_jars_dir }}"
   register: dep_jars
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - transparency_322_enabled|bool == False
+  ignore_errors: true
 
 - fail:
     msg: >
-      "Dependency jars not exist in /opt/hadoop/jars directory, which are essential prerequisites, For further details, "
+      "Dependency jars not exist in {{ hdfs_dependency_jars_dir }} directory, which are essential prerequisites, For further details, "
       "please consult the documentation via the following link: https://www.ibm.com/docs/en/storage-scale-bda?topic=hdfs-setup"
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - transparency_322_enabled|bool == False
     - dep_jars.rc != 0
-
