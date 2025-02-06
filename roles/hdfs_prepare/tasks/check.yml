@@ -2,7 +2,7 @@
 - include_tasks: prepare_env.yml
 
 - debug:
-   msg: "transparency_33_enabled: {{ transparency_33_enabled|bool }}"
+   msg: "transparency_336_enabled: {{ transparency_336_enabled|bool }}"
 
 - debug:
    msg: "transparency_322_enabled: {{ transparency_322_enabled|bool }}"

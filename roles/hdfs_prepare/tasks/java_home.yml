@@ -104,6 +104,7 @@
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - transparency_322_enabled|bool == False
+    - transparency_336_enabled|bool == False
 
 - fail:
     msg: >
