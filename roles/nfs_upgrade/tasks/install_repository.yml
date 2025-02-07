@@ -62,7 +62,17 @@
 - name: upgrade | zimon path
   set_fact:
    scale_zimon_url: 'zimon_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version >= '20'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+
+- name: upgrade | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_debs/ubuntu/ubuntu22/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '22'
+
+- name: upgrade | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_debs/ubuntu/ubuntu24/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '24'
 
 - block:
    - name: upgrade | nfs path

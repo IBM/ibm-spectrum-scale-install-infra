@@ -119,6 +119,11 @@
 
 - name: install | file audit logging path
   set_fact:
+    scale_fal_url: 'gpfs_debs/ubuntu/ubuntu24/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '24'
+
+- name: install | file audit logging path
+  set_fact:
     scale_fal_url: 'gpfs_rpms/rhel/'
   when: ansible_distribution in scale_sles_distribution
 
