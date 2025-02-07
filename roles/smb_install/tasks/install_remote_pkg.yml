@@ -121,6 +121,11 @@
      set_fact:
         scale_smb_url: 'smb_debs/ubuntu/ubuntu22/'
      when: ansible_distribution_major_version == '22'
+
+   - name: install | smb path
+     set_fact:
+        scale_smb_url: 'smb_debs/ubuntu/ubuntu24/'
+     when: ansible_distribution_major_version == '24'
   when:
      - ansible_distribution in scale_ubuntu_distribution
      - scale_version >= "5.1.4.0"

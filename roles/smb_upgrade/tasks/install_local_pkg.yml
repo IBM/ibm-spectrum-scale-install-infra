@@ -141,6 +141,16 @@
    scale_smb_url: 'smb_debs/ubuntu/'
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
 
+- name: upgrade | smb path
+  set_fact:
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu22/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '22'
+
+- name: upgrade | smb path
+  set_fact:
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu24/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '24'
+
 
 # Find smb rpms
 
