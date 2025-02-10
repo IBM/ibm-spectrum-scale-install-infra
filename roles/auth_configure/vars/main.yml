@@ -1,3 +1,4 @@
 LDAP_ADMIN_PASSWORD: "{{ ldap_admin_password }}"
 BASE_DN: "{{ ldap_basedns }}"
 LDAP_SERVER_IP: "{{ ldap_server }}"
+LDAP_CERT_FILES_DIR: "/opt/IBM/ibm-spectrumscale-cloud-deploy/ldap_key"

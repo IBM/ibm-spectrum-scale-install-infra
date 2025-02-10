@@ -41,3 +41,8 @@
   debug:
     msg: "LDAP User '{{ LDAP_USER }}' already exists. Skipping."
   when: ldap_user_search.stdout == "UserFound"
+
+- name: LDAP | Mark LDAP configuration as completed
+  file:
+    path: /etc/ldap/.ldap_configured
+    state: touch
