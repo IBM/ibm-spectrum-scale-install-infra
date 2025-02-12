@@ -20,7 +20,7 @@
 
 - name:
   set_fact:
-    transparency_336_enabled: "{{ transparency_version_33.stdout|bool }}"
+    transparency_336_enabled: "{{ transparency_version_336.stdout|bool }}"
   when: 
     - transparency_version_336.stdout is defined
     - transparency_version_336.stdout|bool
