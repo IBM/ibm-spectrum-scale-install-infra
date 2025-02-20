@@ -1,0 +1,47 @@
+- name: Create TLS directory
+  file:
+    path: "{{ tls_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Generate CA private key
+  command: openssl ecparam -name prime256v1 -genkey -noout -out {{ tls_dir }}/ca.key
+  args:
+    creates: "{{ tls_dir }}/ca.key"
+
+- name: Generate self-signed CA certificate
+  command: >
+    openssl req -new -x509 -sha256 -key {{ tls_dir }}/ca.key -out {{ tls_dir }}/ca.crt
+    -subj "/C={{ country }}/ST={{ state }}/L={{ city }}/O={{ organization }}/CN={{ dafault_hostname }}"
+    -days {{ cert_days }}
+  args:
+    creates: "{{ tls_dir }}/ca.crt"
+
+- name: Generate server private key
+  command: openssl ecparam -name prime256v1 -genkey -noout -out {{ tls_dir }}/server.key
+  args:
+    creates: "{{ tls_dir }}/server.key"
+
+- name: Generate certificate signing request
+  command: >
+    openssl req -new -sha256 -key {{ tls_dir }}/server.key -out {{ tls_dir }}/server.csr
+    -subj "/C={{ country }}/ST={{ state }}/L={{ city }}/O={{ organization }}/CN={{ dafault_hostname }}"
+  args:
+    creates: "{{ tls_dir }}/server.csr"
+
+- name: Create SAN configuration file
+  copy:
+    content: "subjectAltName=DNS:{{ hostvars[inventory_hostname] }}"
+    dest: "{{ tls_dir }}/nodeid.cnf"
+
+- name: Sign server certificate with self-signed CA
+  command: >
+    openssl x509 -req -in {{ tls_dir }}/server.csr -CA {{ tls_dir }}/ca.crt
+    -CAkey {{ tls_dir }}/ca.key -CAcreateserial -out {{ tls_dir }}/server.pem
+    -days {{ cert_days }} -sha256 -extfile {{ tls_dir }}/nodeid.cnf
+  args:
+    creates: "{{ tls_dir }}/server.pem"
+
+- name: Verify the server certificate
+  command: openssl verify -CAfile {{ tls_dir }}/ca.crt {{ tls_dir }}/server.pem
+
