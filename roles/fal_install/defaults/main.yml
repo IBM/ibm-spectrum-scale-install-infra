@@ -16,7 +16,6 @@ scale_architecture: "{{ ansible_architecture }}"
 ## List of packages to install for file audit logging
 scale_auditlogging_packages:
   - gpfs.librdkafka*
-  - gpfs.java
 
 ## Flag to enable fileauditlogging
 scale_fal_enable: true
