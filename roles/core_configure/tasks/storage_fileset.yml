@@ -3,32 +3,8 @@
 ##################### Fileset configuration For CES Nodes #####################
 
 # First verifing if fileset already exists if not then creating Independent fileset linking it and printing it.
-
-- name: config | Create a list of configuration parameters for filesets
-  set_fact:
-    config_filset: >
-      {%- set config_filset = [] -%}
-      {%- for storage in scale_storage -%}
-        {%- for fileset_name, quota in storage.filesets.items() -%}
-          {{ config_filset.append({
-            'filesystem': storage.filesystem,
-            'fileset_name': fileset_name,
-            'quota': quota,
-            'defaultMountPoint': storage.defaultMountPoint
-          }) }}
-        {%- endfor -%}
-      {%- endfor -%}
-      {{ config_filset }}
-  run_once: true
-
-- name: debug | Display scale_storage content
-  debug:
-    var: config_filset
-  run_once: true
-    
 - name: Fileset Creation
   block:  ## run_once: true
-
   - name: storage | Find existing filesystem(s)
     shell: /usr/lpp/mmfs/bin/mmlsfs all -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
     register: scale_storage_existing_fs
@@ -40,97 +16,82 @@
       var: scale_storage_existing_fs.stdout
     ignore_errors: yes
 
-  - name: Check if fileset in filesystem already exists
-    shell: "/usr/lpp/mmfs/bin/mmlsfileset {{ item.filesystem }} | tail -n +3 | awk '{print $1}' | grep -w {{ item.fileset_name }}"
-    loop: "{{ config_filset }}"
-    loop_control:
-      label: "{{ item.filesystem }}: {{ item.fileset_name }}"
+  - name: Check if fileset in file system already exists
+    shell: "/usr/lpp/mmfs/bin/mmlsfileset {{ scale_storage_existing_fs.stdout }} | tail -n +3 | awk '{print $1}' | grep -w {{ item.key }}"
+    loop: "{{ scale_storage[0].filesets | dict2items }}"
     register: filesets_result
+    ignore_errors: yes
     failed_when: false
 
   - name: Print return code for each fileset
     debug:
-      msg: "Fileset {{ item.item.fileset_name }} - Return Code: {{ item.rc }}"
+      msg: "Fileset {{ item.item.key }} - Return Code: {{ item.rc }}"
     loop: "{{ filesets_result.results }}"
     loop_control:
-      label: "{{ item.item.filesystem }}: {{ item.item.fileset_name }}"
+      loop_var: item
 
   - name: Create new fileset
-    shell: "/usr/lpp/mmfs/bin/mmcrfileset {{ item.item.filesystem }} {{ item.item.fileset_name }} --inode-space new"
+    shell: "/usr/lpp/mmfs/bin/mmcrfileset {{ scale_storage_existing_fs.stdout }} {{ item.item.key }} --inode-space new"
     loop: "{{ filesets_result.results }}"
-    loop_control:
-      label: "{{ item.item.filesystem }}: {{ item.item.fileset_name }}"
     register: created_fileset
     when: item.rc != 0
 
   - name: Print return code for created filesets
     debug:
-      msg: "Fileset {{ item.item.item.fileset_name }} in {{ item.item.item.filesystem }} - Return Code: {{ item.item.rc }}"
+      msg: "Fileset_created {{ item.item.item.key }} - Return Code: {{ item.item.rc }}"
     loop: "{{ created_fileset.results }}"
     loop_control:
-      label: "{{ item.item.stdout }}"
+      loop_var: item
 
   - name: Link new fileset
-    shell: "/usr/lpp/mmfs/bin/mmlinkfileset {{ item.item.item.filesystem }} {{ item.item.item.fileset_name }} -J {{ item.item.item.defaultMountPoint }}/{{ item.item.item.fileset_name }}"
-    register: link_fileset
+    shell: "/usr/lpp/mmfs/bin/mmlinkfileset {{ scale_storage_existing_fs.stdout }} {{ item.item.item.key }} -J {{ scale_storage[0].defaultMountPoint }}/{{ item.item.item.key }}"
     loop: "{{ created_fileset.results }}"
-    loop_control:
-      label: "{{ item.item.stdout }}"
     when: item.changed == true
 
-  - name: Check filesets with its links in the filesystem
-    command: /usr/lpp/mmfs/bin/mmlsfileset {{ item.item.item.item.filesystem }}
-    register: linked_filesets
-    loop: "{{ link_fileset.results }}"
-    loop_control:
-      label: "{{ item.item.item.stdout }}"
+  - name: Check filesets in file system
+    command: /usr/lpp/mmfs/bin/mmlsfileset {{ scale_storage_existing_fs.stdout }}
+    register: filesets
+    ignore_errors: yes
 
-  - name: Debug the filesets with its link in the filesystem
+  - name: Debug the filesets in file system
     debug:
-      msg: "{{ item.stdout_lines }}"
-    loop: "{{ linked_filesets.results }}"
-    loop_control:
-      label: "{{ item.item.item.item.stdout_lines }}"
+      var: filesets.stdout_lines
+    ignore_errors: yes
 
   run_once: true
+  delegate_to: "{{ groups['scale_cluster_admin_nodes'].0 }}"
 
 # Setting up quota for filesets
 
 - name: Quota allocation for filesets
   block:  ## run_once: true
   - name: Check quota is already enabled
-    shell: "/usr/lpp/mmfs/bin/mmlsfs {{ item.item.item.filesystem }} -Y | grep -w 'quotasAccountingEnabled' | grep -w 'user;group;fileset'"
-    loop: "{{ created_fileset.results }}"
-    loop_control:
-      label: "{{ item.item.stdout }}"
-    register: check_quota_enabled
-    failed_when: check_quota_enabled.rc == 2
-    when: item.item.item.quota > 0
+    shell: "/usr/lpp/mmfs/bin/mmlsfs {{ scale_storage_existing_fs.stdout }} -Y | grep -w 'quotasAccountingEnabled' | grep -w 'user;group;fileset'"
+    register: enable_quota_check
+    loop: "{{ scale_storage[0].filesets | dict2items }}"
+    ignore_errors: yes
+    failed_when: enable_quota_check.rc == 2
+    when: item.value > 0
 
-  - name: Debug to check if quota is already enabled
-    debug:
-      msg: >
-        Quota check for {{ item.item.item.item.filesystem }}:
-        {{ 'Quota enabled' if item.stdout_lines else 'Quota not enabled' }}
-    loop: "{{ check_quota_enabled.results }}"
-    loop_control:
-      label: "{{ item.item.item.item.filesystem }}"
-    when: item.item.item.item.quota > 0
+  - name: Debug to check it quota is already enabled
+    debug: 
+      msg: "Command to check if quota is already enabled: {{ item.0.cmd }}"
+    ignore_errors: yes
+    with_together: 
+      - "{{ enable_quota_check.results }}"
+      - "{{ scale_storage[0].filesets | dict2items }}"
+    when: item.1.value > 0
 
   - name: Run mmchfs command and enable quota
-    shell: "/usr/lpp/mmfs/bin/mmchfs {{ item.item.item.filesystem }} -Q yes --perfileset-quota"
+    shell: "/usr/lpp/mmfs/bin/mmchfs {{ scale_storage_existing_fs.stdout }} -Q yes --perfileset-quota"
     register: enable_quota
-    loop: "{{ created_fileset.results }}"
-    loop_control:
-      label: "{{ item.item.stdout }}"
-    when: item.item.item.quota > 0 and item.item.rc != 0
+    loop: "{{ enable_quota_check.results }}"
+    when: item.item.value > 0 and item.rc != 0
 
   - name: Run mmcheckquota command
-    shell: "/usr/lpp/mmfs/bin/mmcheckquota {{ item.item.item.item.filesystem }}"
+    shell: "/usr/lpp/mmfs/bin/mmcheckquota {{ scale_storage_existing_fs.stdout }}"
     register: quota_check
-    loop: "{{ check_quota_enabled.results }}"
-    loop_control:
-      label: "{{ item.item.item.item.filesystem }}"
+    loop: "{{ enable_quota_check.results }}"
     when: item.changed == true
 
   - name: Debug the mmcheckquota command
@@ -140,53 +101,55 @@
     loop: "{{ quota_check.results }}"
     when: item.changed == true
 
+  - name: Debug fileset and quota to be set for it.
+    debug:
+      msg: "{{ item.key }}: {{ item.value }}GB"
+    loop: "{{ scale_storage[0].filesets | dict2items }}"
+    ignore_errors: yes
+    when: item.value > 0
+
   - name: Check if quota for fileset is already set
-    shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.item.item.fileset_name }} -Y {{ item.item.item.filesystem }} | grep -v HEADER | cut -d ':' -f 13"
+    shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.item.item.key }} -Y {{ scale_storage_existing_fs.stdout }} | grep -v HEADER | cut -d ':' -f 13"
     loop: "{{ created_fileset.results }}"
     register: existing_quota_details
-    loop_control:
-      label: "{{ item.item.stdout }}"
-    when: item.item.item.quota > 0
+    ignore_errors: yes
+    when: item.item.item.value > 0
 
   - name: Debug if quota for fileset is already set
     debug:
-      msg: "Fileset name: {{ item.item.item.item.fileset_name }}  Quota allocated: {{ item.item.item.item.quota }} Return Code: {{ item.item.item.rc }}"
+      msg: "Fileset name: {{ item.item.item.item.key }}  Quota allocated: {{ item.stdout }}"
     loop: "{{ existing_quota_details.results }}"
-    loop_control:
-      label: "{{ item.item.item.item.filesystem }}"
-    when: item.item.item.item.quota > 0
+    ignore_errors: yes
+    when: item.item.item.item.value > 0
 
   - name: Run mmsetquota command
-    shell: "/usr/lpp/mmfs/bin/mmsetquota {{ item.item.item.item.filesystem }}:{{ item.item.item.item.fileset_name }} --block {{ (item.item.item.item.quota * 0.8) | int }}g:{{ item.item.item.item.quota }}g"
-    register: set_quota
+    shell: "/usr/lpp/mmfs/bin/mmsetquota {{ scale_storage_existing_fs.stdout }}:{{ item.item.item.item.key }} --block {{ (item.item.item.item.value * 0.8) | int }}g:{{ item.item.item.item.value }}g"
     loop: "{{ existing_quota_details.results }}"
-    loop_control:
-      label: "{{ item.item.item.item.filesystem }}"
-    when: item.item.item.item.quota > 0 and item.stdout | int == 0
+    register: set_quota
+    when: item.item.item.item.value > 0 and item.stdout | int == 0
 
   - name: Run mmlsquota command
-    shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.item.item.item.item.fileset_name }} {{ item.item.item.item.item.filesystem }}"
-    register: quota_details
+    shell: "/usr/lpp/mmfs/bin/mmlsquota -j {{ item.item.item.item.item.key }} {{ scale_storage_existing_fs.stdout }}"
     loop: "{{ set_quota.results }}"
-    loop_control:
-      label: "{{ item.item.item.item.item.filesystem }}"
-    when: item.item.item.item.item.quota > 0 
+    register: quota_details
+    ignore_errors: yes
+    when: item.item.item.item.item.value > 0
 
   - name: Debug the after setting quota
     debug:
       msg: "{{ item.stdout_lines }}"
     loop: "{{ quota_details.results }}"
-    loop_control:
-      label: "{{ item.item.item.item.item.item.filesystem }}"
-    when: item.item.item.item.item.item.quota > 0 
+    ignore_errors: yes
+    when: item.item.item.item.item.item.value > 0
 
   run_once: true
+  delegate_to: "{{ groups['scale_cluster_admin_nodes'].0 }}"
 
 - name: Update permissions for userinput filesets
   shell: >
-    find {{ item.defaultMountPoint }}/{{ item.fileset_name }} -type d ! -path '{{ item.defaultMountPoint }}/{{ item.fileset_name }}/.snapshots' -exec chmod 777 {} +
-  loop: "{{ config_filset }}"
+    find {{ scale_storage[0].defaultMountPoint }}/{{ item.key }} -type d ! -path '{{ scale_storage[0].defaultMountPoint }}/{{ item.key }}/.snapshots' -exec chmod 777 {} +
+  loop: "{{ scale_storage[0].filesets | dict2items }}"
   loop_control:
-    label: "{{ item.defaultMountPoint }}: {{ item.fileset_name }}"
+    label: "{{ item.key }}"
   run_once: true
-  when: item.fileset_name is defined
+  when: scale_storage[0].filesets is defined
