@@ -14,6 +14,10 @@
 # would apply them to all hosts in the group/play, thus defining the same disk
 # multiple times...
 
+# In the below example, we will create two filesets: binaries and data. The binaries 
+# fileset will have a quota of 0, meaning it has no storage allocation limit, while 
+# the data fileset will have a quota of 50 GB
+
 scale_storage:
   - filesystem: gpfs01
     filesets:
