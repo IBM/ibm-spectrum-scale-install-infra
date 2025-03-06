@@ -38,3 +38,22 @@
            state: present
       when: scale_install_repository_url is defined
   when: not scale_daemon_running
+
+- block:
+     - name: install | Check if gpfs scaleapi package is installed
+       shell: dpkg -l | grep gpfs.scaleapi | awk "{print $1}" |  grep ii
+       register: is_gpfsscaleapi_installed
+       failed_when: false
+       ignore_errors: true
+       when: ansible_pkg_mgr == 'apt'
+
+     - name: install | Install GPFS scaleapi package
+       apt:
+         deb: "gpfs.scaleapi"
+         state: present
+       ignore_errors: true
+       failed_when: false
+       when:
+          - is_gpfsscaleapi_installed.rc is defined
+          - is_gpfsscaleapi_installed.rc != 0
+  when: scale_scaleadmd is defined
