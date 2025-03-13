@@ -1,36 +1,21 @@
 ---
-    # Installing required LDAP client packages for integration.
-    
-    - name: LDAP | Check OS version for OpenLDAP package installation
-      ansible.builtin.shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
-      register: rhel_version
-      changed_when: false
-    
-    - block:
-        - name: LDAP | Remove conflicting SSSD packages
-          ansible.builtin.package:
-            name:
-              - sssd-tools
-              - python3-sssdconfig
-            state: absent
-    
-        - name: LDAP | Install required OpenLDAP packages
-          ansible.builtin.dnf:
-            name:
-              - libnsl
-              - libnsl2
-              - openldap-clients
-              - sssd
-              - sssd-ldap
-              - oddjob-mkhomedir
-              - openssl-perl
-              - authselect
-            state: present
-    
-        - name: LDAP | Install conflicting SSSD packages separately
-          ansible.builtin.package:
-            name:
-              - sssd-tools
-              - python3-sssdconfig
-            state: present
-      when: rhel_version.stdout in ['8', '9']
+ # Installing required ldap client packages for the integration.
+ 
+ - name: LDAP | Check OS version for OpenLDAP package installation
+   ansible.builtin.shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
+   register: rhel_version
+   changed_when: false
+ 
+ - name: LDAP | Install Required OpenLDAP Packages
+   ansible.builtin.dnf:
+     name:
+       - libnsl
+       - libnsl2
+       - openldap-clients
+       - sssd
+       - sssd-ldap
+       - oddjob-mkhomedir
+       - openssl-perl
+       - authselect
+     state: present
+   when: rhel_version.stdout in ["8", "9"]
