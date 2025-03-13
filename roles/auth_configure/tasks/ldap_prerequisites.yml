@@ -1,5 +1,5 @@
 ---
- # Installing required ldap client packages for the integration.
+ # Installing required ldap client packages for the integration
  
  - name: LDAP | Check OS version for OpenLDAP package installation
    ansible.builtin.shell: "grep -oE 'release [0-9]+' /etc/redhat-release | awk '{print $2}'"
