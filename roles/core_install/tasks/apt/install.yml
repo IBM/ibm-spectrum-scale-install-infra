@@ -48,8 +48,8 @@
        when: ansible_pkg_mgr == 'apt'
 
      - name: install | Install GPFS scaleapi package
-       apt:
-         deb: "gpfs.scaleapi"
+       package:
+         name: gpfs.scaleapi
          state: present
        ignore_errors: true
        failed_when: false

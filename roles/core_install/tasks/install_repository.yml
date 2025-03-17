@@ -66,6 +66,24 @@
     - ansible_pkg_mgr == 'apt'
     - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
+
+#
+# Configure apt repository
+#
+- name: install | Configure core scaleapi APT repository
+  apt_repository:
+    filename: spectrum-scale-scaleapi-debs
+    repo: "deb [trusted=yes] {{ scale_install_repository_url }}scaleapi_debs/ ./"
+    validate_certs: no
+    state: present
+    update_cache: yes
+    codename: IBM Spectrum Scale scaleapi (scaleapi debs)
+    mode: 0777
+  when:
+    - ansible_pkg_mgr == 'apt'
+    - scale_install_repository_url is defined
+    - scale_install_repository_url != 'existing'
+
 #
 # Configure zypper repository
 #
