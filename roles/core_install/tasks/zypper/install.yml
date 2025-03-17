@@ -29,3 +29,23 @@
           when:
             - (scale_install_zypppackageresult.changed)
   when: not scale_daemon_running
+
+- block:
+     - name: install | Get scaleapi package
+       command: rpm -qi gpfs.scaleapi
+       register: package_name_scaleapi
+       ignore_errors: true
+       failed_when: false
+       when:
+         - ansible_pkg_mgr == 'zypper'
+
+     - name: install | Install GPFS scaleapi package
+       zypper:
+         name: "gpfs.scaleapi"
+         state: present
+       ignore_errors: true
+       failed_when: false
+       when:
+          - package_name_scaleapi.rc is defined
+          - package_name_scaleapi.rc != 0
+  when: scale_scaleadmd is defined

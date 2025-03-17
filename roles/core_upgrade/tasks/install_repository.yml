@@ -44,6 +44,20 @@
     - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
 
+- name: upgrade | Configure GPFS Scale API zypper repository
+  zypper_repository:
+    name: spectrum-scale-scaleapi
+    description: IBM Spectrum Scale Scale API (GPFS)
+    repo: "{{ scale_install_repository_url }}scaleapi_rpms/"
+    disable_gpg_check: yes
+    state: present
+    overwrite_multiple: yes
+  when:
+    - scale_scaleadmd is defined
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url is defined
+    - scale_install_repository_url != 'existing'
+
 #
 # Configure apt repository
 #
