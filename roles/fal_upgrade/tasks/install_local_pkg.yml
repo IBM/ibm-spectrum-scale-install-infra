@@ -101,7 +101,17 @@
   set_fact:
     scale_fal_url: 'gpfs_rpms/rhel/'
   when: ansible_distribution in scale_rhel_distribution
-  
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel8/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel9/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
+
 - name: upgrade | file audit logging path
   set_fact:
     scale_fal_url: 'gpfs_debs/ubuntu/'
@@ -118,6 +128,12 @@
   set_fact:
     scale_fal_url: 'gpfs_debs/ubuntu/ubuntu22/'
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '22'
+
+- name: upgrade | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_debs/ubuntu/ubuntu24/'
+  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '24'
+
 #todo wrong
 - name: upgrade | file audit logging path
   set_fact:
