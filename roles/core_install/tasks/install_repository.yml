@@ -80,6 +80,7 @@
     codename: IBM Spectrum Scale scaleapi (scaleapi debs)
     mode: 0777
   when:
+    - scale_scaleadmd is defined
     - ansible_pkg_mgr == 'apt'
     - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
