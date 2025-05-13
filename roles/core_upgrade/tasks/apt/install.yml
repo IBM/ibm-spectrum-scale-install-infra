@@ -7,7 +7,7 @@
         - name: upgrade | Upgrade GPFS packages
           apt:
             deb: "{{ item }}"
-            state: latest
+            only_upgrade: true
           register: scale_install_debpackageresult
           with_items:
             - "{{ scale_install_all_packages }}"
@@ -15,7 +15,7 @@
         - name: upgrade | Upgrade GPFS License packages
           apt:
             deb: "{{ item }}"
-            state: latest
+            only_upgrade: true
           with_items:
             - "{{ scale_install_license_packages }}"
 

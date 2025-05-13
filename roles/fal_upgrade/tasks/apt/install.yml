@@ -15,7 +15,7 @@
     - name: upgrade | Upgrade GPFS file audit logging packages
       apt:
         deb: "{{ item }}"
-        state: present
+        only_upgrade: true
       with_items:
         - "{{ scale_install_all_packages }}"
   when: scale_install_repository_url is not defined
