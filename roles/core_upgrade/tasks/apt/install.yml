@@ -4,6 +4,26 @@
 #
 - block:  ## when: not scale_daemon_running
     - block:
+        - name: Create comma-separated list
+          set_fact:
+             my_list: "{{ scale_install_all_packages + scale_install_license_packages }}"
+
+        - set_fact:
+              my_list: "{{my_list | join(' ')}}"
+
+        - debug:
+             msg: "{{my_list }}"
+
+        - name: Execute shell command
+          command: apt-get upgrade -y {{ my_list }} -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+          register: scale_install_debpackageresult
+          when: scale_install_directory_pkg_path is defined
+
+        - debug:
+             msg: "{{scale_install_debpackageresult}}"
+          when: scale_install_directory_pkg_path is defined
+
+
         - name: upgrade | Upgrade GPFS packages
           apt:
             deb: "{{ item }}"
@@ -11,6 +31,8 @@
           register: scale_install_debpackageresult
           with_items:
             - "{{ scale_install_all_packages }}"
+          when: scale_install_directory_pkg_path is not defined
+
 
         - name: upgrade | Upgrade GPFS License packages
           apt:
@@ -18,6 +40,7 @@
             only_upgrade: true
           with_items:
             - "{{ scale_install_license_packages }}"
+          when: scale_install_directory_pkg_path is not defined
 
         - name: upgrade | Check if GPFS packages were updated
           set_fact:
