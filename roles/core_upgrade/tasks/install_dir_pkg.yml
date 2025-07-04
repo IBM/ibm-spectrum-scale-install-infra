@@ -74,13 +74,6 @@
     patterns: gpfs.docs*
   register: scale_install_gpfs_doc
 
-- name: upgrade | Check valid GPFS docs (gpfs.docs) package
-  assert:
-    that: scale_install_gpfs_doc.matched > 0
-    msg: >-
-      No GPFS docs (gpfs.docs) package found:
-      {{ dir_path }}/gpfs.docs*
-
 #
 # Find GPFS gpfs.msg.en_US
 #
@@ -89,13 +82,6 @@
     paths: "{{ dir_path }}"
     patterns: gpfs.msg.en*
   register: scale_install_gpfs_msg
-
-- name: upgrade | Check valid GPFS (gpfs.msg.en_US) package
-  assert:
-    that: scale_install_gpfs_msg.matched > 0
-    msg: >-
-      No GPFS BASE (gpfs.base) package found:
-      {{ dir_path }}/gpfs.msg.en*
 
 #
 # Find GPFS gpfs.compression
@@ -106,12 +92,6 @@
     patterns: gpfs.compression*{{ scale_architecture }}*
   register: scale_install_gpfs_compression
 
-- name: upgrade | Check valid GPFS Compression(gpfs.compression) package
-  debug:
-    msg: >-
-      No GPFS Compression (gpfs.compression) package found:
-      {{ dir_path }}/gpfs.compression*{{ scale_architecture }}*
-  when: scale_install_gpfs_compression.matched < 1
 
 #
 # Find GSKit
@@ -121,13 +101,6 @@
     paths: "{{ dir_path }}"
     patterns: gpfs.gskit*{{ scale_architecture }}*
   register: scale_install_gpfs_gskit
-
-- name: upgrade | Check valid Global Security Kit (GSKit) package
-  assert:
-    that: scale_install_gpfs_gskit.matched > 0
-    msg: >-
-      No Global Security Kit (GSKit) package found:
-      {{ dir_path }}/gpfs.gskit*{{ scale_architecture }}*
 
 #
 # Add GPFS Packages
@@ -139,9 +112,33 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
   with_items:
     - "{{ scale_install_gpfs_base.files.0.path | basename }}"
+
+- name: upgrade | Add GPFS packages to list
+  vars:
+    current_package: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
     - "{{ scale_install_gpfs_doc.files.0.path | basename }}"
+  when: scale_install_gpfs_doc.matched > 0 
+
+- name: upgrade | Add GPFS packages to list
+  vars:
+    current_package: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
     - "{{ scale_install_gpfs_msg.files.0.path | basename }}"
+  when: scale_install_gpfs_msg.matched > 0
+
+- name: upgrade | Add GPFS packages to list
+  vars:
+    current_package: "{{ dir_path }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  with_items:
     - "{{ scale_install_gpfs_gskit.files.0.path | basename }}"
+  when: scale_install_gpfs_gskit.matched > 0
 
 - name: upgrade | Add GPFS compression packages to list
   vars:
@@ -170,19 +167,14 @@
     patterns: gpfs.gpl*
   register: scale_install_gpfs_gpl
 
-- name: upgrade | Check valid GPFS GPL (gpfs.gpl) package
-  assert:
-    that: scale_install_gpfs_gpl.matched > 0
-    msg: >-
-      No GPFS GPL (gpfs.gpl) package found:
-      {{ dir_path }}/gpfs.gpl*
-
 - name: upgrade | Add GPFS packages for building GPL module from source to list
   vars:
     current_package: "{{ dir_path }}/{{ item }}"
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
-  when: scale_install_gplbin_package is undefined
+  when:
+    - scale_install_gplbin_package is undefined
+    - scale_install_gpfs_gpl.matched > 0
   with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"
 
 #
