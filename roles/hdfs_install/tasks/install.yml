@@ -89,7 +89,7 @@
 - name: install | Fetch hdfs version
   set_fact:
     scale_hdfs_url: "{{ scale_hdfs_rhel_version_path_336 }}"
-  when: scale_hdfs.transparency_version == '3.3.6'
+  when: scale_cluster.transparency_version == '3.3.6'
   run_once: true
 
 - include_tasks: install_{{ scale_installmethod }}.yml
