@@ -26,6 +26,11 @@
 
 - name: install | zimon path
   set_fact:
+    scale_zimon_url: 'zimon_rpms/rhel9/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
+    
+- name: install | zimon path
+  set_fact:
     scale_zimon_url: 'zimon_debs/ubuntu/ubuntu16/'
   when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
 
