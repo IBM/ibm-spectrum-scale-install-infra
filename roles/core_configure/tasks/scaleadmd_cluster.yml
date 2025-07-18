@@ -130,6 +130,15 @@
          profile_type: ""
          extra_option: ""
 
+    - set_fact:
+        scale_admin_node: "{{hostvars[item].scale_admin_nodename}}"
+        scale_daemon_node: "{{hostvars[item].scale_daemon_nodename}}"
+      with_items:
+        - "{{groups['scale_cluster_candidates'].0}}"
+      when:
+        - groups['scale_cluster_candidates'] | length > 0
+      
+
     - name: cluster | set the local node for cluster create
       set_fact:
            cluster_local_nodename: "{{ groups['scale_cluster_candidates'].0 }}"
@@ -160,7 +169,7 @@
         - scale_cluster_config is defined and scale_cluster_config.scale_port_number is defined
 
     - name: cluster | Create new cluster
-      command: /usr/lpp/mmfs/bin/scalectl cluster create -N {{ cluster_local_nodename }} -C {{ scale_cluster_clustername }} {{ extra_option }}
+      command: /usr/lpp/mmfs/bin/scalectl cluster create -N {{ scale_daemon_node }} --admin-node-name {{ scale_admin_node }} -C {{ scale_cluster_clustername }} {{ extra_option }}
       notify: accept-licenses
       register: mmcrcluster_results
 
@@ -270,13 +279,17 @@
         dest: /var/mmfs/tmp/NodeFile
 
     - name: cluster | Add new nodes to cluster
-      command: /usr/lpp/mmfs/bin/scalectl node add -N "{{ item }}"
+      command: /usr/lpp/mmfs/bin/scalectl node add -N {{ hostvars[item].scale_daemon_nodename }} --admin-node-name {{ hostvars[item].scale_admin_nodename }}
       register: mmadd_results
       with_items:
-          - "{{ scale_add_node_list }}"
+          - "{{ ansible_play_hosts }}"
       when:
          - scale_add_node_list is defined
          - "{{ scale_add_node_list| length > 0 }}" 
+         - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
+         - not hostvars[item].scale_cluster_clusterId.stdout
+         - hostvars[item].scale_cluster_clusterId.stderr
+         
 
     - debug:
          msg: "{{ mmadd_results.cmd }}"
