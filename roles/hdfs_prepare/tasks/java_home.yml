@@ -68,51 +68,13 @@
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - jvm_list.rc != 0
 
-- name: check | Fetch hdfs extracted tar
-  set_fact:
-     hdfs_dependency_jars_dir: "hadoop-3.1.4"
-
 - name: Check and fetch gpfs.hdfs-protocol version
   shell: "rpm -q gpfs.hdfs-protocol --qf %{VERSION}-%{RELEASE}"
   register: gpfs_hdfs_protocol_version
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-    - transparency_322_enabled|bool
   ignore_errors: true
 
 - debug:
     msg: "gpfs_hdfs_protocol_version: {{ gpfs_hdfs_protocol_version}}"
-
-- name: Check gpfs.hdfs-protocol version for standalone installation
-  fail:
-    msg: >
-      "Standalone installation of gpfs.hdfs-protocol version is not supported. It can only be upgraded"
-      " from gpfs.hdfs-protocol version 3.2.2-5. For additional information, refer to the documentation available at the following link:"
-      " https://www.ibm.com/docs/en/storage-scale-bda?topic=hdfs-setup-transparency-cluster."
-  when:
-    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-    - transparency_322_enabled|bool
-    - gpfs_hdfs_protocol_version.rc == 0
-    - gpfs_hdfs_protocol_version.stdout_lines[0] < '3.2.2-5'
-
-- debug:
-    msg: "hdfs_dependency_jars_dir: {{ hdfs_dependency_jars_dir }}"
-
-- name: check | verify dependency jars
-  command: "ls /opt/hadoop/jars/{{ hdfs_dependency_jars_dir }}"
-  register: dep_jars
-  when:
-    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-    - transparency_322_enabled|bool == False
-    - transparency_336_enabled|bool == False
-
-- fail:
-    msg: >
-      "Dependency jars not exist in /opt/hadoop/jars directory, which are essential prerequisites, For further details, "
-      "please consult the documentation via the following link: https://www.ibm.com/docs/en/storage-scale-bda?topic=hdfs-setup"
-  when:
-    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-    - transparency_322_enabled|bool == False
-    - transparency_336_enabled|bool == False
-    - dep_jars.rc != 0
 

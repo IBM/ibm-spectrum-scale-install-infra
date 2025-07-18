@@ -265,7 +265,18 @@
      loop_control:
         loop_var: add_dn_item
 
-   - lineinfile: 
+   - name: configure | Set hadoop ident for scaleadmd
+     lineinfile: 
+       dest: /var/mmfs/hadoop/etc/hadoop/hadoop-env.sh  
+       state: present 
+       regexp: '# export HADOOP_IDENT_STRING=.'
+       line: 'export HADOOP_IDENT_STRING=root'
+     when: 
+       - scale_scaleadmd is defined  
+       - scale_scaleadmd == true   
+   
+   - name: configure | Remove hadoop workers
+     lineinfile: 
        dest: /var/mmfs/hadoop/etc/hadoop/workers 
        state: absent 
        regexp: '(^\n)'
@@ -279,7 +290,7 @@
      register: initializedSharedEdits
      when: ha_enabled|bool and ces_hdfs_enabled|bool and ha_enable_dir.rc != 0
 
-   - name:  configure | suspend CES nodes
+   - name: configure | suspend CES nodes
      command: "/usr/lpp/mmfs/bin/mmces node suspend --stop -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
      register: suspend_ces
      when:
@@ -291,11 +302,11 @@
      when:
        - check_hdfs_ces_group.rc == 0
 
-   - name:  configure | Enable CES
+   - name: configure | Enable CES
      command: "/usr/lpp/mmfs/bin/mmchnode --ces-group {{ scale_hdfs_ces_group_name }} -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
      register: enable_ces
 
-   - name:  configure | start CES nodes
+   - name: configure | start CES nodes
      command: "/usr/lpp/mmfs/bin/mmces node resume --start -N {{ scale_hdfs_cluster.namenodes|join(',') }}"
      register: start_ces
      when:
