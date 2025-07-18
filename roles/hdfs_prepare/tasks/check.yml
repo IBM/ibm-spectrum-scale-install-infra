@@ -1,5 +1,5 @@
 ---
-- name: global_var | Initialize
+- name: check | Initialize
   set_fact:
    scale_hdfs_cluster: []
    scale_protocol_nodes_list: []

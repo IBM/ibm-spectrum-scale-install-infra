@@ -1,61 +1,61 @@
 ---
-- name: global_var | Initialize
+- name: java_home | Initialize
   set_fact:
    scale_hdfs_nodes_list: []
    scale_hdfs_namenodes_list: []
    scale_hdfs_datanodes_list: []
 
-- name: global_var | Collect all HDFS NameNodes
+- name: java_home | Collect all HDFS NameNodes
   set_fact:
    scale_hdfs_namenodes_list: "{{ item.namenodes | unique }}"
   delegate_to: localhost
   run_once: true
 
-- name: global_var | Collect all HDFS DataNodes
+- name: java_home | Collect all HDFS DataNodes
   set_fact:
    scale_hdfs_datanodes_list: "{{ item.datanodes | unique }}"
   delegate_to: localhost
   run_once: true
 
-- name: global_var | Get HDFS nodes
+- name: java_home | Get HDFS nodes
   set_fact:
     scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
 
-- name: global_var | make unique HDFS nodes
+- name: java_home | make unique HDFS nodes
   set_fact:
     scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
 
-- name: check | Check if atleast one hdfs node is configured
+- name: java_home | Check if atleast one hdfs node is configured
   assert:
    that:
    - scale_hdfs_nodes_list|length > 0
    fail_msg: "No hdfs nodes configured"
 
-- name: check | Fetch JAVA_HOME path
+- name: java_home | Fetch JAVA_HOME path
   shell: echo $JAVA_HOME
   register: java_path
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
-- name: check | Check JAVA_HOME path exist
+- name: java_home | Check JAVA_HOME path exist
   stat:
     path: "{{ java_path.stdout }}"
   register: java_path_details
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
-- name: check | Assert JAVA_HOME path exist
+- name: java_home | Assert JAVA_HOME path exist
   assert:
     that:
     - java_path_details.stat.exists
     fail_msg: The JAVA_HOME path does not exists !
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
-- name: check | Set path of JAVA_HOME
+- name: java_home | Set path of JAVA_HOME
   set_fact:
     javahome_path: "{{ java_path.stdout }}"
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
-- name: check | verify JAVA
+- name: java_home | verify JAVA
   command: "ls {{ javahome_path }}/bin/java"
   register: jvm_list
   when: 
@@ -68,7 +68,7 @@
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - jvm_list.rc != 0
 
-- name: Check and fetch gpfs.hdfs-protocol version
+- name: java_home | Check and fetch gpfs.hdfs-protocol version
   shell: "rpm -q gpfs.hdfs-protocol --qf %{VERSION}-%{RELEASE}"
   register: gpfs_hdfs_protocol_version
   when:
