@@ -166,10 +166,6 @@
   when: scale_ces_disabled_nodes|length > 0 and 'SMB' in scale_service_list
 
 - import_role:
-   name: ibm.spectrum_scale.obj_install
-  when: scale_ces_disabled_nodes|length > 0 and 'OBJ' in scale_service_list
-
-- import_role:
    name: ibm.spectrum_scale.s3_install
   when: scale_ces_disabled_nodes|length > 0 and 'S3' in scale_service_list
 
@@ -183,7 +179,7 @@
 
 - name: configure | Enabling CES
   command: "{{ scale_command_path }}mmchnode -N {{ scale_ces_nodes[1:] }} --ces-enable"
-  async: 120
+  async: 180
   poll: 5
   when: scale_ces_disabled_nodes|length > 0
   delegate_to: "{{ scale_protocol_node_list.0 }}"

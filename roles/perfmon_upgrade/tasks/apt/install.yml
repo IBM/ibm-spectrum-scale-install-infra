@@ -13,7 +13,7 @@
     - name: upgrade | Upgrade GPFS zimon packages
       apt:
         deb: "{{ item }}"
-        state: latest
+        only_upgrade: true
       with_items:
         - "{{ scale_install_all_packages }}"
   when: scale_install_repository_url is not defined

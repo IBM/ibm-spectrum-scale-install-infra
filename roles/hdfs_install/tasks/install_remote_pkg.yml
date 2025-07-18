@@ -71,16 +71,6 @@
       The variable 'scale_version' doesn't seem to match the contents of the
       remote installation package!
 
-- name: install | hdfs path
-  set_fact:
-   scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
-
-- name: install | hdfs path on rhel8
-  set_fact:
-   scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
-
 - block:  ## when: host is defined as a protocol node
 
   - name: install | Find gpfs.hdfs (gpfs.hdfs-protocol) package

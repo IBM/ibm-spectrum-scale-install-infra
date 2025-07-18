@@ -73,8 +73,8 @@
 
     - name: storage | Create new NSDs
       vars:
-        verify: "{{ 'no' if overwriteNSDs | default(scale_storage_filesystem_defaults.overwriteNSDs) else 'yes' }}"
-      command: /usr/lpp/mmfs/bin/scalectl nsd batchCreate -F /var/mmfs/tmp/StanzaFile.new.nsd --no-verify
+        verify: "{{ '--no-verify' if overwriteNSDs | default(scale_storage_filesystem_defaults.overwriteNSDs) else '' }}"
+      command: /usr/lpp/mmfs/bin/scalectl nsd batchCreate -F /var/mmfs/tmp/StanzaFile.new.nsd {{ verify }}
       register: scale_nsd_create
       when:
         - scale_storage_stanzafile_new.size > 1

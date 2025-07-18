@@ -63,8 +63,8 @@
 - block:
   - name:
     set_fact:
-       hdfs_version_path_selection_rhel: "{{ scale_hdfs_rhel_version_path_33 }}"
-    when: transparency_33_enabled|bool
+       hdfs_version_path_selection_rhel: "{{ scale_hdfs_rhel_version_path_336 }}"
+    when: transparency_336_enabled|bool
 
   - name:
     set_fact:
