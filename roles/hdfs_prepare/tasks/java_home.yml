@@ -74,6 +74,7 @@
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
   ignore_errors: true
+  failed_when: false
 
 - debug:
     msg: "gpfs_hdfs_protocol_version: {{ gpfs_hdfs_protocol_version}}"
