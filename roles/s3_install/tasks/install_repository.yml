@@ -9,6 +9,11 @@
    scale_s3_url: 's3_rpms/rhel9/'
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
 
+- name: install | s3 path
+  set_fact:
+   scale_s3_url: 's3_rpms/rhel10/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
+
 - name: install | Configure s3 YUM repository
   yum_repository:
     name: spectrum-scale-s3
