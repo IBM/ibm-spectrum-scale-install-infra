@@ -13,6 +13,11 @@
   set_fact:
    scale_nfs_url: 'ganesha_rpms/rhel9/'
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
+
+- name: install | nfs path
+  set_fact:
+   scale_nfs_url: 'ganesha_rpms/rhel10/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
     
 - name: install | nfs path
   set_fact:
