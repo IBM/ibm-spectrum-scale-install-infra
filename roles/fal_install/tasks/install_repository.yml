@@ -91,6 +91,7 @@
     repo: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
     disable_gpg_check: no
     state: present
+    overwrite_multiple: yes
   when:
     - ansible_pkg_mgr == 'zypper'
     - scale_install_repository_url is defined
