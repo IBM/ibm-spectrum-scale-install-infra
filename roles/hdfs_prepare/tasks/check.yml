@@ -1,13 +1,5 @@
 ---
-- include_tasks: prepare_env.yml
-
-- debug:
-   msg: "transparency_336_enabled: {{ transparency_336_enabled|bool }}"
-
-- debug:
-   msg: "transparency_322_enabled: {{ transparency_322_enabled|bool }}"
-
-- name: global_var | Initialize
+- name: check | Initialize
   set_fact:
    scale_hdfs_cluster: []
    scale_protocol_nodes_list: []

@@ -105,11 +105,13 @@ Please define the CES shared root file system mount point in the inventory."
      - scale_protocols.export_ip_pool is defined
      - scale_protocols.export_ip_pool|length > 0
      fail_msg: "CES export ip pool is not defined or empty"
+    when: scale_protocols.ces_existing is not defined
     run_once: true
 
   - name: check | Collect unique export ips
     set_fact:
      scale_export_ip: "{{ scale_protocols.export_ip_pool|unique }}"
+    when: scale_protocols.export_ip_pool is defined
     run_once: true
 
   - name: check | Check if export ips are duplicated
@@ -118,6 +120,7 @@ Please define the CES shared root file system mount point in the inventory."
      - scale_protocols.export_ip_pool|length == scale_export_ip|length
      fail_msg: "Duplicate ips found in export ip pool"
     run_once: true
+    when: scale_protocols.export_ip_pool is defined
   when: scale_protocols.scale_ces_groups is not defined
 
 - name: check | Get list of GPFS nodes which are not reporting active state
@@ -211,4 +214,6 @@ Please define the CES shared root file system mount point in the inventory."
     when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
     failed_when: scale_ces_ipv4_list|length >0 and scale_ces_ipv6_list|length > 0
 
-  when: scale_protocols.scale_ces_groups is not defined
+  when: 
+    - scale_protocols.scale_ces_groups is not defined
+    - scale_protocols.export_ip_pool is defined
