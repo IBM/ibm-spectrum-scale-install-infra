@@ -44,7 +44,7 @@
   zypper_repository:
     name: spectrum-scale-gui
     description: IBM Spectrum Scale (GUI)
-    repo: "{{ scale_install_repository_url }}/gpfs_rpms/"
+    repo: "{{ scale_install_repository_url }}gpfs_rpms/"
     disable_gpg_check: no
     state: present
     overwrite_multiple: yes
