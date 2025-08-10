@@ -1,61 +1,61 @@
 ---
-- name: global_var | Initialize
+- name: java_home | Initialize
   set_fact:
    scale_hdfs_nodes_list: []
    scale_hdfs_namenodes_list: []
    scale_hdfs_datanodes_list: []
 
-- name: global_var | Collect all HDFS NameNodes
+- name: java_home | Collect all HDFS NameNodes
   set_fact:
    scale_hdfs_namenodes_list: "{{ item.namenodes | unique }}"
   delegate_to: localhost
   run_once: true
 
-- name: global_var | Collect all HDFS DataNodes
+- name: java_home | Collect all HDFS DataNodes
   set_fact:
    scale_hdfs_datanodes_list: "{{ item.datanodes | unique }}"
   delegate_to: localhost
   run_once: true
 
-- name: global_var | Get HDFS nodes
+- name: java_home | Get HDFS nodes
   set_fact:
     scale_hdfs_nodes_list: "{{ scale_hdfs_namenodes_list + scale_hdfs_datanodes_list }}"
 
-- name: global_var | make unique HDFS nodes
+- name: java_home | make unique HDFS nodes
   set_fact:
     scale_hdfs_nodes_list: "{{ scale_hdfs_nodes_list | unique }}"
 
-- name: check | Check if atleast one hdfs node is configured
+- name: java_home | Check if atleast one hdfs node is configured
   assert:
    that:
    - scale_hdfs_nodes_list|length > 0
    fail_msg: "No hdfs nodes configured"
 
-- name: check | Fetch JAVA_HOME path
+- name: java_home | Fetch JAVA_HOME path
   shell: echo $JAVA_HOME
   register: java_path
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
-- name: check | Check JAVA_HOME path exist
+- name: java_home | Check JAVA_HOME path exist
   stat:
     path: "{{ java_path.stdout }}"
   register: java_path_details
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
-- name: check | Assert JAVA_HOME path exist
+- name: java_home | Assert JAVA_HOME path exist
   assert:
     that:
     - java_path_details.stat.exists
     fail_msg: The JAVA_HOME path does not exists !
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
-- name: check | Set path of JAVA_HOME
+- name: java_home | Set path of JAVA_HOME
   set_fact:
     javahome_path: "{{ java_path.stdout }}"
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
-- name: check | verify JAVA
+- name: java_home | verify JAVA
   command: "ls {{ javahome_path }}/bin/java"
   register: jvm_list
   when: 
@@ -68,51 +68,14 @@
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
     - jvm_list.rc != 0
 
-- name: check | Fetch hdfs extracted tar
-  set_fact:
-     hdfs_dependency_jars_dir: "hadoop-3.1.4"
-
-- name: Check and fetch gpfs.hdfs-protocol version
+- name: java_home | Check and fetch gpfs.hdfs-protocol version
   shell: "rpm -q gpfs.hdfs-protocol --qf %{VERSION}-%{RELEASE}"
   register: gpfs_hdfs_protocol_version
   when:
     - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-    - transparency_322_enabled|bool
   ignore_errors: true
+  failed_when: false
 
 - debug:
     msg: "gpfs_hdfs_protocol_version: {{ gpfs_hdfs_protocol_version}}"
-
-- name: Check gpfs.hdfs-protocol version for standalone installation
-  fail:
-    msg: >
-      "Standalone installation of gpfs.hdfs-protocol version is not supported. It can only be upgraded"
-      " from gpfs.hdfs-protocol version 3.2.2-5. For additional information, refer to the documentation available at the following link:"
-      " https://www.ibm.com/docs/en/storage-scale-bda?topic=hdfs-setup-transparency-cluster."
-  when:
-    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-    - transparency_322_enabled|bool
-    - gpfs_hdfs_protocol_version.rc == 0
-    - gpfs_hdfs_protocol_version.stdout_lines[0] < '3.2.2-5'
-
-- debug:
-    msg: "hdfs_dependency_jars_dir: {{ hdfs_dependency_jars_dir }}"
-
-- name: check | verify dependency jars
-  command: "ls /opt/hadoop/jars/{{ hdfs_dependency_jars_dir }}"
-  register: dep_jars
-  when:
-    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-    - transparency_322_enabled|bool == False
-    - transparency_336_enabled|bool == False
-
-- fail:
-    msg: >
-      "Dependency jars not exist in /opt/hadoop/jars directory, which are essential prerequisites, For further details, "
-      "please consult the documentation via the following link: https://www.ibm.com/docs/en/storage-scale-bda?topic=hdfs-setup"
-  when:
-    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-    - transparency_322_enabled|bool == False
-    - transparency_336_enabled|bool == False
-    - dep_jars.rc != 0
 

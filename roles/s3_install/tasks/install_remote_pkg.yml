@@ -84,10 +84,10 @@
 # Find s3 rpms
 - block:  ## when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
 
-  - name: install | Find noobaa-core (noobaa-core) package
+  - name: install | Find s3 (noobaa-core, gpfs.mms3) package
     find:
      paths: "{{ s3_extracted_path }}/{{ scale_s3_url }}"
-     patterns: noobaa-core*
+     patterns: noobaa-core*,gpfs.mms3*
     register: scale_install_gpfs_s3
 
   - name: install | Check valid noobaa-core (noobaa-core) package

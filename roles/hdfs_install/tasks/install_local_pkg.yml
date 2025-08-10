@@ -106,17 +106,6 @@
    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
    state: absent
 
-
-- name: install | hdfs path on rhel7
-  set_fact:
-   scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
-
-- name: install | hdfs path on rhel8
-  set_fact:
-   scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
-
 - block:
   - name: install | Find gpfs.hdfs-protocol package
     find:
