@@ -15,17 +15,18 @@
 
 - name: configure | Setting server licenses on AFM gateway nodes
   vars:
-     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | list }}"
+     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
   command: "{{ scale_command_path }}mmchlicense server --accept -N {{ scale_gateway_node | join(',') }}"
   when:
     - groups['scale_gateway_nodes'] is defined 
     - groups['scale_gateway_nodes'] | list | length > 0
+  register: server_license
   run_once: true
 
 - name: configure | Enabling AFM gateway
   vars:
-     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | list }}"
-  command: "{{ scale_command_path }}mmchnode -N {{ scale_gateway_node | join(',') }} --gateway"
+     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
+  command: "{{ scale_command_path }}mmchnode -N {{ scale_gateway_node | join(',') }} --gateway --yes"
   when:
     - groups['scale_gateway_nodes'] is defined 
     - groups['scale_gateway_nodes'] | list | length > 0
@@ -38,7 +39,7 @@
 
 - name: storage | Mount filesystem(s) on AFM gateway nodes
   vars:
-     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | list }}"
+     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
   command: "{{ scale_command_path }}mmmount all -N {{ scale_gateway_node | join(',') }}"
   changed_when: false
   run_once: true
