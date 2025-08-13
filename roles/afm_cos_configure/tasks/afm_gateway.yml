@@ -26,7 +26,7 @@
 - name: configure | Enabling AFM gateway
   vars:
      scale_gateway_node: "{{ groups['scale_gateway_nodes'] | map('extract', hostvars, 'scale_daemon_nodename') | list }}"
-  command: "{{ scale_command_path }}mmchnode -N {{ scale_gateway_node | join(',') }} --gateway --yes"
+  command: "{{ scale_command_path }}mmchnode -N {{ scale_gateway_node | join(',') }} --gateway"
   when:
     - groups['scale_gateway_nodes'] is defined 
     - groups['scale_gateway_nodes'] | list | length > 0
