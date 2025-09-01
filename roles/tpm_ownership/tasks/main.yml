@@ -1,0 +1,17 @@
+---
+- import_tasks: check.yml
+  tags: check prerequisites
+
+# Do we need other ways to check tpm presence? 
+- name: Check TPM presence
+  command: ls /dev/tpm*
+
+- name: Disable TPM clear if required
+  command: tpm2_clearcontrol disable
+  when: disable_clear
+
+
+# enabling tpm from bios is a manual process to be performed, before taking the ownership
+
+- name: Take TPM ownership
+  command: mmvdisk tpm setup --password-file {{ tpm_password_file }}

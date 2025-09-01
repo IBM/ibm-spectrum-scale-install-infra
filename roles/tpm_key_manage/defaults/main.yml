@@ -1,0 +1,7 @@
+tpm_slot_id: "0x01500021"
+tpm_password_file: "/path/to/password.txt"
+ess_io_node : node1
+utility_node: node2
+backup: false
+restore: false
+rotate: false

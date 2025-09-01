@@ -1,0 +1,2 @@
+tpm_password_file: "/etc/tpm_password.txt"
+disable_clear: true

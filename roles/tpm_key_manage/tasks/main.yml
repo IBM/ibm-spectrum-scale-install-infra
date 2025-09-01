@@ -1,0 +1,12 @@
+---
+- name: Backup TPM key
+  command: esstpmkey backup --source-node {{ ess_io_node }} --destination-node {{ utility_node }} --tpm-slot-id {{ tpm_slot_id }}
+  when: backup
+
+- name: Rotate TPM key
+  command: mmvdisk tpm genkey --nv-slot-id {{ nv_slot_id }} --password-file {{ tpm_password_file }}
+  when: rotate
+
+- name: Restore TPM key from backup
+  command: esstpmkey restore --source-node {{ utility_node }} --destination-node {{ ess_io_node }} --tpm-slot-id {{ tpm_slot_id }}
+  when: restore

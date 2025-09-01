@@ -1,0 +1,7 @@
+nv_slot_id: "0x01500021"
+tpm_password_file: "/path/to/password.txt"
+recovery_group: RecoveryGroupName
+rkmid: RKMId
+key_uuid: KeyId
+rekey_drives: false
+

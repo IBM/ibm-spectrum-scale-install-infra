@@ -1,0 +1,3 @@
+---
+- name: Create NV slots
+  command: mmvdisk tpm createSlots --number-of-slots {{ nv_slot_count }} --nv-slot-id {{ nv_slot_id }} --password-file {{ tpm_password_file }}
