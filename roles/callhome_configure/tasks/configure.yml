@@ -68,7 +68,7 @@
 
   - name: cluster | Set callhome machine city if it is defined
     set_fact:
-        extra_callhome_option: "{{ extra_callhome_option }} --machine-city {{ scale_callhome_params.machine_city }}"
+        extra_callhome_option: "{{ extra_callhome_option }} --machine-city \"{{ scale_callhome_params.machine_city }}\""
     when:
       - scale_callhome_params is defined and scale_callhome_params.machine_city is defined
 
@@ -80,7 +80,7 @@
   
   - name: cluster | Set callhome machine address if it is defined
     set_fact:
-        extra_callhome_option: "{{ extra_callhome_option }} --machine-address {{ scale_callhome_params.machine_address }}"
+        extra_callhome_option: "{{ extra_callhome_option }} --machine-address \"{{ scale_callhome_params.machine_address }}\""
     when:
       - scale_callhome_params is defined and scale_callhome_params.machine_address is defined
   
@@ -148,8 +148,11 @@
     with_items:
      - "{{ scale_callhome_params.callhome_schedule }}"
     register: scale_callhome_schedule_status
+    when: scale_callhome_params.callhome_schedule is defined
 
   - debug:
      msg: "{{ scale_callhome_schedule_status.cmd }}"
-    when: scale_callhome_schedule_status|bool
+    when:
+      - scale_callhome_params.callhome_schedule is defined 
+      - scale_callhome_schedule_status|bool
   run_once: true
