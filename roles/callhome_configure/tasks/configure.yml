@@ -11,6 +11,7 @@
   - name: configure | initialize variable
     set_fact:
         auth_enabled: ""
+        extra_callhome_option: ""
 
   - name: configure | get proxy password
     set_fact:
@@ -52,9 +53,53 @@
      msg: "{{ scale_callhome_proxy_enable.cmd }}"
     when: scale_callhome_proxy_enable.cmd is defined
 
+   
+  - name: cluster | Set callhome primary contact if it is defined
+    set_fact:
+        extra_callhome_option: "{{ extra_callhome_option }} --primary-contact {{ scale_callhome_params.primary_contact }}"
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.primary_contact is defined
+
+  - name: cluster | Set callhome primary contact phone if it is defined
+    set_fact:
+        extra_callhome_option: "{{ extra_callhome_option }} --primary-contact-phone {{ scale_callhome_params.primary_contact_phone }}"
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.primary_contact_phone is defined
+
+  - name: cluster | Set callhome machine city if it is defined
+    set_fact:
+        extra_callhome_option: "{{ extra_callhome_option }} --machine-city \"{{ scale_callhome_params.machine_city }}\""
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.machine_city is defined
+
+  - name: cluster | Set callhome machine zip if it is defined
+    set_fact:
+        extra_callhome_option: "{{ extra_callhome_option }} --machine-zip {{ scale_callhome_params.machine_zip }}"
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.machine_zip is defined
+  
+  - name: cluster | Set callhome machine address if it is defined
+    set_fact:
+        extra_callhome_option: "{{ extra_callhome_option }} --machine-address \"{{ scale_callhome_params.machine_address }}\""
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.machine_address is defined
+  
+  - name: cluster | Set callhome machine country if it is defined
+    set_fact:
+        extra_callhome_option: "{{ extra_callhome_option }} --machine-country {{ scale_callhome_params.machine_country }}"
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.machine_country is defined
+      
+
+  - name: cluster | Set callhome machine state if it is defined
+    set_fact:
+        extra_callhome_option: "{{ extra_callhome_option }} --machine-state {{ scale_callhome_params.machine_state }}"
+    when:
+      - scale_callhome_params is defined and scale_callhome_params.machine_state is defined
+
   - name: configure| Setup the call home customer configuration
     shell:
-     cmd: "{{ scale_command_path }}mmcallhome info change --customer-name \"{{ scale_callhome_params.customer_name }}\" --customer-id {{ scale_callhome_params.customer_id }} --email {{ scale_callhome_params.customer_email}} --country-code {{ scale_callhome_params.customer_country }}"
+     cmd: "{{ scale_command_path }}mmcallhome info change --customer-name \"{{ scale_callhome_params.customer_name }}\" --customer-id {{ scale_callhome_params.customer_id }} --email {{ scale_callhome_params.customer_email}} --country-code {{ scale_callhome_params.customer_country }} {{ extra_callhome_option }}"
     register: scale_callhome_customer_config
 
   - debug:
@@ -103,8 +148,11 @@
     with_items:
      - "{{ scale_callhome_params.callhome_schedule }}"
     register: scale_callhome_schedule_status
+    when: scale_callhome_params.callhome_schedule is defined
 
   - debug:
      msg: "{{ scale_callhome_schedule_status.cmd }}"
-    when: scale_callhome_schedule_status|bool
+    when:
+      - scale_callhome_params.callhome_schedule is defined 
+      - scale_callhome_schedule_status|bool
   run_once: true
