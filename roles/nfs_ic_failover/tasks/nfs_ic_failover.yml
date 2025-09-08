@@ -23,17 +23,35 @@
   shell: chmod +x /var/mmfs/etc/mmcesExtendedIpMgmt
   when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
 
-- name: Fetch API KEY From environmental variable of Ansible controller
-  shell: "echo $IC_API_KEY" 
-  register: env_api_key
+# - name: Fetch API KEY From environmental variable of Ansible controller
+#   shell: "echo $IC_API_KEY" 
+#   register: env_api_key
+#   delegate_to: localhost
+#   when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Fetch API KEY from file
+  ansible.builtin.slurp:
+    src: /opt/ibm/temp_file.txt
+  register: api_key_file
   delegate_to: localhost
   when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Decode API Key
+  set_fact:
+    env_api_key: "{{ api_key_file['content'] | b64decode | trim }}" #pragma: allowlist secret
+  when: scale_protocol_node | default(false) == true and file_check_result.rc != 0
+
+- name: Delete API Key file
+  ansible.builtin.file:
+    path: /opt/ibm/temp_file.txt
+    state: absent
+  delegate_to: localhost
 
 - name: Replace IC_API_KEY with specified lines
   replace:
     path: /var/mmfs/etc/mmcesExtendedIpMgmt
     regexp: 'IC_API_KEY='
-    replace: IC_API_KEY={{ env_api_key.stdout }}
+    replace: IC_API_KEY={{ env_api_key }}
   when: "scale_protocol_node | default(false) == true and file_check_result.rc != 0 and 'IC_API_KEY=' is match"
 
 - name: Fetch rest of the variables from environmental variable of remote host

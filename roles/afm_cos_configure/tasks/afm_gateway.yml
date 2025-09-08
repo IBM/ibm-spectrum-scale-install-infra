@@ -13,14 +13,18 @@
 
 - name: configure | Setting server licenses on AFM gateway nodes
   vars:
-     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | list }}"
+    # Get the first part of each FQDN
+    scale_gateway_node: >-
+      {{ groups['scale_gateway_nodes'] | map('split', '.') | map('first') | list }}
   command: "{{ scale_command_path }}mmchlicense server --accept -N {{ scale_gateway_node | join(',') }}"
   when: groups['scale_gateway_nodes'] | list | length > 0
   run_once: true
 
 - name: configure | Enabling AFM gateway
   vars:
-     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | list }}"
+    # Get the first part of each FQDN
+    scale_gateway_node: >-
+      {{ groups['scale_gateway_nodes'] | map('split', '.') | map('first') | list }}
   command: "{{ scale_command_path }}mmchnode -N {{ scale_gateway_node | join(',') }} --gateway"
   when: groups['scale_gateway_nodes'] | list | length > 0
   register: result_gateway

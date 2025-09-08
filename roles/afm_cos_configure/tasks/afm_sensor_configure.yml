@@ -13,7 +13,18 @@
 
 - name: configure | Setting AFM Sensors on AFM gateway nodes
   vars:
-     scale_gateway_node: "{{ groups['scale_gateway_nodes'] | list }}"
-  command: "{{ scale_command_path }}mmperfmon config update GPFSAFMFS.restrict={{ scale_gateway_node | join(',') }} GPFSAFMFS.period=10 GPFSAFMFSET.restrict={{ scale_gateway_node | join(',') }} GPFSAFMFS.period=10 GPFSAFMFSET.restrict={{ scale_gateway_node | join(',') }} GPFSAFMFSET.period=10 GPFSAFM.restrict={{ scale_gateway_node | join(',') }} GPFSAFM.period=10"
+    # Extract short hostnames before the dot
+    scale_gateway_node: >-
+      {{ groups['scale_gateway_nodes'] | map('split', '.') | map('first') | list }}
+  command: >-
+    {{ scale_command_path }}mmperfmon config update
+    GPFSAFMFS.restrict={{ scale_gateway_node | join(',') }}
+    GPFSAFMFS.period=10
+    GPFSAFMFSET.restrict={{ scale_gateway_node | join(',') }}
+    GPFSAFMFS.period=10
+    GPFSAFMFSET.restrict={{ scale_gateway_node | join(',') }}
+    GPFSAFMFSET.period=10
+    GPFSAFM.restrict={{ scale_gateway_node | join(',') }}
+    GPFSAFM.period=10
   when: groups['scale_gateway_nodes'] | list | length > 0
   run_once: true
