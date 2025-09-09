@@ -56,7 +56,7 @@
    
   - name: cluster | Set callhome primary contact if it is defined
     set_fact:
-        extra_callhome_option: "{{ extra_callhome_option }} --primary-contact {{ scale_callhome_params.primary_contact }}"
+        extra_callhome_option: "{{ extra_callhome_option }} --primary-contact \"{{ scale_callhome_params.primary_contact }}\""
     when:
       - scale_callhome_params is defined and scale_callhome_params.primary_contact is defined
 
