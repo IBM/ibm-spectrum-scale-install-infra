@@ -1,0 +1,66 @@
+---
+#
+# samples/playbook_directory_upgrade.yml
+#
+
+# Playbook sample for deploying IBM Spectrum Scale (GPFS) cluster using the
+# directory installation method. You need to keep all required Spectrum Scale
+# packages in a single user-provided directory.
+
+# Note that specifying the variable 'scale_version' is *not* required for this
+# installation method.
+
+# Note: This playbook can only help to upgrade core gpfs package , it doesn't support 
+# any other component package upgrade. if you have any futher query , please open
+# an issue before running the upgrade
+
+
+- hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
+  pre_tasks:
+     - name: cluster | Shutdown gpfs node
+       command: /usr/lpp/mmfs/bin/mmshutdown -N {{ inventory_hostname }}
+       register: shutdown_gpfs_cluster
+       when: scale_shutdownstartup_needed is defined and scale_shutdownstartup_needed | bool 
+     - debug:
+          msg: "{{shutdown_gpfs_cluster}}"
+  vars:
+    - scale_version: 5.2.2.1
+    - scale_install_directory_pkg_path: /usr/lpp/mmfs/5.2.2.1/gpfs_debs
+  roles:
+    - core_upgrade
+  post_tasks:
+     - name: cluster | Startup gpfs node
+       command: /usr/lpp/mmfs/bin/mmstartup -N {{ inventory_hostname }}
+       register: startup_gpfs_cluster
+       when: scale_shutdownstartup_needed is defined and scale_shutdownstartup_needed | bool
+     
+     - debug:
+          msg: "{{startup_gpfs_cluster}}"
+
+- hosts: cluster01
+  collections:
+    - ibm.spectrum_scale
+  vars:
+    - scale_shutdownstartup_needed: true
+  vars:
+    - scale_version: 5.2.2.1
+    - scale_install_directory_pkg_path: /opt/efix1
+  pre_tasks:
+     - name: cluster | Shutdown gpfs node
+       command: /usr/lpp/mmfs/bin/mmshutdown -N {{ inventory_hostname }}
+       register: shutdown_gpfs_cluster
+       when: scale_shutdownstartup_needed is defined and scale_shutdownstartup_needed | bool
+     - debug:
+          msg: "{{shutdown_gpfs_cluster}}"
+  roles:
+    - core_upgrade
+  post_tasks:
+     - name: cluster | Startup gpfs node
+       command: /usr/lpp/mmfs/bin/mmstartup -N {{ inventory_hostname }}
+       register: startup_gpfs_cluster
+       when: scale_shutdownstartup_needed is defined and scale_shutdownstartup_needed | bool
+
+     - debug:
+          msg: "{{startup_gpfs_cluster}}"
