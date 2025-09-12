@@ -1,0 +1,8 @@
+---
+- name: Install and configure IBM Grafana Bridge
+  hosts: all
+  become: true
+  roles:
+   - grafana_bridge_install
+   - grafana_bridge_configure
+   - grafana_bridge_verify
