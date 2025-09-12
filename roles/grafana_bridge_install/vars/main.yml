@@ -1,0 +1,8 @@
+---
+# vars file for grafana_bridge_install
+grafana_bridge_install_path: "/usr/local/grafana-bridge"
+grafana_bridge_symlink_path: "/opt/IBM/bridge"
+
+# rpm_url: "https://github.com/CODING-Enthusiast9857/IBM-Storage-Scale-Grafana-Bridge_RPM/raw/main/rpm-grafana-bridge-8.0.9-1.noarch.rpm"
+# rpm_dest: "grafana-bridge-rpm"
+# rpm_file: "{{ rpm_dest }}/rpm-grafana-bridge-8.0.9-1.noarch.rpm"

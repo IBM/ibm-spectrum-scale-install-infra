@@ -1,0 +1,4 @@
+- name: Check if config.ini exists
+  stat:
+    path: "{{ config_file }}"
+  register: config_stat

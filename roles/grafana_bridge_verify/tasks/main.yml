@@ -1,0 +1,16 @@
+---
+# tasks file for grafana_bridge_verify
+- import_tasks: init.yml
+  tags: verify_init
+
+- import_tasks: package.yml
+  tags: verify_package
+
+- import_tasks: service.yml
+  tags: verify_service
+
+- import_tasks: ports.yml
+  tags: verify_ports
+
+- import_tasks: log.yml
+  tags: verify_log

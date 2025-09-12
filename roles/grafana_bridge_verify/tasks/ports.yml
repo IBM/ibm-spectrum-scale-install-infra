@@ -1,0 +1,19 @@
+- name: verify | Check if HTTP port is listening
+  wait_for:
+    port: "{{ grafana_bridge_opentsdb_port }}"
+    timeout: 5
+  register: http_port_check
+  run_once: true
+
+- name: verify | Check if Prometheus port is listening
+  wait_for:
+    port: "{{ grafana_bridge_prometheus_port }}"
+    timeout: 5
+  register: prometheus_port_check
+  run_once: true
+
+- name: verify | Fail if ports are not listening
+  fail:
+    msg: "Grafana Bridge ports are not listening"
+  when:
+    - http_port_check.failed or prometheus_port_check.failed
