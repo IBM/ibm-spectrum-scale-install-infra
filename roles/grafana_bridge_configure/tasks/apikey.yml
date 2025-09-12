@@ -1,0 +1,34 @@
+- name: Generate API key
+  command: "{{ mmperfmon_path }} config add --apikey scale_grafana"
+  register: api_gen
+  changed_when: "'already exists' not in api_gen.stderr"
+  when: config_stat.stat.exists
+
+- name: Get API key value
+  command: "{{ mmperfmon_path }} config show --apikey scale_grafana"
+  register: api_show
+  when: config_stat.stat.exists
+
+- name: Extract API Key from JSON Output
+  set_fact:
+    api_key_value: "{{ api_show.stdout | from_json | dict2items | selectattr('key', 'equalto', 'key') | map(attribute='value') | first }}"
+  when: config_stat.stat.exists
+
+- name: Extract API key from JSON
+  set_fact:
+    api_key_value: "{{ (api_show.stdout | from_json).key }}"
+  when: config_stat.stat.exists
+
+- name: Set API key in config.ini
+  community.general.ini_file:
+    path: "{{ config_file }}"
+    section: server
+    option: apiKeyValue
+    value: "{{ api_key_value }}"
+    backup: yes
+  when: config_stat.stat.exists
+
+- name: Show extracted API key
+  debug:
+    msg: "API key - {{ api_key_value }}"
+  when: config_stat.stat.exists

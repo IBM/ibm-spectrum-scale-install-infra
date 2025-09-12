@@ -1,0 +1,24 @@
+---
+# Configure IBM Spectrum Scale Bridge for Grafana
+- import_tasks: configure.yml
+  tags: configure
+  when: config_file is defined
+
+- import_tasks: ports.yml
+  tags: ports
+  when: config_stat.stat.exists
+
+- import_tasks: secret.yml
+  tags: secret
+  when: config_stat.stat.exists
+
+- import_tasks: apikey.yml
+  tags: apikey
+  when: config_stat.stat.exists
+
+- import_tasks: log.yml
+  tags: log
+  when: config_stat.stat.exists
+
+- import_tasks: systemd.yml
+  tags: service

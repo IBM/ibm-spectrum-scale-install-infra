@@ -1,0 +1,8 @@
+- name: Check grafana-bridge service status
+  ansible.builtin.shell: systemctl is-active grafana-bridge
+  register: grafana_bridge_status
+  changed_when: false
+
+- name: Debug service status
+  ansible.builtin.debug:
+    msg: "Grafana Bridge service is {{ grafana_bridge_status.stdout }}"
