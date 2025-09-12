@@ -1,0 +1,11 @@
+- name: verify | Check Grafana Bridge logs for startup message
+  shell: "grep 'server started' {{ grafana_bridge_log_file }}"
+  register: log_check
+  run_once: true
+  ignore_errors: true
+  failed_when: false
+
+- name: verify | Warn if startup message not found
+  debug:
+    msg: "Startup message not found in logs"
+  when: log_check.rc != 0
