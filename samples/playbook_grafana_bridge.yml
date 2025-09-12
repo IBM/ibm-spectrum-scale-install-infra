@@ -11,6 +11,6 @@
       transport: "http"
 
   roles:
-   - grafana_bridge_install
-   - grafana_bridge_configure
-   - grafana_bridge_verify
+    - grafana_bridge_install
+    - grafana_bridge_configure
+    - grafana_bridge_verify
