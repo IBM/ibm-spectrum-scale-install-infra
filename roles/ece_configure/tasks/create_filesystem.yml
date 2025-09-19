@@ -45,6 +45,19 @@
          msg: "{{scale_fs_create.cmd}}"
       when: scale_fs_create.cmd is defined
 
+    - name: create | Add vdisk set to existing filesystem
+      command: "{{ scale_command_path }}mmvdisk filesystem add --file-system {{ item.filesystem }} --vdisk-set {{ item.vs }}"
+      register: scale_fs_add_vdiskset
+      failed_when: scale_fs_add_vdiskset.rc != 0
+      when:
+        - item.filesystem in scale_existing_fs.stdout_lines
+        - item.filesystem is defined
+        - item.vs is defined
+
+    - debug:
+        msg: "{{ scale_fs_add_vdiskset.cmd }}"
+      when: scale_fs_add_vdiskset.cmd is defined
+
     - name: create | Waiting for node become active
       shell: "{{ scale_command_path }}mmgetstate -Y | grep active"
       register: scale_gpfs_state
