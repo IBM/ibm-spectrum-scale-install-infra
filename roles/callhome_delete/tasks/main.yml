@@ -1,0 +1,4 @@
+# tasks file for delete
+- import_tasks: delete.yml
+  when: scale_callhome_params is defined and not scale_callhome_params.is_enabled|bool
+  tags: delete
