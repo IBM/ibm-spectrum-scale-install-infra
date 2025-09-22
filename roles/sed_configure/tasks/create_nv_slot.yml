@@ -1,0 +1,22 @@
+---
+- block: 
+    # Creation of NV slots on IO nodes
+    - name: Create NV slots
+      command: mmvdisk tpm createSlots --number-of-slots {{ nv_slot_count }} --nv-slot-id {{ nv_slot_id }} --password-file {{ tpm_password_file }}
+      register: nv_slot_creation_io
+      failed_when: nv_slot_creation_io.rc != 0
+
+    - debug:
+        msg: "{{(nv_slot_creation_io.rc == 0) |  ternary(nv_slot_creation_io.stdout.split('\n'), nv_slot_creation_io.stderr.split('\n')) }}"
+  when: inventory_hostname in hostvars[groups['emsvm'][0]]['scale_io_nodes_list']
+  
+- block: 
+    # Creation of NV slots on utility nodes
+    - name: Create NV slots on utility node
+      command: /opt/ibm/ess/tools/bin/.TPM/./esstpm createslot --nv-slot-id {{nv_slot_id}} --password-file {{ tpm_password_file }}
+      register: nv_slot_creation_utility
+      failed_when: nv_slot_creation_utility.rc != 0
+
+    - debug:
+        msg: "{{(nv_slot_creation_utility.rc == 0) |  ternary(nv_slot_creation_utility.stdout.split('\n'), nv_slot_creation_utility.stderr.split('\n')) }}"
+  when: inventory_hostname in hostvars[groups['emsvm'][0]]['scale_utility_nodes_list']

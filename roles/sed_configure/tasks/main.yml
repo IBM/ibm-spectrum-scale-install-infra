@@ -1,0 +1,21 @@
+---
+- import_tasks: check_prereq.yml
+  tags: check prerequisites
+  
+- import_tasks: tpm_ownership.yml
+  tags: tpm ownership
+
+- import_tasks: create_nv_slot.yml
+  tags: create nv slot
+
+- import_tasks: generate_tpm_key.yml
+  tags: generate tpm key 
+
+- import_tasks: enroll_sed_drive.yml
+  tags: enroll sed drive
+
+- import_tasks: manage_key.yml
+  tags: restore and backup key
+
+
+

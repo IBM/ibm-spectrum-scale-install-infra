@@ -1,0 +1,15 @@
+tpm_password_file: "/path/to/password.txt"
+new_tpm_password_file: "/path/to/newpassword.txt"
+disable_clear: true
+change_password: false
+nv_slot_id: "0x01500000"
+nv_slot_count: 2
+recovery_group: "RecoveryGroupName"
+enroll_drive: true
+rekey_drive: false
+generate: true
+migrate: true
+backup_key: true
+restore_key: true
+
+

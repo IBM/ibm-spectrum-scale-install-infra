@@ -1,0 +1,26 @@
+---
+- block:
+    - name: Backup TPM key
+      command: /opt/ibm/ess/tools/bin/.TPM/./esstpmkey backup --source-node {{ source_node }} --destination-node {{ dest_node }} --tpm-slot-id {{ nv_slot_id }} --password-file {{ tpm_password_file}}
+      vars: 
+        source_node: "{{ hostvars[groups['emsvm'][0]]['scale_io_nodes_list'][0] }}"
+        dest_node: "{{ hostvars[groups['emsvm'][0]]['scale_utility_nodes_list'][0] }}"
+      register: backup_key
+      when: backup
+
+    - debug:
+        msg: "{{(backup_key.rc == 0) |  ternary(backup_key.stdout.split('\n'), backup_key.stderr.split('\n')) }}"
+
+    - name: Restore TPM key from backup
+      command: /opt/ibm/ess/tools/bin/.TPM/./esstpmkey restore --source-node {{ source_node }} --destination-node {{ dest_node }} --tpm-slot-id {{ nv_slot_id }} --password-file {{ tpm_password_file}}
+      vars: 
+        source_node: "{{hostvars[groups['emsvm'][0]]['scale_utility_nodes_list'][0] }}"
+        dest_node: "{{ hostvars[groups['emsvm'][0]]['scale_io_nodes_list'][0] }}"
+      register: restore_key
+      when: restore
+
+    - debug:
+        msg: "{{(restore_key.rc == 0) |  ternary(restore_key.stdout.split('\n'), restore_key.stderr.split('\n')) }}"
+  when: inventory_hostname in scale_ems_vm_nodes_list
+
+
