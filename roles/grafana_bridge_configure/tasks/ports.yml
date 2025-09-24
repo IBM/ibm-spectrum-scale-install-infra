@@ -4,7 +4,6 @@
     section: opentsdb_plugin
     option: port
     value: "{{ scale_grafana_bridge.opentsdb_port }}"
-    backup: yes
   when: 
     - config_stat.stat.exists
 
@@ -14,6 +13,5 @@
     section: prometheues_exporter_plugin
     option: prometheus
     value: "{{ scale_grafana_bridge.prometheus_port }}"
-    backup: yes
   when: 
     - config_stat.stat.exists

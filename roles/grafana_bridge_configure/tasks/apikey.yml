@@ -25,10 +25,4 @@
     section: server
     option: apiKeyValue
     value: "{{ api_key_value }}"
-    backup: yes
-  when: config_stat.stat.exists
-
-- name: Show extracted API key
-  debug:
-    msg: "API key - {{ api_key_value }}"
   when: config_stat.stat.exists
