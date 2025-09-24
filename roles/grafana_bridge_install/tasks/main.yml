@@ -4,6 +4,3 @@
   yum:
     name: grafana-bridge
     state: present
-
-- import_tasks: wrapper.yml
-  tags: wrapper

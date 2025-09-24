@@ -3,24 +3,12 @@
   hosts: all
   become: true
 
-  vars_prompt: 
-    - name: grafana_bridge_opentsdb_port
-      prompt: "Enter the OpenTSDB port value"
-      private: no
-      default: "4242"
-
-    - name: grafana_bridge_prometheus_port
-      prompt: "Enter the Prometheus port value"
-      private: no
-      default: "9250"
-
-    - name: grafana_bridge_password_raw
-      prompt: "Enter the password for Grafana Bridge"
-      private: yes
-      default: "TXlWZXJ5U3Ryb25nUGFzc3cwcmQhCg=="
-
   vars:
-    grafana_bridge_encoded_password: "{{ grafana_bridge_password_raw | b64encode }}"
+    scale_grafana_bridge:
+      opentsdb_port: "4242"
+      prometheus_port: "9250"
+      encoded_password: "TXlWZXJ5U3Ryb25nUGFzc3cwcmQhCg=="
+      transport: "http"
 
   roles:
    - grafana_bridge_install

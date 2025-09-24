@@ -1,5 +1,0 @@
-- name: Symlink installed files to /opt/IBM/bridge
-  file:
-    src: "{{ grafana_bridge_install_path }}"
-    dest: "{{ grafana_bridge_symlink_path }}"
-    state: link

@@ -37,3 +37,14 @@ Requirements
 -------------
 
 Public repository available, you'll need to download it from here https://github.com/IBM/ibm-spectrum-scale-bridge-for-grafana 
+
+Role Variables
+---------------
+
+The following variables can be customized to configure the IBM Spectrum Scale Bridge for Grafana:
+
+- **opentsdb_port**: Port for OpenTSDB plugin. Example: `4242` for HTTP or `8443` for HTTPS
+
+- **prometheus_port**: Port for Prometheus metrics endpoint. Example: `9250`
+
+- **log_file**: log file name e.g., `ibmgrafanabridge.log` to store logging information
