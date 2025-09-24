@@ -2,12 +2,12 @@
   replace:
     path: "{{ config_file }}"
     regexp: '^logPath\s*=.*'
-    replace: 'logPath = /var/adm/ras'
+    replace: "logPath = /var/adm/ras"
   when: config_stat.stat.exists
 
 - name: Update zserver.log to ibmgrafanabridge.log
   replace:
     path: "{{ config_file }}"
     regexp: '^logFile\s*=.*'
-    replace: 'logFile = ibmgrafanabridge.log'
+    replace: "logFile = ibmgrafanabridge.log"
   when: config_stat.stat.exists
