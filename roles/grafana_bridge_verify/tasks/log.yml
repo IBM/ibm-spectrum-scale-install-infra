@@ -1,5 +1,5 @@
 - name: verify | Check Grafana Bridge logs for startup message
-  shell: "grep 'server started' {{ grafana_bridge_log_file }}"
+  shell: "grep 'server started' {{ log_file }}"
   register: log_check
   run_once: true
   ignore_errors: true
