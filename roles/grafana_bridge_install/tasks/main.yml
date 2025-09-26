@@ -2,5 +2,6 @@
 # Install IBM Spectrum Scale Bridge for Grafana
 - name: Install Grafana Bridge RPM
   yum:
-    name: grafana-bridge
+    name: ibm-grafana-bridge
     state: present
+    enablerepo: OS_Extras

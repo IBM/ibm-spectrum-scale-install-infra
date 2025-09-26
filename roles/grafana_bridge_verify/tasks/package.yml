@@ -1,4 +1,4 @@
-- name: verify | Check if grafana-bridge package is installed
-  ansible.builtin.shell: rpm -q grafana-bridge
+- name: verify | Check if ibm-grafana-bridge package is installed
+  ansible.builtin.shell: rpm -q ibm-grafana-bridge
   register: grafana_bridge_installed
   ignore_errors: true
