@@ -4,7 +4,7 @@ Role Definition
 - Definition:
   - The self-encrypting drives (SED) support protects data at rest on IBM Storage Scale System drives.
   - TPM is a specialized hardware security chip that provides secure cryptographic functions.
-  - mmvdisk tpm , esstpm and esstpm key provides options to setup the tpm ,generate keys, enroll drives with the generated keys in the IBM Storage Scale cluster.
+  - mmvdisk tpm , esstpm and esstpmkey provides options to setup the tpm ,generate keys, enroll drives with the generated keys in the IBM Storage Scale cluster.
   - These operations are performed on the I/O nodes and the keys generated are also backed up on the utility node.  
 
 

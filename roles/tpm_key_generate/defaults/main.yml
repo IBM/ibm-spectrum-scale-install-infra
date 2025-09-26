@@ -1,8 +1,0 @@
-nv_slot_id: "0x01500021"
-tpm_password_file: "/path/to/password.txt"
-source_node: node1
-target_nodes:
-  - node2
-  - node3
-generate: true
-migrate: false

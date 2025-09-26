@@ -1,8 +1,0 @@
----
-- name: Enroll drives with TPM key
-  command: mmvdisk sed enroll --recovery-group {{ recovery_group }}  --rkmid {{ RKMId }} --key-uuid {{ KeyId }} --tpm-slot-id {{ nv_slot_id }}
-  when: !rekey_drives
-
-- name: Rekey drives with new TPM key
-  command: mmvdisk sed rekey --recovery-group {{ recovery_group }}  --rkmid {{ RKMId }} --key-uuid {{ KeyId }} --tpm-slot-id {{ nv_slot_id }}
-  when: rekey_drives

@@ -1,16 +1,15 @@
-tpm_password_file: "/path/to/password.txt"
+tpm_password_file: "/root/tpm_pwd"
 new_tpm_password_file: "/path/to/newpassword.txt"
 disable_clear: true
-change_password: false
-nv_slot_id: "0x01500000"
 nv_slot_count: 4
-recovery_group: "RecoveryGroupName"
-enroll_drive: true
-rekey_drive: false
+nv_slot_id: "0x1500000"
 generate: true
 migrate: true
+enroll_drive: true
+rekey_drive: false
 backup_key: true
 restore_key: false
+recovery_group: "recoverygroup"
 io_nodes:
     - ionode1
     - ionode2

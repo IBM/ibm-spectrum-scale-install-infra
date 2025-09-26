@@ -1,8 +1,0 @@
----
-- name: Generate TPM key
-  command: mmvdisk tpm genkey --nv-slot-id {{ nv_slot_id }} --password-file {{ tpm_password_file }}
-  when: generate
-
-- name: Migrate TPM key to other nodes
-  command: mmvdisk tpm migratekey --nv-slot-id {{ nv_slot_id }} -s {{ source_node }} -N {{ target_nodes }}
-  when: migrate
