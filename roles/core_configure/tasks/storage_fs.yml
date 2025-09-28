@@ -103,7 +103,6 @@
         -n {{ scale_storage_fsparams[item.item].numNodes | default(scale_storage_filesystem_defaults.numNodes) }}
         -A {{ 'yes' if scale_storage_fsparams[item.item].automaticMountOption | default(scale_storage_filesystem_defaults.automaticMountOption) else 'no' }}
         -T {{ scale_storage_fsparams[item.item].defaultMountPoint | default(scale_storage_filesystem_defaults.defaultMountPoint_prefix + item.item) }}
-        {{ ( '--metadata-block-size ' + scale_storage_fsparams[item.item].metadatablocksize) if scale_storage_fsparams[item.item].metadatablocksize is defined else '' }}
       when:
         - item.item not in scale_storage_existing_fs.stdout_lines
         - item.size > 1
