@@ -1,0 +1,18 @@
+firewall:
+  # - { port: 80, protocol: http }
+  # - { port: 443, protocol: https }
+  # - { port: 22, protocol: ssh }
+  # - { port: 20, protocol: ftp }
+  # - { port: 21, protocol: ftp }
+  # - { port: 25, protocol: smtp }
+  # - { port: 110, protocol: pop3 }
+  # - { port: 143, protocol: imap }
+  # - { port: 53, protocol: dns }
+  # - { port: 123, protocol: ntp }
+  # - { port: 23, protocol: telnet }
+  # - { port: 445, protocol: smb }
+  
+
+
+
+  
