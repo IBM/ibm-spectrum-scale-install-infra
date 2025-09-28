@@ -1,0 +1,16 @@
+---
+- name: Install and configure IBM Grafana Bridge
+  hosts: all
+  become: true
+
+  vars:
+    scale_grafana_bridge:
+      opentsdb_port: "4242"
+      prometheus_port: "9250"
+      encoded_password: "TXlWZXJ5U3Ryb25nUGFzc3cwcmQhCg=="
+      transport: "http"
+
+  roles:
+    - grafana_bridge_install
+    - grafana_bridge_configure
+    - grafana_bridge_verify

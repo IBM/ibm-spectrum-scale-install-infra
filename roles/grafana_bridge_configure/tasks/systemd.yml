@@ -1,0 +1,14 @@
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon-reload: yes
+
+- name: Enable grafana-bridge service
+  ansible.builtin.systemd:
+    name: grafana-bridge
+    enabled: true
+    state: restarted
+
+- name: Start grafana-bridge service
+  systemd:
+    name: grafana-bridge
+    state: started

@@ -1,0 +1,4 @@
+---
+# vars file for grafana_bridge_configure
+mmperfmon_path: "/usr/lpp/mmfs/bin/mmperfmon"
+config_file: "/opt/IBM/bridge/source/config.ini"
