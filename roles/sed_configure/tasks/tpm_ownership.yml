@@ -1,0 +1,99 @@
+---
+- name: Check if ownership already taken on IO nodes
+  shell: |
+   tpm2_getcap properties-variable | awk -F': *' '/ownerAuthSet:/ { v=tolower($2); print (v ~ /(^1$|set|true)/) ? 1 : 0; exit }'
+  register: ownership_taken_io
+  changed_when: false
+  delegate_to: "{{ item }}"
+  when: item in io_nodes
+
+- name: Check if ownership already taken on utility node
+  shell: |
+   tpm2_getcap properties-variable | awk -F': *' '/ownerAuthSet:/ { v=tolower($2); print (v ~ /(^1$|set|true)/) ? 1 : 0; exit }'
+  register: ownership_taken_utility
+  changed_when: false
+  delegate_to: "{{ item }}"
+  when: item in utility_nodes
+
+# skip the setup -> if ownership taken. We mention that ownership is taken, validate it. And continue to nv slot creation.
+- block:
+    - name: Validate ownership password
+      debug:
+        msg: Ownership already taken. Skipping the tpm ownership setup.
+
+    - name: Check the password
+      command: mmvdisk tpm chpasswd --old-password-file {{ tpm_password_file }} --new-password-file {{ tpm_password_file }}
+      register: pwd_validation_io
+
+    - debug:
+        msg: "Validated the Ownership successfully"
+      when: pwd_validation_io.rc == 0
+
+    - fail:
+        msg: "Ownership password did not match. Please verify"
+      when: pwd_validation_io.rc != 0
+  delegate_to: "{{ item }}"
+  when: item in io_nodes and ownership_taken_io.stdout == '1' and not change_password
+
+- block:
+    - name: Validate ownership password
+      debug:
+        msg: Ownership already taken. Skipping the tpm ownership setup.
+
+    - name: Check the password
+      command: /opt/ibm/ess/tools/bin/.TPM/./esstpm chpasswd --old-password-file {{ tpm_password_file }} --new-password-file {{ tpm_password_file }}
+      register: pwd_validation_utility
+
+    - debug:
+        msg: "Validated the Ownership successfully"
+      when: pwd_validation_utility.rc == 0
+
+    - fail:
+        msg: "Ownership password did not match. Please verify"
+      when: pwd_validation_utility.rc != 0
+  delegate_to: "{{ item }}"
+  when: item in utility_nodes and ownership_taken_utility.stdout == '1' and not change_password
+
+# if tpm ownership not taken already, proceed to take it on io nodes
+- block:
+    - name: Disable TPM clear
+      command: tpm2_clearcontrol -C l s
+      register: disable_operation
+      when: disable_clear
+
+    - name: Take TPM ownership   # ensure file permission is 600
+      command: mmvdisk tpm setup --password-file {{ tpm_password_file }}
+      register: take_ownership_io
+
+    - debug:
+        msg: "{{(take_ownership_io.rc == 0) |  ternary(take_ownership_io.stdout.split('\n'),take_ownership_io.stderr.split('\n')) }}"
+  delegate_to: "{{ item }}"
+  when: item in io_nodes and ownership_taken_io.stdout == '0' and not change_password
+
+# if tpm ownership not taken already, proceed to take it on utility node
+- block:
+    - name: Disable TPM clear
+      command: tpm2_clearcontrol -C l s
+      register: disable_operation
+      when: disable_clear
+
+    - name: Take TPM ownership on utility node
+      command: /opt/ibm/ess/tools/bin/.TPM/./esstpm setup --password-file {{ tpm_password_file }}
+      register: take_ownership_utility
+
+    - debug:
+        msg: "{{(take_ownership_utility.rc == 0) |  ternary(take_ownership_utility.stdout.split('\n'),  take_ownership_utility.stderr.split('\n')) }}"
+  delegate_to: "{{ item }}"
+  when: item in utility_nodes and ownership_taken_utility.stdout == '0' and not change_password
+
+# execute only when change password is set to true.
+- block:
+    - name: Change TPM Ownership password
+      command:  mmvdisk tpm chpasswd --old-password-file {{ tpm_password_file }} --new-password-file {{ new_tpm_password_file }}
+      when: inventory_hostname in io_nodes
+
+    - name: Change TPM Ownership password on utility node
+      command: /opt/ibm/ess/tools/bin/.TPM/./esstpm chpasswd --old-password-file {{ tpm_password_file }} --new-password-file {{ new_tpm_password_file }}
+      when: inventory_hostname in utility_nodes
+  delegate_to: "{{ item }}"
+  when: change_password

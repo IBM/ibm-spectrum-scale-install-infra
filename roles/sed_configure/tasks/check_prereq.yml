@@ -1,0 +1,50 @@
+---
+- block:
+      # Check the OpenSSL version and fail if the version is < 3
+    - name: Check OpenSSL version
+      command: openssl version
+      register: openssl_version_output
+      changed_when: false
+      failed_when: openssl_version_output.stdout | regex_search('OpenSSL\s([0-2]\\.[0-9]+)')
+
+    - debug:
+        msg: "{{(openssl_version_output.rc == 0) | ternary(openssl_version_output.stdout.split('\n'),  openssl_version_output.stderr.split('\n')) }}"
+
+    # Check the OS version and fail if the version is < RHEL 9
+    - name: Check OS version
+      command: cat /etc/redhat-release
+      register: os_version_output
+      changed_when: false
+      failed_when: os_version_output.stdout | regex_search('release\s([0-8])')
+
+    - debug:
+        msg: "{{(os_version_output.rc == 0) | ternary(os_version_output.stdout.split('\n'),  os_version_output.stderr.split('\n')) }}"
+  delegate_to: "{{ item }}"
+
+- block:
+    - name: Check TPM presence
+      stat:
+        path: /dev/tpm0
+      register: tpm_device
+
+    - debug:
+          msg: "TPM device present"
+      when: tpm_device.stat.exists
+
+    - fail:
+        msg: "TPM is not enabled in BIOS. Please enable it manually before proceeding."
+      when: not tpm_device.stat.exists
+
+    - name: Check if tpm2-tools is installed
+      command: rpm -q tpm2-tools
+      register: tpm2_tools_check
+      ignore_errors: true
+      changed_when: false
+
+    - name: Install tpm2-tools if not present
+      yum:
+        name: tpm2-tools
+        state: present
+      when: tpm2_tools_check.rc != 0
+  delegate_to: "{{ item }}"
+  when: item in io_nodes

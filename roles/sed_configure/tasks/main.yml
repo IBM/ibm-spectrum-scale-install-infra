@@ -1,0 +1,22 @@
+---
+- include_tasks: check_prereq.yml
+  tags: check prerequisites
+  loop: "{{ io_nodes + utility_nodes }}"
+  
+- include_tasks: tpm_ownership.yml
+  tags: tpm ownership
+  loop: "{{ io_nodes + utility_nodes }}"
+
+- include_tasks: create_nv_slot.yml
+  tags: create nv slot
+  loop: "{{ io_nodes + utility_nodes }}"
+
+- include_tasks: generate_tpm_key.yml
+  tags: generate tpm key
+
+- include_tasks: enroll_sed_drive.yml
+  tags: enroll sed drive
+
+- include_tasks: manage_key.yml
+  tags: restore and backup key
+  loop: "{{ emsvm }}"
