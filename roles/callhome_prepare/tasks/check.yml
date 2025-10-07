@@ -17,7 +17,6 @@
      - scale_callhome_params.customer_email is defined
      - scale_callhome_params.customer_email| length > 0
      - scale_callhome_params.customer_id is defined
-     - scale_callhome_params.customer_id| int > 0
      - scale_callhome_params.customer_country is defined
      - scale_callhome_params.customer_country| length > 0
      fail_msg: "Callhome customer information is not defined."

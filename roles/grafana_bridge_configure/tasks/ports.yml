@@ -1,0 +1,17 @@
+- name: Ensure OpenTSDB Port (HTTP or HTTPs) is set correctly
+  community.general.ini_file:
+    path: "{{ config_file }}"
+    section: opentsdb_plugin
+    option: port
+    value: "{{ scale_grafana_bridge.opentsdb_port }}"
+  when: 
+    - config_stat.stat.exists
+
+- name: Ensure Prometheus Port is set correctly
+  community.general.ini_file:
+    path: "{{ config_file }}"
+    section: prometheues_exporter_plugin
+    option: prometheus
+    value: "{{ scale_grafana_bridge.prometheus_port }}"
+  when: 
+    - config_stat.stat.exists
