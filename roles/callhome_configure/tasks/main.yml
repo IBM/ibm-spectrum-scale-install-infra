@@ -3,3 +3,9 @@
 - import_tasks: configure.yml
   when: scale_callhome_params is defined and scale_callhome_params.is_enabled|bool
   tags: config
+
+- import_tasks: unconfigure.yml
+  when: 
+    - scale_callhome_params is defined and not scale_callhome_params.is_enabled | bool
+    - scale_callhome_params.scale_state is defined and scale_callhome_params.scale_state == 'absent'
+  tags: config
