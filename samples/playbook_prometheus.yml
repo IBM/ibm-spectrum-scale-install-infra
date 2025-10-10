@@ -1,0 +1,7 @@
+---
+- name: Install and configure Prometheus on cluster
+  hosts: all
+  become: true
+  
+  roles:
+    - prometheus_install
