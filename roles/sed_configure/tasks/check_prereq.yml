@@ -47,4 +47,4 @@
         state: present
       when: tpm2_tools_check.rc != 0
   delegate_to: "{{ item }}"
-  when: item in io_nodes
+  when: item in scale_sed_config.io_nodes

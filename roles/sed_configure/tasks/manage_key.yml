@@ -1,25 +1,27 @@
 ---
 - block:
     - name: Backup TPM key
-      command: /opt/ibm/ess/tools/bin/.TPM/./esstpmkey backup --source-node {{ source_node }} --destination-node {{ dest_node }} --tpm-slot-id {{ nv_slot_id }} --destination-node-password-file {{ tpm_password_file}}
+      command: /opt/ibm/ess/tools/bin/.TPM/./esstpmkey backup --source-node {{ source_node }} --destination-node {{ dest_node }} --tpm-slot-id {{ scale_sed_config.nv_slot_id }} --destination-node-password-file {{ scale_sed_config.tpm_password_file}}
       vars: 
-        source_node: "{{ io_nodes[0]}}"
-        dest_node: "{{ utility_nodes[0] }}"
+        source_node: "{{ scale_sed_config.io_nodes[0]}}"
+        dest_node: "{{ scale_sed_config.utility_nodes[0] }}"
       register: backup_key
-      when: backup
+      when: scale_sed_config.backup
 
     - debug:
         msg: "{{(backup_key.rc == 0) |  ternary(backup_key.stdout.split('\n'), backup_key.stderr.split('\n')) }}"
+      when: scale_sed_config.backup
 
     - name: Restore TPM key from backup
-      command: /opt/ibm/ess/tools/bin/.TPM/./esstpmkey restore --source-node {{ source_node }} --destination-node {{ dest_node }} --tpm-slot-id {{ nv_slot_id }} --source-node-password-file {{ tpm_password_file}}
+      command: /opt/ibm/ess/tools/bin/.TPM/./esstpmkey restore --source-node {{ source_node }} --destination-node {{ dest_node }} --tpm-slot-id {{ scale_sed_config.nv_slot_id }} --source-node-password-file {{ scale_sed_config.tpm_password_file}}
       vars: 
-        source_node: "{{ utility_nodes[0] }}"
-        dest_node: "{{ io_nodes[0] }}"
+        source_node: "{{ scale_sed_config.utility_nodes[0] }}"
+        dest_node: "{{ scale_sed_config.io_nodes[0] }}"
       register: restore_key
-      when: restore
+      when: scale_sed_config.restore
 
     - debug:
         msg: "{{(restore_key.rc == 0) |  ternary(restore_key.stdout.split('\n'), restore_key.stderr.split('\n')) }}"
+      when: scale_sed_config.restore
   delegate_to: "{{ item }}"
   run_once: true

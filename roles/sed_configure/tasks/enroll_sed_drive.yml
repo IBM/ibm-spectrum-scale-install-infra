@@ -2,7 +2,7 @@
 - block:
     # Enrolling the SED with the generated TPM key 
     - name: Enroll drives with TPM key
-      command: mmvdisk sed enroll --recovery-group {{ recovery_group }} --tpm-slot-id {{ nv_slot_id }} --confirm
+      command: mmvdisk sed enroll --recovery-group {{ scale_sed_config.recovery_group }} --tpm-slot-id {{ scale_sed_config.nv_slot_id }} --confirm
       register: drive_enrollment
 
     - debug:
@@ -10,12 +10,12 @@
       failed_when: drive_enrollment.rc != 0
   delegate_to: "{{ item }}"
   run_once: true
-  when: enroll_drive
+  when: scale_sed_config.enroll_drive
 
 - block:
       # Rekeying the SED with the a new TPM key 
       - name: Rekey drives with new TPM key
-        command: mmvdisk sed rekey --recovery-group {{ recovery_group }} --tpm-slot-id {{ nv_slot_id }} --confirm
+        command: mmvdisk sed rekey --recovery-group {{ scale_sed_config.recovery_group }} --tpm-slot-id {{ scale_sed_config.nv_slot_id }} --confirm
         register: drive_rekey
       
       - debug:
@@ -23,4 +23,4 @@
         failed_when: drive_rekey.rc != 0
   delegate_to: "{{ item }}"
   run_once: true
-  when: rekey_drive
+  when: scale_sed_config.rekey_drive

@@ -2,27 +2,27 @@
 - block:
   #  Generate a TPM key
     - name: Generate TPM key
-      command: mmvdisk tpm genkey --nv-slot-id {{ nv_slot_id }} --password-file {{ tpm_password_file }}
+      command: mmvdisk tpm genkey --nv-slot-id {{ scale_sed_config.nv_slot_id }} --password-file {{ scale_sed_config.tpm_password_file }}
       register: tpm_key_generate
         
     - debug:
         msg: "{{(tpm_key_generate.rc == 0) | ternary(tpm_key_generate.stdout.split('\n'),  tpm_key_generate.stderr.split('\n')) }}"
         failed_when: tpm_key_generate.rc != 0
   delegate_to: "{{ item }}"
-  when: generate
+  when: scale_sed_config.generate
   run_once: true
 
 - block:
     # Migrate the generated TPM key to other io nodes
     - name: Migrate TPM key to other nodes
-      command: mmvdisk tpm migratekey --nv-slot-id {{ nv_slot_id }} -s {{ io_nodes.0 }} -N {{ target_nodes | join(',') }}
+      command: mmvdisk tpm migratekey --nv-slot-id {{ scale_sed_config.nv_slot_id }} -s {{ scale_sed_config.io_nodes.0 }} -N {{ target_nodes | join(',') }}
       vars:
-          target_nodes: "{{ io_nodes[1:] }}"
+          target_nodes: "{{ scale_sed_config.io_nodes[1:] }}"
       register: tpm_key_migrate
 
     - debug:
         msg: "{{ (tpm_key_migrate.rc == 0) | ternary(tpm_key_migrate.stdout.split('\n'),tpm_key_migrate.stderr.split('\n')) }}"
       failed_when: tpm_key_migrate.rc != 0
   delegate_to: "{{ io_nodes.0 }}"
-  when: migrate
+  when: scale_sed_config.migrate
   run_once: true
