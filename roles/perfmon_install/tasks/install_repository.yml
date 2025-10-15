@@ -9,69 +9,20 @@
    scale_zimon_url: ""
    scale_zimon_collector_url: ""
 
-- name: install | zimon path
+- name: install | zimon path on Rhel
   set_fact:
-    scale_zimon_url: 'zimon_rpms/rhel7/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+    scale_zimon_url: 'zimon_rpms/rhel{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_rhel_distribution
 
-- name: install | zimon path
+- name: install | zimon path on Sles
   set_fact:
-    scale_zimon_url: 'zimon_rpms/rhel8/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+    scale_zimon_url: 'zimon_rpms/sles{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_sles_distribution
 
-- name: install | zimon path
+- name: install | zimon path on Ubuntu
   set_fact:
-    scale_zimon_url: 'zimon_rpms/rhel9/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
-
-- name: install | zimon path
-  set_fact:
-    scale_zimon_url: 'zimon_rpms/rhel10/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
-    
-- name: install | zimon path
-  set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu16/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
-
-- name: install | zimon path
-  set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu18/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
-
-- name: install | zimon path
-  set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
-
-- name: install | zimon path
-  set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu20/'
-  when: 
-    - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
-    - scale_version >= "5.1.4.0"
-
-- name: install | zimon path
-  set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu22/'
-  when: 
-    - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '22'
-
-- name: install | zimon path
-  set_fact:
-    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu24/'
-  when:
-    - ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '24'
-
-- name: install | zimon path
-  set_fact:
-    scale_zimon_url: 'zimon_rpms/sles12/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
-
-- name: install | zimon path
-  set_fact:
-    scale_zimon_url: 'zimon_rpms/sles15/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
+    scale_zimon_url: 'zimon_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - name: install | remove existing zimon APT repository
   file:
