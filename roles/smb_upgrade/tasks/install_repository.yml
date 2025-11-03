@@ -16,6 +16,11 @@
 
 - name: upgrade | smb path
   set_fact:
+   scale_smb_url: 'smb_rpms/rhel10/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
+
+- name: upgrade | smb path
+  set_fact:
    scale_smb_url: 'smb_rpms/sles12/'
   when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
 
