@@ -46,10 +46,10 @@
           set_fact:
             scale_install_updated: true
           when:
-            - ("'installed' in scale_install_packagelist.results | map(attribute='yumstate') | list") or
-              ("'installed' in scale_install_dnfpackagelist.results | map(attribute='yumstate' | list")
-            - (scale_install_packageresult.changed) or (scale_install_dnfpackageresult.changed)
-      when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+            - (("'installed' in scale_install_packagelist.results | map(attribute='yumstate') | list") | bool or
+              ("'installed' in scale_install_dnfpackagelist.results | map(attribute='yumstate') | list") | bool)
+            - ((scale_install_packageresult.changed) | bool or (scale_install_dnfpackageresult.changed) | bool)
+      when: (ansible_pkg_mgr == 'yum') | bool or (ansible_pkg_mgr == 'dnf') | bool
   when: not scale_daemon_running
 
 - block:

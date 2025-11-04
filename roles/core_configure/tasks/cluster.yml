@@ -34,7 +34,7 @@
     name: "{{ item }}"
     groups: scale_cluster_members
   when:
-    - hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId.stdout | bool
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -43,9 +43,9 @@
     name: "{{ item }}"
     groups: scale_cluster_candidates
   when:
-    - not hostvars[item].scale_cluster_clusterId.stdout
-    - hostvars[item].scale_cluster_clusterId.stderr
-    - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
+    - not hostvars[item].scale_cluster_clusterId.stdout | bool
+    - hostvars[item].scale_cluster_clusterId.stderr | bool
+    - (hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent') | bool
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -134,26 +134,26 @@
       set_fact:
          profile_type: "--profile {{ scale_cluster_profile_name }}"
       when:
-        - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
-        - (stat_profile_result.matched is defined and stat_profile_result.matched == 1) or (stat_user_profile_result.matched is defined and stat_user_profile_result.matched == 1)
+        - (scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None') | bool
+        - ((stat_profile_result.matched is defined and stat_profile_result.matched == 1) or (stat_user_profile_result.matched is defined and stat_user_profile_result.matched == 1)) | bool
 
     - name: cluster | Set gpfs remote shell command if it is defined
       set_fact:
          extra_option: "{{ extra_option }} -r {{ scale_cluster_config.remote_shell }}"
       when:
-        - scale_cluster_config is defined and scale_cluster_config.remote_shell is defined
+        - (scale_cluster_config is defined and scale_cluster_config.remote_shell is defined) | bool
 
     - name: cluster | Set gpfs remote file copy if it is defined
       set_fact:
          extra_option: "{{ extra_option }} -R {{ scale_cluster_config.remote_file_copy }}"
       when:
-        - scale_cluster_config is defined and scale_cluster_config.remote_file_copy is defined
+        - (scale_cluster_config is defined and scale_cluster_config.remote_file_copy is defined) | bool
 
     - name: cluster | Set gpfs cluster user defined port if it is defined
       set_fact:
          extra_option: "{{ extra_option }} --port {{ scale_cluster_config.scale_port_number }}"
       when:
-        - scale_cluster_config is defined and scale_cluster_config.scale_port_number is defined
+        - (scale_cluster_config is defined and scale_cluster_config.scale_port_number is defined) | bool
 
     - name: cluster | Create new cluster
       command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/mmfs/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }} {{ extra_option }}
@@ -181,10 +181,11 @@
         src: ChangeFile.j2
         dest: /var/mmfs/tmp/ChangeFile
   when:
-    - groups['scale_cluster_candidates'] is defined
-    - groups['scale_cluster_members'] is undefined
+    - '"scale_cluster_candidates" in groups'
+    - '"scale_cluster_members" not in groups'
+    - groups['scale_cluster_candidates'] | length > 0
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_candidates'].0 }}"
+  delegate_to: "{{ (groups['scale_cluster_candidates'][0] if 'scale_cluster_candidates' in groups and groups['scale_cluster_candidates'] | length > 0 else inventory_hostname) }}"
 
 #
 # Add nodes to existing cluster
@@ -215,10 +216,13 @@
         path: /var/mmfs/tmp/NodeFile
         state: absent
   when:
-    - groups['scale_cluster_candidates'] is defined
-    - groups['scale_cluster_members'] is defined
+    - '"scale_cluster_candidates" in groups'
+    - '"scale_cluster_members" in groups'
+    - groups['scale_cluster_candidates'] | length > 0
+    - groups['scale_cluster_members'] | length > 0
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+  delegate_to: "{{ (groups['scale_cluster_members'][0] if 'scale_cluster_members' in groups and groups['scale_cluster_members'] | length > 0 else inventory_hostname) }}"
+
 
 - meta: flush_handlers
 

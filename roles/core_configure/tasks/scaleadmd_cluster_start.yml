@@ -31,13 +31,13 @@
 - block:  ## when: delegate_node is defined
     - name: cluster | Start daemons
       command: /usr/lpp/mmfs/bin/scalectl node start -N "{{ scale_daemon_node_list | join(',') }}"
-      when: scale_daemon_node_list is defined and scale_daemon_node_list | length > 0
+      when: "(scale_daemon_node_list is defined and scale_daemon_node_list | length > 0) | bool"
       register: scalectl_startup
       notify: wait-daemon-active
   when:
     - delegate_node is defined
   run_once: true
-  delegate_to: "{{ delegate_node }}"
+  delegate_to: "{{ delegate_node if delegate_node is defined else inventory_hostname }}"
 
 - debug:
     msg: "{{scalectl_startup}}"
@@ -73,9 +73,10 @@
 
       when: scale_cluster_changefile is changed
   when:
-     - groups['scale_cluster_members'] is defined
+     - '"scale_cluster_members" in groups'
      - scale_node_role_change | bool
+     - groups['scale_cluster_members'] | length > 0
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+  delegate_to: "{{ (groups['scale_cluster_members'][0] if 'scale_cluster_members' in groups and groups['scale_cluster_members'] | length > 0 else inventory_hostname) }}"
 
 - meta: flush_handlers
