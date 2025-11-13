@@ -16,4 +16,4 @@
     name: "{{ scale_install_all_packages }}"
     state: latest
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version >= '8'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version | int >= 8
