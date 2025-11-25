@@ -23,7 +23,7 @@
   shell: "systemctl is-active gpfsgui"
   register: systemctl_out
   until: systemctl_out.stdout == "active"
-  retries: 10
+  retries: 20
   delay: 20
 
 #
