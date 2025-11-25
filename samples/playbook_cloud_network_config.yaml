@@ -1,6 +1,7 @@
 ---
 # Playbook for deploying IBM Spectrum Scale (GPFS) sysctl config
 - hosts: all
+  become: yes
   any_errors_fatal: true
   tasks:
     - name: OS config | install python bindings
