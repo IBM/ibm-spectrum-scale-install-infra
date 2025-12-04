@@ -195,6 +195,22 @@
       {{ scale_gpfs_path_url }}/gpfs.gskit*{{ scale_architecture }}*
 
 #
+# Find Scale Api
+#
+- name: install | Find Scale Api package
+  find:
+    paths: "{{ scaleapi_gpfs_path_url }}"
+    patterns: gpfs.scaleapi*{{ scale_architecture }}*
+  register: scale_install_gpfs_scaleapi
+
+- name: install | Check valid Scale Api package
+  assert:
+    that: scale_install_gpfs_scaleapi.matched > 0
+    msg: >-
+      No Scale Api found:
+      {{ scaleapi_gpfs_path_url }}/gpfs.scaleapi*{{ scale_architecture }}*
+
+#
 # Add GPFS packages
 #
 - name: install | Add GPFS packages to list
@@ -242,3 +258,15 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
   when: scale_install_gplbin_package is undefined
   with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"
+
+#
+# Add GPFS packages for building scale-api from source
+#
+- name: install | Add scale api package to list
+  vars:
+    current_package: "{{ scaleapi_gpfs_path_url }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  when: scale_scaleadmd is defined
+  with_items: "{{ scale_install_gpfs_scaleapi.files.0.path | basename }}"
+
