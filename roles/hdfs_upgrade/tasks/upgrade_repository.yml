@@ -13,6 +13,16 @@
    scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
+- name: upgrade | hdfs path on rhel9
+  set_fact:
+   scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
+
+- name: upgrade | hdfs path on rhel10
+  set_fact:
+   scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
+
 - name: upgrade | Configure hdfs YUM repository
   yum_repository:
     name: spectrum-scale-hdfs
