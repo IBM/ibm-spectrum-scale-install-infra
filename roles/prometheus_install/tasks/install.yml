@@ -1,0 +1,19 @@
+---
+- name: Ensure Prometheus install directory exists
+  file:
+    path: "{{ install_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Download Prometheus tarball
+  get_url:
+    url: "{{ download_url }}"
+    dest: "{{ local_tarball_path }}"
+    mode: "0644"
+
+- name: Extract Prometheus
+  unarchive:
+    src: "{{ local_tarball_path }}"
+    dest: "{{ install_dir }}"
+    remote_src: yes
+    creates: " {{ install_dir }}/prometheus"
