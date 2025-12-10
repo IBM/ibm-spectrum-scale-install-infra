@@ -44,4 +44,3 @@ scale_gpgKey_src: "/usr/lpp/mmfs/{{ scale_version }}/Public_Keys/{{ scale_gpg_ke
 scale_gpgKey_repository_src: "{{ scale_install_repository_url }}Public_Keys/{{ scale_gpg_key_name }}"
 scale_gpgKey_dest: "/root/"
 scale_install_gpgcheck: "yes"
-scale_disable_gpgcheck: "no"
