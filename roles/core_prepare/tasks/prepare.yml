@@ -18,71 +18,71 @@
 #
 # Configure SSH server
 #
-- block:  ## when: scale_prepare_enable_ssh_login
-    - name: prepare | Enable SSH root login
-      lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: ^PermitRootLogin
-        line: PermitRootLogin yes
-        state: present
-      notify: reload-sshd
+# - block:  ## when: scale_prepare_enable_ssh_login
+#     - name: prepare | Enable SSH root login
+#       lineinfile:
+#         path: /etc/ssh/sshd_config
+#         regexp: ^PermitRootLogin
+#         line: PermitRootLogin yes
+#         state: present
+#       notify: reload-sshd
 
-    - name: prepare | Enable SSH pubkey authentication
-      lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: PubkeyAuthentication
-        line: PubkeyAuthentication yes
-        state: present
-      notify: reload-sshd
+#     - name: prepare | Enable SSH pubkey authentication
+#       lineinfile:
+#         path: /etc/ssh/sshd_config
+#         regexp: PubkeyAuthentication
+#         line: PubkeyAuthentication yes
+#         state: present
+#       notify: reload-sshd
 
-    # prepare | Update ListenAddress at sshd_config for daemon network
-    - name: prepare | Restrict SSH access to admin nodename
-      lineinfile:
-        path: /etc/ssh/sshd_config
-        state: present
-        regexp: '#ListenAddress 0.'
-        line: 'ListenAddress {{ scale_admin_nodename }}'
-      notify: reload-sshd
-      when: scale_prepare_restrict_ssh_address is defined and scale_prepare_restrict_ssh_address|bool
+#     # prepare | Update ListenAddress at sshd_config for daemon network
+#     - name: prepare | Restrict SSH access to admin nodename
+#       lineinfile:
+#         path: /etc/ssh/sshd_config
+#         state: present
+#         regexp: '#ListenAddress 0.'
+#         line: 'ListenAddress {{ scale_admin_nodename }}'
+#       notify: reload-sshd
+#       when: scale_prepare_restrict_ssh_address is defined and scale_prepare_restrict_ssh_address|bool
 
-  when: scale_prepare_enable_ssh_login | bool
+#   when: scale_prepare_enable_ssh_login | bool
 
-- meta: flush_handlers
+# - meta: flush_handlers
 
-#
-# Configure SSH client
-#
-- name: prepare | Disable SSH hostkey checking
-  lineinfile:
-    path: /etc/ssh/ssh_config
-    regexp: StrictHostKeyChecking
-    line: StrictHostKeyChecking no
-    state: present
-  when: scale_prepare_disable_ssh_hostkeycheck | bool
-#
-# Exchange SSH keys
-#
-- block:  ## when: scale_prepare_exchange_keys
-    - name: prepare | Generate SSH key
-      vars:
-        privkey_path: "{{ scale_prepare_pubkey_path | regex_replace('.pub$', '') }}"
-      user:
-        name: root
-        generate_ssh_key: true
-        ssh_key_file: "{{ privkey_path }}"
+# #
+# # Configure SSH client
+# #
+# - name: prepare | Disable SSH hostkey checking
+#   lineinfile:
+#     path: /etc/ssh/ssh_config
+#     regexp: StrictHostKeyChecking
+#     line: StrictHostKeyChecking no
+#     state: present
+#   when: scale_prepare_disable_ssh_hostkeycheck | bool
+# #
+# # Exchange SSH keys
+# #
+# - block:  ## when: scale_prepare_exchange_keys
+#     - name: prepare | Generate SSH key
+#       vars:
+#         privkey_path: "{{ scale_prepare_pubkey_path | regex_replace('.pub$', '') }}"
+#       user:
+#         name: root
+#         generate_ssh_key: true
+#         ssh_key_file: "{{ privkey_path }}"
 
-    - name: prepare | Read public SSH key
-      slurp:
-        src: "{{ scale_prepare_pubkey_path }}"
-      register: scale_prepare_pubkey
+#     - name: prepare | Read public SSH key
+#       slurp:
+#         src: "{{ scale_prepare_pubkey_path }}"
+#       register: scale_prepare_pubkey
 
-    - name: prepare | Authorize all SSH keys
-      authorized_key:
-        user: root
-        key: "{{ hostvars[item].scale_prepare_pubkey.content | b64decode }}"
-        state: present
-      with_items: "{{ ansible_play_hosts }}"
-  when: scale_prepare_exchange_keys | bool
+#     - name: prepare | Authorize all SSH keys
+#       authorized_key:
+#         user: root
+#         key: "{{ hostvars[item].scale_prepare_pubkey.content | b64decode }}"
+#         state: present
+#       with_items: "{{ ansible_play_hosts }}"
+#   when: scale_prepare_exchange_keys | bool
 
 #
 # Disable firewall
