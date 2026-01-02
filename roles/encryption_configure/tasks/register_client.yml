@@ -4,7 +4,7 @@
 # Make default variables available in hostvars
 
 - name: Encryption | Registering Client
-  command: mmkeyserv client register "{{ scale_cluster_profile_name | replace('sncparams', '') }}" --rkm-id rkm_ClusterTenant1 --tenant "{{ tenant_name }}" --server-pwd "{{ password_file }}"
+  command: /usr/lpp/mmfs/bin/mmkeyserv client register "{{ scale_cluster_profile_name | replace('sncparams', '') }}" --rkm-id rkm_ClusterTenant1 --tenant "{{ tenant_name }}" --server-pwd "{{ password_file }}"
   register: register_client_output
   run_once: true
 

@@ -4,7 +4,7 @@
 # Make default variables available in hostvars
 
 - name: Encryption | Creating Tenant
-  command: mmkeyserv tenant add "{{ tenant_name }}" --server "{{ scale_encryption_servers[0] }}" --server-pwd "{{ password_file }}"
+  command: /usr/lpp/mmfs/bin/mmkeyserv tenant add "{{ tenant_name }}" --server "{{ scale_encryption_servers[0] }}" --server-pwd "{{ password_file }}"
   register: create_tenant_output
   run_once: true
 
