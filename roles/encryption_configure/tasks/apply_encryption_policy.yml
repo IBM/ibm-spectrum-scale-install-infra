@@ -9,7 +9,7 @@
 
 # Make default variables available in hostvars
 - name: Encryption | Applying encryption policy to the filesystem
-  command: mmchpolicy {{ scale_storage_existing_fs.stdout }} "{{ gklm_dir }}/encryption_policy.pol"
+  command: /usr/lpp/mmfs/bin/mmchpolicy {{ scale_storage_existing_fs.stdout }} "{{ gklm_dir }}/encryption_policy.pol"
   register: apply_pol_fs_output
   run_once: true
 - debug:
