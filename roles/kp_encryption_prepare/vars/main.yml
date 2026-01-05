@@ -10,3 +10,5 @@ key_protect_port: "5696"
 key_protect_cert_files_dir: "/opt/IBM/ibm-spectrumscale-cloud-deploy/key_protect"
 
 kp_resource_prefix: "{{ scale_cluster_clustername.split('.')[0] }}"
+
+scale_command_path: "/usr/lpp/mmfs/bin/"
