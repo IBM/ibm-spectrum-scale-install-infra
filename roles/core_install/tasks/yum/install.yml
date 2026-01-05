@@ -10,19 +10,19 @@
           yum:
             list: gpfs.base
             disablerepo: spectrum-scale-gpfs
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) }}"
           register: scale_install_packagelist
           when: ansible_pkg_mgr == 'yum'
 
         - name: install | Get GPFS packages list
           set_fact:
-             scale_install_all_packages: "{{ scale_install_all_packages + scale_install_license_packages }}"
+             scale_install_all_packages: "{{ scale_install_all_packages | default([]) + scale_install_license_packages | default([]) }}"
 
         - name: install | Install GPFS packages
           yum:
-            name: "{{ scale_install_all_packages }}"
+            name: "{{ scale_install_all_packages | default([]) }}"
             state: present
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) }}"
           register: scale_install_packageresult
           when: ansible_pkg_mgr == 'yum'
 
@@ -30,15 +30,15 @@
           dnf:
             list: gpfs.base
             disablerepo: spectrum-scale-gpfs
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) }}"
           register: scale_install_dnfpackagelist
           when: ansible_pkg_mgr == 'dnf'
 
         - name: install | Install GPFS packages
           dnf:
-            name: "{{ scale_install_all_packages }}"
+            name: "{{ scale_install_all_packages | default([]) }}"
             state: present
-            disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) }}"
           register: scale_install_dnfpackageresult
           when: ansible_pkg_mgr == 'dnf'
 
@@ -46,10 +46,10 @@
           set_fact:
             scale_install_updated: true
           when:
-            - ("'installed' in scale_install_packagelist.results | map(attribute='yumstate') | list") or
-              ("'installed' in scale_install_dnfpackagelist.results | map(attribute='yumstate' | list")
-            - (scale_install_packageresult.changed) or (scale_install_dnfpackageresult.changed)
-      when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+            - (scale_install_packagelist.results | map(attribute='yumstate') | list | select('eq', 'installed') | list | length > 0) or
+              (scale_install_dnfpackagelist.results | map(attribute='yumstate') | list | select('eq', 'installed') | list | length > 0)
+            - scale_install_packageresult.changed | default(false) or scale_install_dnfpackageresult.changed | default(false)
+      when: ansible_pkg_mgr in ['yum', 'dnf']
   when: not scale_daemon_running
 
 - block:
@@ -59,8 +59,8 @@
        ignore_errors: true
        failed_when: false
        when:
-         - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
-    
+         - ansible_pkg_mgr in ['yum', 'dnf']
+
      - name: install | Install GPFS scaleapi package
        dnf:
          name: "gpfs.scaleapi"

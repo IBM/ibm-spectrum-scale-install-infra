@@ -24,7 +24,7 @@
     scale_disks: []
     scale_storage_nsddefs: []
     scale_storage_nsdservers: []
-  when: scale_disks is undefined
+  when: scale_disks is not defined
 
 - name: storage | Find defined NSDs
   set_fact:
@@ -78,7 +78,6 @@
       register: scale_nsd_create
       when:
         - scale_storage_stanzafile_new.size > 1
-        #- item.item not in scale_storage_existing_nsds.stdout_lines
         - scale_storage_stanzafile_new is changed
 
     - debug:

@@ -13,7 +13,7 @@
     state: present
   notify: yum-clean-metadata
   when:
-    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - ansible_pkg_mgr in ['yum', 'dnf']
     - scale_install_gplbin_repository_url is defined
     - scale_install_gplbin_repository_url != 'existing'
 
@@ -24,6 +24,9 @@
   set_fact:
     scale_install_all_rpms: "{{ scale_install_all_rpms + [ item ] }}"
   with_items: "{{ scale_install_gplbin_prereqs }}"
+  when:
+    - scale_install_gplbin_prereqs is defined
+    - scale_install_gplbin_prereqs | length > 0
 
 #
 # Add kernel extension RPM
@@ -31,3 +34,6 @@
 - name: install | Add GPL module RPM to list
   set_fact:
     scale_install_all_rpms: "{{ scale_install_all_rpms + [ scale_install_gplbin_package ] }}"
+  when:
+    - scale_install_gplbin_package is defined
+    - scale_install_gplbin_package | length > 0

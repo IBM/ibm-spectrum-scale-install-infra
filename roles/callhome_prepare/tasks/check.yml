@@ -7,33 +7,33 @@
      - scale_callhome_params.is_enabled | bool
      fail_msg: "Callhome is disabled"
      success_msg: "Callhome is enabled. Proceeding to check if customer information has been supplied."
-    when:  ansible_hostname  == scale_callhome_params.callhome_server
+    when: ansible_hostname == scale_callhome_params.callhome_server
 
-  - name: check |  Check if customer information has been supplied.
+  - name: check | Check if customer information has been supplied.
     assert:
      that:
      - scale_callhome_params.customer_name is defined
-     - scale_callhome_params.customer_name| length > 0
+     - scale_callhome_params.customer_name | length > 0
      - scale_callhome_params.customer_email is defined
-     - scale_callhome_params.customer_email| length > 0
+     - scale_callhome_params.customer_email | length > 0
      - scale_callhome_params.customer_id is defined
      - scale_callhome_params.customer_country is defined
-     - scale_callhome_params.customer_country| length > 0
+     - scale_callhome_params.customer_country | length > 0
      fail_msg: "Callhome customer information is not defined."
      success_msg: "Customer information is defined. Proceeding to check if proxy is enabled"
-    when: ansible_hostname  ==  scale_callhome_params.callhome_server
+    when: ansible_hostname == scale_callhome_params.callhome_server
 
   - name: check | Check if proxy is enabled
     assert:
      that:
      - scale_callhome_params.proxy_ip is defined
-     - scale_callhome_params.proxy_ip|bool
+     - scale_callhome_params.proxy_ip | length > 0
      - scale_callhome_params.proxy_port is defined
-     - scale_callhome_params.proxy_port|bool
+     - scale_callhome_params.proxy_port | length > 0
      fail_msg: "Proxy is not enabled. Proceeding to perform network check"
      success_msg: "Proxy is enabled. Proceeding to check if proxy user and password is defined"
     ignore_errors: yes
-    when: ansible_hostname  ==  scale_callhome_params.callhome_server
+    when: ansible_hostname == scale_callhome_params.callhome_server
     register: scale_callhome_proxy_status
     failed_when: false
 
@@ -41,17 +41,14 @@
     assert:
      that:
      - scale_callhome_params.proxy_user is defined
-     - scale_callhome_params.proxy_user|bool
+     - scale_callhome_params.proxy_user | length > 0
      - scale_callhome_params.proxy_password is defined
-     - scale_callhome_params.proxy_password|bool
+     - scale_callhome_params.proxy_password | length > 0
      fail_msg: "Proxy user and password not defined. It is mandatory to define proxy user and password if proxy ip and port is defined"
      success_msg: "Proxy information is defined.Proceeding to perform network check"
-    when: ansible_hostname  ==  scale_callhome_params.callhome_server and
-          scale_callhome_params.proxy_ip is defined and
-          scale_callhome_params.proxy_port is defined and
-          scale_callhome_params.proxy_ip|bool and
-          scale_callhome_params.proxy_port|bool
-    register: scale_callhome_proxy_status
+    when: ansible_hostname == scale_callhome_params.callhome_server and
+          scale_callhome_params.proxy_ip is defined and scale_callhome_params.proxy_ip | length > 0 and
+          scale_callhome_params.proxy_port is defined and scale_callhome_params.proxy_port | length > 0
 
   - name: check | Checking network connectivity for callhome configuration.
     uri:

@@ -5,17 +5,17 @@
 - name: cluster | Set default quorum role
   set_fact:
     scale_cluster_quorum: "{{ scale_cluster_quorum }}"
-  when: hostvars[inventory_hostname].scale_cluster_quorum is undefined
+  when: hostvars[inventory_hostname].scale_cluster_quorum is not defined
 
 - name: cluster | Set default manager role
   set_fact:
     scale_cluster_manager: "{{ scale_cluster_manager }}"
-  when: hostvars[inventory_hostname].scale_cluster_manager is undefined
+  when: hostvars[inventory_hostname].scale_cluster_manager is not defined
 
 - name: cluster | Set default daemon state
   set_fact:
     scale_state: "{{ scale_state }}"
-  when: hostvars[inventory_hostname].scale_state is undefined
+  when: hostvars[inventory_hostname].scale_state is not defined
 
 # Cleanup groups from previous play
 #- meta: refresh_inventory
@@ -34,7 +34,7 @@
     name: "{{ item }}"
     groups: scale_cluster_members
   when:
-    - hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId.stdout is defined and hostvars[item].scale_cluster_clusterId.stdout
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -43,8 +43,8 @@
     name: "{{ item }}"
     groups: scale_cluster_candidates
   when:
-    - not hostvars[item].scale_cluster_clusterId.stdout
-    - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_cluster_clusterId.stdout is not defined or not hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId.stderr is defined and hostvars[item].scale_cluster_clusterId.stderr
     - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
@@ -55,7 +55,7 @@
 - name: cluster | Assign default quorum nodes
   set_fact:
     scale_cluster_quorum: true
-  when: true not in ansible_play_hosts | map('extract', hostvars, 'scale_cluster_quorum') | map('bool') | list
+  when: ansible_play_hosts | map('extract', hostvars, 'scale_cluster_quorum') | map('bool') | list | none
   with_sequence: start=1 end={{ [ ansible_play_hosts | length, 7 ] | min }}
   run_once: true
   delegate_to: "{{ ansible_play_hosts[item | int - 1] }}"
@@ -124,6 +124,11 @@
         paths: "{{ scale_cluster_profile_dir_path }}"
         patterns: "{{ scale_cluster_profile_name }}.profile"
       register: stat_profile_result
+      run_once: true
+      delegate_to: localhost
+      when:
+        - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
+        - scale_cluster_profile_name not in scale_cluster_system_profile
 
     - name: cluster | Initialize gpfs profile
       set_fact:
@@ -159,6 +164,11 @@
       command: /usr/lpp/mmfs/bin/mmcrcluster -N /var/mmfs/tmp/NodeFile -C {{ scale_cluster_clustername }} {{ profile_type }} {{ extra_option }}
       notify: accept-licenses
       register: mmcrcluster_results
+      when:
+        - groups['scale_cluster_candidates'] is defined
+        - groups['scale_cluster_members'] is not defined
+      run_once: true
+      delegate_to: "{{ groups['scale_cluster_candidates'].0 }}"
 
     - debug:
          msg: "{{ mmcrcluster_results.cmd }}"
@@ -198,6 +208,11 @@
     - name: cluster | Add new nodes to cluster
       command: /usr/lpp/mmfs/bin/mmaddnode -N /var/mmfs/tmp/NodeFile --accept
       register: mmadd_results
+      when:
+        - groups['scale_cluster_candidates'] is defined
+        - groups['scale_cluster_members'] is defined
+      run_once: true
+      delegate_to: "{{ groups['scale_cluster_members'].0 }}"
 
     - debug:
          msg: "{{ mmadd_results.cmd }}"

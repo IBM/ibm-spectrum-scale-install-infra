@@ -7,13 +7,12 @@
 - name: config | Group hosts by defined nodeclasses
   group_by:
     key: scale_nodeclass_{{ item }}
-  when: scale_nodeclass is defined
-  with_items: "{{ scale_nodeclass }}"
+  when: scale_nodeclass is defined and scale_nodeclass | length > 0
 
 - name: config | Initialize undefined variables
   set_fact:
     scale_config: []
-  when: scale_config is undefined
+  when: scale_config is not defined
 
 - block:  ## run_once: true
     - name: config | Find existing nodeclasses
@@ -50,7 +49,8 @@
         current_nodeclass: "{{ item.item | regex_replace('^scale_nodeclass_', '') }}"
       command: /usr/lpp/mmfs/bin/mmcrnodeclass {{ current_nodeclass }} -N /var/mmfs/tmp/NodeClass.{{ current_nodeclass }}
       when:
-        - not current_nodeclass in scale_config_existing_nodeclasses.stdout_lines
+        - current_nodeclass is defined
+        - current_nodeclass not in scale_config_existing_nodeclasses.stdout_lines
         - item is changed
         - item.size > 1
       with_items: "{{ scale_config_nodeclassfile.results }}"
@@ -63,6 +63,7 @@
         current_nodeclass: "{{ item.item | regex_replace('^scale_nodeclass_', '') }}"
       command: /usr/lpp/mmfs/bin/mmchnodeclass {{ current_nodeclass }} replace -N /var/mmfs/tmp/NodeClass.{{ current_nodeclass }}
       when:
+        - current_nodeclass is defined
         - current_nodeclass in scale_config_existing_nodeclasses.stdout_lines
         - item is changed
         - item.size > 1
@@ -79,8 +80,8 @@
       command: /usr/lpp/mmfs/bin/mmchconfig {{ current_key }}={{ current_value }} -N {{ current_nodeclass }}
       register: scale_config_changed_params
       when:
-        not scale_config_existing_params.stdout | lower is
-          search(':' + current_key | lower + ':' + current_value | lower + ':(.+,)?' + current_nodeclass | lower | regex_replace('all', '') + '(,.+)?:')
+        - scale_config_existing_params.stdout is defined
+        - not scale_config_existing_params.stdout | lower is search(':' + current_key | lower + ':' + current_value | lower + ':(.+,)?' + current_nodeclass | lower | regex_replace('all', '') + '(,.+)?:')
       with_subelements:
         - "{{ ansible_play_hosts | map('extract', hostvars, 'scale_config') | sum(start=[]) | unique }}"
         - params
@@ -103,6 +104,9 @@
          ephemeral_ports: "{{ scale_cluster_config.ephemeral_port_range }}"
       command: "{{ scale_command_path }}mmchconfig tscCmdPortRange={{ ephemeral_ports }}"
       when:
+         - scale_cluster_config is defined
+         - scale_cluster_config.ephemeral_port_range is defined
+         - scale_portrange.stdout is defined
          - "'undefined' in scale_portrange.stdout"
       register: scale_portrange_chnage
 
@@ -124,6 +128,7 @@
     - name: config | Setting numaMemoryInterleave config for s390x
       command: "{{ scale_command_path }}mmchconfig numaMemoryInterleave=no"
       when:
+         - ansible_architecture == "s390x"
          - scale_numamemory.stdout is defined
          - "'yes' in scale_numamemory.stdout"
       register: scale_numamemory_cmd
@@ -149,6 +154,7 @@
     - name: config | Setting scaleApiEnabled config for scale api
       command: "{{ scale_command_path }}mmchconfig scaleApiEnabled=yes --force"
       when:
+         - scale_type is defined
          - scale_scaleapienabled.stdout is defined
          - "'yes' not in scale_scaleapienabled.stdout"
       register: scale_scaleapienabled_cmd

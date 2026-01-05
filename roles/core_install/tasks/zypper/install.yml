@@ -11,14 +11,14 @@
 
         - name: install | Install GPFS packages
           zypper:
-            name: "{{ scale_install_all_packages }}"
+            name: "{{ scale_install_all_packages | default([]) }}"
             state: present
             disable_gpg_check: no
           register: scale_install_zypppackageresult
 
         - name: install | Install GPFS License packages
           zypper:
-            name: "{{ scale_install_license_packages }}"
+            name: "{{ scale_install_license_packages | default([]) }}"
             state: present
             disable_gpg_check: no
           register: scale_install_license_packageresult
@@ -27,7 +27,7 @@
           set_fact:
             scale_install_updated: true
           when:
-            - (scale_install_zypppackageresult.changed)
+            - scale_install_zypppackageresult.changed | default(false)
   when: not scale_daemon_running
 
 - block:

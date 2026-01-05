@@ -74,7 +74,7 @@
 - name: install | callhome path
   set_fact:
    callhome_url: 'gpfs_debs/'
-  when: ansible_distribution in scale_ubuntu_distribution
+  when: ansible_distribution in scale_ubuntu_distribution and scale_ubuntu_distribution | length > 0
 
 - name: install | callhome path
   set_fact:
@@ -94,7 +94,6 @@
      that: scale_install_gpfs_java.matched > 0
      msg: "No GPFS java (gpfs.java) package found: {{ scale_callhome_extracted_path }}/{{ callhome_url }}/gpfs.java*"
 
-- block:
   - name: install | Find gpfs.callhome (gpfs.callhome) package
     find:
      paths: "{{ scale_callhome_extracted_path }}/{{ callhome_url }}"

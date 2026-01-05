@@ -7,12 +7,12 @@
 #
     - name: build | Set prereqs for building GPL from sourece
       set_fact:
-         scale_build_gplsrc_prereqs: "{{ scale_build_gplsrc_prereqs_s390x }}"
+         scale_build_gplsrc_prereqs: "{{ scale_build_gplsrc_prereqs_s390x | default([]) }}"
       when: ansible_architecture == "s390x"
 
     - name: build | Install prereqs for building GPL module from source
       yum:
-        name: "{{ scale_build_gplsrc_prereqs }}"
+        name: "{{ scale_build_gplsrc_prereqs | default([]) }}"
         state: present
         disable_excludes: all
       when: ansible_pkg_mgr == 'yum'
@@ -23,7 +23,7 @@
 
     - name: build | Install prereqs for building GPL module from source
       dnf:
-        name: "{{ scale_build_gplsrc_prereqs }}"
+        name: "{{ scale_build_gplsrc_prereqs | default([]) }}"
         state: present
         disable_excludes: all
       when: ansible_pkg_mgr == 'dnf'
@@ -34,20 +34,20 @@
 
     - name: build | Install prereqs for building GPL module from source
       apt:
-        name: "{{ scale_build_gplsrc_prereqs_deb }}"
+        name: "{{ scale_build_gplsrc_prereqs_deb | default([]) }}"
         state: present
       when: ansible_pkg_mgr == 'apt'
 
     - name: build | Install prereqs for building GPL module from source
       zypper:
-        name: "{{ scale_build_gplsrc_prereqs_zypp }}"
+        name: "{{ scale_build_gplsrc_prereqs_zypp | default([]) }}"
         state: present
       when: ansible_pkg_mgr == 'zypper'
 
     - block:  ## when: rhel8 node
         - name: build | Install prereqs for building GPL from source
           dnf:
-            name: "{{ scale_build_gplsrc_el8_prereqs }}"
+            name: "{{ scale_build_gplsrc_el8_prereqs | default([]) }}"
             state: present
       when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
 
