@@ -9,18 +9,21 @@
     delegate_node: "{{ groups['scale_cluster_candidates'].0 }}"
   when:
     - groups['scale_cluster_candidates'] is defined
+    - groups['scale_cluster_candidates'] | length > 0
 
 - name: cluster | Find delegate node for existing cluster
   set_fact:
     delegate_node: "{{ groups['scale_cluster_members'].0 }}"
   when:
     - groups['scale_cluster_members'] is defined
+    - groups['scale_cluster_members'] | length > 0
 
 - name: cluster | Identify nodes to start daemon on
   set_fact:
     scale_daemon_node_list: "{{ scale_daemon_node_list | default([]) + [hostvars[item].scale_daemon_nodename] }}"
   when:
-    - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'present'
+    - hostvars[item].scale_state is defined
+    - hostvars[item].scale_state == 'present'
     - hostvars[item].scale_daemon_nodename is defined
     - not hostvars[item].scale_daemon_running
   with_items:
@@ -31,23 +34,22 @@
 - block:  ## when: delegate_node is defined
     - name: cluster | Start daemons
       command: /usr/lpp/mmfs/bin/scalectl node start -N "{{ scale_daemon_node_list | join(',') }}"
-      when: scale_daemon_node_list is defined and scale_daemon_node_list | length > 0
+      when:
+        - scale_daemon_node_list is defined
+        - scale_daemon_node_list | length > 0
       register: scalectl_startup
       notify: wait-daemon-active
   when:
     - delegate_node is defined
+    - delegate_node | length > 0
   run_once: true
   delegate_to: "{{ delegate_node }}"
 
 - debug:
     msg: "{{scalectl_startup}}"
-  when: scalectl_startup is defined
+  when:
+    - scalectl_startup is defined
 
-- meta: flush_handlers
-
-#
-# Change node roles of existing cluster members
-#
 - block:  ## when: groups['scale_cluster_members'] is defined
     - name: cluster | Prepare existing cluster ChangeFile
       template:
@@ -71,10 +73,12 @@
           failed_when: false
           ignore_errors: yes
 
-      when: scale_cluster_changefile is changed
+      when:
+        - scale_cluster_changefile is changed
   when:
-     - groups['scale_cluster_members'] is defined
-     - scale_node_role_change | bool
+    - groups['scale_cluster_members'] is defined
+    - groups['scale_cluster_members'] | length > 0
+    - scale_node_role_change | bool
   run_once: true
   delegate_to: "{{ groups['scale_cluster_members'].0 }}"
 

@@ -43,7 +43,7 @@
     scale_storage_nsddefs: []
     scale_storage_nsdservers: []
     scale_storage_fsdef: []
-  when: scale_disks is undefined
+  when: scale_disks is not defined
 
 - name: storage | Find defined NSDs
   set_fact:
@@ -106,6 +106,7 @@
         {{ ( '--metadata-block-size ' + scale_storage_fsparams[item.item].metadatablocksize) if scale_storage_fsparams[item.item].metadatablocksize is defined else '' }}
       when:
         - item.item not in scale_storage_existing_fs.stdout_lines
+        - item.size is defined
         - item.size > 1
       register: scale_storage_fs_create
       with_items: "{{ scale_storage_stanzafile.results }}"
@@ -168,7 +169,8 @@
       command: /usr/lpp/mmfs/bin/mmadddisk {{ item.item }} -F /var/mmfs/tmp/StanzaFile.new.{{ item.item }}
       when:
         - item.item in scale_storage_existing_fs.stdout_lines
-        - item.size is defined and item.size > 1
+        - item.size is defined
+        - item.size > 1
       with_items: "{{ scale_storage_stanzafile_new.results }}"
 
     #

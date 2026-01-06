@@ -16,7 +16,7 @@
   - name: configure | get proxy password
     set_fact:
         scale_proxy_password: "{{ scale_callhome_params.proxy_password }}"
-    when: scale_callhome_params is defined and scale_callhome_params.proxy_password is defined
+    when: scale_callhome_params is defined and scale_callhome_params.proxy_password is defined and scale_callhome_params.proxy_password | length > 0
 
   - name: configure | get proxy password
     set_fact:
@@ -27,17 +27,17 @@
     shell:
      cmd: "{{ scale_command_path }}mmcallhome proxy change --proxy-location {{scale_callhome_params.proxy_ip }} --proxy-port {{ scale_callhome_params.proxy_port }} --proxy-username {{ scale_callhome_params.proxy_user }} --proxy-password {{ scale_proxy_password }}"
     when:
-      - scale_callhome_params is defined and scale_callhome_params.proxy_port is defined
-      - scale_callhome_params is defined and scale_callhome_params.proxy_ip is defined
-      - scale_callhome_params is defined and scale_callhome_params.proxy_user is defined
-      - scale_proxy_password is defined
+      - scale_callhome_params is defined and scale_callhome_params.proxy_port is defined and scale_callhome_params.proxy_port | length > 0
+      - scale_callhome_params is defined and scale_callhome_params.proxy_ip is defined and scale_callhome_params.proxy_ip | length > 0
+      - scale_callhome_params is defined and scale_callhome_params.proxy_user is defined and scale_callhome_params.proxy_user | length > 0
+      - scale_proxy_password is defined and scale_proxy_password | length > 0
     register: scale_callhome_proxy_config
 
   - name: configure | set proxy auth value
     set_fact:
         auth_enabled: "--with-proxy-auth"
     when:
-      - scale_callhome_params is defined and scale_callhome_params.proxy_user is defined
+      - scale_callhome_params is defined and scale_callhome_params.proxy_user is defined and scale_callhome_params.proxy_user | length > 0
 
   - name: configure |  enable callhome proxy
     shell:
@@ -148,7 +148,7 @@
     with_items:
      - "{{ scale_callhome_params.callhome_schedule }}"
     register: scale_callhome_schedule_status
-    when: scale_callhome_params.callhome_schedule is defined
+    when: scale_callhome_params.callhome_schedule is defined and scale_callhome_params.callhome_schedule | length > 0
 
   - debug:
      msg: "{{ scale_callhome_schedule_status.cmd }}"

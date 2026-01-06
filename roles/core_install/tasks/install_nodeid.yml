@@ -1,4 +1,5 @@
 ---
+# Updated for Ansible 2.19 compatibility
 #
 # Copy ssh key package
 #
@@ -10,7 +11,7 @@
         state: directory
         mode: '0600'
         recurse: yes
-      when: hostvars[inventory_hostname].cert_dir_location is defined
+      when: hostvars[inventory_hostname].cert_dir_location is defined | bool
 
     - name: install | Copy installation package to node
       copy:
@@ -41,7 +42,7 @@
       ignore_errors: yes
       failed_when: false
       when: 
-          - nodeidentity_exist_results.stderr is defined
+          - nodeidentity_exist_results.stderr is defined | bool
           - ('"/var/mmfs/run/grpc.admin.sock" in nodeidentity_exist_results.stderr') or
             ('"/var/mmfs/run/scaleadmd.grpc.sock" in nodeidentity_exist_results.stderr')
 
@@ -55,10 +56,10 @@
       delay: 30
       #when: nodeidentity_exist_results.stdout_lines | length < 1
   when:
-    - hostvars[inventory_hostname].node_cert is defined
-    - hostvars[inventory_hostname].node_cert_key is defined
-    - hostvars[inventory_hostname].node_cert_chain is defined
+    - hostvars[inventory_hostname].node_cert is defined | bool
+    - hostvars[inventory_hostname].node_cert_key is defined | bool
+    - hostvars[inventory_hostname].node_cert_chain is defined | bool
 
 - debug:
      msg: "{{ nodeidentity_results.cmd }}"
-  when: nodeidentity_results.cmd is defined
+  when: nodeidentity_results.cmd is defined | bool

@@ -3,13 +3,13 @@
   package:
    name: "{{ scale_install_all_packages }}"
    state: present
-  when: scale_install_repository_url is defined
+  when: scale_install_repository_url is defined and scale_install_repository_url | length > 0
 
 - name: install| Install GPFS Callhome deb
   apt:
    deb: "{{ item }}"
    state: present
-  when: scale_install_repository_url is not defined
+  when: scale_install_repository_url is not defined or scale_install_repository_url | length == 0
   with_items:
   - "{{ scale_install_all_packages }}"
 

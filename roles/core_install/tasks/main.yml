@@ -1,4 +1,5 @@
 ---
+# Updated for Ansible 2.19 compatibility
 # Install and configure IBM Spectrum Scale (GPFS)
 
 - import_tasks: install.yml
@@ -10,7 +11,7 @@
 - import_tasks: install_nodeid.yml
   tags: install
   when:
-    - scale_scaleadmd is defined
-    - hostvars[inventory_hostname].node_cert is defined and hostvars[inventory_hostname].node_cert != "None"
-    - hostvars[inventory_hostname].node_cert_key is defined and hostvars[inventory_hostname].node_cert_key != "None"
-    - hostvars[inventory_hostname].node_cert_chain is defined and hostvars[inventory_hostname].node_cert_chain != "None"
+    - scale_scaleadmd is defined | bool
+    - hostvars[inventory_hostname].node_cert is defined | bool and hostvars[inventory_hostname].node_cert != "None"
+    - hostvars[inventory_hostname].node_cert_key is defined | bool and hostvars[inventory_hostname].node_cert_key != "None"
+    - hostvars[inventory_hostname].node_cert_chain is defined | bool and hostvars[inventory_hostname].node_cert_chain != "None"

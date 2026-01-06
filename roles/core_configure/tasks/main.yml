@@ -7,7 +7,7 @@
 - import_tasks: cluster.yml
   tags: cluster
   when:
-    - scale_type is undefined
+    - scale_type is not defined
 
 - import_tasks: scaleadmd_cluster.yml
   tags: cluster
@@ -20,7 +20,7 @@
 - import_tasks: cluster_start.yml
   tags: cluster
   when:
-    - scale_type is undefined
+    - scale_type is not defined
 
 - import_tasks: scaleadmd_cluster_start.yml
   tags: cluster
@@ -30,33 +30,35 @@
 - import_tasks: storage.yml
   tags: storage
   when:
-    - scale_disks is undefined
-    - scale_filesystem is undefined
+    - scale_disks is not defined
+    - scale_filesystem is not defined
     - scale_storage is defined
 
 - import_tasks: storage_disk.yml
   tags: storage
   when:
-    - scale_storage is undefined
+    - scale_storage is not defined
     - scale_disks is defined
-    - scale_type is undefined
+    - scale_type is not defined
 
 - import_tasks: scaleadmd_storage_disk.yml
   tags: storage
   when:
-    - scale_storage is undefined
+    - scale_storage is not defined
     - scale_disks is defined
     - scale_type is defined
 
 - import_tasks: storage_fs.yml
   tags: storage
   when:
-    - scale_storage is undefined
+    - scale_storage is not defined
     - scale_filesystem is defined
 
 - import_tasks: finalize.yml
   tags: always
-  when: scale_node_update_check | bool
+  when:
+    - scale_node_update_check is defined
+    - scale_node_update_check | bool
 
 # cluster node remover playbook
 - import_tasks: removenode.yml

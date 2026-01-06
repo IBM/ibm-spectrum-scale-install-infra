@@ -24,8 +24,7 @@
     with_items: "{{ scale_callhome_groups.stdout_lines }}"
     register: scale_callhome_group_delete
     ignore_errors: true
-    when: scale_callhome_groups.stdout_lines is defined and
-          scale_callhome_groups.stdout_lines | length > 0
+    when: scale_callhome_groups.stdout_lines is defined and scale_callhome_groups.stdout_lines | length > 0
 
   - name: delete | Disable proxy (if configured)
     shell: "{{ scale_command_path }}mmcallhome proxy disable"
@@ -34,5 +33,5 @@
 
   - debug:
       msg: "Callhome deleted (capability, groups, proxy disabled)."
-  when: scale_callhome_params.scale_state is defined and scale_callhome_params.scale_state == 'absent'
+  when: scale_callhome_params.scale_state is defined and scale_callhome_params.scale_state == 'absent' and scale_callhome_params.scale_state | length > 0
   run_once: true

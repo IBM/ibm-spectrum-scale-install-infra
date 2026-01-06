@@ -1,4 +1,5 @@
 ---
+# Updated for Ansible 2.19 compatibility
 # YUM repository installation method
 
 #
@@ -9,7 +10,7 @@
     list: gpfs.license.*
   register: package_name_version
   when:
-    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - ansible_pkg_mgr in ['yum', 'dnf']
 
 - name: Find license package
   shell:
@@ -32,7 +33,7 @@
       More than one GPFS License (gpfs.license) RPM found:
       "gpfs.license*{{ scale_architecture }}*"
   when:
-    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - ansible_pkg_mgr in ['yum', 'dnf']
 
 - name: install | Find GPFS License package
   vars:
@@ -40,7 +41,7 @@
   set_fact:
     scale_gpfs_license_package: "{{ gpfs_license_package }}"
   when:
-    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - ansible_pkg_mgr in ['yum', 'dnf']
 
 - name: install | Find GPFS License package
   set_fact:
@@ -68,5 +69,5 @@
 - name: install | Add GPFS license packages to list
   set_fact:
     scale_install_license_packages: "{{ scale_gpfs_license_package }}"
-  when: "'gpfs.license.std' in scale_gpfs_license_package or
-    'gpfs.license.da' in scale_gpfs_license_package"
+  when: '"gpfs.license.std" in scale_gpfs_license_package or
+    "gpfs.license.da" in scale_gpfs_license_package'

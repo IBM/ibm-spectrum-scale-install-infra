@@ -1,4 +1,5 @@
 ---
+# Updated for Ansible 2.19 compatibility
 # directory package installation method
 
 - block:  ## run_once: true
@@ -9,13 +10,12 @@
 
     - name: install | Check directory installation package
       assert:
-        that: scale_install_dirpkg.stat.exists
+        that: scale_install_dirpkg.stat.exists | bool
         msg: >-
           Please set the variable 'scale_install_directory_pkg_path' to point to the
           local installation package (accessible on Ansible control machine)!
   run_once: true
   delegate_to: localhost
-
 
 - name: install| Creates default directory
   file:
@@ -47,7 +47,7 @@
 - name: install | gpfs base path
   set_fact:
     scale_gpfs_path_url: "{{ dir_path }}"
-  when: scale_install_directory_pkg_path is defined
+  when: scale_install_directory_pkg_path is defined | bool
 
 #
 # Import Spectrum Scale gpg key
@@ -58,7 +58,7 @@
     key: "{{ dir_path }}/{{ scale_gpg_key_name }}"
   when:
       - ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
-         and scale_enable_gpg_check and scale_version >= "5.0.5.0")
+         and scale_enable_gpg_check | bool and scale_version >= "5.0.5.0")
       - scale_gpgkey_path is undefined
 
 - name: Import a gpg key from a file
@@ -67,9 +67,8 @@
     key: "{{ scale_gpgkey_path }}/{{ scale_gpg_key_name }}"
   when:
       - ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
-         and scale_enable_gpg_check and scale_version >= "5.0.5.0")
+         and scale_enable_gpg_check | bool and scale_version >= "5.0.5.0")
       - scale_gpgkey_path is defined
-
 
 #
 # Find GPFS BASE
@@ -204,7 +203,7 @@
     current_package: "{{ dir_path }}/{{ item }}"
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
-  when: scale_install_gplbin_package is undefined
+  when: scale_install_gplbin_package is undefined | bool
   with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"
 
 #

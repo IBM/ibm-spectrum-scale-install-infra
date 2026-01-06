@@ -10,22 +10,22 @@
       set_fact:
         scale_installmethod: repository
       when:
-        - scale_install_repository_url is defined
- 
+        - scale_install_repository_url is defined and scale_install_repository_url | length > 0
+
     - name: install | Check for remotepkg installation method
       set_fact:
        scale_installmethod: remote_pkg
       when:
-      - scale_install_repository_url is undefined
-      - scale_install_remotepkg_path is defined
+      - scale_install_repository_url is undefined or scale_install_repository_url | length == 0
+      - scale_install_remotepkg_path is defined and scale_install_remotepkg_path | length > 0
 
     - name: install | Check for localpkg installation method
       set_fact:
         scale_installmethod: local_pkg
       when:
-        - scale_install_repository_url is undefined
-        - scale_install_remotepkg_path is undefined
-        - scale_install_localpkg_path is defined
+        - scale_install_repository_url is undefined or scale_install_repository_url | length == 0
+        - scale_install_remotepkg_path is undefined or scale_install_remotepkg_path | length == 0
+        - scale_install_localpkg_path is defined and scale_install_localpkg_path | length > 0
 
     - name: install | Check installation method
       assert:
