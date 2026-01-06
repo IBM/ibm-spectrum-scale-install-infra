@@ -27,8 +27,8 @@
           set_fact:
             scale_install_updated: true
           when:
-            - scale_install_zypppackageresult.changed | default(false)
-  when: not scale_daemon_running
+            - scale_install_zypppackageresult.changed | default(false) | bool
+  when: not scale_daemon_running | bool
 
 - block:
      - name: install | Get scaleapi package
@@ -48,4 +48,4 @@
        when:
           - package_name_scaleapi.rc is defined
           - package_name_scaleapi.rc != 0
-  when: scale_scaleadmd is defined
+  when: scale_scaleadmd is defined | bool

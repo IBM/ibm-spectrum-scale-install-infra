@@ -4,18 +4,18 @@
 # Make default variables available in hostvars
 - name: cluster | Set default quorum role
   set_fact:
-    scale_cluster_quorum: "{{ scale_cluster_quorum }}"
-  when: hostvars[inventory_hostname].scale_cluster_quorum is not defined
+    scale_cluster_quorum: "{{ scale_cluster_quorum | default(false) }}"
+  when: hostvars[inventory_hostname].scale_cluster_quorum is undefined
 
 - name: cluster | Set default manager role
   set_fact:
-    scale_cluster_manager: "{{ scale_cluster_manager }}"
-  when: hostvars[inventory_hostname].scale_cluster_manager is not defined
+    scale_cluster_manager: "{{ scale_cluster_manager | default(false) }}"
+  when: hostvars[inventory_hostname].scale_cluster_manager is undefined
 
 - name: cluster | Set default daemon state
   set_fact:
-    scale_state: "{{ scale_state }}"
-  when: hostvars[inventory_hostname].scale_state is not defined
+    scale_state: "{{ scale_state | default('') }}"
+  when: hostvars[inventory_hostname].scale_state is undefined
 
 # Cleanup groups from previous play
 #- meta: refresh_inventory
@@ -34,7 +34,6 @@
     name: "{{ item }}"
     groups: scale_cluster_members
   when:
-    - hostvars[item].scale_cluster_clusterId.stdout is defined
     - hostvars[item].scale_cluster_clusterId.stdout
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
@@ -44,10 +43,9 @@
     name: "{{ item }}"
     groups: scale_cluster_candidates
   when:
-    - hostvars[item].scale_cluster_clusterId.stdout is not defined or not hostvars[item].scale_cluster_clusterId.stdout
-    - hostvars[item].scale_cluster_clusterId.stderr is defined
-    - hostvars[item].scale_state is defined
-    - hostvars[item].scale_state != 'absent'
+    - not hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -57,8 +55,7 @@
 - name: cluster | Assign default quorum nodes
   set_fact:
     scale_cluster_quorum: true
-  when:
-    - ansible_play_hosts | map('extract', hostvars, 'scale_cluster_quorum') | map('bool') | list | none
+  when: true not in ansible_play_hosts | map('extract', hostvars, 'scale_cluster_quorum') | map('bool') | list
   with_sequence: start=1 end={{ [ ansible_play_hosts | length, 7 ] | min }}
   run_once: true
   delegate_to: "{{ ansible_play_hosts[item | int - 1] }}"
@@ -68,9 +65,7 @@
   add_host:
     name: "{{ item }}"
     groups: scale_cluster_quorum_nodes
-  when:
-    - hostvars[item].scale_cluster_quorum is defined
-    - hostvars[item].scale_cluster_quorum | bool
+  when: hostvars[item].scale_cluster_quorum | bool
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -144,7 +139,7 @@
          profile_type: "--profileName {{ scale_cluster_profile_name }}"
       when:
         - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
-        - (stat_profile_result.matched is defined and stat_profile_result.matched == 1) or (stat_user_profile_result.matched is defined and stat_user_profile_result.matched == 1)
+        - (stat_profile_result.matched | default(0)) > 0 or (stat_user_profile_result.matched | default(0)) > 0
 
     - name: cluster | Set gpfs remote shell command if it is defined
       set_fact:
@@ -168,12 +163,6 @@
       command: /usr/lpp/mmfs/bin/scalectl cluster create -N {{ cluster_local_nodename }} -C {{ scale_cluster_clustername }} {{ extra_option }}
       notify: accept-licenses
       register: mmcrcluster_results
-      when:
-        - groups['scale_cluster_candidates'] is defined
-        - groups['scale_cluster_candidates'] | length > 0
-        - groups['scale_cluster_members'] is not defined
-      run_once: true
-      delegate_to: "{{ groups['scale_cluster_candidates'].0 }}"
 
     - debug:
          msg: "{{ mmcrcluster_results.cmd }}"
@@ -196,11 +185,10 @@
         src: ChangeFile.j2
         dest: /var/mmfs/tmp/ChangeFile
   when:
-    - groups['scale_cluster_candidates'] is defined
-    - groups['scale_cluster_members'] is undefined
+    - groups['scale_cluster_candidates'] | default([]) | length > 0
+    - groups['scale_cluster_members'] | default([]) | length == 0
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_candidates'].0 }}"
-
+  delegate_to: "{{ (groups['scale_cluster_candidates'] | default([]))[0] | default(inventory_hostname) }}"
 #
 # Inspect existing cluster and inventory
 #
@@ -215,7 +203,6 @@
     name: "{{ item }}"
     groups: scale_cluster_members
   when:
-    - hostvars[item].scale_cluster_clusterId.stdout is defined
     - hostvars[item].scale_cluster_clusterId.stdout
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
@@ -225,10 +212,9 @@
     name: "{{ item }}"
     groups: scale_cluster_candidates
   when:
-    - hostvars[item].scale_cluster_clusterId.stdout is not defined or not hostvars[item].scale_cluster_clusterId.stdout
-    - hostvars[item].scale_cluster_clusterId.stderr is defined
-    - hostvars[item].scale_state is defined
-    - hostvars[item].scale_state != 'absent'
+    - not hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -258,7 +244,7 @@
           - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
           - not hostvars[item].scale_cluster_clusterId.stdout
           - hostvars[item].scale_cluster_clusterId.stderr
-          - hostvars[item].scale_cluster_quorum is defined and hostvars[item].scale_cluster_quorum | bool 
+          - hostvars[item].scale_cluster_quorum is defined and hostvars[item].scale_cluster_quorum | bool
       with_items:
         - "{{ ansible_play_hosts }}"
       changed_when: false
@@ -271,7 +257,7 @@
           - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
           - not hostvars[item].scale_cluster_clusterId.stdout
           - hostvars[item].scale_cluster_clusterId.stderr
-          - hostvars[item].scale_cluster_manager is defined and hostvars[item].scale_cluster_manager | bool 
+          - hostvars[item].scale_cluster_manager is defined and hostvars[item].scale_cluster_manager | bool
       with_items:
         - "{{ ansible_play_hosts }}"
       changed_when: false
@@ -289,7 +275,7 @@
           - "{{ scale_add_node_list }}"
       when:
          - scale_add_node_list is defined
-         - scale_add_node_list | length > 0
+         - "{{ scale_add_node_list| length > 0 }}"
 
     - debug:
          msg: "{{ mmadd_results.cmd }}"
@@ -310,41 +296,33 @@
 
     - name: cluster | Accept server license for quorum nodes
       command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N "{{ scale_quorum_node_list | join(',') }}"
-      when:
-        - scale_quorum_node_list is defined
-        - scale_quorum_node_list | length > 0
+      when: scale_quorum_node_list is defined and scale_quorum_node_list | length > 0
       failed_when: false
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: cluster | Change roles of quorum nodes
       command: /usr/lpp/mmfs/bin/mmchnode --quorum -N "{{ scale_quorum_node_list | join(',') }}"
-      when:
-        - scale_quorum_node_list is defined
-        - scale_quorum_node_list | length > 0
+      when: scale_quorum_node_list is defined and scale_quorum_node_list | length > 0
       failed_when: false
-      ignore_errors: yes
-    
+      ignore_errors: true
+
     - name: cluster | Accept server license for manager nodes
       command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N "{{ scale_manager_node_list | join(',') }}"
-      when:
-        - scale_manager_node_list is defined
-        - scale_manager_node_list | length > 0
+      when: scale_manager_node_list is defined and scale_manager_node_list | length > 0
       failed_when: false
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: cluster | Change roles of manager nodes
       command: /usr/lpp/mmfs/bin/mmchnode --manager -N "{{ scale_manager_node_list | join(',') }}"
-      when:
-        - scale_manager_node_list is defined
-        - scale_manager_node_list | length > 0
+      when: scale_manager_node_list is defined and scale_manager_node_list | length > 0
       failed_when: false
-      ignore_errors: yes
+      ignore_errors: true
 
   when:
-    - groups['scale_cluster_candidates'] is defined
-    - groups['scale_cluster_members'] is defined
+    - groups['scale_cluster_candidates'] | default([]) | length > 0
+    - groups['scale_cluster_members'] | default([]) | length > 0
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+  delegate_to: "{{ (groups['scale_cluster_members'] | default([]))[0] | default(inventory_hostname) }}"
 
 - name: cluster | Node identity
   command: /usr/lpp/mmfs/bin/scalectl node config get
@@ -358,8 +336,8 @@
   failed_when: false
   when:
     - nodeidentity_exist_results.stderr is defined
-    - '"/var/mmfs/run/grpc.admin.sock" in nodeidentity_exist_results.stderr' or
-      '"/var/mmfs/run/scaleadmd.grpc.sock" in nodeidentity_exist_results.stderr'
+    - ('"/var/mmfs/run/grpc.admin.sock" in nodeidentity_exist_results.stderr') or
+      ('"/var/mmfs/run/scaleadmd.grpc.sock" in nodeidentity_exist_results.stderr')
 
 - meta: flush_handlers
 

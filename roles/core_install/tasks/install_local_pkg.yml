@@ -1,4 +1,5 @@
 ---
+# Updated for Ansible 2.19 compatibility
 # Local package installation method
 
 - block:  ## run_once: true
@@ -10,7 +11,7 @@
 
     - name: install | Check local installation package
       assert:
-        that: scale_install_localpkg.stat.exists
+        that: scale_install_localpkg.stat.exists | bool
         msg: >-
           Please set the variable 'scale_install_localpkg_path' to point to the
           local installation package (accessible on Ansible control machine)!
@@ -34,7 +35,7 @@
             msg: >-
               Checksums don't match. Please check integritiy of your local
               installation package!
-      when: scale_install_md5_file.stat.exists
+      when: scale_install_md5_file.stat.exists | bool
   run_once: true
   delegate_to: localhost
 
@@ -55,8 +56,8 @@
     - name: install | Check temporary directory
       assert:
         that:
-          - scale_install_localpkg_tmpdir.stat.exists
-          - scale_install_localpkg_tmpdir.stat.isdir
+          - scale_install_localpkg_tmpdir.stat.exists | bool
+          - scale_install_localpkg_tmpdir.stat.isdir | bool
         msg: >-
           Please set the variable 'scale_install_localpkg_tmpdir_path' to point
           to a temporary directory on the remote system!
@@ -66,7 +67,7 @@
         src: "{{ scale_install_localpkg_path }}"
         dest: "{{ scale_install_localpkg_tmpdir_path }}"
         mode: a+x
-  when: not scale_install_gpfs_packagedir.stat.exists
+  when: not scale_install_gpfs_packagedir.stat.exists | bool
 
 #
 # Extract installation package
@@ -86,8 +87,8 @@
 - name: install | Check extracted packages
   assert:
     that:
-      - scale_install_gpfs_packagedir.stat.exists
-      - scale_install_gpfs_packagedir.stat.isdir
+      - scale_install_gpfs_packagedir.stat.exists | bool
+      - scale_install_gpfs_packagedir.stat.isdir | bool
     msg: >-
       The variable 'scale_version' doesn't seem to match the contents of the
       local installation package!
@@ -112,7 +113,7 @@
      state: present
      key: "{{ scale_gpgKey_dest }}{{ scale_gpg_key_name }}"
   when: ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
-         and scale_enable_gpg_check and scale_version >= "5.0.5.0")
+         and scale_enable_gpg_check | bool and scale_version >= "5.0.5.0")
 
 #
 # Find GPFS BASE
@@ -256,7 +257,7 @@
     current_package: "{{ scale_gpfs_path_url }}/{{ item }}"
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
-  when: scale_install_gplbin_package is undefined
+  when: scale_install_gplbin_package is undefined | bool
   with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"
 
 #
@@ -267,6 +268,6 @@
     current_package: "{{ scaleapi_gpfs_path_url }}/{{ item }}"
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
-  when: scale_scaleadmd is defined
+  when: scale_scaleadmd is defined | bool
   with_items: "{{ scale_install_gpfs_scaleapi.files.0.path | basename }}"
 

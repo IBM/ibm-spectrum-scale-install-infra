@@ -1,4 +1,5 @@
 ---
+# Fixed error for evaluating conditional
 # Install or update packages
 
 #
@@ -10,19 +11,19 @@
           yum:
             list: gpfs.base
             disablerepo: spectrum-scale-gpfs
-            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) }}"
+            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) | bool }}"
           register: scale_install_packagelist
           when: ansible_pkg_mgr == 'yum'
 
         - name: install | Get GPFS packages list
           set_fact:
-             scale_install_all_packages: "{{ scale_install_all_packages | default([]) + scale_install_license_packages | default([]) }}"
+             scale_install_all_packages: "{{ scale_install_all_packages + scale_install_license_packages }}"
 
         - name: install | Install GPFS packages
           yum:
-            name: "{{ scale_install_all_packages | default([]) }}"
+            name: "{{ scale_install_all_packages }}"
             state: present
-            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) }}"
+            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) | bool }}"
           register: scale_install_packageresult
           when: ansible_pkg_mgr == 'yum'
 
@@ -30,15 +31,15 @@
           dnf:
             list: gpfs.base
             disablerepo: spectrum-scale-gpfs
-            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) }}"
+            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) | bool }}"
           register: scale_install_dnfpackagelist
           when: ansible_pkg_mgr == 'dnf'
 
         - name: install | Install GPFS packages
           dnf:
-            name: "{{ scale_install_all_packages | default([]) }}"
+            name: "{{ scale_install_all_packages }}"
             state: present
-            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) }}"
+            disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) | bool }}"
           register: scale_install_dnfpackageresult
           when: ansible_pkg_mgr == 'dnf'
 
@@ -46,11 +47,13 @@
           set_fact:
             scale_install_updated: true
           when:
-            - (scale_install_packagelist.results | map(attribute='yumstate') | list | select('eq', 'installed') | list | length > 0) or
-              (scale_install_dnfpackagelist.results | map(attribute='yumstate') | list | select('eq', 'installed') | list | length > 0)
-            - scale_install_packageresult.changed | default(false) or scale_install_dnfpackageresult.changed | default(false)
+            - scale_install_packagelist is defined and scale_install_packagelist.results is defined and
+              ("installed" in scale_install_packagelist.results | map(attribute='yumstate') | list)
+            - scale_install_dnfpackagelist is defined and scale_install_dnfpackagelist.results is defined and
+              ("installed" in scale_install_dnfpackagelist.results | map(attribute='yumstate') | list)
+            - scale_install_packageresult.changed | default(false) | bool or scale_install_dnfpackageresult.changed | default(false) | bool
       when: ansible_pkg_mgr in ['yum', 'dnf']
-  when: not scale_daemon_running
+  when: not scale_daemon_running | bool
 
 - block:
      - name: install | Get scaleapi package
@@ -68,6 +71,6 @@
        ignore_errors: true
        failed_when: false
        when:
-          - package_name_scaleapi.rc is defined
+          - package_name_scaleapi.rc is defined | bool
           - package_name_scaleapi.rc != 0
-  when: scale_scaleadmd is defined
+  when: scale_scaleadmd is defined | bool

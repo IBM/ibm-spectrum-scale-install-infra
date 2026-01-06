@@ -21,7 +21,7 @@
           set_fact:
             scale_install_updated: true
           when:
-            - scale_install_debpackageresult.changed | default(false)
+            - scale_install_debpackageresult.changed | default(false) | bool
       when: scale_install_repository_url is not defined
 
     - block:
@@ -35,7 +35,7 @@
            name: "{{ scale_install_license_packages | default([]) }}"
            state: present
       when: scale_install_repository_url is defined
-  when: not scale_daemon_running
+  when: not scale_daemon_running | bool
 
 - block:
      - name: install | Check if gpfs scaleapi package is installed
@@ -54,4 +54,4 @@
        when:
           - is_gpfsscaleapi_installed.rc is defined
           - is_gpfsscaleapi_installed.rc != 0
-  when: scale_scaleadmd is defined
+  when: scale_scaleadmd is defined | bool

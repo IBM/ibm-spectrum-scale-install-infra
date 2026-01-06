@@ -1,6 +1,5 @@
 ---
-# Build Linux kernel extension from source
-
+# Updated for Ansible 2.19 compatibility
 - block:  ## when: scale_install_gplbin_package is undefined
 #
 # Install gplsrc prereqs
@@ -88,8 +87,8 @@
 
     - name: build | Check GPL module
       assert:
-        that: scale_build_kmod.stat.exists
+        that: scale_build_kmod.stat.exists | bool
         msg: >-
           Unable to build Linux kernel extension for running kernel
           {{ ansible_kernel }}!
-  when: scale_install_gplbin_package is undefined
+  when: scale_install_gplbin_package is undefined | bool

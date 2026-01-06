@@ -1,4 +1,5 @@
 ---
+# Updated for Ansible 2.19 compatibility
 # Inform user about (offline) update
 
 - name: update | Find current version
