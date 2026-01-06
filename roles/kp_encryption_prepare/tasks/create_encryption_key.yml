@@ -8,14 +8,14 @@
       register: cert_file_stat
 
     - name: Run mmgskkm store command | Encryption Prepare | Create a .p12 Store Cert
-      command: '{{ scale_command_path }}mmmgskkm store --pwd "{{ scale_encryption_admin_password }}" --label "{{ kp_resource_prefix }}" --cert "{{ key_protect_dir }}/{{ kp_resource_prefix }}.cert" --priv "{{ key_protect_dir }}/{{ kp_resource_prefix }}.key" --out "{{ key_protect_dir }}/{{ kp_resource_prefix }}.p12"'
+      command: '{{ scale_command_path }}mmgskkm store --pwd "{{ scale_encryption_admin_password }}" --label "{{ kp_resource_prefix }}" --cert "{{ key_protect_dir }}/{{ kp_resource_prefix }}.cert" --priv "{{ key_protect_dir }}/{{ kp_resource_prefix }}.key" --out "{{ key_protect_dir }}/{{ kp_resource_prefix }}.p12"'
       args:
         chdir: "{{ key_protect_dir }}"
       when: not cert_file_stat.stat.exists
       run_once: true
 
     - name: Run mmgskkm trust command | Encryption Prepare | Apply Trust on .p12 Cert
-      command: '{{ scale_command_path }}mmmgskkm trust --prefix "{{ key_protect_dir }}/Key_Protect_Server.chain" --pwd "{{ scale_encryption_admin_password }}" --label "{{ kp_resource_prefix }}" --out "{{ key_protect_dir }}/{{ kp_resource_prefix }}.p12"'
+      command: '{{ scale_command_path }}mmgskkm trust --prefix "{{ key_protect_dir }}/Key_Protect_Server.chain" --pwd "{{ scale_encryption_admin_password }}" --label "{{ kp_resource_prefix }}" --out "{{ key_protect_dir }}/{{ kp_resource_prefix }}.p12"'
       args:
         chdir: "{{ key_protect_dir }}"
       register: p12cert
@@ -33,7 +33,7 @@
 
     - name: KeyProtect Encryption | Encryption Prepare | Create Encryption Key
       command: >
-        '{{ scale_command_path }}mmmkmipkm createkey
+        '{{ scale_command_path }}mmkmipkm createkey
         --host "{{ vpc_region }}.kms.cloud.ibm.com"
         --kmipport "{{ kp_resource_prefix }}.port"
         --keystore "{{ key_protect_dir }}/{{ kp_resource_prefix }}.p12"
