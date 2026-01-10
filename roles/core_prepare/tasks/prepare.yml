@@ -49,16 +49,16 @@
 
 # - meta: flush_handlers
 
-#
-# Configure SSH client
-#
-- name: prepare | Disable SSH hostkey checking
-  lineinfile:
-    path: /etc/ssh/ssh_config
-    regexp: StrictHostKeyChecking
-    line: StrictHostKeyChecking no
-    state: present
-  when: scale_prepare_disable_ssh_hostkeycheck | bool
+# #
+# # Configure SSH client
+# #
+# - name: prepare | Disable SSH hostkey checking
+#   lineinfile:
+#     path: /etc/ssh/ssh_config
+#     regexp: StrictHostKeyChecking
+#     line: StrictHostKeyChecking no
+#     state: present
+#   when: scale_prepare_disable_ssh_hostkeycheck | bool
 # #
 # # Exchange SSH keys
 # #
