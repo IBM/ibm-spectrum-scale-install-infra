@@ -80,6 +80,6 @@
     - groups['scale_cluster_members'] | length > 0
     - scale_node_role_change | bool
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+  delegate_to: "{{ (groups['scale_cluster_members'] | default([]))[0] | default(inventory_hostname) }}"
 
 - meta: flush_handlers

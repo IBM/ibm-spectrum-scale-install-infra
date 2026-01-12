@@ -62,9 +62,8 @@
 
       when: scale_cluster_changefile is changed
   when:
-     - groups['scale_cluster_members'] is defined and groups['scale_cluster_members'] | length > 0
+     - groups is defined and groups['scale_cluster_members'] is defined and groups['scale_cluster_members'] | length > 0
      - scale_node_role_change | bool
-  run_once: true
-  delegate_to: "{{ (groups['scale_cluster_members'] | default([]))[0] | default('') }}"
+  delegate_to: "{{ (groups['scale_cluster_members'] | default([]))[0] | default(inventory_hostname) }}"
 
 - meta: flush_handlers

@@ -40,7 +40,7 @@
         state: absent
         name: "{{ delete_nodes | join(',') }}"
       register: scale_delete_node
-      delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+      delegate_to: "{{ (groups['scale_cluster_members'] | default([]))[0] | default(inventory_hostname) }}"
 
   when:
     - groups['scale_remove_nodes'] is defined
