@@ -9,3 +9,6 @@ tenant_name: "{{ create_tenant_name[:16] }}"
 
 #Password file for performing Encryption operations
 password_file: "{{ gklm_dir }}/.gklm_pass"
+
+# default mm command exection path
+scale_command_path: /usr/lpp/mmfs/bin/

@@ -1,6 +1,13 @@
 ---
 # Configure IBM Spectrum Scale (GPFS) Graphical User Interface (GUI)
 
+- import_tasks: sudo_gui_configure.yml
+  when:
+    - sudo_enable | bool
+    - scale_cluster_gui | bool
+    - scale_service_gui_start | bool
+  tags: configure
+
 - import_tasks: configure.yml
   when:
     - scale_cluster_gui | bool

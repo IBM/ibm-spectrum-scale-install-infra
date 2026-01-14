@@ -2,14 +2,14 @@
 # Applying encryption policy to the filesystem
 
 - name: storage | Find existing filesystem
-  shell: /usr/lpp/mmfs/bin/mmlsfs all -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
+  shell: "{{ scale_command_path }}mmlsfs all -Y | grep -v HEADER | cut -d ':' -f 7 | uniq"
   register: scale_storage_existing_fs
   changed_when: false
   failed_when: false
 
 # Make default variables available in hostvars
 - name: Encryption | Applying encryption policy to the filesystem
-  command: /usr/lpp/mmfs/bin/mmchpolicy {{ scale_storage_existing_fs.stdout }} "{{ gklm_dir }}/encryption_policy.pol"
+  command: "{{ scale_command_path }}mmchpolicy {{ scale_storage_existing_fs.stdout }} {{ gklm_dir }}/encryption_policy.pol"
   register: apply_pol_fs_output
   run_once: true
 - debug:
