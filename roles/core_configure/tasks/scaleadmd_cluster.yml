@@ -34,7 +34,8 @@
     name: "{{ item }}"
     groups: scale_cluster_members
   when:
-    - hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId is defined
+    - hostvars[item].scale_cluster_clusterId.stdout | trim | length > 0
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
