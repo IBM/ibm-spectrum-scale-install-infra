@@ -5,7 +5,7 @@
 
 - name: Encryption | Creating Client
   shell: |
-        echo -e "not_null\nnot_null" | /usr/lpp/mmfs/bin/mmkeyserv client create "{{ scale_cluster_profile_name | replace('sncparams', '') }}" --server "{{ scale_encryption_servers[0] }}" --server-pwd "{{ password_file }}"
+        echo -e "not_null\nnot_null" | {{ scale_command_path }}mmkeyserv client create "{{ scale_cluster_profile_name | replace('sncparams', '') }}" --server "{{ scale_encryption_servers[0] }}" --server-pwd "{{ password_file }}"
   register: create_client_output
   run_once: true
 

@@ -1,0 +1,10 @@
+---
+# Configure GUI service for sudo-wrapper user
+
+- name: Set GPFS_ADMIN to sudo-wrapper user
+  lineinfile:
+    path: /usr/lpp/mmfs/gui/conf/gpfsgui.properties
+    regexp: '^GPFS_ADMIN='
+    line: 'GPFS_ADMIN={{ scale_user }}'
+    create: yes
+    backup: yes
