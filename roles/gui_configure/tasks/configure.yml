@@ -1,6 +1,14 @@
 ---
 # Configure GUI service and performance collection
 
+- name: Set GPFS_ADMIN to sudo-wrapper user
+  lineinfile:
+    path: /usr/lpp/mmfs/gui/conf/gpfsgui.properties
+    regexp: '^GPFS_ADMIN='
+    line: 'GPFS_ADMIN=vpcuser'
+    create: yes
+    backup: yes
+
 # Make default variables available in hostvars
 - name: configure | Set default collector role
   set_fact:

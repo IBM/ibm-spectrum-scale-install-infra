@@ -2,7 +2,7 @@
 
 - block:
     - name:  KeyProtect Encryption | Encryption Apply | Check encryption policy for file system
-      command: mmlspolicy {{ filesystem_mountpoint }} -L
+      command: "{{ scale_command_path }}mmlspolicy {{ filesystem_mountpoint }} -L"
       register: policy_output
       ignore_errors: yes
 
@@ -17,16 +17,16 @@
       when: not encryption_applied
 
     - name: KeyProtect Encryption | Encryption Apply | Apply Policy
-      command: mmchpolicy {{ filesystem_mountpoint }} /var/mmfs/etc/KP.fsenc.pol
+      command: "{{ scale_command_path }}mmchpolicy {{ filesystem_mountpoint }} /var/mmfs/etc/KP.fsenc.pol"
       when: not encryption_applied
       register: policy_apply_result
     
     - name: KeyProtect Encryption | Encryption Apply | Enforce the Policy on the Cluster
-      command: mmchpolicy {{ filesystem_mountpoint }} /var/mmfs/etc/KP.fsenc.pol -I yes
+      command: "{{ scale_command_path }}mmchpolicy {{ filesystem_mountpoint }} /var/mmfs/etc/KP.fsenc.pol -I yes"
       when: policy_apply_result.changed == false
 
     - name: KeyProtect Encryption | Encryption Apply | Show Applied Policy
-      command: mmlspolicy {{ filesystem_mountpoint }} -L
+      command: "{{ scale_command_path }}mmlspolicy {{ filesystem_mountpoint }} -L"
       register: policy_output
 
     - name: KeyProtect Encryption | Encryption Apply | Display Policy Output

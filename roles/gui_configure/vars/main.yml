@@ -1,0 +1,8 @@
+---
+# Variables for the IBM Spectrum Scale (GUI) role -
+# these variables are *not* meant to be overridden
+
+scale_user: "vpcuser"
+
+# Enabling sudo wrapper 
+sudo_enable: true

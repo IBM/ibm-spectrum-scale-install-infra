@@ -15,9 +15,9 @@
     - ansible_pkg_mgr != 'zypper'
     - scale_prepare_disable_selinux | bool
 
-#
+
 # Configure SSH server
-#
+
 - block:  ## when: scale_prepare_enable_ssh_login
     - name: prepare | Enable SSH root login
       lineinfile:
@@ -35,7 +35,6 @@
         state: present
       notify: reload-sshd
 
-    # prepare | Update ListenAddress at sshd_config for daemon network
     - name: prepare | Restrict SSH access to admin nodename
       lineinfile:
         path: /etc/ssh/sshd_config
@@ -43,25 +42,30 @@
         regexp: '#ListenAddress 0.'
         line: 'ListenAddress {{ scale_admin_nodename }}'
       notify: reload-sshd
-      when: scale_prepare_restrict_ssh_address is defined and scale_prepare_restrict_ssh_address|bool
+      when: scale_prepare_restrict_ssh_address is defined
+            and scale_prepare_restrict_ssh_address | bool
 
-  when: scale_prepare_enable_ssh_login | bool
+  when:
+    - scale_prepare_enable_ssh_login | bool
+    - not sudo_enable | bool
 
 - meta: flush_handlers
 
-#
+# 
 # Configure SSH client
-#
+# 
 - name: prepare | Disable SSH hostkey checking
   lineinfile:
     path: /etc/ssh/ssh_config
     regexp: StrictHostKeyChecking
     line: StrictHostKeyChecking no
     state: present
-  when: scale_prepare_disable_ssh_hostkeycheck | bool
-#
+  when: 
+    - scale_prepare_disable_ssh_hostkeycheck | bool
+    - not sudo_enable | bool
+# 
 # Exchange SSH keys
-#
+# 
 - block:  ## when: scale_prepare_exchange_keys
     - name: prepare | Generate SSH key
       vars:
@@ -82,7 +86,9 @@
         key: "{{ hostvars[item].scale_prepare_pubkey.content | b64decode }}"
         state: present
       with_items: "{{ ansible_play_hosts }}"
-  when: scale_prepare_exchange_keys | bool
+  when:
+    - scale_prepare_exchange_keys | bool
+    - not sudo_enable | bool
 
 #
 # Disable firewall

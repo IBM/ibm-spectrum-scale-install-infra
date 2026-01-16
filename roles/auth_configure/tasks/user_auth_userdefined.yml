@@ -2,6 +2,6 @@
 # Task to setup the Auth
 
 - name: Setup Auth
-  shell: "/usr/lpp/mmfs/bin/mmuserauth service create --data-access-method file --type userdefined"
+  shell: "{{ scale_command_path }}mmuserauth service create --data-access-method file --type userdefined"
   run_once: true
   when: service_result.rc is defined and service_result.rc != 0
