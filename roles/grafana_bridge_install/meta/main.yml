@@ -16,4 +16,5 @@ galaxy_info:
 
   galaxy_tags: []
 
-dependencies: []
+dependencies:
+  - ibm.spectrum_scale.core_common
