@@ -15,7 +15,7 @@ scale_architecture: "{{ ansible_architecture }}"
 
 ## List of RPMs to install on collector nodes
 scale_grafana_packages:
-  - gpfs.grafana-bridge
+  - gpfs.grafana-bridge*
 
 ## you'll likely want to define per-node roles in your inventory
 scale_install_package: true
