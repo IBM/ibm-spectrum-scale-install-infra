@@ -185,10 +185,11 @@
         src: ChangeFile.j2
         dest: /var/mmfs/tmp/ChangeFile
   when:
-    - groups['scale_cluster_candidates'] is defined
-    - groups['scale_cluster_members'] is undefined
+    - '"scale_cluster_candidates" in groups'
+    - '"scale_cluster_members" not in groups'
+    - groups['scale_cluster_candidates'] | length > 0
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_candidates'].0 }}"
+  delegate_to: "{{ (groups['scale_cluster_candidates'][0] if 'scale_cluster_candidates' in groups and groups['scale_cluster_candidates'] | length > 0 else inventory_hostname) }}"
 
 #
 # Inspect existing cluster and inventory
@@ -320,10 +321,12 @@
       ignore_errors: yes
 
   when:
-    - groups['scale_cluster_candidates'] is defined
-    - groups['scale_cluster_members'] is defined
+    - '"scale_cluster_candidates" in groups'
+    - '"scale_cluster_members" in groups'
+    - groups['scale_cluster_candidates'] | length > 0
+    - groups['scale_cluster_members'] | length > 0
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+  delegate_to: "{{ (groups['scale_cluster_members'][0] if 'scale_cluster_members' in groups and groups['scale_cluster_members'] | length > 0 else inventory_hostname) }}"
 
 - name: cluster | Node identity
   command: /usr/lpp/mmfs/bin/scalectl node config get
