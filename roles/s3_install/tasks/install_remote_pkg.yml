@@ -71,15 +71,10 @@
       The variable 'scale_version' doesn't seem to match the contents of the
       remote installation package!
 
-- name: install | s3 path
+- name: install | s3 path on Rhel
   set_fact:
-   scale_s3_url: 's3_rpms/rhel8/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
-
-- name: install | s3 path
-  set_fact:
-   scale_s3_url: 's3_rpms/rhel9/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
+    scale_s3_url: 's3_rpms/rhel{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_rhel_distribution
 
 # Find s3 rpms
 - block:  ## when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
