@@ -128,7 +128,6 @@
     - name: config | Setting numaMemoryInterleave config for s390x
       command: "{{ scale_command_path }}mmchconfig numaMemoryInterleave=no"
       when:
-         - ansible_architecture == "s390x"
          - scale_numamemory.stdout is defined
          - "'yes' in scale_numamemory.stdout"
       register: scale_numamemory_cmd
@@ -154,7 +153,6 @@
     - name: config | Setting scaleApiEnabled config for scale api
       command: "{{ scale_command_path }}mmchconfig scaleApiEnabled=yes --force"
       when:
-         - scale_type is defined
          - scale_scaleapienabled.stdout is defined
          - "'yes' not in scale_scaleapienabled.stdout"
       register: scale_scaleapienabled_cmd
