@@ -61,3 +61,5 @@
 - import_tasks: yum/install.yml
   when: ansible_distribution in scale_rhel_distribution
 
+- import_tasks: apt/install.yml
+  when: ansible_distribution in scale_ubuntu_distribution
