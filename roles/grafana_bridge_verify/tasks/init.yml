@@ -1,0 +1,3 @@
+- name: global_var | Initialize
+  set_fact:
+    grafana_bridge_status: []

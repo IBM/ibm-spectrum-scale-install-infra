@@ -1,0 +1,49 @@
+- name: Check if API key already exists
+  command: "{{ mmperfmon_path }} config show --apikey scale_grafana"
+  register: api_show
+  failed_when: false
+  changed_when: false
+  when: config_stat.stat.exists
+
+- name: Extract API key if it exists
+  set_fact:
+    api_key_value: "{{ (api_show.stdout | from_json).key }}"
+  when:
+    - config_stat.stat.exists
+    - api_show.stdout is defined
+    - api_show.stdout | length > 0
+    - api_show.stdout | from_json is mapping
+    - "'key' in (api_show.stdout | from_json)"
+
+- name: Generate API key if not found
+  command: "{{ mmperfmon_path }} config add --apikey scale_grafana"
+  register: api_gen
+  when:
+    - config_stat.stat.exists
+    - api_key_value is not defined
+
+- name: Get API key value after creation
+  command: "{{ mmperfmon_path }} config show --apikey scale_grafana"
+  register: api_show
+  when:
+    - config_stat.stat.exists
+    - api_key_value is not defined
+
+- name: Extract API key from JSON
+  set_fact:
+    api_key_value: "{{ (api_show.stdout | from_json).key }}"
+  when:
+    - config_stat.stat.exists
+    - api_show.stdout is defined
+    - api_show.stdout | length > 0
+    - api_show.stdout | from_json is mapping
+    - "'key' in (api_show.stdout | from_json)"
+
+- name: Set API key in config.ini
+  replace:
+    path: "{{ config_file }}"
+    regexp: '^#\s*apiKeyValue\s*=\s*[a-f0-9\-]+'
+    replace: "apiKeyValue = {{ api_key_value }}"
+  when:
+    - config_stat.stat.exists
+    - api_key_value is defined

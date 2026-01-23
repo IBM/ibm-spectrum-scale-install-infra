@@ -1,4 +1,5 @@
 ---
+# Updated for Ansible 2.19 compatibility
 # Remote package installation method
 
 - name: install | Stat remote installation package
@@ -9,7 +10,7 @@
 
 - name: install | Check remote installation package
   assert:
-    that: scale_install_remotepkg.stat.exists
+    that: scale_install_remotepkg.stat.exists | bool
     msg: >-
       Please set the variable 'scale_install_remotepkg_path' to point to the
       remote installation package (accessible on Ansible managed node)!
@@ -36,7 +37,7 @@
         msg: >-
           Checksums don't match. Please check integritiy of your remote
           installation package!
-  when: scale_install_md5_file.stat.exists
+  when: scale_install_md5_file.stat.exists | bool
 
 #
 # Extract installation package
@@ -50,7 +51,7 @@
   file:
     path: "{{ scale_install_remotepkg_path }}"
     mode: a+x
-  when: not scale_install_gpfs_packagedir.stat.exists
+  when: not scale_install_gpfs_packagedir.stat.exists | bool
 
 - name: install | Extract installation package
   command: "{{ scale_install_remotepkg_path + ' --silent' }}"
@@ -65,8 +66,8 @@
 - name: install | Check extracted packages
   assert:
     that:
-      - scale_install_gpfs_packagedir.stat.exists
-      - scale_install_gpfs_packagedir.stat.isdir
+      - scale_install_gpfs_packagedir.stat.exists | bool
+      - scale_install_gpfs_packagedir.stat.isdir | bool
     msg: >-
       The variable 'scale_version' doesn't seem to match the contents of the
       remote installation package!
@@ -84,7 +85,7 @@
        key: "{{ scale_gpgKey_dest }}{{ scale_gpg_key_name }}"
        
   when: ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
-         and scale_enable_gpg_check and scale_version >= "5.0.5.0")
+         and scale_enable_gpg_check | bool and scale_version >= "5.0.5.0")
 
 #
 # Find GPFS BASE
@@ -167,6 +168,22 @@
       {{ scale_gpfs_path_url }}/gpfs.gskit*{{ scale_architecture }}*
 
 #
+# Find Scale Api
+#
+- name: install | Find Scale Api package
+  find:
+    paths: "{{ scaleapi_gpfs_path_url }}"
+    patterns: gpfs.scaleapi*{{ scale_architecture }}*
+  register: scale_install_gpfs_scaleapi
+
+- name: install | Check valid Scale Api package
+  assert:
+    that: scale_install_gpfs_scaleapi.matched > 0
+    msg: >-
+      No Scale Api found:
+      {{ scaleapi_gpfs_path_url }}/gpfs.scaleapi*{{ scale_architecture }}*
+
+#
 # Add GPFS packages
 #
 - name: install | Add GPFS packages to list
@@ -212,5 +229,17 @@
     current_package: "{{ scale_gpfs_path_url }}/{{ item }}"
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
-  when: scale_install_gplbin_package is undefined
+  when: scale_install_gplbin_package is undefined | bool
   with_items: "{{ scale_install_gpfs_gpl.files.0.path | basename }}"
+
+#
+# Add GPFS packages for building scale-api from source
+#
+- name: install | Add scale api package to list
+  vars:
+    current_package: "{{ scaleapi_gpfs_path_url }}/{{ item }}"
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+  when: scale_scaleadmd is defined | bool
+  with_items: "{{ scale_install_gpfs_scaleapi.files.0.path | basename }}"
+

@@ -1,0 +1,37 @@
+---
+- block:
+  - name: check | Ensure callhome deletion is applicable
+    assert:
+      that:
+        - scale_callhome_params.is_enabled is defined
+        - not scale_callhome_params.is_enabled | bool
+      fail_msg: "Callhome is still enabled. Skipping deletion."
+      success_msg: "Callhome is disabled. Proceeding to delete callhome."
+    when: ansible_hostname == scale_callhome_params.callhome_server
+
+  - name: delete | Disable callhome capability
+    shell: "{{ scale_command_path }}mmcallhome capability disable"
+    register: scale_callhome_disable
+    ignore_errors: true
+
+  - name: delete | Get list of callhome groups
+    shell: "{{ scale_command_path }}mmcallhome group list | awk 'NR>1 {print $1}'"
+    register: scale_callhome_groups
+    changed_when: false
+
+  - name: delete | Remove each callhome group
+    shell: "{{ scale_command_path }}mmcallhome group delete {{ item }}"
+    with_items: "{{ scale_callhome_groups.stdout_lines }}"
+    register: scale_callhome_group_delete
+    ignore_errors: true
+    when: scale_callhome_groups.stdout_lines is defined and scale_callhome_groups.stdout_lines | length > 0
+
+  - name: delete | Disable proxy (if configured)
+    shell: "{{ scale_command_path }}mmcallhome proxy disable"
+    register: scale_callhome_proxy_disable
+    ignore_errors: true
+
+  - debug:
+      msg: "Callhome deleted (capability, groups, proxy disabled)."
+  when: scale_callhome_params.scale_state is defined and scale_callhome_params.scale_state == 'absent' and scale_callhome_params.scale_state | length > 0
+  run_once: true

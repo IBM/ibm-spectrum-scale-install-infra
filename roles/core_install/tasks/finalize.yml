@@ -1,4 +1,5 @@
 ---
+# Updated for Ansible 2.19 compatibility
 # Print messages collected during play
 
 - block:  ## run_once: true
@@ -22,7 +23,7 @@
           ######################################################################
       debug:
         msg: "{{ msg.split('\n') }}"
-      when: true in ansible_play_hosts | map('extract', hostvars, 'scale_install_updated') | list
+      when: true in ansible_play_hosts | map('extract', hostvars, 'scale_install_updated') | list | bool
       # TODO: print all hosts with scale_install_updated set: hostvars | selectattr('scale_install_updated')
 
     - name: finalize | Check if configuration parameters were changed
@@ -34,6 +35,6 @@
           ######################################################################
       debug:
         msg: "{{ msg.split('\n') }}"
-      when: true in ansible_play_hosts | map('extract', hostvars, 'scale_config_changed') | list
+      when: true in ansible_play_hosts | map('extract', hostvars, 'scale_config_changed') | list | bool
       # TODO: print all hosts with scale_daemon_running set: hostvars | selectattr('scale_daemon_running')
   run_once: true

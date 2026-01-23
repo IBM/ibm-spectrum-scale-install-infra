@@ -4,17 +4,17 @@
 # Make default variables available in hostvars
 - name: cluster | Set default quorum role
   set_fact:
-    scale_cluster_quorum: "{{ scale_cluster_quorum }}"
+    scale_cluster_quorum: "{{ scale_cluster_quorum | default(false) }}"
   when: hostvars[inventory_hostname].scale_cluster_quorum is undefined
 
 - name: cluster | Set default manager role
   set_fact:
-    scale_cluster_manager: "{{ scale_cluster_manager }}"
+    scale_cluster_manager: "{{ scale_cluster_manager | default(false) }}"
   when: hostvars[inventory_hostname].scale_cluster_manager is undefined
 
 - name: cluster | Set default daemon state
   set_fact:
-    scale_state: "{{ scale_state }}"
+    scale_state: "{{ scale_state | default('') }}"
   when: hostvars[inventory_hostname].scale_state is undefined
 
 # Cleanup groups from previous play
@@ -34,7 +34,8 @@
     name: "{{ item }}"
     groups: scale_cluster_members
   when:
-    - hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId is defined
+    - hostvars[item].scale_cluster_clusterId.stdout | trim | length > 0
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -139,7 +140,7 @@
          profile_type: "--profileName {{ scale_cluster_profile_name }}"
       when:
         - scale_cluster_profile_name is defined and scale_cluster_profile_name != 'None'
-        - (stat_profile_result.matched is defined and stat_profile_result.matched == 1) or (stat_user_profile_result.matched is defined and stat_user_profile_result.matched == 1)
+        - (stat_profile_result.matched | default(0)) > 0 or (stat_user_profile_result.matched | default(0)) > 0
 
     - name: cluster | Set gpfs remote shell command if it is defined
       set_fact:
@@ -185,11 +186,10 @@
         src: ChangeFile.j2
         dest: /var/mmfs/tmp/ChangeFile
   when:
-    - groups['scale_cluster_candidates'] is defined
-    - groups['scale_cluster_members'] is undefined
+    - groups['scale_cluster_candidates'] | default([]) | length > 0
+    - groups['scale_cluster_members'] | default([]) | length == 0
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_candidates'].0 }}"
-
+  delegate_to: "{{ (groups['scale_cluster_candidates'] | default([]))[0] | default(inventory_hostname) }}"
 #
 # Inspect existing cluster and inventory
 #
@@ -245,7 +245,7 @@
           - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
           - not hostvars[item].scale_cluster_clusterId.stdout
           - hostvars[item].scale_cluster_clusterId.stderr
-          - hostvars[item].scale_cluster_quorum is defined and hostvars[item].scale_cluster_quorum | bool 
+          - hostvars[item].scale_cluster_quorum is defined and hostvars[item].scale_cluster_quorum | bool
       with_items:
         - "{{ ansible_play_hosts }}"
       changed_when: false
@@ -258,7 +258,7 @@
           - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
           - not hostvars[item].scale_cluster_clusterId.stdout
           - hostvars[item].scale_cluster_clusterId.stderr
-          - hostvars[item].scale_cluster_manager is defined and hostvars[item].scale_cluster_manager | bool 
+          - hostvars[item].scale_cluster_manager is defined and hostvars[item].scale_cluster_manager | bool
       with_items:
         - "{{ ansible_play_hosts }}"
       changed_when: false
@@ -276,7 +276,7 @@
           - "{{ scale_add_node_list }}"
       when:
          - scale_add_node_list is defined
-         - "{{ scale_add_node_list| length > 0 }}" 
+         - "{{ scale_add_node_list| length > 0 }}"
 
     - debug:
          msg: "{{ mmadd_results.cmd }}"
@@ -297,33 +297,33 @@
 
     - name: cluster | Accept server license for quorum nodes
       command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N "{{ scale_quorum_node_list | join(',') }}"
-      when: scale_quorum_node_list is defined and scale_quorum_node_list |length > 0
+      when: scale_quorum_node_list is defined and scale_quorum_node_list | length > 0
       failed_when: false
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: cluster | Change roles of quorum nodes
       command: /usr/lpp/mmfs/bin/mmchnode --quorum -N "{{ scale_quorum_node_list | join(',') }}"
-      when: scale_quorum_node_list is defined and scale_quorum_node_list |length > 0
+      when: scale_quorum_node_list is defined and scale_quorum_node_list | length > 0
       failed_when: false
-      ignore_errors: yes
-    
+      ignore_errors: true
+
     - name: cluster | Accept server license for manager nodes
       command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N "{{ scale_manager_node_list | join(',') }}"
-      when: scale_manager_node_list is defined and scale_manager_node_list |length > 0
+      when: scale_manager_node_list is defined and scale_manager_node_list | length > 0
       failed_when: false
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: cluster | Change roles of manager nodes
       command: /usr/lpp/mmfs/bin/mmchnode --manager -N "{{ scale_manager_node_list | join(',') }}"
-      when: scale_manager_node_list is defined and scale_manager_node_list |length > 0
+      when: scale_manager_node_list is defined and scale_manager_node_list | length > 0
       failed_when: false
-      ignore_errors: yes
+      ignore_errors: true
 
   when:
-    - groups['scale_cluster_candidates'] is defined
-    - groups['scale_cluster_members'] is defined
+    - groups['scale_cluster_candidates'] | default([]) | length > 0
+    - groups['scale_cluster_members'] | default([]) | length > 0
   run_once: true
-  delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+  delegate_to: "{{ (groups['scale_cluster_members'] | default([]))[0] | default(inventory_hostname) }}"
 
 - name: cluster | Node identity
   command: /usr/lpp/mmfs/bin/scalectl node config get
@@ -335,7 +335,7 @@
   command: systemctl restart scaleadmd
   ignore_errors: yes
   failed_when: false
-  when: 
+  when:
     - nodeidentity_exist_results.stderr is defined
     - ('"/var/mmfs/run/grpc.admin.sock" in nodeidentity_exist_results.stderr') or
       ('"/var/mmfs/run/scaleadmd.grpc.sock" in nodeidentity_exist_results.stderr')

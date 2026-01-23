@@ -1,4 +1,5 @@
 ---
+# Updated for Ansible 2.19 compatibility
 # Install or update packages
 
 #
@@ -9,31 +10,31 @@
       set_fact:
         scale_installmethod: repository
       when:
-        - scale_install_repository_url is defined
+        - scale_install_repository_url is defined | bool
 
     - name: install | Check for remotepkg installation method
       set_fact:
         scale_installmethod: remote_pkg
       when:
-        - scale_install_repository_url is undefined
-        - scale_install_remotepkg_path is defined
+        - scale_install_repository_url is undefined | bool
+        - scale_install_remotepkg_path is defined | bool
 
     - name: install | Check for localpkg installation method
       set_fact:
         scale_installmethod: local_pkg
       when:
-        - scale_install_repository_url is undefined
-        - scale_install_remotepkg_path is undefined
-        - scale_install_localpkg_path is defined
+        - scale_install_repository_url is undefined | bool
+        - scale_install_remotepkg_path is undefined | bool
+        - scale_install_localpkg_path is defined | bool
 
     - name: install | Check for directory package installation method
       set_fact:
         scale_installmethod: dir_pkg
       when:
-        - scale_install_repository_url is undefined
-        - scale_install_remotepkg_path is undefined
-        - scale_install_localpkg_path is undefined
-        - scale_install_directory_pkg_path is defined
+        - scale_install_repository_url is undefined | bool
+        - scale_install_remotepkg_path is undefined | bool
+        - scale_install_localpkg_path is undefined | bool
+        - scale_install_directory_pkg_path is defined | bool
 
     - name: install | Check installation method
       assert:
@@ -55,13 +56,13 @@
 - include_tasks: install_{{ scale_installmethod }}.yml
 
 - include_tasks: install_gplbin.yml
-  when: scale_install_gplbin_package is defined
+  when: scale_install_gplbin_package is defined | bool
 
 - include_tasks: install_license_pkg.yml
-  when: scale_install_remotepkg_path is defined or scale_install_localpkg_path is defined or scale_install_directory_pkg_path is defined
+  when: scale_install_remotepkg_path is defined | bool or scale_install_localpkg_path is defined | bool or scale_install_directory_pkg_path is defined | bool
 
 - include_tasks: install_license_repository.yml
-  when: scale_install_repository_url is defined
+  when: scale_install_repository_url is defined | bool
 
 - meta: flush_handlers
 

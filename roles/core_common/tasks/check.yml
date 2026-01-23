@@ -26,18 +26,18 @@
         - name: check | Set scale version
           set_fact:
             scale_version: "{{ scale_gpfsversion.stdout }}"
-      when: scale_install_directory_pkg_path is defined
+      when: scale_install_directory_pkg_path is defined and scale_install_directory_pkg_path | length > 0
 
     - block:
         - name: check | Set package installation method
           set_fact:
             scale_package: "{{ scale_install_localpkg_path | basename }}"
-          when: scale_install_localpkg_path is defined
+          when: scale_install_localpkg_path is defined and scale_install_localpkg_path | length > 0
 
         - name: check | Set package installation method
           set_fact:
             scale_package: "{{ scale_install_remotepkg_path | basename }}"
-          when: scale_install_remotepkg_path is defined
+          when: scale_install_remotepkg_path is defined and scale_install_remotepkg_path | length > 0
 
         - name: check | Find available scale version
           shell: "echo {{ scale_package }} | cut -d '-' -f 2"
@@ -47,7 +47,6 @@
         - name: check | Set default scale version
           set_fact:
             scale_version: "{{ scale_se_gpfsversion.stdout }}"
-
       when: scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
   when: scale_version is undefined
   run_once: true
@@ -102,7 +101,7 @@
 - name: check | Storage Scale GPG key
   set_fact:
     scale_gpg_key_name: "Storage_Scale_public_key.pgp"
-  when: scale_version is defined and  scale_version >= "5.1.8.0"
+  when: scale_version is defined and scale_version is version_compare('5.1.8.0', '>=')
 
 # Copy and import gpg key on RHEL and SLES if gpfs version >= 5.0.5.0
 - block:
@@ -117,5 +116,5 @@
         key: "{{ scale_gpgKey_dest }}/{{ scale_gpg_key_name }}"
   when:
     ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
-    and scale_enable_gpg_check and scale_version >= "5.0.5.0"
-    and scale_install_repository_url is defined)
+    and scale_enable_gpg_check and scale_version is version_compare('5.0.5.0', '>=')
+    and scale_install_repository_url is defined and scale_install_repository_url | length > 0)

@@ -1,0 +1,134 @@
+---
+# 1) install and start firewalld
+- name: Debug - About to install firewalld
+  debug:
+    msg: "Executing: yum install firewalld -y"
+
+- name: Install firewalld (if not installed)
+  yum:
+    name: firewalld
+    state: present
+  register: install_firewalld
+
+- name: Debug - Firewalld install output
+  debug:
+    msg: "{{ install_firewalld.stdout }}"
+  when: install_firewalld.rc == 0 and install_firewalld.stdout is defined
+    
+- name: Start and enable firewalld
+  service:
+    name: firewalld
+    state: started
+    enabled: yes
+  register: start_firewalld
+
+- name: Debug - Firewalld start output
+  debug:
+    var: start_firewalld
+  when: install_firewalld is changed
+
+# 2)querying firewalld
+- name: Debug - Executing Precheck List current firewalld configuration
+  debug:
+    msg: "Executing command: firewall-cmd --list-all"
+
+- name: Precheck List current firewalld configuration
+  command: firewall-cmd --list-all
+  register: firewalld_config_precheck
+  changed_when: false      # so failures here don’t show as “changed”
+
+- name: Debug - Show stdout if precheck succeeded
+  debug:
+    msg: "{{ firewalld_config_precheck.stdout }}"
+  when: firewalld_config_precheck.rc == 0 and firewalld_config_precheck.stdout is defined
+
+- name: Debug - Show stderr if precheck failed
+  debug:
+    msg: "Precheck error: {{ firewalld_config_precheck.stderr }}"
+  when: firewalld_config_precheck.rc != 0 and firewalld_config_precheck.stderr is defined
+
+# 3) extracting open ports
+- name: Extract open ports from firewalld config
+  set_fact:
+    open_ports: "{{ firewalld_config_precheck.stdout | regex_findall('(\\d+)/tcp') | map('int') | list }}"
+
+- name: Identify missing required ports
+  set_fact:
+    missing_ports: "{{ required_ports | map(attribute='port') | difference(open_ports) }}"
+
+- name: Debug - Missing ports before applying changes
+  debug:
+    msg: "Missing ports: {{ missing_ports | join(', ') }}"
+  when: missing_ports | length > 0
+
+- name: Warn if required ports are missing
+  debug:
+    msg: "WARNING: Required ports not open: {{ missing_ports | join(', ') }}. They must be added to all.yml under 'firewall:' to proceed."
+  when: missing_ports | length > 0
+
+- name: Debug - Executing open-ports commands
+  debug:
+    msg: "Executing: firewall-cmd --permanent --add-port={{ item.port }}/{{ item.protocol | default('tcp') }}"
+  loop: "{{ firewall }}"
+
+- name: Open all ports defined in 'firewall' variable
+  firewalld:
+    port: "{{ item.port }}/{{ item.protocol | default('tcp') }}"
+    permanent: yes
+    state: enabled
+  loop: "{{ firewall }}"
+  when: firewall is defined and firewall | length > 0
+  notify: Reload firewalld
+
+# 4) reloading and post check firewalld
+- name: Debug - Executing firewalld reload
+  debug:
+    msg: "Executing command: firewall-cmd --reload"
+
+- name: Reload firewalld
+  command: firewall-cmd --reload
+  register: reload_firewalld
+  changed_when: false
+
+- name: Debug - Reload stdout
+  debug:
+    msg: "{{ reload_firewalld.stdout }}"
+  when: reload_firewalld.rc == 0 and reload_firewalld.stdout is defined
+
+- name: Debug - Reload stderr
+  debug:
+    msg: "Reload error: {{ reload_firewalld.stderr }}"
+  when: reload_firewalld.rc != 0 and reload_firewalld.stderr is defined
+
+- name: Debug - Executing post-check list-all
+  debug:
+    msg: "Executing command: firewall-cmd --list-all"
+
+- name: Post-check List updated firewalld configuration
+  command: firewall-cmd --list-all
+  register: firewalld_config_postcheck
+  changed_when: false
+
+- name: Debug - Show post-check stdout
+  debug:
+    msg: "{{ firewalld_config_postcheck.stdout }}"
+
+- name: Extract open ports after changes
+  set_fact:
+    open_ports_after: "{{ firewalld_config_postcheck.stdout | regex_findall('(\\d+)/tcp') | map('int') | list }}"
+
+- name: Identify remaining missing ports
+  set_fact:
+    missing_ports_after: "{{ required_ports | map(attribute='port') | difference(open_ports_after) }}"
+
+- name: Debug - Ports still missing
+  debug:
+    msg: "Ports still missing after changes: {{ missing_ports_after | join(', ') }}"
+  when: missing_ports_after | length > 0
+
+- name: Fail if required ports are still missing
+  fail:
+    msg: "ERROR: The following required ports are STILL missing: {{ missing_ports_after | join(', ') }}. Please add them to 'all.yml' under 'firewall:' and retry!"
+  when: missing_ports_after | length > 0
+
+

@@ -1,0 +1,6 @@
+---
+# Install IBM Spectrum Scale for Grafana Bridge role
+
+- import_tasks: install.yml
+  tags: install
+  when: (scale_install_package | bool)

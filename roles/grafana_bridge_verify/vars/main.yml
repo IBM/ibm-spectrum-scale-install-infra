@@ -1,0 +1,3 @@
+---
+# vars file for grafana_bridge_verify
+log_file: "/var/adm/ras/ibmgrafanabridge.log"

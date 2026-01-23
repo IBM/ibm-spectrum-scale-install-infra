@@ -28,7 +28,7 @@
     - scale_gui_admin_user is defined
     - scale_gui_admin_hc_vault_user is not defined
     - groups['scale_gui_defined_listnodes'] is defined and groups['scale_gui_defined_listnodes'] | length > 0
-  delegate_to: "{{ groups['scale_gui_defined_listnodes'].0 }}"
+  delegate_to: "{{ (groups['scale_gui_defined_listnodes'] | default([]))[0] | default(inventory_hostname) }}"
   tags: users
 
 - import_tasks: ldap.yml
