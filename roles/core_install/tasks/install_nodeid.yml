@@ -42,7 +42,7 @@
       ignore_errors: yes
       failed_when: false
       when: 
-          - nodeidentity_exist_results.stderr is defined | bool
+          - nodeidentity_exist_results.stderr is defined
           - ('"/var/mmfs/run/grpc.admin.sock" in nodeidentity_exist_results.stderr') or
             ('"/var/mmfs/run/scaleadmd.grpc.sock" in nodeidentity_exist_results.stderr')
 
