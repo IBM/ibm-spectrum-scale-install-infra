@@ -44,8 +44,8 @@
     name: "{{ item }}"
     groups: scale_cluster_candidates
   when:
-    - not hostvars[item].scale_cluster_clusterId.stdout
-    - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_cluster_clusterId.stdout | length == 0
+    - hostvars[item].scale_cluster_clusterId.stderr | length > 0
     - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
@@ -204,7 +204,7 @@
     name: "{{ item }}"
     groups: scale_cluster_members
   when:
-    - hostvars[item].scale_cluster_clusterId.stdout
+    - hostvars[item].scale_cluster_clusterId.stdout | length > 0
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
 
@@ -213,8 +213,8 @@
     name: "{{ item }}"
     groups: scale_cluster_candidates
   when:
-    - not hostvars[item].scale_cluster_clusterId.stdout
-    - hostvars[item].scale_cluster_clusterId.stderr
+    - hostvars[item].scale_cluster_clusterId.stdout | length == 0
+    - hostvars[item].scale_cluster_clusterId.stderr | length > 0
     - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
@@ -228,8 +228,8 @@
          scale_add_node_list: "{{ scale_add_node_list | default([]) + [hostvars[item].scale_daemon_nodename] }}"
       when:
          - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
-         - not hostvars[item].scale_cluster_clusterId.stdout
-         - hostvars[item].scale_cluster_clusterId.stderr
+         - hostvars[item].scale_cluster_clusterId.stdout | length == 0
+         - hostvars[item].scale_cluster_clusterId.stderr | length > 0
       with_items:
         - "{{ ansible_play_hosts }}"
       changed_when: false
@@ -243,8 +243,8 @@
           scale_quorum_node_list: "{{ scale_quorum_node_list | default([]) + [hostvars[item].scale_daemon_nodename] }}"
       when:
           - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
-          - not hostvars[item].scale_cluster_clusterId.stdout
-          - hostvars[item].scale_cluster_clusterId.stderr
+          - hostvars[item].scale_cluster_clusterId.stdout | length == 0
+          - hostvars[item].scale_cluster_clusterId.stderr | length > 0
           - hostvars[item].scale_cluster_quorum is defined and hostvars[item].scale_cluster_quorum | bool
       with_items:
         - "{{ ansible_play_hosts }}"
@@ -256,8 +256,8 @@
           scale_manager_node_list: "{{ scale_manager_node_list | default([]) + [hostvars[item].scale_daemon_nodename] }}"
       when:
           - hostvars[item].scale_state is defined and hostvars[item].scale_state != 'absent'
-          - not hostvars[item].scale_cluster_clusterId.stdout
-          - hostvars[item].scale_cluster_clusterId.stderr
+          - hostvars[item].scale_cluster_clusterId.stdout | length == 0
+          - hostvars[item].scale_cluster_clusterId.stderr | length > 0
           - hostvars[item].scale_cluster_manager is defined and hostvars[item].scale_cluster_manager | bool
       with_items:
         - "{{ ansible_play_hosts }}"
@@ -337,9 +337,8 @@
   failed_when: false
   when:
     - nodeidentity_exist_results.stderr is defined
-    - ('"/var/mmfs/run/grpc.admin.sock" in nodeidentity_exist_results.stderr') or
-      ('"/var/mmfs/run/scaleadmd.grpc.sock" in nodeidentity_exist_results.stderr')
-
+    - "'/var/mmfs/run/grpc.admin.sock' in nodeidentity_exist_results.stderr or
+      '/var/mmfs/run/scaleadmd.grpc.sock' in nodeidentity_exist_results.stderr"
 - meta: flush_handlers
 
 # Node roles will be finalized after daemons are started...
