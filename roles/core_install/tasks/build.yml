@@ -66,6 +66,12 @@
       when:
         - ansible_distribution in scale_ubuntu_distribution
 
+    - name: build | Identify OS distribution
+      set_fact:
+        scale_build_distribution: AZURE_LINUX
+      when:
+        - ansible_distribution in scale_azure_distribution
+
     - name: build | Check Linux distribution
       assert:
         that: scale_build_distribution is defined

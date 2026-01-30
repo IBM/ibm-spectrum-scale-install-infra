@@ -37,6 +37,10 @@ scale_sles_distribution:
   - SLES
   - Suse
 
+## Supported scale azure os distrubution
+scale_azure_distribution:
+  - Microsoft Azure Linux
+
 ## Specify package extraction path and gpg key path
 scale_extracted_default_path: "/usr/lpp/mmfs"
 scale_extracted_path: "{{ scale_extracted_default_path }}/{{ scale_version }}"
