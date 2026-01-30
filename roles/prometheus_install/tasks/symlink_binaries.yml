@@ -1,0 +1,10 @@
+---
+- name: Symlink Prometheus binaries
+  file:
+    src: "{{ install_dir }}/{{ tarball | regex_replace('.tar.gz','') }}/{{ item }}"
+    dest: "{{ bin_dir }}/{{ item }}"
+    state: link
+    force: yes
+  loop:
+    - prometheus
+    - promtool
