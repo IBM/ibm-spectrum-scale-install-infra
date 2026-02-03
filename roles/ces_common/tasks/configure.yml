@@ -38,8 +38,10 @@
 - name: configure | Setting server licenses on protocol nodes
   command: "{{ scale_command_path }}mmchlicense server --accept -N {{ scale_server_nodes[1:] }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
-  async: 120
+  async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
+  vars:
+    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
   run_once: true
 
 - name: configure | Collect status of ces nodes
@@ -47,6 +49,10 @@
   register: scale_ces_enable_status
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
+  vars:
+    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
   failed_when: false
   ignore_errors: true
 
@@ -207,6 +213,10 @@
   register: scale_ces_enable_status
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
+  vars:
+    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
 
 - name: configure| List status of ces nodes
   debug:
@@ -231,6 +241,10 @@
    - scale_protocols.interface_mode is defined and scale_protocols.interface_mode | bool
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
+  vars:
+    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
 
 - name: configure | Add IPv6 interface
   shell:
@@ -274,6 +288,10 @@
       - scale_protocols.export_ip_pool is defined
     delegate_to: "{{ scale_protocol_node_list.0 }}"
     run_once: true
+    async: "{{ scale_command_timeout | default(300) }}"
+    poll: 5
+    vars:
+      ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
 
   when: scale_protocols.scale_ces_groups is not defined
 
@@ -282,6 +300,10 @@
   #when: inventory_hostname in scale_protocol_node_list
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
+  vars:
+    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
 
 - name: configure | Check if zimon sensor is configured
   shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
@@ -289,3 +311,7 @@
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   failed_when: false
   changed_when: false
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
+  vars:
+    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
