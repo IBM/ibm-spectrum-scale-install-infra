@@ -4,6 +4,10 @@
    cmd: "{{ scale_command_path }}mmces service enable SMB"
   delegate_to: "{{ scale_smb_node_list.0 }}"
   run_once: true
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
+  vars:
+    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
 
 - name: configure | Check if zimon sensor is configured
   shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
@@ -20,8 +24,10 @@
 - name: configure | Configuring SMB performance monitoring sensors
   shell:
    cmd: "{{ scale_command_path }}mmperfmon config add --sensors=/opt/IBM/zimon/defaults/ZIMonSensors_smb.cfg"
-  async: 120
+  async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
+  vars:
+    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
   when:
     - scale_config_file_status.stat.exists
     - " 'mmperfmon: There is no performance monitoring configuration data.' not in scale_zimon_conf_sensors.stderr"
