@@ -8,6 +8,7 @@
   group_by:
     key: scale_nodeclass_{{ item }}
   when: scale_nodeclass is defined and scale_nodeclass | length > 0
+  with_items: "{{ scale_nodeclass }}"
 
 - name: config | Initialize undefined variables
   set_fact:
