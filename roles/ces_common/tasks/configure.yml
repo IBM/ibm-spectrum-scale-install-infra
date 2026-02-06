@@ -40,8 +40,6 @@
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
-  vars:
-    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
   run_once: true
 
 - name: configure | Collect status of ces nodes
@@ -51,8 +49,6 @@
   run_once: true
   async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
-  vars:
-    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
   failed_when: false
   ignore_errors: true
 
@@ -215,8 +211,6 @@
   run_once: true
   async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
-  vars:
-    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
 
 - name: configure| List status of ces nodes
   debug:
@@ -243,8 +237,6 @@
   run_once: true
   async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
-  vars:
-    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
 
 - name: configure | Add IPv6 interface
   shell:
@@ -290,8 +282,6 @@
     run_once: true
     async: "{{ scale_command_timeout | default(300) }}"
     poll: 5
-    vars:
-      ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
 
   when: scale_protocols.scale_ces_groups is not defined
 
@@ -302,8 +292,6 @@
   run_once: true
   async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
-  vars:
-    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
 
 - name: configure | Check if zimon sensor is configured
   shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
@@ -313,5 +301,3 @@
   changed_when: false
   async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
-  vars:
-    ansible_command_timeout: "{{ scale_command_timeout | default(300) }}"
