@@ -95,5 +95,5 @@
 - include_tasks: install_{{ scale_installmethod }}.yml
 
 - import_tasks: yum/install.yml
-  when: ansible_distribution in scale_rhel_distribution
+  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_azure_distribution
 

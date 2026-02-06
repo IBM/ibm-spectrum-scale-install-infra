@@ -30,6 +30,11 @@
 
 - name: install | file audit logging path
   set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel10/'
+  when: ansible_distribution in scale_azure_distribution
+
+- name: install | file audit logging path
+  set_fact:
     scale_fal_url: 'gpfs_debs/ubuntu/'
   when: ansible_distribution in scale_ubuntu_distribution 
 

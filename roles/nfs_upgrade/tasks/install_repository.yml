@@ -21,6 +21,11 @@
 
 - name: upgrade | nfs path
   set_fact:
+   scale_nfs_url: 'ganesha_rpms/rhel10/'
+  when: ansible_distribution in scale_azure_distribution
+
+- name: upgrade | nfs path
+  set_fact:
    scale_nfs_url: 'ganesha_debs/ubuntu/'
   when: ansible_distribution in scale_ubuntu_distribution
 
@@ -53,6 +58,11 @@
   set_fact:
    scale_zimon_url: 'zimon_rpms/rhel10/'
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
+
+- name: upgrade | zimon path
+  set_fact:
+   scale_zimon_url: 'zimon_rpms/rhel10/'
+  when: ansible_distribution in scale_azure_distribution
 
 - name: upgrade | zimon path
   set_fact:

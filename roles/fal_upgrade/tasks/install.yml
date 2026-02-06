@@ -60,7 +60,7 @@
   when: ansible_distribution in scale_ubuntu_distribution
 
 - import_tasks: yum/install.yml
-  when: ansible_distribution in scale_rhel_distribution
+  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_azure_distribution
 
 - import_tasks: zypper/install.yml
   when: ansible_distribution in scale_sles_distribution
