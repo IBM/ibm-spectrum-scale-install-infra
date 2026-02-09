@@ -33,7 +33,7 @@
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: 'zimon_rpms/rhel10/'
+    scale_zimon_url: 'zimon_rpms/azure3/'
   when: ansible_distribution in scale_azure_distribution
 
 - name: upgrade | zimon path

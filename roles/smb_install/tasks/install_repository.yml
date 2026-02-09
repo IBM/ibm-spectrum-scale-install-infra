@@ -21,7 +21,7 @@
 
 - name: install | smb path
   set_fact:
-   scale_smb_url: 'smb_rpms/rhel10/'
+   scale_smb_url: 'smb_rpms/azure3/'
   when: ansible_distribution in scale_azure_distribution
 
 - name: install | smb path

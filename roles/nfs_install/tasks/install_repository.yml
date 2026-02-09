@@ -21,7 +21,7 @@
 
 - name: install | nfs path
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/rhel10/'
+   scale_nfs_url: 'ganesha_rpms/azure3/'
   when: ansible_distribution in scale_azure_distribution
 
 - name: install | nfs path
