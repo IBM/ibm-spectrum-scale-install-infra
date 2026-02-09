@@ -16,7 +16,7 @@
 
 - name: upgrade | s3 path
   set_fact:
-   scale_s3_url: 's3_rpms/rhel10/'
+   scale_s3_url: 's3_rpms/azure3/'
   when: ansible_distribution in scale_azure_distribution
 
 - name: upgrade | Configure s3 YUM repository
