@@ -21,6 +21,7 @@ scale_nfs_debs:
 - gpfs.nfs-ganesha
 - gpfs.nfs-ganesha-doc
 - gpfs.python-nfs-ganesha
+- gpfs.nfs-ganesha-dbgsym
 
 ## pm ganesha package for nfs performance monitoring
 scale_pm_package:
