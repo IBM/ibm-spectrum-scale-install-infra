@@ -164,6 +164,14 @@
     - ansible_pkg_mgr == 'apt' or ansible_pkg_mgr == 'zypper'
     - ansible_architecture == "aarch64"
 
+- set_fact:
+     scale_zimon_collector_packages: ['gpfs.gss.pmcollector*el*']
+  when: ansible_distribution in scale_azure_distribution
+
+- set_fact:
+     scale_zimon_sensors_packages: ['gpfs.gss.pmsensors*el*']
+  when: ansible_distribution in scale_azure_distribution 
+
 #
 # Add GUI packages
 #
