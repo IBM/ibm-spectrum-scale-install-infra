@@ -13,6 +13,11 @@ scale_nfs_rpms:
 - gpfs.nfs-ganesha
 - gpfs.nfs-ganesha-utils
 
+scale_nfs_debug_rpms:
+- gpfs.nfs-ganesha-debuginfo
+- gpfs.nfs-ganesha-gpfs-debuginfo
+- gpfs.nfs-ganesha-utils-debuginfo 
+
 ## List of NFS debian package to install
 scale_nfs_debs:
 - gpfs.smb
@@ -20,6 +25,9 @@ scale_nfs_debs:
 - gpfs.nfs-ganesha
 - gpfs.nfs-ganesha-doc
 - gpfs.python-nfs-ganesha
+
+scale_nfs_debug_debs:
+- gpfs.nfs-ganesha-dbgsym 
 
 ## pm ganesha package for nfs performance monitoring
 scale_pm_package:
