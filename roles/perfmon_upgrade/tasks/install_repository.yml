@@ -11,6 +11,14 @@
     is_scale_collector_pkg_installed: false
     is_scale_pmswift_pkg_installed: false
 
+- set_fact:
+     scale_zimon_collector_packages: ['gpfs.gss.pmcollector*el*']
+  when: ansible_distribution in scale_azure_distribution
+
+- set_fact:
+     scale_zimon_sensors_packages: ['gpfs.gss.pmsensors*el*']
+  when: ansible_distribution in scale_azure_distribution
+
 - name: upgrade | zimon path
   set_fact:
     scale_zimon_url: "zimon_rpms/rhel7/"
