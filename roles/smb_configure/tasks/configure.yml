@@ -1,5 +1,5 @@
 ---
-block
+- block:
   - name: configure | Enable SMB
     shell:
     cmd: "{{ scale_command_path }}mmces service enable SMB"
