@@ -1,22 +1,24 @@
 ---
-- name: configure | Enable NFS
-  shell:
-   cmd: "{{ scale_command_path }}mmces service enable NFS"
-  delegate_to: "{{ scale_nfs_nodes_list.0 }}"
-  run_once: true
-  async: "{{ scale_command_timeout | default(300) }}"
-  poll: 5
+block
+  - name: configure | Enable NFS
+    shell:
+    cmd: "{{ scale_command_path }}mmces service enable NFS"
+    async: "{{ scale_command_timeout | default(300) }}"
+    poll: 5
 
-- name: configure | Stat GaneshaProxy.conf file
-  stat:
-   path: /opt/IBM/zimon/defaults/GaneshaProxy.conf
-  register: scale_config_file_status
+  - name: configure | Stat GaneshaProxy.conf file
+    stat:
+    path: /opt/IBM/zimon/defaults/GaneshaProxy.conf
+    register: scale_config_file_status
 
-- name: configure | Configuring NFS performance monitoring sensors
-  shell:
-   cmd: "{{ scale_command_path }}mmperfmon config add --sensors=/opt/IBM/zimon/defaults/GaneshaProxy.conf"
-  async: "{{ scale_command_timeout | default(300) }}"
-  poll: 5
-  when:
-    - scale_config_file_status.stat.exists
-    - " 'mmperfmon: There is no performance monitoring configuration data.' not in scale_zimon_conf_sensors.stderr"
+  - name: configure | Configuring NFS performance monitoring sensors
+    shell:
+    cmd: "{{ scale_command_path }}mmperfmon config add --sensors=/opt/IBM/zimon/defaults/GaneshaProxy.conf"
+    async: "{{ scale_command_timeout | default(300) }}"
+    poll: 5
+    when:
+      - scale_config_file_status.stat.exists
+      - " 'mmperfmon: There is no performance monitoring configuration data.' not in scale_zimon_conf_sensors.stderr"
+run_once: true
+delegate_to: "{{ scale_nfs_nodes_list.0 }}"
+
