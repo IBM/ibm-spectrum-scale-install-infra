@@ -1,30 +1,30 @@
 ---
 - block:
-  - name: configure | Enable SMB
-    shell:
-    cmd: "{{ scale_command_path }}mmces service enable SMB"
-    async: "{{ scale_command_timeout | default(300) }}"
-    poll: 5
+    - name: configure | Enable SMB
+      shell:
+       cmd: "{{ scale_command_path }}mmces service enable SMB"
+      async: "{{ scale_command_timeout | default(300) }}"
+      poll: 5
 
-  - name: configure | Check if zimon sensor is configured
-    shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
-    register: scale_zimon_conf_sensors
-    failed_when: false
-    changed_when: false
+    - name: configure | Check if zimon sensor is configured
+      shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
+      register: scale_zimon_conf_sensors
+      failed_when: false
+      changed_when: false
 
-  - name: configure | Stat ZIMonSensors_smb.cfg file
-    stat:
-    path: /opt/IBM/zimon/defaults/ZIMonSensors_smb.cfg
-    register: scale_config_file_status
+    - name: configure | Stat ZIMonSensors_smb.cfg file
+      stat:
+       path: /opt/IBM/zimon/defaults/ZIMonSensors_smb.cfg
+      register: scale_config_file_status
 
-  - name: configure | Configuring SMB performance monitoring sensors
-    shell:
-    cmd: "{{ scale_command_path }}mmperfmon config add --sensors=/opt/IBM/zimon/defaults/ZIMonSensors_smb.cfg"
-    async: "{{ scale_command_timeout | default(300) }}"
-    poll: 5
-    when:
-      - scale_config_file_status.stat.exists
-      - " 'mmperfmon: There is no performance monitoring configuration data.' not in scale_zimon_conf_sensors.stderr"
+    - name: configure | Configuring SMB performance monitoring sensors
+      shell:
+       cmd: "{{ scale_command_path }}mmperfmon config add --sensors=/opt/IBM/zimon/defaults/ZIMonSensors_smb.cfg"
+      async: "{{ scale_command_timeout | default(300) }}"
+      poll: 5
+      when:
+        - scale_config_file_status.stat.exists
+        - " 'mmperfmon: There is no performance monitoring configuration data.' not in scale_zimon_conf_sensors.stderr"
   run_once: true
   delegate_to: "{{ scale_smb_node_list.0 }}"
 
