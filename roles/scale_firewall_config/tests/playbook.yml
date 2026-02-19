@@ -1,4 +1,4 @@
-- name: Configure firewall ports on ESS cluster nodes
+- name: Configure firewall ports on scale cluster nodes
   hosts: cluster01
   become: yes
   roles:

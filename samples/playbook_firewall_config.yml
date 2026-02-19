@@ -1,0 +1,21 @@
+#
+# samples/playbook_firewall.yml
+#
+
+# Sample playbook for configuring firewall rules on IBM Spectrum Scale cluster nodes
+# using the scale_firewall_config role.
+#
+# This playbook opens required ports for Scale services
+# using firewalld and validates that all required ports are successfully applied.
+#
+# It is recommended to define required_ports and related variables using
+# Ansible group variables
+#
+# Sample variable definitions can be found in:
+#   samples/vars/firewall_vars.yml
+
+- name: Configure firewall ports on scale cluster nodes
+  hosts: cluster01
+  become: yes
+  roles:
+    - scale_firewall_config
