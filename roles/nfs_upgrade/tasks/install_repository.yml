@@ -204,12 +204,31 @@
   when: ansible_distribution in scale_rhel_distribution or
         ansible_distribution in scale_sles_distribution
 
+- name: upgrade | Add GPFS nfs debuginfo packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_debug_rpms }}"
+  when:
+     - ansible_distribution in scale_rhel_distribution or
+       ansible_distribution in scale_sles_distribution
+     - scale_nfs_install_debuginfo | bool
+
 - name: upgrade | Add GPFS nfs packages to list
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_nfs_debs }}"
   when: ansible_distribution in scale_ubuntu_distribution
+
+- name: upgrade | Add GPFS nfs debuginfo packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_debug_debs }}"
+  when:
+     - ansible_distribution in scale_ubuntu_distribution
+     - scale_nfs_install_debuginfo | bool
 
 - name: upgrade | Add GPFS pm-ganesha packages to list
   set_fact:
