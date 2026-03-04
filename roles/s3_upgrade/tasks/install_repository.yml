@@ -1,5 +1,5 @@
 ---
-- name: install | s3 path on Rhel
+- name: upgrade | s3 path on Rhel
   set_fact:
     scale_s3_url: 's3_rpms/rhel{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_rhel_distribution
