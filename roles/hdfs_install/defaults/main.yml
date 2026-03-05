@@ -16,3 +16,5 @@ scale_hdfs_install_debuginfo: true
 
 # Directory to install 3.3.6.x hdfs package
 scale_hdfs_rhel_version_path_336: 'hdfs_rpms/rhel/hdfs_3.3.6.x/'
+
+scale_hdfs_azure_version_path_336: 'hdfs_rpms/azure3/hdfs_3.3.6.x/'
