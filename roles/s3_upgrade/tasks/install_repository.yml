@@ -39,7 +39,7 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_s3_packages }}"
-  when: uupgrade_non_protocol_node is not defined
+  when: upgrade_non_protocol_node is not defined
 
 - name: upgrade | Add GPFS mms3 packages to list
   set_fact:
