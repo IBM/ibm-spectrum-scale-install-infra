@@ -39,3 +39,10 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_s3_packages }}"
+
+- name: upgrade | Add GPFS s3 packages to list
+  set_fact:
+      scale_install_all_packages: "{{ scale_install_all_packages | reject('search', 'noobaa-core') | list }}"
+  when: upgrade_non_protocol_node is defined and upgrade_non_protocol_node | bool
+  failed_when: false
+  changed_when: false
