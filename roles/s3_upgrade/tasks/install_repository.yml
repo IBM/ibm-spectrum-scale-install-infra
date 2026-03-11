@@ -39,11 +39,10 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_s3_packages }}"
-  when: upgrade_non_protocol_node is not defined
 
-- name: upgrade | Add GPFS mms3 packages to list
+- name: upgrade | Add GPFS s3 packages to list
   set_fact:
-    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
-  with_items:
-    - "{{ scale_s3_packages | select('search', 'mms3') | list }}"
-  when: upgrade_non_protocol_node is defined and upgrade_non_protocol_node | bool
+      scale_install_all_packages: "{{ scale_install_all_packages | reject('search', 'noobaa-core') | list }}"
+  when: not (scale_protocol_node | bool)
+  failed_when: false
+  changed_when: false
