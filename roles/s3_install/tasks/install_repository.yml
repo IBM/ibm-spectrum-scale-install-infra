@@ -29,3 +29,10 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_s3_packages }}"
+
+- name: install | s3 packages from list
+  set_fact:
+      scale_install_all_packages: "{{ scale_install_all_packages | reject('search', 'noobaa-core') | list }}"
+  when: not (scale_protocol_node | bool)
+  failed_when: false
+  changed_when: false
