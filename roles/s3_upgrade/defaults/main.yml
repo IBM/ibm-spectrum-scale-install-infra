@@ -18,3 +18,6 @@ scale_install_localpkg_tmpdir_path: /tmp
 
 ## Flag to install s3 debug package
 scale_s3_install_debuginfo: true
+
+## Flag to install mms3 rpm on non protocol nodes
+upgrade_non_protocol_node: false
