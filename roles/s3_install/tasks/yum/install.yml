@@ -5,3 +5,12 @@
    state: present
    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
   when: inventory_hostname in scale_s3_node_list
+
+- name: install | Install GPFS S3 packages
+  yum:
+   name: "{{ scale_install_all_packages }}"
+   state: present
+   disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when: not (scale_protocol_node | bool)
+  failed_when: false
+  changed_when: false
