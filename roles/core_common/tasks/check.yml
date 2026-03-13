@@ -129,6 +129,6 @@
         - ansible_distribution_version is version('10.1', '==')
         - ansible_architecture == "s390x"
   when:
-    ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution)
+    ((ansible_distribution in scale_sles_distribution or ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_azure_distribution)
     and scale_enable_gpg_check and scale_version is version_compare('5.0.5.0', '>=')
     and scale_install_repository_url is defined and scale_install_repository_url | length > 0)
