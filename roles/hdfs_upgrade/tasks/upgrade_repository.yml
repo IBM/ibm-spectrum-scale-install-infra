@@ -3,15 +3,10 @@
   set_fact:
    scale_hdfs_url: ""
 
-- name: upgrade | hdfs path on rhel7
+- name: upgrade | Upgrade GPFS hdfs packages
   set_fact:
    scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
-
-- name: upgrade | hdfs path on rhel8
-  set_fact:
-   scale_hdfs_url: "{{ hdfs_rpm_path_rhel }}"
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+  when: ansible_distribution in scale_rhel_distribution and (ansible_distribution_major_version | int) >= 7
 
 - name: upgrade | Configure hdfs YUM repository
   yum_repository:
