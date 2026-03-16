@@ -85,18 +85,8 @@
 
 - name: upgrade | zimon path
   set_fact:
-    scale_zimon_url: "zimon_rpms/sles12/"
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
-
-- name: upgrade | zimon path
-  set_fact:
-    scale_zimon_url: "zimon_rpms/sles15/"
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
-
-- name: upgrade | zimon path
-  set_fact:
-    scale_zimon_url: "zimon_rpms/sles16/"
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '16'
+    scale_zimon_url: "zimon_rpms/sles{{ ansible_distribution_major_version }}/"
+  when: ansible_distribution in scale_sles_distribution
 
 - name: install | remove existing zimon APT repository
   file:
