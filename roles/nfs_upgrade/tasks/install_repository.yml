@@ -192,7 +192,7 @@
   with_items:
     - "{{ scale_nfs_rpms }}"
   when: ansible_distribution in scale_rhel_distribution or
-        ansible_distribution in scale_sles_distribution
+        ansible_distribution in scale_sles_distribution or ansible_distribution in scale_azure_distribution
 
 - name: upgrade | Add GPFS nfs debuginfo packages to list
   set_fact:
@@ -202,6 +202,15 @@
   when:
      - ansible_distribution in scale_rhel_distribution or
        ansible_distribution in scale_sles_distribution
+     - scale_nfs_install_debuginfo | bool
+
+- name: upgrade | Add GPFS nfs debuginfo packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_debug_azure_rpms }}"
+  when:
+     - ansible_distribution in scale_azure_distribution
      - scale_nfs_install_debuginfo | bool
 
 - name: upgrade | Add GPFS nfs packages to list

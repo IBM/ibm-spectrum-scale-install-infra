@@ -18,6 +18,9 @@ scale_nfs_debug_rpms:
 - gpfs.nfs-ganesha-gpfs-debuginfo
 - gpfs.nfs-ganesha-utils-debuginfo
 
+scale_nfs_debug_azure_rpms:
+- gpfs.nfs-ganesha-debuginfo
+
 ## List of NFS debian package to install
 scale_nfs_debs:
 - gpfs.nfs-ganesha-gpfs
