@@ -6,6 +6,12 @@
       async: "{{ scale_command_timeout | default(300) }}"
       poll: 5
 
+    - name: configure | Check if zimon sensor is configured
+      shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
+      register: scale_zimon_conf_sensors
+      failed_when: false
+      changed_when: false
+
     - name: configure | Stat GaneshaProxy.conf file
       stat:
        path: /opt/IBM/zimon/defaults/GaneshaProxy.conf
