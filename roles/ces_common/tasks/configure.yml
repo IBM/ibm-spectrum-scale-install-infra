@@ -38,7 +38,7 @@
 - name: configure | Setting server licenses on protocol nodes
   command: "{{ scale_command_path }}mmchlicense server --accept -N {{ scale_server_nodes[1:] }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
-  async: 120
+  async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
   run_once: true
 
@@ -47,6 +47,8 @@
   register: scale_ces_enable_status
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
   failed_when: false
   ignore_errors: true
 
@@ -207,6 +209,8 @@
   register: scale_ces_enable_status
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
 
 - name: configure| List status of ces nodes
   debug:
@@ -231,6 +235,8 @@
    - scale_protocols.interface_mode is defined and scale_protocols.interface_mode | bool
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
 
 - name: configure | Add IPv6 interface
   shell:
@@ -262,14 +268,20 @@
      scale_export_ips: "{{ scale_export_ips + ',' + item|string }}"
     with_items:
     - "{{ scale_protocols.export_ip_pool }}"
+    when:
+       - scale_protocols.export_ip_pool is defined
     delegate_to: "{{ scale_protocol_node_list.0 }}"
     run_once: true
 
   - name: configure | Assign export ips as pool
     command: "{{ scale_command_path }}mmces address add --ces-ip {{ scale_export_ips[1:] }}"
-    when: scale_protocols.scale_ces_groups is not defined
+    when: 
+      - scale_protocols.scale_ces_groups is not defined
+      - scale_protocols.export_ip_pool is defined
     delegate_to: "{{ scale_protocol_node_list.0 }}"
     run_once: true
+    async: "{{ scale_command_timeout | default(300) }}"
+    poll: 5
 
   when: scale_protocols.scale_ces_groups is not defined
 
@@ -278,10 +290,5 @@
   #when: inventory_hostname in scale_protocol_node_list
   delegate_to: "{{ scale_protocol_node_list.0 }}"
   run_once: true
-
-- name: configure | Check if zimon sensor is configured
-  shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
-  register: scale_zimon_conf_sensors
-  delegate_to: "{{ scale_protocol_node_list.0 }}"
-  failed_when: false
-  changed_when: false
+  async: "{{ scale_command_timeout | default(300) }}"
+  poll: 5
