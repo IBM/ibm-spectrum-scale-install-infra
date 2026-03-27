@@ -9,6 +9,7 @@
 
 ## List of NFS RPMs to install
 scale_nfs_rpms:
+- gpfs.smb
 - gpfs.nfs-ganesha-gpfs
 - gpfs.nfs-ganesha
 - gpfs.nfs-ganesha-utils
