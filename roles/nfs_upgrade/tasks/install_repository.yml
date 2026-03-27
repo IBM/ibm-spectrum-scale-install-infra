@@ -1,117 +1,38 @@
 ---
-- name: upgrade | nfs path
+- name: install | nfs path rhel
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/rhel7/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+   scale_nfs_url: 'ganesha_rpms/rhel{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_rhel_distribution
 
-- name: upgrade | nfs path
+- name: install | nfs path azure
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/rhel8/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
-
-- name: upgrade | nfs path
-  set_fact:
-   scale_nfs_url: 'ganesha_rpms/rhel9/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
-
-- name: upgrade | nfs path
-  set_fact:
-   scale_nfs_url: 'ganesha_rpms/rhel10/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
-
-- name: upgrade | nfs path
-  set_fact:
-   scale_nfs_url: 'ganesha_rpms/azure3/'
+   scale_nfs_url: 'ganesha_rpms/azure{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_azure_distribution
 
-- name: upgrade | nfs path
+- name: install | nfs path ubuntu
   set_fact:
-   scale_nfs_url: 'ganesha_debs/ubuntu/'
+   scale_nfs_url: 'ganesha_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_ubuntu_distribution
 
-- name: upgrade | nfs path
+- name: install | nfs path sles
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/sles12/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+   scale_nfs_url: 'ganesha_rpms/sles{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_sles_distribution
 
-- name: upgrade | nfs path
+- name: install | zimon path for rhel
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/sles15/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
+    scale_zimon_url: 'zimon_rpms/rhel{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_rhel_distribution
 
-- name: upgrade | nfs path
+- name: install | zimon path for ubuntu
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/sles16/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '16'
+    scale_zimon_url: 'zimon_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution
 
-- name: upgrade | zimon path
+- name: install | zimon path for sles
   set_fact:
-   scale_zimon_url: 'zimon_rpms/rhel7/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
-
-- name: upgrade | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/rhel8/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
-
-- name: upgrade | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/rhel9/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
-
-- name: upgrade | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/rhel10/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
-
-- name: upgrade | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/azure3/'
-  when: ansible_distribution in scale_azure_distribution
-
-- name: upgrade | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/sles12/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
-
-- name: upgrade | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/sles15/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
-
-- name: upgrade | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/sles16/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '16'
-
-- name: upgrade | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_debs/ubuntu16/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
-
-- name: upgrade | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version >= '20'
-
-- block:
-   - name: upgrade | nfs path
-     set_fact:
-        scale_nfs_url: 'ganesha_debs/ubuntu/ubuntu20/'
-     when: ansible_distribution_major_version == '20'
-
-   - name: upgrade | nfs path
-     set_fact:
-        scale_nfs_url: 'ganesha_debs/ubuntu/ubuntu22/'
-     when: ansible_distribution_major_version == '22'
-
-   - name: upgrade | nfs path
-     set_fact:
-        scale_nfs_url: 'ganesha_debs/ubuntu/ubuntu24/'
-     when: ansible_distribution_major_version == '24'
-  when:
-     - ansible_distribution in scale_ubuntu_distribution
-     - scale_version >= "5.1.4.0"
+    scale_zimon_url: 'zimon_rpms/sles{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_sles_distribution
 
 - name: upgrade | configure nfs YUM repository
   yum_repository:
