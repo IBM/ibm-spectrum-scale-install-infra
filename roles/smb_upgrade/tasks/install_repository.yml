@@ -1,20 +1,20 @@
 ---
-- name: install | smb path rhel 
+- name: upgrade | smb path rhel 
   set_fact:
    scale_smb_url: 'smb_rpms/rhel{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_rhel_distribution
 
-- name: install | smb path azure
+- name: upgrade | smb path azure
   set_fact:
    scale_smb_url: 'smb_rpms/azure{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_azure_distribution
 
-- name: install | smb path for sles
+- name: upgrade | smb path for sles
   set_fact:
    scale_smb_url: 'smb_rpms/sles{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_sles_distribution
 
-- name: install | smb path for ubuntu
+- name: upgrade | smb path for ubuntu
   set_fact:
     scale_smb_url: 'smb_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_ubuntu_distribution  

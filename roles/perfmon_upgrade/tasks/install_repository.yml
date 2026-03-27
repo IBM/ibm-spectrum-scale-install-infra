@@ -34,7 +34,7 @@
     scale_zimon_url: 'zimon_rpms/sles{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_sles_distribution
 
-- name: upgrade | zimon path
+- name: upgrade | zimon path for azure
   set_fact:
     scale_zimon_url: 'zimon_rpms/azure{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_azure_distribution

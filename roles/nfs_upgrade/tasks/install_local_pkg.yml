@@ -98,37 +98,37 @@
    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
    state: absent
 
-- name: install | nfs path rhel
+- name: upgrade | nfs path rhel
   set_fact:
    scale_nfs_url: 'ganesha_rpms/rhel{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_rhel_distribution
 
-- name: install | nfs path azure
+- name: upgrade | nfs path azure
   set_fact:
    scale_nfs_url: 'ganesha_rpms/azure{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_azure_distribution
 
-- name: install | nfs path ubuntu
+- name: upgrade | nfs path ubuntu
   set_fact:
    scale_nfs_url: 'ganesha_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_ubuntu_distribution
 
-- name: install | nfs path sles
+- name: upgrade | nfs path sles
   set_fact:
    scale_nfs_url: 'ganesha_rpms/sles{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_sles_distribution
 
-- name: install | zimon path for rhel
+- name: upgrade | zimon path for rhel
   set_fact:
     scale_zimon_url: 'zimon_rpms/rhel{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_rhel_distribution
 
-- name: install | zimon path for ubuntu
+- name: upgrade | zimon path for ubuntu
   set_fact:
     scale_zimon_url: 'zimon_debs/ubuntu/'
   when: ansible_distribution in scale_ubuntu_distribution
 
-- name: install | zimon path for sles
+- name: upgrade | zimon path for sles
   set_fact:
     scale_zimon_url: 'zimon_rpms/sles{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_sles_distribution
