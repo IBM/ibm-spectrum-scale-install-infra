@@ -53,6 +53,7 @@
 - name: java_home | Check JAVA_HOME path exist
   stat:
     path: "{{ javahome_path }}"
+    follow: true
   register: java_path_details
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
