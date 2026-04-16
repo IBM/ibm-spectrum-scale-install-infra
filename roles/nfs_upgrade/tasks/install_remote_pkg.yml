@@ -128,7 +128,7 @@
 
 - name: upgrade | smb path for ubuntu
   set_fact:
-   scale_smb_url: 'smb_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }/'
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_ubuntu_distribution
 
 - block:  ## when: host is defined as a protocol node
