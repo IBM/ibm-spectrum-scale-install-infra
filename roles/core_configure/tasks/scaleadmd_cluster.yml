@@ -331,6 +331,22 @@
   ignore_errors: yes
   failed_when: false
 
+- name: cluster | Handle scaleadmd restart on quorum nodes
+  block:
+    - name: cluster | Check scaleadmd status
+      command: systemctl status scaleadmd
+      register: scaleadmd_status
+      ignore_errors: yes
+      failed_when: false
+
+    - name: cluster | Restart scaleadmd (workaround)
+      command: systemctl restart scaleadmd
+      ignore_errors: yes
+      failed_when: false
+      when: "'non-apinode' in scaleadmd_status.stdout"
+  when:
+     - scale_cluster_quorum | default(false) | bool
+
 - name: cluster | Restart scaleadmd ( workaround)
   command: systemctl restart scaleadmd
   ignore_errors: yes
