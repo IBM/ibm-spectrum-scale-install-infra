@@ -65,6 +65,7 @@
   when:
     - '"gpfs.license.std" not in scale_gpfs_license_package'
     - '"gpfs.license.da" not in scale_gpfs_license_package'
+    - '"gpfs.license.ds" not in scale_gpfs_license_package'
 
 - name: install | Add GPFS license packages to list
   set_fact:
