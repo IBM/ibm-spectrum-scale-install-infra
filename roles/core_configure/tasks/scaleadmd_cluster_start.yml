@@ -38,6 +38,10 @@
         - scale_daemon_node_list is defined
         - scale_daemon_node_list | length > 0
       register: scalectl_startup
+      until:
+        - "'Node Start: Command successfully completed' in scalectl_startup.stdout"
+      retries: 5
+      delay: 15
       notify: wait-daemon-active
   when:
     - delegate_node is defined
@@ -47,6 +51,7 @@
 
 - debug:
     msg: "{{scalectl_startup}}"
+  run_once: true
   when:
     - scalectl_startup is defined
 
