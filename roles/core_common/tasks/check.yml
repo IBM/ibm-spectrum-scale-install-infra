@@ -110,6 +110,13 @@
         url: "{{ scale_gpgKey_repository_src }}"
         dest: "{{ scale_gpgKey_dest }}"
         validate_certs: no
+      when: ansible_python_version is version('3.14', '<')
+
+    - name: check | Copy key (Python 3.14+ compatibility)
+      shell:
+        cmd: curl -k -L -o "{{ scale_gpgKey_dest }}/{{ scale_gpg_key_name }}" "{{ scale_gpgKey_repository_src }}"
+        creates: "{{ scale_gpgKey_dest }}/{{ scale_gpg_key_name }}"
+      when: ansible_python_version is version('3.14', '>=')
 
     - name: Import GPG key
       shell:
