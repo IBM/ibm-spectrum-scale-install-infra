@@ -81,11 +81,12 @@
   when: 
     - '"gpfs.license.std" not in scale_gpfs_license_package'
     - '"gpfs.license.da" not in scale_gpfs_license_package'
+    - '"gpfs.license.ds" not in scale_gpfs_license_package'
 
 - name: upgrade | Add GPFS license packages to list
   set_fact:
     scale_install_license_packages: "{{ scale_install_license_packages + [ item ] }}"
   when: "'gpfs.license.std' in scale_gpfs_license_package or  
-         'gpfs.license.da' in scale_gpfs_license_package"
+         'gpfs.license.da' in scale_gpfs_license_package or 'gpfs.license.ds' in scale_gpfs_license_package"
   with_items:
       - "{{ scale_gpfs_license_package }}"
