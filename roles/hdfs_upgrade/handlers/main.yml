@@ -1,4 +1,4 @@
 ---
  # handlers file for node
  - name: yum-clean-metadata
-   command: dnf clean metadata
+   command: yum clean metadata
