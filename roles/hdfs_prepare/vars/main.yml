@@ -4,4 +4,3 @@
 scale_hdfs_os_distribution:
   - RedHat
   - CentOS
-  - Microsoft Azure Linux
