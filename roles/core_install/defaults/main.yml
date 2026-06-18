@@ -24,15 +24,15 @@
 
 
 ## Specify the Spectrum Scale architecture that you want to install on your nodes
-scale_architecture: "{{ ansible_architecture }}"
+scale_architecture: "{{ ansible_architecture | default('x86_64') }}"
 
 ## Temporary directory to copy installation package to
 ## (local package installation method)
-scale_install_localpkg_tmpdir_path: /tmp
+scale_install_localpkg_tmpdir_path: "{{ scale_install_localpkg_tmpdir_path | default('/tmp') }}"
 
 ## Specify package extraction path
-scale_extracted_default_path: "/usr/lpp/mmfs"
-scale_extracted_path: "{{ scale_extracted_default_path }}/{{ scale_version }}"
+scale_extracted_default_path: "{{ scale_extracted_default_path | default('/usr/lpp/mmfs') }}"
+scale_extracted_path: "{{ scale_extracted_path | default(scale_extracted_default_path + '/' + scale_version) }}"
 
 ## List of GPFS RPMs to install
 scale_install_gpfs_packages:
@@ -68,8 +68,8 @@ scale_install_gplbin_prereqs:
 
 ## List of RPMs to install when building Linux kernel extension from source
 scale_build_gplsrc_prereqs:
-  - kernel-devel-{{ ansible_kernel }}
-  - kernel-headers-{{ ansible_kernel }}
+  - kernel-devel-{{ ansible_kernel | default('') }}
+  - kernel-headers-{{ ansible_kernel | default('') }}
   - gcc-c++
   - make
 
@@ -96,6 +96,6 @@ scale_build_gplsrc_prereqs_zypp:
 
 ## List of RPMs to install when building Linux kernel extension from source on s390x
 scale_build_gplsrc_prereqs_s390x:
-  - kernel-devel-{{ ansible_kernel }}
-  - kernel-headers-{{ ansible_kernel }}
+  - kernel-devel-{{ ansible_kernel | default('') }}
+  - kernel-headers-{{ ansible_kernel | default('') }}
   - make

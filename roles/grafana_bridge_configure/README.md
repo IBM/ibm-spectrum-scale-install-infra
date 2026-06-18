@@ -1,7 +1,7 @@
 IBM Spectrum Scale Bridge for Grafana Ansible Role
 =================================================
 
-Highly-customizable Ansible role for installing & configuring IBM Spectrum Scale Bridge for Grafana, enabling performance metrics visualization through Grafana dashboards. 
+Highly-customizable Ansible role for installing & configuring IBM Spectrum Scale Bridge for Grafana, enabling performance metrics visualization through Grafana dashboards.
 
 
 Features
@@ -36,7 +36,7 @@ $ ansible-playbook -i hosts playbook_grafana_bridge.yml
 Requirements
 -------------
 
-Public repository available, you'll need to download it from here https://github.com/IBM/ibm-spectrum-scale-bridge-for-grafana 
+Public repository available, you'll need to download it from here https://github.com/IBM/ibm-spectrum-scale-bridge-for-grafana
 
 
 Role Variables

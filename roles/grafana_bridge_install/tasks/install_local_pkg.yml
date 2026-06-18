@@ -1,0 +1,125 @@
+---
+# Local package installation method
+
+- block:  ## run_once: true
+    - name: install | Stat local installation package
+      stat:
+        path: "{{ scale_install_localpkg_path }}"
+        checksum_algorithm: md5
+      register: scale_install_localpkg
+
+    - name: install | Check local installation package
+      assert:
+        that: scale_install_localpkg.stat.exists
+        msg: >-
+          Please set the variable 'scale_install_localpkg_path' to point to the
+          local installation package (accessible on Ansible control machine)!
+#
+# Optionally, verify package checksum
+#
+    - name: install | Stat checksum file
+      stat:
+        path: "{{ scale_install_localpkg_path }}.md5"
+      register: scale_install_md5_file
+
+    - block:  ## when: scale_install_md5_file.stat.exists
+        - name: install | Read checksum from file
+          set_fact:
+            scale_install_md5_sum: "{{ lookup('file', scale_install_localpkg_path + '.md5') }}"
+
+        - name: install | Compare checksums
+          assert:
+            that: scale_install_md5_sum.strip().split().0 == scale_install_localpkg.stat.checksum
+            msg: >-
+              Checksums don't match. Please check integritiy of your local
+              installation package!
+      when: scale_install_md5_file.stat.exists
+  run_once: true
+  delegate_to: localhost
+
+#
+# Copy installation package
+#
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs_packagedir
+
+- block:  ## when: not scale_install_gpfs_packagedir.stat.exists
+    - name: install | Stat temporary directory
+      stat:
+        path: "{{ scale_install_localpkg_tmpdir_path }}"
+      register: scale_install_localpkg_tmpdir
+
+    - name: install | Check temporary directory
+      assert:
+        that:
+          - scale_install_localpkg_tmpdir.stat.exists
+          - scale_install_localpkg_tmpdir.stat.isdir
+        msg: >-
+          Please set the variable 'scale_install_localpkg_tmpdir_path' to point
+          to a temporary directory on the remote system!
+    - name: install | Copy installation package to node
+      copy:
+        src: "{{ scale_install_localpkg_path }}"
+        dest: "{{ scale_install_localpkg_tmpdir_path }}"
+        mode: a+x
+  when: not scale_install_gpfs_packagedir.stat.exists
+
+#
+# Extract installation package
+#
+- name: install | Extract installation package
+  vars:
+    localpkg: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+  command: "{{ localpkg + ' --silent' }}"
+  args:
+    creates: "{{ scale_gpfs_path_url }}"
+
+- name: install | Stat extracted packages
+  stat:
+    path: "{{ scale_gpfs_path_url }}"
+  register: scale_install_gpfs_packagedir
+
+- name: install | Check extracted packages
+  assert:
+    that:
+      - scale_install_gpfs_packagedir.stat.exists
+      - scale_install_gpfs_packagedir.stat.isdir
+    msg: >-
+      The variable 'scale_version' doesn't seem to match the contents of the
+      local installation package!
+#
+# Delete installation package
+#
+- name: install | Delete installation package from node
+  file:
+    path: "{{ scale_install_localpkg_tmpdir_path + '/' + scale_install_localpkg_path | basename }}"
+    state: absent
+
+#
+# Find GPFS Grafana(Grafana)
+#
+- block:
+    - name: install | Find GPFS Grafana packages
+      find:
+        paths: "{{ scale_gpfs_path_url }}"
+        patterns: gpfs.grafana-bridge*
+      register: scale_install_gpfs_grafana
+
+    - name: install | Check valid GPFS Grafana packages
+      assert:
+        that: scale_install_gpfs_grafana.matched > 0
+        msg: >-
+          No GPFS Grafana (gpfs.grafana-bridge) packages found:
+          "{{ scale_gpfs_path_url }}/gpfs.grafana-bridge*"
+
+    - name: install | Add GPFS Grafana packages to list
+      vars:
+        current_package: "{{ scale_gpfs_path_url }}/{{ item }}"
+      set_fact:
+        scale_install_all_packages: "{{ scale_install_all_packages + [ current_package ] }}"
+      with_items:
+        - "{{ scale_install_gpfs_grafana.files.0.path | basename }}"
+
+  when: scale_install_package | bool

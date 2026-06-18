@@ -1,0 +1,21 @@
+scale_sed_config:
+    tpm_password_file: "/path/to/password.txt"
+    new_tpm_password_file: "/path/to/newpassword.txt"
+    disable_clear: true
+    change_password: false
+    nv_slot_id: "0x01500000"
+    nv_slot_count: 4
+    recovery_group: "RecoveryGroupName"
+    enroll_drive: false
+    rekey_drive: false
+    generate: false
+    migrate: false
+    backup_key: false
+    restore_key: false
+    io_nodes:
+        - ionode1
+        - ionode2
+    utility_nodes:
+        - utilitynode
+    emsvm:
+        - emsvmnode

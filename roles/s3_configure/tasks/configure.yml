@@ -1,6 +1,30 @@
 ---
-- name: configure | Enable S3
-  shell:
-   cmd: "{{ scale_command_path }}mmces service enable S3"
-  delegate_to: "{{ scale_s3_node_list.0 }}"
+- block:
+    - name: configure | Enable S3
+      shell:
+        cmd: "{{ scale_command_path }}mmces service enable S3"
+      delegate_to: "{{ scale_s3_node_list.0 }}"
+      async: "{{ scale_command_timeout | default(300) }}"
+      poll: 5
+
+    - name: configure | Check if zimon sensor is configured
+      shell: "/usr/lpp/mmfs/bin/mmperfmon config show"
+      register: scale_zimon_conf_sensors
+      failed_when: false
+      changed_when: false
+
+    - name: configure | Stat ZIMonSensors_CesS3.cfg file
+      stat:
+       path: /opt/IBM/zimon/defaults/ZIMonSensors_CesS3.cfg
+      register: scale_config_file_status
+
+    - name: configure | Configuring CES S3 performance monitoring sensors
+      shell:
+       cmd: "{{ scale_command_path }}mmperfmon config add --sensors=/opt/IBM/zimon/defaults/ZIMonSensors_CesS3.cfg"
+      async: "{{ scale_command_timeout | default(300) }}"
+      poll: 5
+      when:
+        - scale_config_file_status.stat.exists
+        - " 'mmperfmon: There is no performance monitoring configuration data.' not in scale_zimon_conf_sensors.stderr"
   run_once: true
+  delegate_to: "{{ scale_s3_node_list.0 }}"

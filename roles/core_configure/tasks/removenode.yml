@@ -4,7 +4,8 @@
     name: "{{ item }}"
     groups: scale_remove_nodes
   when:
-    - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'absent'
+    - hostvars[item].scale_state is defined
+    - hostvars[item].scale_state == 'absent'
   with_items: "{{ ansible_play_hosts }}"
   changed_when: false
   run_once: true
@@ -21,8 +22,11 @@
         name: "{{ item }}"
         groups: scale_cluster_members
       when:
-        - hostvars[item].scale_state is defined and hostvars[item].scale_state == 'present'
-        - hostvars[item].scale_admin_node is defined and hostvars[item].scale_admin_node|bool
+        - hostvars[item].scale_state is defined
+        - hostvars[item].scale_state == 'present'
+        - hostvars[item].scale_admin_node is defined
+        - hostvars[item].scale_admin_node | bool
+        - hostvars[item].scale_cluster_clusterId.stdout is defined
         - hostvars[item].scale_cluster_clusterId.stdout
       with_items: "{{ ansible_play_hosts }}"
       changed_when: false
@@ -36,7 +40,9 @@
         state: absent
         name: "{{ delete_nodes | join(',') }}"
       register: scale_delete_node
-      delegate_to: "{{ groups['scale_cluster_members'].0 }}"
+      delegate_to: "{{ (groups['scale_cluster_members'] | default([]))[0] | default(inventory_hostname) }}"
 
-  when: groups['scale_remove_nodes'] is defined and groups['scale_remove_nodes'] | length > 0
+  when:
+    - groups['scale_remove_nodes'] is defined
+    - groups['scale_remove_nodes'] | length > 0
   run_once: true

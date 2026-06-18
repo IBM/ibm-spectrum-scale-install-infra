@@ -1,129 +1,70 @@
 ---
-- name: install | nfs path
+- name: install | nfs path rhel
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/rhel7/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+   scale_nfs_url: 'ganesha_rpms/rhel{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_rhel_distribution
 
-- name: install | nfs path
+- name: install | nfs path azure
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/rhel8/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+   scale_nfs_url: 'ganesha_rpms/azure{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_azure_distribution
 
-- name: install | nfs path
+- name: install | nfs path ubuntu
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/rhel9/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
+   scale_nfs_url: 'ganesha_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_ubuntu_distribution
 
-- name: install | nfs path
+- name: install | nfs path sles
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/rhel10/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
-    
-- name: install | nfs path
+   scale_nfs_url: 'ganesha_rpms/sles{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_sles_distribution
+
+- name: install | smb path for ubuntu
   set_fact:
-   scale_nfs_url: 'ganesha_debs/ubuntu16/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
+    scale_smb_url: 'smb_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_ubuntu_distribution  
 
-- name: install | nfs path
+- name: install | zimon path for rhel
   set_fact:
-   scale_nfs_url: 'ganesha_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+    scale_zimon_url: 'zimon_rpms/rhel{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_rhel_distribution
 
-- name: install | nfs path
+- name: install | zimon path for ubuntu
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/sles12/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
+    scale_zimon_url: 'zimon_debs/ubuntu/'
+  when: ansible_distribution in scale_ubuntu_distribution
 
-- name: install | nfs path
+- name: install | zimon path for sles
   set_fact:
-   scale_nfs_url: 'ganesha_rpms/sles15/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version >= '15'
-
-- name: install | smb path
+    scale_zimon_url: 'zimon_rpms/sles{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_sles_distribution
+  
+- name: install | zimon path azure
   set_fact:
-   scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
+   scale_zimon_url: 'zimon_rpms/azure{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_azure_distribution
 
-- name: install | smb path
+- name: install | smb path for azure
   set_fact:
-   scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
+   scale_smb_url: 'smb_rpms/azure{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_azure_distribution
 
-- name: install | smb path
+- name: install | smb path for sles
   set_fact:
-   scale_smb_url: 'smb_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+   scale_smb_url: 'smb_rpms/sles{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_sles_distribution
 
-- block:
-   - name: install | smb path
-     set_fact:
-        scale_smb_url: 'smb_debs/ubuntu/ubuntu20/'
-     when: ansible_distribution_major_version == '20'
-
-   - name: install | smb path
-     set_fact:
-        scale_smb_url: 'smb_debs/ubuntu/ubuntu22/'
-     when: ansible_distribution_major_version == '22'
-
-   - name: install | smb path
-     set_fact:
-        scale_smb_url: 'smb_debs/ubuntu/ubuntu24/'
-     when: ansible_distribution_major_version == '24'
-
-   - name: install | nfs path
-     set_fact:
-        scale_nfs_url: 'ganesha_debs/ubuntu/ubuntu20/'
-     when: ansible_distribution_major_version == '20'
-
-   - name: install | nfs path
-     set_fact:
-        scale_nfs_url: 'ganesha_debs/ubuntu/ubuntu22/'
-     when: ansible_distribution_major_version == '22'
-   
-   - name: install | nfs path
-     set_fact:
-        scale_nfs_url: 'ganesha_debs/ubuntu/ubuntu24/'
-     when: ansible_distribution_major_version == '24'
-  when:
-     - ansible_distribution in scale_ubuntu_distribution
-     - scale_version >= "5.1.4.0"
-
-- name: install | zimon path
+- name: install | smb path for rhel
   set_fact:
-   scale_zimon_url: 'zimon_rpms/rhel7/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+   scale_smb_url: 'smb_rpms/rhel{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_rhel_distribution
 
-- name: install | zimon path
+- name: install | smb path for ubuntu
   set_fact:
-   scale_zimon_url: 'zimon_rpms/rhel8/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+   scale_smb_url: 'smb_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_ubuntu_distribution
 
-- name: install | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/rhel9/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
-
-- name: install | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/sles12/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '12'
-
-- name: install | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_rpms/sles15/'
-  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
-
-- name: install | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_debs/ubuntu16/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version != '20'
-
-- name: install | zimon path
-  set_fact:
-   scale_zimon_url: 'zimon_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version >= '20'
-
-- name: install|configure nfs YUM repository
+- name: install | configure nfs YUM repository
   yum_repository:
     name: spectrum-scale-nfs-rpms
     description: IBM Spectrum Scale (NFS RPMS)
@@ -220,13 +161,59 @@
     - scale_install_repository_url is defined
     - scale_install_repository_url != 'existing'
 
+- name: install | Configure smb YUM repository
+  yum_repository:
+    name: spectrum-scale-smb
+    description: IBM Spectrum Scale (smb)
+    baseurl: "{{ scale_install_repository_url }}{{ scale_smb_url }}"
+    gpgcheck: "{{ scale_install_gpgcheck }}"
+    repo_gpgcheck: no
+    sslverify: no
+    state: present
+  notify: yum-clean-metadata
+  when:
+    - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+    - scale_install_repository_url is defined
+    - scale_install_repository_url != 'existing'
+
+- name: install | Configure smb zypper repository
+  zypper_repository:
+    name: spectrum-scale-smb-rpms
+    repo: "{{ scale_install_repository_url }}{{ scale_smb_url }}"
+    runrefresh: yes
+    state: present
+    disable_gpg_check: yes
+  when:
+    - ansible_pkg_mgr == 'zypper'
+    - scale_install_repository_url is defined
+    - scale_install_repository_url != 'existing'
+
 - name: install | Add GPFS nfs packages to list
   set_fact:
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_nfs_rpms }}"
   when: ansible_distribution in scale_rhel_distribution or
-        ansible_distribution in scale_sles_distribution
+        ansible_distribution in scale_sles_distribution or ansible_distribution in scale_azure_distribution
+
+- name: install | Add GPFS nfs packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_debug_rpms }}"
+  when:
+     - ansible_distribution in scale_rhel_distribution or
+       ansible_distribution in scale_sles_distribution
+     - scale_nfs_install_debuginfo | bool 
+
+- name: install | Add GPFS nfs packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_debug_azure_rpms }}"
+  when:
+     - ansible_distribution in scale_azure_distribution
+     - scale_nfs_install_debuginfo | bool
 
 - name: install | Add GPFS nfs packages to list
   set_fact:
@@ -234,6 +221,15 @@
   with_items:
     - "{{ scale_nfs_debs }}"
   when: ansible_distribution in scale_ubuntu_distribution
+
+- name: install | Add GPFS nfs packages to list
+  set_fact:
+    scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
+  with_items:
+    - "{{ scale_nfs_debug_debs }}"
+  when: 
+     - ansible_distribution in scale_ubuntu_distribution
+     - scale_nfs_install_debuginfo | bool
 
 - name: install | Add GPFS pm-ganesha packages to list
   set_fact:

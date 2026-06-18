@@ -5,8 +5,8 @@
 
   vars:
     scale_grafana_bridge:
-      opentsdb_port: "4242"
-      prometheus_port: "9250"
+      opentsdb_port: 4242
+      prometheus_port: 9250
       encoded_password: "TXlWZXJ5U3Ryb25nUGFzc3cwcmQhCg=="
       transport: "http"
 

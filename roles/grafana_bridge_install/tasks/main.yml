@@ -1,7 +1,6 @@
 ---
-# Install IBM Spectrum Scale Bridge for Grafana
-- name: Install Grafana Bridge RPM
-  yum:
-    name: ibm-grafana-bridge
-    state: present
-    enablerepo: OS_Extras
+# Install IBM Spectrum Scale for Grafana Bridge role
+
+- import_tasks: install.yml
+  tags: install
+  when: (scale_install_package | bool)

@@ -42,7 +42,7 @@
     scale_storage: []
     scale_storage_nsddefs: []
     scale_storage_nsdservers: []
-  when: scale_storage is undefined
+  when: scale_storage is not defined
 
 - name: storage | Find defined NSDs
   set_fact:
@@ -97,6 +97,7 @@
         verify: "{{ 'no' if scale_storage_fsparams[item.item].overwriteNSDs | default(scale_storage_filesystem_defaults.overwriteNSDs) else 'yes' }}"
       command: /usr/lpp/mmfs/bin/mmcrnsd -F /var/mmfs/tmp/StanzaFile.new.{{ item.item }} -v {{ verify }}
       when:
+        - item.size is defined
         - item.size > 1
       with_items: "{{ scale_storage_stanzafile_new.results }}"
 
@@ -150,6 +151,7 @@
         -T {{ scale_storage_fsparams[item.item].defaultMountPoint | default(scale_storage_filesystem_defaults.defaultMountPoint_prefix + item.item) }}
       when:
         - item.item not in scale_storage_existing_fs.stdout_lines
+        - item.size is defined
         - item.size > 1
       with_items: "{{ scale_storage_stanzafile_new.results }}"
 
@@ -182,6 +184,7 @@
       command: /usr/lpp/mmfs/bin/mmadddisk {{ item.item }} -F /var/mmfs/tmp/StanzaFile.new.{{ item.item }}
       when:
         - item.item in scale_storage_existing_fs.stdout_lines
+        - item.size is defined
         - item.size > 1
       with_items: "{{ scale_storage_stanzafile_new.results }}"
 

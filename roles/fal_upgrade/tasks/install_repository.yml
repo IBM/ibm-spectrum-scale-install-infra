@@ -30,6 +30,16 @@
     scale_fal_url: 'gpfs_rpms/rhel9/'
   when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
 
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/rhel10/'
+  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
+
+- name: install | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/azure3/'
+  when: ansible_distribution in scale_azure_distribution
+
 - name: upgrade | file audit logging path
   set_fact:
     scale_fal_url: 'gpfs_debs/ubuntu/'
@@ -55,7 +65,12 @@
 - name: upgrade | file audit logging path
   set_fact:
     scale_fal_url: 'gpfs_rpms/sles15/'
-  when: ansible_distribution in scale_sles_distribution
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '15'
+
+- name: upgrade | file audit logging path
+  set_fact:
+    scale_fal_url: 'gpfs_rpms/sles16/'
+  when: ansible_distribution in scale_sles_distribution and ansible_distribution_major_version == '16'
 
 - name: upgrade | Configure fal YUM repository
   yum_repository:

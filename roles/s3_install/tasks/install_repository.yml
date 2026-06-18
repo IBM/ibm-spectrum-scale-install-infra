@@ -1,18 +1,13 @@
 ---
-- name: install | s3 path
+- name: install | s3 path on Rhel
   set_fact:
-   scale_s3_url: 's3_rpms/rhel8/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
+    scale_s3_url: 's3_rpms/rhel{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_rhel_distribution
 
-- name: install | s3 path
+- name: install | s3 path on Azure
   set_fact:
-   scale_s3_url: 's3_rpms/rhel9/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '9'
-
-- name: install | s3 path
-  set_fact:
-   scale_s3_url: 's3_rpms/rhel10/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '10'
+   scale_s3_url: 's3_rpms/azure{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_azure_distribution
 
 - name: install | Configure s3 YUM repository
   yum_repository:
@@ -34,3 +29,10 @@
     scale_install_all_packages: "{{ scale_install_all_packages + [ item ] }}"
   with_items:
     - "{{ scale_s3_packages }}"
+
+- name: install | s3 packages from list
+  set_fact:
+      scale_install_all_packages: "{{ scale_install_all_packages | reject('search', 'noobaa-core') | list }}"
+  when: not (scale_protocol_node | bool)
+  failed_when: false
+  changed_when: false

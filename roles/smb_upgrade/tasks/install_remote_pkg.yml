@@ -71,35 +71,20 @@
       The variable 'scale_version' doesn't seem to match the contents of the
       remote installation package!
 
-- name: upgrade | smb path
+- name: upgrade | smb path rhel
   set_fact:
-   scale_smb_url: 'smb_rpms/rhel7/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '7'
+   scale_smb_url: 'smb_rpms/rhel{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_rhel_distribution
 
-- name: upgrade | smb path
+- name: upgrade | smb path for sles
   set_fact:
-   scale_smb_url: 'smb_rpms/rhel8/'
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version == '8'
-
-- name: upgrade | smb path
-  set_fact:
-   scale_smb_url: 'smb_rpms/sles12/'
+   scale_smb_url: 'smb_rpms/sles{{ ansible_distribution_major_version }}/'
   when: ansible_distribution in scale_sles_distribution
 
-- name: upgrade | smb path
+- name: upgrade | smb path for ubuntu
   set_fact:
-   scale_smb_url: 'smb_debs/ubuntu/ubuntu16/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '16'
-
-- name: upgrade | smb path
-  set_fact:
-   scale_smb_url: 'smb_debs/ubuntu/ubuntu18/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '18'
-
-- name: upgrade | smb path
-  set_fact:
-   scale_smb_url: 'smb_debs/ubuntu/'
-  when: ansible_distribution in scale_ubuntu_distribution and ansible_distribution_major_version == '20'
+    scale_smb_url: 'smb_debs/ubuntu/ubuntu{{ ansible_distribution_major_version }}/'
+  when: ansible_distribution in scale_ubuntu_distribution
 
 - block:  ## when: host is defined as a protocol node
 

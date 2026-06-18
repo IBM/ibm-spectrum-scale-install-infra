@@ -100,13 +100,12 @@
 - name: install | callhome path
   set_fact:
    callhome_url: 'gpfs_rpms/'
-  when: ansible_distribution in scale_rhel_distribution or
-        ansible_distribution in scale_sles_distribution
+  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_sles_distribution
 
 - name: install | callhome path
   set_fact:
    callhome_url: 'gpfs_debs/'
-  when: ansible_distribution in scale_ubuntu_distribution
+  when: ansible_distribution in scale_ubuntu_distribution and scale_ubuntu_distribution | length > 0
 
 - block:
   - name: install | Find gpfs.java (gpfs.java) package

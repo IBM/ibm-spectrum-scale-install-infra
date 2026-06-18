@@ -31,14 +31,29 @@
    - scale_hdfs_nodes_list|length > 0
    fail_msg: "No hdfs nodes configured"
 
-- name: java_home | Fetch JAVA_HOME path
-  shell: echo $JAVA_HOME
+- name: java_home | Fetch JAVA_HOME path from remote environment
+  shell: /bin/bash -lc 'printf "%s" "$JAVA_HOME"'
   register: java_path
+  changed_when: false
+  when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
+
+- name: java_home | Set path of JAVA_HOME
+  set_fact:
+    javahome_path: "{{ java_path.stdout | trim }}"
+  when:
+    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
+
+- name: java_home | Assert JAVA_HOME is set
+  assert:
+    that:
+    - javahome_path | length > 0
+    fail_msg: "JAVA_HOME is not set in the remote shell environment"
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
 - name: java_home | Check JAVA_HOME path exist
   stat:
-    path: "{{ java_path.stdout }}"
+    path: "{{ javahome_path }}"
+    follow: true
   register: java_path_details
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
@@ -46,14 +61,9 @@
   assert:
     that:
     - java_path_details.stat.exists
-    fail_msg: The JAVA_HOME path does not exists !
+    - java_path_details.stat.isdir
+    fail_msg: "The JAVA_HOME path does not exist: {{ javahome_path }}"
   when: ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
-
-- name: java_home | Set path of JAVA_HOME
-  set_fact:
-    javahome_path: "{{ java_path.stdout }}"
-  when:
-    - ansible_fqdn in scale_hdfs_nodes_list or inventory_hostname in scale_hdfs_nodes_list
 
 - name: java_home | verify JAVA
   command: "ls {{ javahome_path }}/bin/java"
@@ -78,4 +88,5 @@
 
 - debug:
     msg: "gpfs_hdfs_protocol_version: {{ gpfs_hdfs_protocol_version}}"
+
 

@@ -6,7 +6,7 @@
 - name: upgrade | gnr path
   set_fact:
    scale_gnr_url: 'gpfs_rpms/'
-  when: ansible_distribution in scale_rhel_distribution
+  when: ansible_distribution in scale_rhel_distribution or ansible_distribution in scale_azure_distribution
 
 - name: upgrade | Configure gnr YUM repository
   yum_repository:

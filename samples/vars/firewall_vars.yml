@@ -1,0 +1,28 @@
+#
+# samples/vars/firewall_vars.yml
+#
+
+# Sample firewall configuration variables for scale_firewall_config role.
+#
+# These variables define:
+# 1) The ports that Ansible will configure (firewall)
+# 2) The ports that must exist for the system to be considered valid (required_ports)
+#
+# This separation allows policy enforcement independent of configuration logic,
+# ensuring production safety and compliance validation.
+#
+
+firewall: 
+ - { port: 80, protocol: tcp }
+ - { port: 22, protocol: tcp }
+ - { port: 443, protocol: tcp }
+
+
+required_ports:
+  - { port: 80, protocol: tcp}
+  - { port: 443, protocol: tcp }
+  - { port: 22, protocol: tcp }
+
+
+
+
