@@ -100,8 +100,9 @@
       failed_when: false
       changed_when: false
       when:
-         - scale_gpfs_license_package is not in available_package_name
          - available_packages.rc == 0 and available_packages.stdout_lines | length != 0
+         - "'gpfs.license.ds' in available_package_name"
+         - scale_gpfs_license_package is not in available_package_name
   when: "'gpfs.license.dmd' in scale_gpfs_license_package"
 
 - name: upgrade | Add GPFS license packages to list
