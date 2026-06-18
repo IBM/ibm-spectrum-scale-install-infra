@@ -71,6 +71,39 @@
   when:
     - ansible_pkg_mgr == 'zypper'
 
+- name: Check DNF package availability
+  block:
+    - name: Check if package is available in DNF repository
+      shell: |
+        dnf list available gpfs.license* --showduplicates | grep -v "^Last metadata" | grep "gpfs.license*"
+      register: available_packages
+      failed_when: false
+      changed_when: false
+
+    - name: Extract package information
+      set_fact:
+        available_package_name: "{{ available_packages.stdout_lines[0].split()[0].rsplit('.', 1)[0] }}"
+      failed_when: false
+      changed_when: false
+      when: available_packages.rc == 0 and available_packages.stdout_lines | length > 0
+
+    - name: Show available package information
+      debug:
+        msg: 
+          - "Package Name: {{ available_package_name }}"
+      failed_when: false
+      changed_when: false
+      when: available_package_name is defined
+
+    - set_fact:
+            scale_gpfs_license_package: "{{ available_package_name }}"
+      failed_when: false
+      changed_when: false
+      when:
+         - scale_gpfs_license_package is not in available_package_name
+         - available_packages.rc == 0 and available_packages.stdout_lines | length != 0
+  when: "'gpfs.license.dmd' in scale_gpfs_license_package"
+
 - name: upgrade | Add GPFS license packages to list
   set_fact:
     scale_install_license_packages: "{{ scale_install_license_packages + [ item ] }}"
