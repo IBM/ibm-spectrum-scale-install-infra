@@ -4,6 +4,7 @@
 - name: Cleanup Remote Mount - API-CLI | Storage Cluster (owner) | GET the Owning Cluster Information
   uri:
     validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+    ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
     force_basic_auth: yes
     url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
     method: GET
@@ -106,13 +107,13 @@
 - name: Cleanup Remote Mount - API-CLI | Client Cluster (Access) | Check if the Storage Cluster ('{{ owning_cluster_name }}') is already defined on Client"
   run_once: True
   shell: |
-    /usr/lpp/mmfs/bin/mmremotecluster show {{ owning_cluster_name }}
+    /usr/lpp/mmfs/bin/mmremotecluster show {{ owning_cluster_name | quote }}
   register: remote_cluster_check_owning_cluster
   ignore_errors: true
   changed_when: false
 
 - name: Cleanup Remote Mount - API-CLI | Client Cluster (access) | Remove the connection of Storage Cluster (Owning) from Client Cluster (Access)
-  shell: "/usr/lpp/mmfs/bin/mmremotecluster delete {{ owning_cluster_name }}"
+  shell: "/usr/lpp/mmfs/bin/mmremotecluster delete {{ owning_cluster_name | quote }}"
   register: access_cluster_remove_remote_cluster
   run_once: True
   #ignore_errors: true
@@ -126,6 +127,7 @@
 - name: "Cleanup Remote Mount - API-CLI | Storage Cluster (owner) | Check if the Client Cluster ('{{ access_cluster_name }}') is already defined"
   uri:
     validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+    ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
     force_basic_auth: yes
     url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}
     method: GET
@@ -145,6 +147,7 @@
     - name: "DELETE: {{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}"
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+        ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
         force_basic_auth: true
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}
         method: DELETE
@@ -157,6 +160,7 @@
     - name: "Cleanup Remote Mount - API-CLI | Checking results from the job: {{ delete_call.json.jobs[0].jobId }}"
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+        ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
         force_basic_auth: true
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
         method: GET
