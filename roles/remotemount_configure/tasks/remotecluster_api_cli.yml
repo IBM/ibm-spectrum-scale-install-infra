@@ -10,6 +10,7 @@
 - name: Remote Cluster Config - API-CLI | Storage Cluster (owner) | GET the Cluster Information
   uri:
     validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+    ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
     force_basic_auth: yes
     url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/cluster
     method: GET
@@ -58,6 +59,7 @@
 - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | Check if the Client Cluster ('{{ access_cluster_name }}') is already defined"
   uri:
     validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+    ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
     force_basic_auth: yes
     url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}
     method: GET
@@ -74,7 +76,7 @@
 - name: Remote Cluster Config - API-CLI | Client Cluster (access) | Check if the Storage Cluster ('{{ owning_cluster_name }}') is already defined on Client"
   run_once: True
   shell: |
-    /usr/lpp/mmfs/bin/mmremotecluster show {{ owning_cluster_name }}
+    /usr/lpp/mmfs/bin/mmremotecluster show {{ owning_cluster_name | quote }}
   register: remote_cluster_check_owning_cluster
   ignore_errors: true
   changed_when: false
@@ -84,6 +86,7 @@
     - name: "DELETE: {{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}"
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+        ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
         force_basic_auth: true
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remoteclusters/{{ access_cluster_name }}
         method: DELETE
@@ -97,6 +100,7 @@
     - name: "Checking results from the job: {{ delete_call.json.jobs[0].jobId }}"
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+        ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
         force_basic_auth: true
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/jobs/{{ delete_call.json.jobs[0].jobId }}
         method: GET
@@ -198,6 +202,7 @@
     - name: Remote Cluster Config - API-CLI | Storage Cluster (owner) | Send the Public Key of the Client Cluster (access) to Storage Cluster (Owner)
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+        ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
         force_basic_auth: true
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/remoteclusters
         method: POST
@@ -220,6 +225,7 @@
     - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | Check the result of adding the Client Cluster {{ send_key.json.jobs[0].jobId }}"
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+        ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
         force_basic_auth: true
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/jobs/{{ send_key.json.jobs[0].jobId }}
         method: GET
@@ -236,6 +242,7 @@
     - name: Remote Cluster Config - API-CLI | Storage Cluster (owner) | Get the Public Key
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+        ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
         force_basic_auth: yes
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_endpoint }}/authenticationkey/
         method: GET
@@ -276,6 +283,7 @@
     - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | GET adminNodeName Info - GET {{ scale_remotemount_scalemgmt_endpoint }}/nodes"
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+        ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
         force_basic_auth: yes
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/nodes{{ scale_remotemount_storage_contactnodes_filter }}
         method: GET
@@ -302,6 +310,7 @@
     - name: "Remote Cluster Config - API-CLI | Storage Cluster (owner) | GET daemonNodeName Info - GET {{ scale_remotemount_scalemgmt_endpoint }}/nodes/"
       uri:
         validate_certs: "{{ scale_remotemount_validate_certs_uri }}"
+        ca_path: "{{ scale_remotemount_ca_bundle_path | default(omit) }}"
         force_basic_auth: yes
         url: https://{{ scale_remotemount_storage_gui_hostname }}:{{ scale_remotemount_storage_cluster_gui_port }}/{{ scale_remotemount_scalemgmt_endpoint }}/nodes/{{item}}
         method: GET
@@ -337,7 +346,7 @@
     - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Install storage cluster (owner) public key in remote cluster with adminNodeName
       run_once: True
       shell: |
-        /usr/lpp/mmfs/bin/mmremotecluster add {{ owning_cluster_name }} -n {{ owning_nodes_name | list | join(',') }} -k {{ scale_remotemount_storage_pub_key_location }}
+        /usr/lpp/mmfs/bin/mmremotecluster add {{ owning_cluster_name | quote }} -n {{ owning_nodes_name | map('quote') | join(',') }} -k {{ scale_remotemount_storage_pub_key_location | quote }}
       register: remote_cluster_add_ssh
       failed_when:
         - "remote_cluster_add_ssh.rc != 0 and 'is already defined' not in remote_cluster_add_ssh.stderr"
@@ -354,7 +363,7 @@
     - name: Remote Cluster Config - API-CLI | Client Cluster (Access) |  Install storage cluster (owner) public key in remote cluster with daemonNodeName
       run_once: True
       shell: |
-        /usr/lpp/mmfs/bin/mmremotecluster add {{ owning_cluster_name }} -n {{ owning_daemon_nodes_name | list | join(',') }} -k {{ scale_remotemount_storage_pub_key_location }}
+        /usr/lpp/mmfs/bin/mmremotecluster add {{ owning_cluster_name | quote }} -n {{ owning_daemon_nodes_name | map('quote') | join(',') }} -k {{ scale_remotemount_storage_pub_key_location | quote }}
       register: remote_cluster_add_ssh
       failed_when:
         - "remote_cluster_add_ssh.rc != 0 and 'is already defined' not in remote_cluster_add_ssh.stderr"
