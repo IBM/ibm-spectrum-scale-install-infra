@@ -15,6 +15,7 @@ scale_remotemount_endpoint: "{{ scale_remotemount_scalemgmt_endpoint }}/remotemo
 
 
 scale_remotemount_validate_certs_uri: 'no'
+scale_remotemount_ca_bundle_path: ''  # Optional: path to custom CA bundle for certificate validation
 
 scale_cluster_authorization_cleanup: true
 
