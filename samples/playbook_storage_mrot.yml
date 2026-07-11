@@ -85,8 +85,20 @@
 
   # Task to check and add custom routing tables on cluster nodes.
 
+  - name: Check for /etc/iproute2/rt_tables
+    stat:
+      path: /etc/iproute2/rt_tables
+    register: etc_rt_tables
+
+  - name: Set rt_tables path
+    set_fact:
+      rt_tables_path: >-
+        {{ '/etc/iproute2/rt_tables'
+          if etc_rt_tables.stat.exists
+          else '/usr/share/iproute2/rt_tables' }}
+
   - name: check | Check if custom routing tables exist
-    shell: grep -q 'subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }}' /etc/iproute2/rt_tables && grep -q 'subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }}' /etc/iproute2/rt_tables
+    shell: grep -q 'subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }}' {{ rt_tables_path }} && grep -q 'subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }}' {{ rt_tables_path }}
     register: routing_table_exists
     ignore_errors: yes
     failed_when: routing_table_exists.rc == 2
@@ -96,8 +108,8 @@
 
   - name: configure | Custom routing tables
     shell: |
-      echo "200 subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }}" >> /etc/iproute2/rt_tables
-      echo "201 subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }}" >> /etc/iproute2/rt_tables
+      echo "200 subnet_{{ storage_network_addr.stdout }}_{{ scale_pri_interface_name }}" >> {{ rt_tables_path }}
+      echo "201 subnet_{{ storage_network_addr.stdout }}_{{ scale_sec_interface_name }}" >> {{ rt_tables_path }}
     when: routing_table_exists.rc != 0
 
   # Task to check and add custom IP rules on cluster nodes.
