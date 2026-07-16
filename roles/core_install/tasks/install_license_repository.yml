@@ -5,13 +5,22 @@
 #
 # Configure license package installation repository
 #
-- name: install | Get license package
-  yum:
+- name: install | Get license package (yum/dnf)
+  dnf:
     list: gpfs.license.*
   register: package_name_version
   when:
     - ansible_pkg_mgr in ['yum', 'dnf']
 
+- name: install | Get license package (dnf5)
+  dnf5:
+    list: gpfs.license.*
+  register: package_name_version
+  when:
+    - ansible_pkg_mgr == 'dnf5'
+
+- debug:
+    msg: "{{package_name_version}}"
 - name: Find license package
   shell:
     cmd: apt-cache show gpfs.license.*
@@ -33,7 +42,7 @@
       More than one GPFS License (gpfs.license) RPM found:
       "gpfs.license*{{ scale_architecture }}*"
   when:
-    - ansible_pkg_mgr in ['yum', 'dnf']
+    - ansible_pkg_mgr in ['yum', 'dnf', 'dnf5']
 
 - name: install | Find GPFS License package
   vars:
@@ -41,7 +50,7 @@
   set_fact:
     scale_gpfs_license_package: "{{ gpfs_license_package }}"
   when:
-    - ansible_pkg_mgr in ['yum', 'dnf']
+    - ansible_pkg_mgr in ['yum', 'dnf', 'dnf5']
 
 - name: install | Find GPFS License package
   set_fact:

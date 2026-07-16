@@ -17,7 +17,7 @@
     state: present
   notify: yum-clean-metadata
   when:
-    - ansible_pkg_mgr in ['yum', 'dnf']
+    - ansible_pkg_mgr in ['yum', 'dnf', 'dnf5']
     - scale_install_repository_url is defined | bool
     - scale_install_repository_url != 'existing'
 
@@ -33,7 +33,7 @@
   notify: yum-clean-metadata
   when:
     - scale_scaleadmd is defined | bool
-    - ansible_pkg_mgr in ['yum', 'dnf']
+    - ansible_pkg_mgr in ['yum', 'dnf', 'dnf5']
     - scale_install_repository_url is defined | bool
     - scale_install_repository_url != 'existing'
 
