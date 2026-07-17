@@ -2,19 +2,17 @@
 #
 # Install or update packages
 #
-- name: upgrade | Upgrade GPFS GUI packages
-  yum:
-    name: "{{ scale_install_all_packages }}"
-    state: latest
-    update_only: yes
-    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: ansible_pkg_mgr == 'yum'
-
-
-- name: upgrade | Upgrade GPFS GUI packages
+- name: upgrade | Upgrade GPFS GUI packages (yum/dnf)
   dnf:
     name: "{{ scale_install_all_packages }}"
     state: latest
     update_only: yes
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: ansible_pkg_mgr == 'dnf'
+  when: ansible_pkg_mgr in ['yum', 'dnf']
+
+- name: upgrade | Upgrade GPFS GUI packages (dnf5)
+  ansible.builtin.dnf5:
+    name: "{{ scale_install_all_packages }}"
+    state: latest
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when: ansible_pkg_mgr == 'dnf5'

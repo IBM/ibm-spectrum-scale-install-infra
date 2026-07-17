@@ -2,18 +2,28 @@
 #
 # Install or update RPMs
 #
-- name: upgrade | Upgrade GPFS Zimon packages
-  yum:
+- name: upgrade | Upgrade GPFS Zimon packages (yum)
+  dnf:
     name: "{{ scale_install_all_packages }}"
     state: latest
     update_only: yes
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
   when: ansible_pkg_mgr == 'yum'
 
-
-- name: upgrade | Upgrade GPFS Zimon packages
+- name: upgrade | Upgrade GPFS Zimon packages (dnf/package)
   package:
     name: "{{ scale_install_all_packages }}"
     state: latest
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version | int >= 8
+  when:
+    - ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version | int >= 8
+    - ansible_pkg_mgr in ['yum', 'dnf']
+
+- name: upgrade | Upgrade GPFS Zimon packages (dnf5)
+  ansible.builtin.dnf5:
+    name: "{{ scale_install_all_packages }}"
+    state: latest
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when:
+    - ansible_distribution in scale_rhel_distribution and ansible_distribution_major_version | int >= 8
+    - ansible_pkg_mgr == 'dnf5'

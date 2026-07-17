@@ -1,6 +1,6 @@
 ---
-- name: upgrade | Upgrade GPFS SMB packages
-  yum:
+- name: upgrade | Upgrade GPFS SMB packages (yum)
+  dnf:
    name: "{{ scale_install_all_packages }}"
    state: latest
    update_only: yes
@@ -8,10 +8,22 @@
   register: package_up
   when: ansible_pkg_mgr == 'yum'
 
-- name: upgrade | Upgrade GPFS SMB packages
+- name: upgrade | Upgrade GPFS SMB packages (dnf/package)
   package:
     name: "{{ scale_install_all_packages }}"
     state: latest
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
   register: package_smb_up
-  when: ansible_distribution in scale_rhel_distribution and (ansible_distribution_major_version | int) >= 8
+  when:
+    - ansible_distribution in scale_rhel_distribution and (ansible_distribution_major_version | int) >= 8
+    - ansible_pkg_mgr in ['yum', 'dnf']
+
+- name: upgrade | Upgrade GPFS SMB packages (dnf5)
+  ansible.builtin.dnf5:
+    name: "{{ scale_install_all_packages }}"
+    state: latest
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  register: package_smb_up
+  when:
+    - ansible_distribution in scale_rhel_distribution and (ansible_distribution_major_version | int) >= 8
+    - ansible_pkg_mgr == 'dnf5'

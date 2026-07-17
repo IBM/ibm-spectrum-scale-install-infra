@@ -2,8 +2,16 @@
 #
 # Install or update packages
 #
-- name: upgrade | Upgrade GPFS HPT packages
+- name: upgrade | Upgrade GPFS HPT packages (yum/dnf)
   package:
     name: "{{ scale_install_all_packages }}"
     state: latest
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when: ansible_pkg_mgr in ['yum', 'dnf']
+
+- name: upgrade | Upgrade GPFS HPT packages (dnf5)
+  ansible.builtin.dnf5:
+    name: "{{ scale_install_all_packages }}"
+    state: latest
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when: ansible_pkg_mgr == 'dnf5'
