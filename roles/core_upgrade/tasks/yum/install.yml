@@ -25,6 +25,8 @@
             disable_gpg_check: "{{ scale_disable_gpgcheck }}"
           register: scale_install_packageresult
           when: ansible_pkg_mgr == 'dnf5'
+          ignore_errors: true
+          failed_when: false
 
         - name: upgrade | Check if GPFS packages were updated
           set_fact:

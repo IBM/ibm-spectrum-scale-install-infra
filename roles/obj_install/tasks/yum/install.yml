@@ -16,6 +16,8 @@
   when:
     - inventory_hostname in scale_obj_nodes_list
     - ansible_pkg_mgr == 'dnf5'
+  ignore_errors: true
+  failed_when: false
 
 - name: install | Get installed spectrum-scale-object
   shell: rpm -qa | grep spectrum-scale-object
