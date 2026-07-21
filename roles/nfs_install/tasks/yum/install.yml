@@ -17,5 +17,3 @@
   when:
     - inventory_hostname in scale_nfs_nodes_list
     - ansible_pkg_mgr == 'dnf5'
-  ignore_errors: true
-  failed_when: false

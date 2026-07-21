@@ -5,7 +5,7 @@
 # Configure license package installation repository
 #
 - name: upgrade | Get license package
-  yum:
+  dnf:
     list: gpfs.license.*
   register: package_name_version
   when:
@@ -38,7 +38,7 @@
   set_fact:
      scale_gpfs_license_package:  "{{ scale_gpfs_license_pkg }}"
   when:
-     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
+     - ansible_pkg_mgr in ['yum', 'dnf', 'dnf5']
      - scale_gpfs_license_pkg is defined
 
 - block:

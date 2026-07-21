@@ -24,9 +24,7 @@
     name: "{{ scale_install_all_packages }}"
     state: latest
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  register: package_smb_up
+  register: package_dnf5smb_up
   when:
     - ansible_distribution in scale_rhel_distribution and (ansible_distribution_major_version | int) >= 8
     - ansible_pkg_mgr == 'dnf5'
-  ignore_errors: true
-  failed_when: false

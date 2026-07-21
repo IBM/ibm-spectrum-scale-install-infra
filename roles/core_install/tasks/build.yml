@@ -60,10 +60,6 @@
         ansible_distribution in scale_rhel_distribution or
         ansible_distribution in scale_sles_distribution
 
-    - debug:
-        msg: "{{ansible_distribution}}"
-    - debug:
-        msg: "{{scale_azure_distribution}}"
     - name: build | Identify OS distribution
       set_fact:
         scale_build_distribution: UBUNTU_AS_LINUX

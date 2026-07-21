@@ -16,5 +16,3 @@
     state: present
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
   when: ansible_pkg_mgr == 'dnf5'
-  ignore_errors: true
-  failed_when: false

@@ -17,5 +17,3 @@
   when:
     - inventory_hostname in scale_smb_node_list
     - ansible_pkg_mgr == 'dnf5'
-  ignore_errors: true
-  failed_when: false
