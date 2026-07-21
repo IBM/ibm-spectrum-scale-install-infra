@@ -1,18 +1,19 @@
 ---
 - name: install | Install GPFS SMB packages (yum/dnf)
   dnf:
-   name: "{{ scale_install_all_packages }}"
-   state: present
-   disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+    name: "{{ scale_install_all_packages }}"
+    state: present
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
   when:
     - inventory_hostname in scale_smb_node_list
     - ansible_pkg_mgr in ['yum', 'dnf']
 
 - name: install | Install GPFS SMB packages (dnf5)
-  ansible.builtin.dnf5:
-   name: "{{ scale_install_all_packages }}"
-   state: present
-   disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  dnf:
+    use_backend: dnf5
+    name: "{{ scale_install_all_packages }}"
+    state: present
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
   when:
     - inventory_hostname in scale_smb_node_list
     - ansible_pkg_mgr == 'dnf5'

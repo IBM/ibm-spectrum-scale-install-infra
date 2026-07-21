@@ -13,7 +13,8 @@
     - ansible_pkg_mgr in ['yum', 'dnf']
 
 - name: install | Get license package (dnf5)
-  ansible.builtin.dnf5:
+  dnf:
+    use_backend: dnf5
     list: gpfs.license.*
   register: package_name_version
   when:
