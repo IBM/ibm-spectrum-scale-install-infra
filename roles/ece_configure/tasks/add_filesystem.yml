@@ -1,0 +1,92 @@
+---
+- block:
+    - name: add | Validate pool_name is defined when nsd_list is provided
+      fail:
+        msg: "pool_name is required when nsd_list is defined for filesystem {{ item.filesystem }}."
+      when:
+        - item.nsd_list is defined
+        - item.pool_name is not defined
+
+    - name: add | Initialize
+      set_fact:
+         pool_options: ""
+
+    - name: add | Set pool options with user-defined or default values
+      set_fact:
+          pool_options: "--pools {{ item.pool_name }},performancePool={{ item.performancePool | default('yes') }},allowWriteAffinity={{ item.allowWriteAffinity | default('yes') }},writeAffinityDepth={{ item.writeAffinityDepth | default('1') }},layoutMap={{ item.layoutMap | default('cluster') }},blockSize={{ item.blockSize | default('8M') }}"
+      when:
+         - item.pool_name is defined
+
+    - name: add | Find existing filesystem(s)
+      shell: /usr/lpp/mmfs/bin/mmvdisk fs list -Y | grep -v HEADER | cut -d ':' -f 7 | uniq
+      register: scale_existing_fs
+      changed_when: false
+      failed_when: false
+
+    - name: add | Verify filesystem exists
+      fail:
+        msg: "Filesystem {{ item.filesystem }} does not exist. Cannot add NSDs to non-existent filesystem."
+      when:
+        - item.filesystem not in scale_existing_fs.stdout_lines
+        - item.filesystem is defined
+
+    - name: add | Add NSDs to filesystem with performance pool
+      command: "{{ scale_command_path }}mmvdisk filesystem add --fs {{ item.filesystem }} --nsd {{ item.nsd_list }} {{ pool_options }}"
+      register: scale_fs_add_nsd
+      failed_when: scale_fs_add_nsd.rc != 0
+      when:
+        - item.filesystem in scale_existing_fs.stdout_lines
+        - item.filesystem is defined
+
+    - debug:
+         msg: "{{ scale_fs_add_nsd.cmd }}"
+      when: scale_fs_add_nsd.cmd is defined
+
+    - name: add | Set performance replicas
+      command: "{{ scale_command_path }}mmchfs {{ item.filesystem }} --perf-replicas {{ item.perf_replicas | default(1) }}"
+      register: scale_fs_perf_replicas
+      failed_when: scale_fs_perf_replicas.rc != 0
+      when:
+        - item.filesystem in scale_existing_fs.stdout_lines
+        - item.filesystem is defined
+        - item.set_perf_replicas is defined
+        - item.set_perf_replicas | bool
+
+    - debug:
+         msg: "{{ scale_fs_perf_replicas.cmd }}"
+      when: scale_fs_perf_replicas.cmd is defined
+
+    - name: add | Waiting for node become active
+      shell: "{{ scale_command_path }}mmgetstate -Y | grep active"
+      register: scale_gpfs_state
+      until: scale_gpfs_state.rc == 0
+      retries: 5
+      delay: 30
+      ignore_errors: True
+
+    - name: add | Mount filesystem on all nodes
+      command: "{{ scale_command_path }}mmmount {{ item.filesystem }} -N All"
+      register: scale_fs_mount_all
+      failed_when: scale_fs_mount_all.rc != 0
+      when:
+        - item.filesystem in scale_existing_fs.stdout_lines
+        - item.filesystem is defined
+        - item.mount_all is defined
+        - item.mount_all | bool
+
+    - debug:
+         msg: "{{ scale_fs_mount_all.cmd }}"
+      when: scale_fs_mount_all.cmd is defined
+
+    - name: add | End of filesystem NSD addition
+      debug:
+        msg: NSDs successfully added to filesystem {{ item.filesystem }}.
+      when:
+        - item.filesystem in scale_existing_fs.stdout_lines
+        - item.filesystem is defined
+  when:
+    - item.nsd_list is defined
+  rescue:
+    - name: Failure detected during ECE filesystem NSD addition
+      fail:
+         msg: "I caught an error, Please take a look to the output given!."
