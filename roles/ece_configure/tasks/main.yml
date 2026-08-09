@@ -23,3 +23,11 @@
   with_items:
     - "{{ scale_ece_filesystem }}"
   run_once: true
+
+- include_tasks: add_filesystem.yml
+  tags: configure
+  when:
+    - scale_ece_filesystem is defined
+  with_items:
+    - "{{ scale_ece_filesystem }}"
+  run_once: true
