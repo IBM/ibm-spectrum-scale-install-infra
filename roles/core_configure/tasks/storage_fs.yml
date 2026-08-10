@@ -89,7 +89,7 @@
         - current_fs not in scale_storage_existing_fs.stdout_lines
         - scale_storage_fsdef is defined
         - current_fs is defined
-      with_items: "{{ scale_storage_fsdef | unique }}"
+      with_items: "{{ scale_storage_fsdef | default([]) | unique }}"
 
     - name: storage | Create new filesystem(s)
       command:
@@ -132,7 +132,7 @@
       command: /usr/lpp/mmfs/bin/mmmount {{ item }} -a
       when:
         - scale_storage_fsparams[item].automaticMountOption | default(scale_storage_filesystem_defaults.automaticMountOption)
-      with_items: "{{ scale_storage_fsdef | unique }}"
+      with_items: "{{ scale_storage_fsdef | default([]) | unique }}"
       changed_when: false
       register: scale_mount_fs
 
@@ -163,7 +163,7 @@
       when:
         - current_fs in scale_storage_existing_fs.stdout_lines
         - scale_storage_fsdef is defined
-      with_items: "{{ scale_storage_fsdef | unique }}"
+      with_items: "{{ scale_storage_fsdef | default([]) | unique }}"
 
     - name: storage | Extend existing filesystem(s)
       command: /usr/lpp/mmfs/bin/mmadddisk {{ item.item }} -F /var/mmfs/tmp/StanzaFile.new.{{ item.item }}
@@ -191,7 +191,7 @@
       file:
         path: /var/mmfs/tmp/StanzaFile.new.{{ item }}
         state: absent
-      with_items: "{{ scale_storage_fsdef }}"
+      with_items: "{{ scale_storage_fsdef | default([]) }}"
       
   run_once: true
   delegate_to: "{{ groups['scale_cluster_admin_nodes'].0 }}"
