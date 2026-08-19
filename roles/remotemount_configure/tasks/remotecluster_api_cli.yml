@@ -340,8 +340,22 @@
         /usr/lpp/mmfs/bin/mmremotecluster add {{ owning_cluster_name }} -n {{ owning_nodes_name | list | join(',') }} -k {{ scale_remotemount_storage_pub_key_location }}
       register: remote_cluster_add_ssh
       failed_when:
-        - "remote_cluster_add_ssh.rc != 0 and 'is already defined' not in remote_cluster_add_ssh.stderr"
+        - remote_cluster_add_ssh.rc != 0
+        - "'is already defined' not in remote_cluster_add_ssh.stderr"
       when: scale_remotemount_storage_adminnodename is defined and scale_remotemount_storage_adminnodename | bool
+
+    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Update storage cluster (owner) public key in remote cluster with adminNodeName (already defined)
+      run_once: True
+      shell: |
+        /usr/lpp/mmfs/bin/mmremotecluster update {{ owning_cluster_name }} -n {{ owning_nodes_name | list | join(',') }} -k {{ scale_remotemount_storage_pub_key_location }}
+      register: remote_cluster_update_ssh
+      failed_when: remote_cluster_update_ssh.rc != 0
+      when:
+        - scale_remotemount_storage_adminnodename is defined and scale_remotemount_storage_adminnodename | bool
+        - remote_cluster_add_ssh.rc is defined
+        - remote_cluster_add_ssh.rc != 0
+        - "'is already defined' in remote_cluster_add_ssh.stderr"
+
 #
 # deamonNodeName section
 #
@@ -357,8 +371,21 @@
         /usr/lpp/mmfs/bin/mmremotecluster add {{ owning_cluster_name }} -n {{ owning_daemon_nodes_name | list | join(',') }} -k {{ scale_remotemount_storage_pub_key_location }}
       register: remote_cluster_add_ssh
       failed_when:
-        - "remote_cluster_add_ssh.rc != 0 and 'is already defined' not in remote_cluster_add_ssh.stderr"
+        - remote_cluster_add_ssh.rc != 0
+        - "'is already defined' not in remote_cluster_add_ssh.stderr"
       when: not scale_remotemount_storage_adminnodename
+
+    - name: Remote Cluster Config - API-CLI | Client Cluster (Access) |  Update storage cluster (owner) public key in remote cluster with daemonNodeName (already defined)
+      run_once: True
+      shell: |
+        /usr/lpp/mmfs/bin/mmremotecluster update {{ owning_cluster_name }} -n {{ owning_daemon_nodes_name | list | join(',') }} -k {{ scale_remotemount_storage_pub_key_location }}
+      register: remote_cluster_update_ssh
+      failed_when: remote_cluster_update_ssh.rc != 0
+      when:
+        - not scale_remotemount_storage_adminnodename
+        - remote_cluster_add_ssh.rc is defined
+        - remote_cluster_add_ssh.rc != 0
+        - "'is already defined' in remote_cluster_add_ssh.stderr"
 
     - name: Remote Cluster Config - API-CLI | Client Cluster (Access) | Cleanup temporary keys.
       file:
