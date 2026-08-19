@@ -288,12 +288,7 @@
       run_once: True
 
     - set_fact:
-        owning_nodes_name: []
-      run_once: True
-
-    - set_fact:
-        owning_nodes_name: "{{ owning_nodes_name }} + [ '{{ item.adminNodeName }}' ]"
-      with_items: "{{ owning_cluster_nodes.json.nodes }}"
+        owning_nodes_name: "{{ owning_cluster_nodes.json.nodes | map(attribute='adminNodeName') | list }}"
       run_once: True
 
 #
@@ -315,13 +310,7 @@
       run_once: True
 
     - set_fact:
-        owning_daemon_nodes_name: []
-      run_once: True
-
-
-    - set_fact:
-        owning_daemon_nodes_name: "{{ owning_daemon_nodes_name }} + [ '{{ item.json.nodes.0.network.daemonNodeName }}' ]"
-      with_items: "{{ owning_cluster_daemonnodes.results }}"
+        owning_daemon_nodes_name: "{{ owning_cluster_daemonnodes.results | map(attribute='json.nodes.0.network.daemonNodeName') | list }}"
       run_once: True
 
 
