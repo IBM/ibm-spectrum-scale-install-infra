@@ -68,6 +68,25 @@
   delegate_to: localhost
   run_once: true
 
+# ---------------------------------------------------------------------------
+# IPv6 precheck — interface_mode is set to True by Python when IPv6 CES IPs
+# are configured (same flag used by ces_common for NFS/SMB)
+# ---------------------------------------------------------------------------
+- name: check | Assert interface is defined when interface mode is enabled
+  assert:
+    that:
+      - scale_protocols.interface is defined
+      - scale_protocols.interface | length > 0
+    fail_msg: >-
+      IPv6 CES IPs are configured (interface_mode=true) but no network
+      interface is specified. Add an interface using
+      './spectrumscale config protocols --interface <nic>' before retrying.
+  when:
+    - scale_protocols.interface_mode is defined
+    - scale_protocols.interface_mode | bool
+  delegate_to: localhost
+  run_once: true
+
 - name: check | Check if hdfs is enabled
   assert:
    that:
