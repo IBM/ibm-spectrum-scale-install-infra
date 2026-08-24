@@ -189,9 +189,9 @@
 # ces_common. No regex detection needed here.
 # ---------------------------------------------------------------------------
 
-# Enable IPv6 networking in HDFS: set HADOOP_ALLOW_IPV6=true in hadoop-env.sh
+# Enable IPv6 networking in HDFS: set HADOOP_ALLOW_IPV6=yes in hadoop-env.sh
 - name: configure | Enable HADOOP_ALLOW_IPV6 for IPv6 CES networking
-  command: "/usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k HADOOP_ALLOW_IPV6=true"
+  command: "/usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k HADOOP_ALLOW_IPV6=yes"
   when:
     - scale_protocols.interface_mode is defined
     - scale_protocols.interface_mode | bool
