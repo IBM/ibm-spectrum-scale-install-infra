@@ -103,13 +103,20 @@
     scale_gpg_key_name: "Storage_Scale_public_key.pgp"
   when: scale_version is defined and scale_version is version_compare('5.1.8.0', '>=')
 
-# Copy and import gpg key on RHEL and SLES if gpfs version >= 5.0.5.0
+# Copy and import gpg key on RHEL, SLES and Azure Linux if gpfs version >= 5.0.5.0
+# curl is used instead of get_url to avoid a Python 3.12+ incompatibility where
+# HTTPSConnection no longer accepts cert_file/key_file keyword arguments.
+# The installer CA cert is already distributed and trusted on every node via
+# distribute_https_ca_cert() (trust store: update-ca-trust / update-ca-certificates),
+# so no -k flag is needed — TLS verification uses the system trust store.
 - block:
     - name: check | Copy key
-      get_url:
-        url: "{{ scale_gpgKey_repository_src }}"
-        dest: "{{ scale_gpgKey_dest }}"
-        validate_certs: no
+      shell:
+        cmd: >-
+          curl -sSL
+          "{{ scale_gpgKey_repository_src }}"
+          -o "{{ scale_gpgKey_dest }}{{ scale_gpg_key_name }}"
+      changed_when: false
 
     - name: Import GPG key
       shell:
