@@ -117,6 +117,7 @@
       failed_when:
         - scale_copy_key_result.msg is defined
         - "'cert_file' not in scale_copy_key_result.msg"
+        - scale_copy_key_result.status_code | default(0) != 200
       register: scale_copy_key_result
 
     - name: check | Copy key (fallback via curl)
