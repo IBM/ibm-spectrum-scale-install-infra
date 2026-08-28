@@ -10,8 +10,12 @@
     description: IBM Spectrum Scale (GPFS) GPL module
     baseurl: "{{ scale_install_gplbin_repository_url }}"
     gpgcheck: false
+    proxy: ""
     state: present
   notify: yum-clean-metadata
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
     - scale_install_gplbin_repository_url is defined
@@ -24,6 +28,9 @@
     baseurl: "{{ scale_install_gplbin_repository_url }}"
     gpgcheck: false
     state: present
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr == 'apt'
     - scale_install_gplbin_repository_url is defined
@@ -36,6 +43,9 @@
     baseurl: "{{ scale_install_gplbin_repository_url }}"
     gpgcheck: false
     state: present
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr == 'zypper'
     - scale_install_gplbin_repository_url is defined
