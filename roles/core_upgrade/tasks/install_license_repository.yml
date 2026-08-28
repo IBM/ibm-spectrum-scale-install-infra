@@ -7,6 +7,8 @@
 - name: upgrade | Get license package
   yum:
     list: gpfs.license.*
+    disablerepo: "*"
+    enablerepo: "spectrum-scale-*"
   register: package_name_version
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
@@ -15,6 +17,9 @@
   shell:
    cmd: apt-cache show gpfs.license.*
   register: package_name
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
   - ansible_pkg_mgr == 'apt'
 
@@ -22,6 +27,9 @@
   shell:
    cmd: zypper info gpfs.license.* | grep Name | cut -d ':' -f 2 | tr -d '[:space:]'
   register: package_name_version_zypp
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr == 'zypper'
 

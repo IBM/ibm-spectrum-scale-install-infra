@@ -10,6 +10,7 @@
     description: IBM Spectrum Scale (GPFS) GPL module
     baseurl: "{{ scale_install_gplbin_repository_url }}"
     gpgcheck: false
+    proxy: ""
     state: present
   notify: yum-clean-metadata
   environment:

@@ -20,6 +20,7 @@
     gpgkey: "{{ scale_gpg_key_path }}"
     repo_gpgcheck: no
     sslverify: no
+    proxy: ""
     state: present
   notify: yum-clean-metadata
   environment:

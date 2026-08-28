@@ -15,6 +15,7 @@
     baseurl: "{{ scale_install_repository_url }}{{ scale_hdfs_url }}"
     gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
+    proxy: ""
     state: present
   notify: yum-clean-metadata
   environment:

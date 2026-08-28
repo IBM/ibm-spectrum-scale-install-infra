@@ -72,6 +72,7 @@
     gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
+    proxy: ""
     state: present
   notify: yum-clean-metadata
   environment:
@@ -139,6 +140,7 @@
     gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
+    proxy: ""
     state: present
   notify: yum-clean-metadata
   environment:
@@ -190,6 +192,7 @@
     gpgcheck: "{{ scale_install_gpgcheck }}"
     repo_gpgcheck: no
     sslverify: no
+    proxy: ""
     state: present
   notify: yum-clean-metadata
   environment:
