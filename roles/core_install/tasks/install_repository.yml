@@ -16,6 +16,9 @@
     sslverify: no
     state: present
   notify: yum-clean-metadata
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr in ['yum', 'dnf']
     - scale_install_repository_url is defined | bool
@@ -31,6 +34,9 @@
     sslverify: no
     state: present
   notify: yum-clean-metadata
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - scale_scaleadmd is defined | bool
     - ansible_pkg_mgr in ['yum', 'dnf']
@@ -45,6 +51,9 @@
     disable_gpg_check: yes
     state: present
     overwrite_multiple: yes
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - scale_scaleadmd is defined | bool
     - ansible_pkg_mgr == 'zypper'
@@ -63,6 +72,9 @@
     update_cache: yes
     codename: IBM Spectrum Scale (core debs)
     mode: 0777
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr == 'apt'
     - scale_install_repository_url is defined | bool
@@ -80,6 +92,9 @@
     update_cache: yes
     codename: IBM Spectrum Scale scaleapi (scaleapi debs)
     mode: 0777
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - scale_scaleadmd is defined | bool
     - ansible_pkg_mgr == 'apt'
@@ -97,6 +112,9 @@
     disable_gpg_check: yes
     state: present
     overwrite_multiple: yes
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr == 'zypper'
     - scale_install_repository_url is defined | bool

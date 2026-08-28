@@ -12,6 +12,9 @@
     gpgcheck: false
     state: present
   notify: yum-clean-metadata
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr in ['yum', 'dnf']
     - scale_install_gplbin_repository_url is defined

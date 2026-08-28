@@ -82,6 +82,9 @@
     sslverify: no
     state: present
   notify: yum-clean-metadata
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
     - scale_install_repository_url is defined
@@ -96,6 +99,9 @@
     update_cache: yes
     codename: IBM Spectrum Scale (FAL debs)
     mode: 0777
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr == 'apt'
     - scale_install_repository_url is defined
@@ -108,6 +114,9 @@
     repo: "{{ scale_install_repository_url }}{{ scale_fal_url }}"
     disable_gpg_check: no
     state: present
+  environment:
+    no_proxy: "*"
+    NO_PROXY: "*"
   when:
     - ansible_pkg_mgr == 'zypper'
     - scale_install_repository_url is defined
