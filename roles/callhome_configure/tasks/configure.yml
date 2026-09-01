@@ -86,14 +86,14 @@
   
   - name: cluster | Set callhome machine country if it is defined
     set_fact:
-        extra_callhome_option: "{{ extra_callhome_option }} --machine-country {{ scale_callhome_params.machine_country }}"
+        extra_callhome_option: "{{ extra_callhome_option }} --machine-country\"{{ scale_callhome_params.machine_country }}\""
     when:
       - scale_callhome_params is defined and scale_callhome_params.machine_country is defined
       
 
   - name: cluster | Set callhome machine state if it is defined
     set_fact:
-        extra_callhome_option: "{{ extra_callhome_option }} --machine-state {{ scale_callhome_params.machine_state }}"
+        extra_callhome_option: "{{ extra_callhome_option }} --machine-state \"{{ scale_callhome_params.machine_state }}\""
     when:
       - scale_callhome_params is defined and scale_callhome_params.machine_state is defined
 
