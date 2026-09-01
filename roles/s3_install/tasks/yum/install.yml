@@ -1,16 +1,42 @@
 ---
-- name: install | Install GPFS S3 packages
-  yum:
-   name: "{{ scale_install_all_packages }}"
-   state: present
-   disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: inventory_hostname in scale_s3_node_list
+- name: install | Install GPFS S3 packages (yum/dnf)
+  dnf:
+    name: "{{ scale_install_all_packages }}"
+    state: present
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when:
+    - inventory_hostname in scale_s3_node_list
+    - ansible_pkg_mgr in ['yum', 'dnf']
 
-- name: install | Install GPFS S3 packages
-  yum:
-   name: "{{ scale_install_all_packages }}"
-   state: present
-   disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: not (scale_protocol_node | bool)
+- name: install | Install GPFS S3 packages (dnf5)
+  dnf:
+    use_backend: dnf5
+    name: "{{ scale_install_all_packages }}"
+    state: present
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when:
+    - inventory_hostname in scale_s3_node_list
+    - ansible_pkg_mgr == 'dnf5'
+
+- name: install | Install GPFS S3 packages (yum/dnf) - protocol node
+  dnf:
+    name: "{{ scale_install_all_packages }}"
+    state: present
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when:
+    - not (scale_protocol_node | bool)
+    - ansible_pkg_mgr in ['yum', 'dnf']
+  failed_when: false
+  changed_when: false
+
+- name: install | Install GPFS S3 packages (dnf5) - protocol node
+  dnf:
+    use_backend: dnf5
+    name: "{{ scale_install_all_packages }}"
+    state: present
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when:
+    - not (scale_protocol_node | bool)
+    - ansible_pkg_mgr == 'dnf5'
   failed_when: false
   changed_when: false

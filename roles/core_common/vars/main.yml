@@ -15,6 +15,7 @@ scale_pkg_mgr:
   - dnf
   - apt
   - zypper
+  - dnf5
 
 ## Remember if RPMs were updated or not
 scale_install_updated: false
@@ -40,6 +41,7 @@ scale_sles_distribution:
 ## Supported scale azure os distrubution
 scale_azure_distribution:
   - Microsoft Azure Linux
+  - Azure Linux
 
 ## Specify package extraction path and gpg key path
 scale_extracted_default_path: "/usr/lpp/mmfs"

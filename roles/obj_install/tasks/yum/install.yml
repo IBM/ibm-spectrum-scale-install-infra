@@ -1,10 +1,24 @@
 ---
-- name: install | Install Scale object packages
-  yum:
+- name: install | Install Scale object packages (yum/dnf)
+  dnf:
     name: "{{ scale_install_all_packages }}"
     state: present
     disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: inventory_hostname in scale_obj_nodes_list
+  when:
+    - inventory_hostname in scale_obj_nodes_list
+    - ansible_pkg_mgr in ['yum', 'dnf']
+
+- name: install | Install Scale object packages (dnf5)
+  dnf:
+    use_backend: dnf5
+    name: "{{ scale_install_all_packages }}"
+    state: present
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when:
+    - inventory_hostname in scale_obj_nodes_list
+    - ansible_pkg_mgr == 'dnf5'
+  ignore_errors: true
+  failed_when: false
 
 - name: install | Get installed spectrum-scale-object
   shell: rpm -qa | grep spectrum-scale-object

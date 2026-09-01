@@ -5,12 +5,22 @@
 #
 # Configure license package installation repository
 #
-- name: install | Get license package
-  yum:
+- name: install | Get license package (yum/dnf)
+  dnf:
     list: gpfs.license.*
   register: package_name_version
   when:
     - ansible_pkg_mgr in ['yum', 'dnf']
+
+- name: install | Get license package (dnf5)
+  dnf:
+    use_backend: dnf5
+    list: gpfs.license.*
+  register: dnf5package_name_version
+  when:
+    - ansible_pkg_mgr == 'dnf5'
+  ignore_errors: true
+  failed_when: false
 
 - name: Find license package
   shell:
@@ -35,6 +45,15 @@
   when:
     - ansible_pkg_mgr in ['yum', 'dnf']
 
+- name: install | Check valid only one GPFS License (gpfs.license) RPM
+  assert:
+    that: dnf5package_name_version.results | selectattr("yumstate", "match", "available") | list | length >= 1
+    msg: >-
+      More than one GPFS License (gpfs.license) RPM found:
+      "gpfs.license*{{ scale_architecture }}*"
+  when:
+    - ansible_pkg_mgr == 'dnf5'
+
 - name: install | Find GPFS License package
   vars:
     gpfs_license_package: "{{ package_name_version.results|selectattr('yumstate','match','available')|map(attribute='name')|list }}"
@@ -42,6 +61,14 @@
     scale_gpfs_license_package: "{{ gpfs_license_package }}"
   when:
     - ansible_pkg_mgr in ['yum', 'dnf']
+
+- name: install | Find GPFS License package
+  vars:
+    gpfs_license_package: "{{ dnf5package_name_version.results|selectattr('yumstate','match','available')|map(attribute='name')|list }}"
+  set_fact:
+    scale_gpfs_license_package: "{{ gpfs_license_package }}"
+  when:
+    - ansible_pkg_mgr == 'dnf5'
 
 - name: install | Find GPFS License package
   set_fact:
