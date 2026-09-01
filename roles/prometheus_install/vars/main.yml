@@ -1,0 +1,7 @@
+---
+version: "3.7.0-rc.0"
+tarball: "prometheus-{{ version }}.linux-amd64.tar.gz"
+download_url: "https://github.com/prometheus/prometheus/releases/download/v{{ version }}/{{ tarball }}"
+local_tarball_path: "/tmp/{{ tarball }}"
+install_dir: "/opt/prometheus"
+bin_dir: "/usr/local/bin"

@@ -1,0 +1,17 @@
+---
+- name: Create /etc/prometheus directory
+  file:
+    path: /etc/prometheus
+    state: directory
+    owner: prometheus
+    group: prometheus
+    mode: "0755"
+
+- name: Copy prometheus configuration file
+  copy:
+    src: "{{ install_dir }}/{{ tarball | regex_replace('.tar.gz','') }}/prometheus.yml"
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: "0644"
+    remote_src: yes
