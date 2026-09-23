@@ -1,0 +1,7 @@
+---
+- name: Create Prometheus user
+  user:
+    name: prometheus
+    shell: /sbin/nologin
+    system: yes
+    create_home: no
