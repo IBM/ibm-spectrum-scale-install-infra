@@ -7,41 +7,43 @@
 #
 - block:  ## when: not scale_daemon_running
     - block:
-        - name: install | List installed GPFS packages
-          yum:
+        - name: install | List installed GPFS packages (yum/dnf)
+          dnf:
             list: gpfs.base
             disablerepo: spectrum-scale-gpfs
             disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) | bool }}"
           register: scale_install_packagelist
-          when: ansible_pkg_mgr == 'yum'
+          when: ansible_pkg_mgr in ['yum', 'dnf']
 
         - name: install | Get GPFS packages list
           set_fact:
              scale_install_all_packages: "{{ scale_install_all_packages + scale_install_license_packages }}"
 
-        - name: install | Install GPFS packages
-          yum:
+        - name: install | Install GPFS packages (yum/dnf)
+          dnf:
             name: "{{ scale_install_all_packages }}"
             state: present
             disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) | bool }}"
           register: scale_install_packageresult
-          when: ansible_pkg_mgr == 'yum'
+          when: ansible_pkg_mgr in ['yum', 'dnf']
 
-        - name: install | List installed GPFS packages
+        - name: install | List installed GPFS packages (dnf with dnf5 backend)
           dnf:
+            use_backend: dnf5
             list: gpfs.base
             disablerepo: spectrum-scale-gpfs
             disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) | bool }}"
           register: scale_install_dnfpackagelist
-          when: ansible_pkg_mgr == 'dnf'
+          when: ansible_pkg_mgr == 'dnf5'
 
-        - name: install | Install GPFS packages
+        - name: install | Install GPFS packages (dnf with dnf5 backend)
           dnf:
+            use_backend: dnf5
             name: "{{ scale_install_all_packages }}"
             state: present
             disable_gpg_check: "{{ scale_disable_gpgcheck | default(false) | bool }}"
           register: scale_install_dnfpackageresult
-          when: ansible_pkg_mgr == 'dnf'
+          when: ansible_pkg_mgr == 'dnf5'
 
         - name: install | Check if GPFS packages were updated
           set_fact:
@@ -52,7 +54,7 @@
             - scale_install_dnfpackagelist is defined and scale_install_dnfpackagelist.results is defined and
               ("installed" in scale_install_dnfpackagelist.results | map(attribute='yumstate') | list)
             - scale_install_packageresult.changed | default(false) | bool or scale_install_dnfpackageresult.changed | default(false) | bool
-      when: ansible_pkg_mgr in ['yum', 'dnf']
+      when: ansible_pkg_mgr in ['yum', 'dnf', 'dnf5']
   when: not scale_daemon_running | bool
 
 - block:
@@ -62,15 +64,28 @@
        ignore_errors: true
        failed_when: false
        when:
-         - ansible_pkg_mgr in ['yum', 'dnf']
+         - ansible_pkg_mgr in ['yum', 'dnf', 'dnf5']
 
-     - name: install | Install GPFS scaleapi package
+     - name: install | Install GPFS scaleapi package (yum/dnf)
        dnf:
          name: "gpfs.scaleapi"
          state: present
        ignore_errors: true
        failed_when: false
        when:
+          - ansible_pkg_mgr in ['yum', 'dnf']
+          - package_name_scaleapi.rc is defined | bool
+          - package_name_scaleapi.rc != 0
+
+     - name: install | Install GPFS scaleapi package (dnf with dnf5 backend)
+       dnf:
+         use_backend: dnf5
+         name: "gpfs.scaleapi"
+         state: present
+       ignore_errors: true
+       failed_when: false
+       when:
+          - ansible_pkg_mgr == 'dnf5'
           - package_name_scaleapi.rc is defined | bool
           - package_name_scaleapi.rc != 0
   when: scale_scaleadmd is defined | bool

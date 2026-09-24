@@ -1,7 +1,17 @@
 ---
-- name: upgrade | Install Scale object packages
+- name: upgrade | Install Scale object packages (yum/dnf)
   dnf:
-   name: "{{ scale_install_all_packages }}"
-   state: latest
-   disable_gpg_check: "{{ scale_disable_gpgcheck }}"
-  when: ansible_pkg_mgr == 'dnf'
+    name: "{{ scale_install_all_packages }}"
+    state: latest
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when: ansible_pkg_mgr in ['yum', 'dnf']
+
+- name: upgrade | Install Scale object packages (dnf5)
+  dnf:
+    use_backend: dnf5
+    name: "{{ scale_install_all_packages }}"
+    state: latest
+    disable_gpg_check: "{{ scale_disable_gpgcheck }}"
+  when: ansible_pkg_mgr == 'dnf5'
+  ignore_errors: true
+  failed_when: false
