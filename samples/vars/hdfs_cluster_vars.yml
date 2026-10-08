@@ -3,7 +3,7 @@
 # samples/vars/hdfs_cluster_var.yml
 #
 
-#
+# IPv4 example — no interface settings required.
 scale_protocols:
   smb: false
   nfs: false
@@ -11,6 +11,21 @@ scale_protocols:
   export_ip_pool: [172.16.12.51, 172.16.12.53]
   filesystem: cesSharedRoot
   mountpoint: /gpfs/cesSharedRoot
+
+# IPv6 example — uncomment the lines below and replace with your actual values.
+# hdfs_interface is HDFS-exclusive: it registers the NIC only on HDFS namenodes
+# (via -N in mmces interface add) and has no effect on NFS/SMB/S3 nodes.
+# interface_mode must be true when any IPv6 CES addresses are in use.
+#
+# scale_protocols:
+#   smb: false
+#   nfs: false
+#   hdfs: true
+#   hdfs_interface: [eth0]
+#   interface_mode: true
+#   export_ip_pool: ["2002:90b:e006:84:250:56ff:feb9:7787/64"]
+#   filesystem: cesSharedRoot
+#   mountpoint: /gpfs/cesSharedRoot
 
 scale_hdfs_clusters:
   - name: mycluster

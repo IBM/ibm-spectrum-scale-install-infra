@@ -5,6 +5,7 @@
 - name: check | Initialize
   set_fact:
    scale_protocol_node_list: []
+   scale_ces_protocol_node_list: []
    scale_admin_node_list: []
    scale_os_list: []
    scale_arch_list: []
@@ -18,6 +19,25 @@
   set_fact:
     scale_protocol_node_list: "{{ scale_protocol_node_list + [hostvars[item]['inventory_hostname']] }}"
   when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
+  with_items:
+   - "{{ ansible_play_hosts }}"
+  delegate_to: localhost
+  run_once: true
+
+# Only needed when HDFS is enabled on an IPv6 network (interface_mode=true).
+# In that case HDFS namenodes carry scale_protocol_node=true but must NOT be
+# included in the NFS/SMB/S3 mmces interface add -N scope.
+# For all other deployments (IPv4, or no HDFS) this task is skipped entirely
+# and scale_ces_protocol_node_list stays empty — the configure.yml task that
+# uses it falls back to the original untouched path (no -N flag).
+- name: check | Collect non-HDFS protocol nodes (NFS/SMB/S3) for IPv6 interface scoping
+  set_fact:
+    scale_ces_protocol_node_list: "{{ scale_ces_protocol_node_list + [hostvars[item]['inventory_hostname']] }}"
+  when:
+    - scale_protocols.hdfs is defined and scale_protocols.hdfs | bool
+    - scale_protocols.interface_mode is defined and scale_protocols.interface_mode | bool
+    - hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
+    - not (hostvars[item]['scale_hdfs_node'] is defined and hostvars[item]['scale_hdfs_node']|bool)
   with_items:
    - "{{ ansible_play_hosts }}"
   delegate_to: localhost

@@ -14,14 +14,18 @@ scale_protocols:
   filesystem: cesSharedRoot
   mountpoint: /gpfs/cesSharedRoot
 
-# Note that for enabling Cluster Export Services in an IPv6 environment one also
-# needs to define an `interface` parameter:
-
+# For IPv6 with NFS/SMB/S3 protocols, also define `interface` (the NIC for
+# these protocol nodes only) and use CIDR notation for export_ip_pool:
+#
 # scale_protocols:
 #   smb: true
 #   nfs: true
 #   object: true
 #   interface: [eth0]
-#   export_ip_pool: ["2002:90b:e006:84:250:56ff:feb9:7787"]
+#   interface_mode: true
+#   export_ip_pool: ["2002:90b:e006:84:250:56ff:feb9:7787/64"]
 #   filesystem: cesSharedRoot
 #   mountpoint: /gpfs/cesSharedRoot
+#
+# Note: `interface` here applies ONLY to NFS/SMB/S3 protocol nodes (-N scoped).
+# HDFS nodes use a separate `hdfs_interface` key defined in hdfs_cluster_vars.yml.

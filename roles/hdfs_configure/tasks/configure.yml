@@ -208,6 +208,23 @@
   run_once: true
   delegate_to: "{{ scale_server }}"
 
+# Register the NIC for the HDFS CES group — scoped exclusively to HDFS
+# namenodes via -N so it never touches NFS/SMB/S3 protocol nodes.
+# Uses scale_protocols.hdfs_interface, a separate key from scale_protocols.interface
+# (which belongs to NFS/SMB/S3). If hdfs_interface is not set, this task is
+# skipped (IPv4-only or already-configured deployments are unaffected).
+- name: configure | Add IPv6 interface for HDFS nodes
+  shell:
+    cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }} -N {{ scale_hdfs_namenodes_list | join(',') }}"
+  when:
+    - scale_protocols.hdfs_interface is defined
+    - scale_protocols.hdfs_interface | length > 0
+    - scale_hdfs_namenodes_list | length > 0
+  with_items:
+    - "{{ scale_protocols.hdfs_interface }}"
+  run_once: true
+  delegate_to: "{{ scale_server }}"
+
 - block:
    - name: configure | Configuare core-site.xml
      set_fact:

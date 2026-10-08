@@ -238,10 +238,28 @@
   async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
 
+# Original task — completely unchanged, runs for all non-HDFS+IPv6 deployments.
 - name: configure | Add IPv6 interface
   shell:
    cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
-  when: scale_protocols.interface is defined and scale_protocols.interface|length > 0
+  when:
+    - scale_protocols.interface is defined and scale_protocols.interface|length > 0
+    - not (scale_protocols.hdfs is defined and scale_protocols.hdfs | bool
+        and scale_protocols.interface_mode is defined and scale_protocols.interface_mode | bool)
+  with_items:
+  - "{{ scale_protocols.interface }}"
+  delegate_to: "{{ scale_protocol_node_list.0 }}"
+  run_once: true
+
+# HDFS + IPv6 only: same command but scoped to NFS/SMB/S3 nodes via -N so
+# HDFS namenodes are excluded. Does not run for any other deployment.
+- name: configure | Add IPv6 interface (HDFS+IPv6, scoped to NFS/SMB/S3 nodes)
+  shell:
+   cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }} -N {{ scale_ces_protocol_node_list | join(',') }}"
+  when:
+    - scale_protocols.interface is defined and scale_protocols.interface|length > 0
+    - scale_protocols.hdfs is defined and scale_protocols.hdfs | bool
+    - scale_protocols.interface_mode is defined and scale_protocols.interface_mode | bool
   with_items:
   - "{{ scale_protocols.interface }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"
