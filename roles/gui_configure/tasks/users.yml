@@ -24,7 +24,7 @@
 # Create Local GUI Admin User
 #
 - name: users | Create local Admin user for GUI
-  shell: /usr/lpp/mmfs/gui/cli/mkuser "{{ scale_gui_admin_user }}" -g "{{ scale_gui_admin_role }}" -p "{{ scale_gui_admin_password }}"
+  shell: /usr/lpp/mmfs/gui/cli/mkuser "{{ scale_gui_admin_user }}" -g "{{ scale_gui_admin_role }}" -p "{{ scale_gui_admin_password }}" -e 1
   run_once: true
   register: scale_gui_conf_createadmin
   failed_when: " 'EFSSG1000I' not in scale_gui_conf_createadmin.stdout"
@@ -38,7 +38,7 @@
 #
 
 - name: users | Create local user for GUI
-  shell: /usr/lpp/mmfs/gui/cli/mkuser "{{ scale_gui_user_username }}" -g "{{ scale_gui_user_role }}" -p "{{ scale_gui_user_password }}"
+  shell: /usr/lpp/mmfs/gui/cli/mkuser "{{ scale_gui_user_username }}" -g "{{ scale_gui_user_role }}" -p "{{ scale_gui_user_password }}" -e 1
   run_once: true
   register: scale_gui_conf_create_gui_user
   failed_when: " 'EFSSG1000I' not in scale_gui_conf_create_gui_user.stdout"
