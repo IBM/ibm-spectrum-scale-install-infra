@@ -5,6 +5,7 @@
 - name: check | Initialize
   set_fact:
    scale_protocol_node_list: []
+   scale_ces_protocol_node_list: []
    scale_admin_node_list: []
    scale_os_list: []
    scale_arch_list: []
@@ -18,6 +19,20 @@
   set_fact:
     scale_protocol_node_list: "{{ scale_protocol_node_list + [hostvars[item]['inventory_hostname']] }}"
   when: hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
+  with_items:
+   - "{{ ansible_play_hosts }}"
+  delegate_to: localhost
+  run_once: true
+
+# Build a sub-list of protocol nodes that are NOT HDFS nodes.
+# HDFS namenodes carry scale_protocol_node=true (they are CES-enabled) but must
+# NEVER be included in the NFS/SMB/S3 interface registration (-N scope).
+- name: check | Collect non-HDFS protocol nodes (NFS/SMB/S3)
+  set_fact:
+    scale_ces_protocol_node_list: "{{ scale_ces_protocol_node_list + [hostvars[item]['inventory_hostname']] }}"
+  when:
+    - hostvars[item]['scale_protocol_node'] is defined and hostvars[item]['scale_protocol_node']|bool
+    - not (hostvars[item]['scale_hdfs_node'] is defined and hostvars[item]['scale_hdfs_node']|bool)
   with_items:
    - "{{ ansible_play_hosts }}"
   delegate_to: localhost

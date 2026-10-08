@@ -238,10 +238,16 @@
   async: "{{ scale_command_timeout | default(300) }}"
   poll: 5
 
-- name: configure | Add IPv6 interface
+# Register the NIC only for NFS/SMB/S3 protocol nodes.
+# HDFS namenodes are excluded via scale_ces_protocol_node_list; they get their
+# own mmces interface add in hdfs_configure using scale_protocols.hdfs_interface.
+- name: configure | Add IPv6 interface for NFS/SMB/S3 nodes
   shell:
-   cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }}"
-  when: scale_protocols.interface is defined and scale_protocols.interface|length > 0
+   cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }} -N {{ scale_ces_protocol_node_list | join(',') }}"
+  when:
+    - scale_protocols.interface is defined
+    - scale_protocols.interface | length > 0
+    - scale_ces_protocol_node_list | length > 0
   with_items:
   - "{{ scale_protocols.interface }}"
   delegate_to: "{{ scale_protocol_node_list.0 }}"

@@ -3,19 +3,20 @@
 #- name: Create the required groups
 - hosts: localhost
   connection: local
+  gather_facts: false
 
   tasks:
   - name: Read all intermediate output from Resource Details
     include_vars:
        file: vars/scale_clusterdefinition.json
     register: scale_json
-    when: scale_cluster_definition_path is not defined
+    when: cluster_inventory_file is undefined
 
-  - name: Read all intermediate output from defined Resource Details
+  - name: Read all intermediate output from user defined Resource Details
     include_vars:
-       file: "{{ scale_cluster_definition_path }}"
-    register: scale_json_defined
-    when: scale_cluster_definition_path is defined
+       file: "{{ cluster_inventory_file }}"
+    register: scale_json_cloud
+    when: cluster_inventory_file is defined
 
   - name: Check valid json file
     assert:
@@ -25,45 +26,67 @@
         vars directory. Make sure that this file is present
         in the vars directory along with all required
         Ansible scale inventory.
-    when: scale_json.failed is defined
+    when: cluster_inventory_file is undefined
+
+  - name: Check valid json file
+    assert:
+      that: scale_json_cloud.failed == false
+      msg: >-
+        scale_clusterdefinition.json is not present in the
+        vars directory. Make sure that this file is present
+        in the vars directory along with all required
+        Ansible scale inventory.
+    when: cluster_inventory_file is defined
 
   - name: Pass all inputs related to creating Spectrum Scale cluster to all nodes
     add_host:
      name: "{{ item.fqdn }}"
      groups: scale_node
-     scale_storage: "{{ scale_storage | default(omit) }}"
+     scale_disks: "{{ scale_disks | default(omit) }}"
+     scale_filesystem: "{{ scale_filesystem | default(omit) }}"
      scale_cluster_quorum: "{{ item.is_quorum_node | default(false) }}"
      scale_cluster_manager: "{{ item.is_manager_node | default(false) }}"
      scale_cluster_gui: "{{ item.is_gui_server | default(false) }}"
-     scale_zimon_collector: "{{ item.is_collector_node | default(false) }}"
-     scale_nsd_server: "{{ item.is_nsd_server | default(false) }}"
-     state: "{{ item.state | default('present') }}"
+     scale_zimon_collector: "{{ item.scale_zimon_collector | default(false) }}"
+     scale_state: "{{ item.state | default('present') }}"
      scale_admin_node: "{{ item.is_admin_node | default('true') }}"
+     scale_daemon_nodename: "{{ item.scale_daemon_nodename | default(omit) }}"
      scale_nodeclass: "{{ item.scale_nodeclass | default(omit) }}"
+     node_cert: "{{ item.cert | default(omit) }}"
+     node_cert_key: "{{ item.key | default(omit) }}"
+     node_cert_chain: "{{ item.chain | default(omit) }}"
+     cert_dir_location: "{{ item.cert_dir_location | default(omit) }}"
      scale_config: "{{ scale_config | default(omit) }}"
      ansible_ssh_private_key_file: "{{ item.ansible_ssh_private_key_file | default(omit) }}"
      scale_cluster_clustername: "{{ scale_cluster.scale_cluster_name | default('gpfs1.local') }}"
-     scale_cluster_profile_name: "{{ scale_cluster.scale_cluster_profile_name | default(omit) }}"
-     scale_cluster_profile_dir_path: "{{ scale_cluster.scale_cluster_profile_dir_path | default(omit) }}"
+     scale_cluster_profile_name: "{{ scale_cluster.profile | default(gpfsprotocoldefaults) }}"
+     scale_cluster_profile_dir_path: "{{ scale_cluster.profile_dir_path | default(omit) }}"
      scale_service_gui_start: "{{ scale_cluster.scale_service_gui_start | default(true) }}"
-     scale_gui_admin_user: "{{ scale_cluster.scale_gui_admin_user | default(omit) }}"
-     scale_gui_admin_password: "{{ scale_cluster.scale_gui_admin_password | default(omit) }}"
-     scale_gui_admin_role: "{{ scale_cluster.scale_gui_admin_role | default(omit) }}"
-     scale_remotemount_client_gui_username: "{{ scale_remotemount.client_gui_username | default(omit) }}"
-     scale_remotemount_client_gui_password: "{{ scale_remotemount.client_gui_password | default(omit) }}"
-     scale_remotemount_client_gui_hostname: "{{ scale_remotemount.client_gui_hostname | default(omit) }}"
-     scale_remotemount_client_filesystem_name: "{{ scale_remotemount.client_filesystem_name | default(omit) }}"
-     scale_remotemount_client_remotemount_path: "{{ scale_remotemount.client_remotemount_path | default(omit) }}"
-     scale_remotemount_storage_gui_username: "{{ scale_remotemount.storage_gui_username | default(omit) }}"
-     scale_remotemount_storage_gui_password: "{{ scale_remotemount.storage_gui_password | default(omit) }}"
-     scale_remotemount_storage_gui_hostname: "{{ scale_remotemount.storage_gui_hostname | default(omit) }}"
-     scale_remotemount_storage_filesystem_name: "{{ scale_remotemount.storage_filesystem_name | default(omit) }}"
      scale_sync_replication_config: "{{ scale_cluster.scale_sync_replication_config | default(false) }}"
      scale_protocol_node: "{{ item.is_protocol_node | default(false) }}"
+     scale_hdfs_node: "{{ item.is_hdfs | default(false) }}"
      scale_callhome_params: "{{ scale_callhome_params | default(omit) }}"
      scale_protocols: "{{ scale_protocols | default(omit) }}"
-     scale_hdfs_cluster: "{{ scale_hdfs_cluster | default(omit) }}"
+     scale_install_repository_url: "{{scale_cluster.scale_install_repository_url}}"
+     scale_version: "{{scale_cluster.scale_version}}"
+     setuptype: "{{scale_cluster.setuptype}}"
+     scale_ece_rg: "{{ scale_ece_rg | default(omit) }}"
+     scale_ece_vdisk: "{{ scale_ece_vdisk | default(omit) }}"
+     scale_ece_filesystem: "{{ scale_ece_filesystem | default(omit) }}"
+     scale_out_node: "{{ item.is_mestor_node | default(false) }}"
+     scale_zimon_enabled: "{{ scale_cluster.enable_perf_reconfig | default(false) }}"
+     scale_fal_enabled: "{{ scale_cluster.auditlogin | default(false) }}"
+     scale_hdfs_clusters: "{{ scale_hdfs_clusters | default(omit) }}"
+     scale_node_role_change: "{{ scale_cluster.scale_node_role_change | default(false) }}"
+     ansible_python_interpreter: "{{'/usr/bin/python2' if item.os == 'rhel7' | default('/usr/bin/python3') else ( 'auto' | default('/usr/bin/python3') if item.os == 'rhel8' else '/usr/bin/python3' )}}"
+     scale_ces_obj: "{{ scale_ces_obj | default(omit) }}"
+     scale_node_update_check: false
+     scale_install_needsupdate: false
+     scale_nfs_install_debuginfo: true
+     scale_falpkg_install: "{{ scale_cluster.scale_falpkg_install | default(true) }}"
+     scale_afmcospkg_install: "{{ scale_cluster.scale_afmcospkg_install | default(true) }}"
      scale_cluster_config: "{{ scale_cluster | default(omit) }}"
-    loop: "{{ node_details }}"
+     scale_node_id_config: "{{ scale_node_id_config | default(omit) }}"
+    loop: "{{ node_details | selectattr('is_node_excluded', 'equalto', false) | list }}"
   tags:
   - scale_inventory
