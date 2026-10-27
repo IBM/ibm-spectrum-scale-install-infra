@@ -89,18 +89,14 @@
 
 - name: check | Verify existing ces ip
   shell:
-    cmd: "/usr/lpp/mmfs/bin/mmces address list|grep -w {{ scale_hdfs_ces_group_name }}|awk '{print $1}'"
+    cmd: "mmces address list -Y|grep -w {{ scale_hdfs_ces_group_name }}|awk -F: '{print $7}'"
   register: scale_existing_ces_ip
   delegate_to: "{{ scale_server }}"
   run_once: true
-  failed_when: false
 
 - name: check | Check free ces ip
   shell:
-    cmd: >
-      /usr/lpp/mmfs/bin/mmces address list -Y |
-      awk -F: '(length($9) == 0){print $7}' |
-      while read enc; do /usr/lpp/mmfs/bin/mmclidecode "$enc"; done
+   cmd: "mmces address list -Y|awk -F: '(length($9) == 0){print $7}'"
   register: scale_free_ces
   delegate_to: "{{ scale_server }}"
   run_once: true
@@ -180,48 +176,6 @@
 - name: Configure | Set JAVA_HOME
   command: "/usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k JAVA_HOME={{ javahome_path.stdout }}"
   register: javahome
-  run_once: true
-  delegate_to: "{{ scale_server }}"
-
-# ---------------------------------------------------------------------------
-# IPv6 support — interface_mode is set to True by Python (cli/config.py)
-# whenever IPv6 CES IPs are configured, identical to the NFS/SMB flow in
-# ces_common. No regex detection needed here.
-# ---------------------------------------------------------------------------
-
-# Enable IPv6 networking in HDFS: set HADOOP_ALLOW_IPV6=yes in hadoop-env.sh
-- name: configure | Enable HADOOP_ALLOW_IPV6 for IPv6 CES networking
-  command: "/usr/lpp/mmfs/hadoop/sbin/mmhdfs config set hadoop-env.sh -k HADOOP_ALLOW_IPV6=yes"
-  when:
-    - scale_protocols.interface_mode is defined
-    - scale_protocols.interface_mode | bool
-  run_once: true
-  delegate_to: "{{ scale_server }}"
-
-# Switch CES from default legacy mode to interface mode (required for IPv6)
-- name: configure | Set CES interface mode to 'interface' for IPv6 support
-  shell:
-    cmd: "{{ scale_command_path }}mmces interface mode interface --force"
-  when:
-    - scale_protocols.interface_mode is defined
-    - scale_protocols.interface_mode | bool
-  run_once: true
-  delegate_to: "{{ scale_server }}"
-
-# Register the NIC for the HDFS CES group — scoped exclusively to HDFS
-# namenodes via -N so it never touches NFS/SMB/S3 protocol nodes.
-# Uses scale_protocols.hdfs_interface, a separate key from scale_protocols.interface
-# (which belongs to NFS/SMB/S3). If hdfs_interface is not set, this task is
-# skipped (IPv4-only or already-configured deployments are unaffected).
-- name: configure | Add IPv6 interface for HDFS nodes
-  shell:
-    cmd: "{{ scale_command_path }}mmces interface add --nic {{ item }} -N {{ scale_hdfs_namenodes_list | join(',') }}"
-  when:
-    - scale_protocols.hdfs_interface is defined
-    - scale_protocols.hdfs_interface | length > 0
-    - scale_hdfs_namenodes_list | length > 0
-  with_items:
-    - "{{ scale_protocols.hdfs_interface }}"
   run_once: true
   delegate_to: "{{ scale_server }}"
 
@@ -359,8 +313,7 @@
        - check_hdfs_ces_group.rc == 0
 
    - name: configure | Configure CES IP
-     shell:
-       cmd: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip[0] }}"
+     command: "/usr/lpp/mmfs/bin/mmces address change --ces-group {{ scale_hdfs_ces_group_name }} --ces-ip {{ scale_hdfs_ces_ip[0] }}"
      register: add_cesip
      when:
        - scale_hdfs_ces_ip is defined
