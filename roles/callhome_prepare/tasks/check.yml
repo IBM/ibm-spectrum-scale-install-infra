@@ -19,7 +19,7 @@
      - scale_callhome_params.customer_id is defined
      - scale_callhome_params.customer_country is defined
      - scale_callhome_params.customer_country | length > 0
-     fail_msg: "Callhome customer information is not defined."
+     fail_msg: "Callhome customer information is not defined. Starting with IBM Storage Scale 6.0.2.0, callhome is mandatory and cannot be disabled. Configure callhome using './spectrumscale callhome config -n <customer_name> -i <customer_id> -e <customer_email> -cn <customer_country>'. If callhome cannot be configured due to site, security, or other restrictions, generate a machine signature using './spectrumscale callhome generate_signature -n <customer_name>', obtain an exemption code from IBM, and apply it using './spectrumscale callhome set_exemption_code <exemption_code>'. Contact IBM Support for more information."
      success_msg: "Customer information is defined. Proceeding to check if proxy is enabled"
     when: ansible_hostname == scale_callhome_params.callhome_server
 
