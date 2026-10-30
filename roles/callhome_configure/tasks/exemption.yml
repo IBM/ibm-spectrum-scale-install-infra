@@ -1,0 +1,20 @@
+---
+# Exemption mode: callhome could not be configured on this site. Apply the
+# machine signature and the IBM issued exemption code to CCR only.
+- block:
+  - name: exemption | Set the call home customer name
+    shell:
+     cmd: "{{ scale_command_path }}mmcallhome info change --customer-name \"{{ scale_callhome_params.customer_name }}\""
+    when: scale_callhome_params.customer_name is defined and scale_callhome_params.customer_name | length > 0
+
+  - name: exemption | Persist the machine signature to CCR
+    shell:
+     cmd: "{{ scale_command_path }}mmsysmonc callhome changeConfig machine-signature \"{{ scale_callhome_params.machine_signature }}\""
+
+  - name: exemption | Apply the exemption code to CCR
+    shell:
+     cmd: "{{ scale_command_path }}mmcallhome info change --exemption-code {{ scale_callhome_params.exemption_code }}"
+
+  - debug:
+     msg: "Machine signature and exemption code applied. Callhome is not configured."
+  run_once: true
