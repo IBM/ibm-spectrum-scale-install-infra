@@ -65,7 +65,20 @@
       register: scale_storage_stanzafile_new
 
     - name: storage | Accept server license for NSD servers
-      command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N "{{ scale_storage_nsdservers | join(',') }}"
+      vars:
+        # Each entry is a comma separated server list (one per disk), possibly
+        # fully qualified. Match every server to its inventory host and use that
+        # host's scale_daemon_nodename, i.e. the name the node was added to the
+        # cluster with, so this works for short names and FQDNs alike.
+        nsd_server_list: "{{ (scale_storage_nsdservers | join(',')).split(',') | unique | list }}"
+        nsd_server_short: "{{ nsd_server_list | map('regex_replace', '[.].*$', '') | list }}"
+        nsd_license_nodes: >-
+          {% set ns = namespace(nodes=[]) -%}
+          {% for h in ansible_play_hosts if (h in nsd_server_list or h.split('.')[0] in nsd_server_short) -%}
+          {% set ns.nodes = ns.nodes + [hostvars[h].scale_daemon_nodename] -%}
+          {% endfor -%}
+          {{ (ns.nodes if ns.nodes | length > 0 else nsd_server_list) | unique | join(',') }}
+      command: /usr/lpp/mmfs/bin/mmchlicense server --accept -N "{{ nsd_license_nodes }}"
       when:
         - scale_storage_stanzafile_new.size > 1
         - scale_storage_stanzafile_new is changed
