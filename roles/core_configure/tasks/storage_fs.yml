@@ -135,6 +135,11 @@
       with_items: "{{ scale_storage_fsdef | default([]) | unique }}"
       changed_when: false
       register: scale_mount_fs
+      # mmmount can transiently fail, e.g. when another mm command holds
+      # mmfsEnvLock on a node
+      until: scale_mount_fs.rc == 0
+      retries: 3
+      delay: 30
 
     - name: cluster | Copy filesystem stanza for new filesystem(s)
       copy:
