@@ -162,6 +162,12 @@
         - item.size > 1
         - scale_storage_fsparams[item.item].automaticMountOption | default(scale_storage_filesystem_defaults.automaticMountOption)
       with_items: "{{ scale_storage_stanzafile_new.results }}"
+      register: scale_mount_fs
+      # mmmount can transiently fail, e.g. when another mm command holds
+      # mmfsEnvLock on a node
+      until: scale_mount_fs.rc == 0
+      retries: 3
+      delay: 30
 
 #
 # Add disks to existing filesystems
