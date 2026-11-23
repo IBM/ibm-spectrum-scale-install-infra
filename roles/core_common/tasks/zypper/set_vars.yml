@@ -5,3 +5,21 @@
     scaleapi_gpfs_path_url: '{{ scale_extracted_path }}/scaleapi_rpms'
   when:
     - scale_install_localpkg_path is defined or scale_install_remotepkg_path is defined
+
+# Zypper classifies third-party RPMs (e.g. gpfs.*) as <_unsupported> on SLES
+# nodes where the solver support-check policy is active.  When packages land in
+# that bucket, zypper raises an interactive "Continue?" prompt even under
+# --non-interactive and exits non-zero (rc=4 on SLES 16, rc=8 on SLES 15 SP7),
+# causing the toolkit's zypper module to fail_json.
+# Setting solver.allowUnsupportedRPMPackages=true in zypp.conf suppresses the
+# prompt entirely before any install task runs.
+# The lineinfile module is idempotent: it is a no-op if the setting is already
+# present.  The task is already SLES-only because this file is only included
+# when ansible_distribution in scale_sles_distribution.
+- name: set | Allow unsupported RPM packages (suppress zypper unsupported-pkg prompt)
+  lineinfile:
+    path: /etc/zypp/zypp.conf
+    regexp: '^solver\.allowUnsupportedRPMPackages'
+    line: 'solver.allowUnsupportedRPMPackages = true'
+    state: present
+
