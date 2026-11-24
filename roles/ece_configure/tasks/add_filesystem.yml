@@ -33,10 +33,11 @@
     - name: add | Add NSDs to filesystem with performance pool
       command: "{{ scale_command_path }}mmvdisk filesystem add --fs {{ item.filesystem }} --nsd {{ item.nsd_list }} {{ pool_options }}"
       register: scale_fs_add_nsd
-      failed_when: scale_fs_add_nsd.rc != 0
+      failed_when: scale_fs_add_nsd.rc != 0 and 'already belongs to file system' not in scale_fs_add_nsd.stderr
       when:
         - item.filesystem in scale_existing_fs.stdout_lines
         - item.filesystem is defined
+        - item.nsd_list is defined
 
     - debug:
          msg: "{{ scale_fs_add_nsd.cmd }}"
@@ -49,8 +50,7 @@
       when:
         - item.filesystem in scale_existing_fs.stdout_lines
         - item.filesystem is defined
-        - item.set_perf_replicas is defined
-        - item.set_perf_replicas | bool
+        - item.nsd_list is defined or (item.set_perf_replicas | default(false) | bool)
 
     - debug:
          msg: "{{ scale_fs_perf_replicas.cmd }}"
