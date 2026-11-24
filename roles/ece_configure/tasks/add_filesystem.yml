@@ -13,7 +13,7 @@
 
     - name: add | Set pool options with user-defined or default values
       set_fact:
-          pool_options: "--pools {{ item.pool_name }},performancePool={{ item.performancePool | default('yes') }},allowWriteAffinity={{ item.allowWriteAffinity | default('yes') }},writeAffinityDepth={{ item.writeAffinityDepth | default('1') }},layoutMap={{ item.layoutMap | default('cluster') }},blockSize={{ item.blockSize | default('8M') }}"
+          pool_options: "--pools {{ item.pool_name }},performancePool={{ item.performancePool | default('yes') }},allowWriteAffinity={{ item.allowWriteAffinity | default('yes') }},writeAffinityDepth={{ item.writeAffinityDepth | default('1') }},layoutMap={{ item.layoutMap | default('cluster') }}{{ (',blockSize=' + item.blockSize) if item.blockSize is defined else '' }}"
       when:
          - item.pool_name is defined
 
